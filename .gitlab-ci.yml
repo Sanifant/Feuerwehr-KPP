@@ -12,6 +12,9 @@ stages:
   - deploy
 
 # ### Default Docker Image for .NET 10
+# Note: If mcr.microsoft.com/dotnet/sdk:10.0 is not available yet,
+# use the latest preview or nightly build image
+# Alternative: mcr.microsoft.com/dotnet/nightly/sdk:10.0-preview
 image: mcr.microsoft.com/dotnet/sdk:10.0
 
 # ### Define variables
@@ -335,16 +338,23 @@ build:docker-api:
   stage: package
   needs: ['package:web-api']
   script:
-    - cd $SOURCE_CODE_PATH/Web/de.openelp.feuerwehr
+    - echo "Building Docker image for Web API..."
+    - cd $SOURCE_CODE_PATH
     - |
-      docker build -t $DOCKER_IMAGE_API:$CI_COMMIT_SHORT_SHA \
-                   -t $DOCKER_IMAGE_API:latest \
-                   -f Dockerfile .
+      docker build \
+        -t $DOCKER_IMAGE_API:$CI_COMMIT_SHORT_SHA \
+        -t $DOCKER_IMAGE_API:$CI_COMMIT_REF_SLUG \
+        -t $DOCKER_IMAGE_API:latest \
+        -f Web/de.openelp.feuerwehr/Dockerfile \
+        .
+    - echo "Pushing images to registry..."
     - docker push $DOCKER_IMAGE_API:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_IMAGE_API:$CI_COMMIT_REF_SLUG
     - docker push $DOCKER_IMAGE_API:latest
   only:
     - main
     - master
+    - develop
     - tags
   when: manual
 
