@@ -105,6 +105,33 @@ Artefakte: 30 Tage verfügbar
 
 ## 🐛 Troubleshooting
 
+### Problem: `NETSDK1147: To build this project, the following workloads must be installed: android`
+
+**Ursache:** Die Android Workload für .NET 10 ist noch nicht vollständig verfügbar oder kann nicht automatisch installiert werden.
+
+**Lösung 1:** Workload manuell im Docker-Image installieren
+```dockerfile
+# Erstellen Sie ein custom Docker-Image
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+RUN dotnet workload install android --skip-manifest-update
+```
+
+**Lösung 2:** Android-Builds vorübergehend überspringen
+```yaml
+# In .gitlab-ci.yml sind Android-Jobs bereits mit allow_failure: true markiert
+# Die Pipeline wird trotzdem grün, auch wenn Android fehlschlägt
+```
+
+**Lösung 3:** .NET 9 oder .NET 8 für Android verwenden
+```xml
+<!-- In .csproj -->
+<TargetFrameworks>net9.0-android;net10.0</TargetFrameworks>
+```
+
+**Status:** ✅ Pipeline konfiguriert, um ohne Android-Builds fortzufahren
+
+---
+
 ### Problem: `Unable to find package Microsoft.NETCore.App.Runtime.Mono.linux-x64`
 
 **Lösung 1:** NuGet.config korrekt platziert

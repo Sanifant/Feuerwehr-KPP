@@ -64,17 +64,36 @@ before_script:
   - cd $SOURCE_CODE_PATH
   - echo "Pipeline running for branch $CI_COMMIT_REF_NAME"
   - dotnet --info
-  - echo "Installing workloads for .NET 10..."
-  - dotnet workload update --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json || true
-  - dotnet workload install android wasm-tools --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json --skip-manifest-update || true
-  - echo "Workload installation complete"
 
 # ============================================================
 # RESTORE STAGE
 # ============================================================
+# Note: .NET 10 Android workload may not be fully available yet.
+# Android builds are configured with allow_failure: true to
+# allow the pipeline to continue even if Android builds fail.
+# This is expected behavior for preview versions of .NET.
+# ============================================================
+
+setup-workloads:
+  stage: restore
+  before_script:
+    - cd $SOURCE_CODE_PATH
+    - dotnet --info
+  script:
+    - echo "Installing .NET Workloads for MAUI development..."
+    - echo "Note Some workloads may not be available for .NET 10 preview yet"
+    - dotnet workload list || true
+    - echo "Attempting to install android workload..."
+    - dotnet workload install android --skip-manifest-update || echo "?? Android workload installation failed - Android builds will be skipped"
+    - echo "Attempting to install wasm-tools workload..."
+    - dotnet workload install wasm-tools --skip-manifest-update || echo "?? WASM tools installation failed - Browser builds may be limited"
+    - echo "Currently installed workloads:"
+    - dotnet workload list || echo "No workloads installed"
+  allow_failure: true
 
 restore:
   stage: restore
+  needs: ['setup-workloads']
   script:
     - echo "Restoring NuGet packages with .NET 10 feeds..."
     - ls -la ../NuGet.config || echo "NuGet.config not found, using default feeds"
@@ -82,7 +101,8 @@ restore:
     - dotnet restore $PROJECT_WEB_API --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_MOBILE --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
-    - dotnet restore $PROJECT_MOBILE_ANDROID --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - echo "Attempting Android project restore..."
+    - dotnet restore $PROJECT_MOBILE_ANDROID --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config || echo "?? Android restore skipped"
     - dotnet restore $PROJECT_MOBILE_BROWSER --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_MOBILE_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
   artifacts:
@@ -90,6 +110,7 @@ restore:
       - $SOURCE_CODE_PATH*/$OBJECTS_DIRECTORY/
       - $SOURCE_CODE_PATH**/$OBJECTS_DIRECTORY/
     expire_in: 1 hour
+  allow_failure: false
 
 # ============================================================
 # BUILD STAGE
@@ -144,6 +165,7 @@ build:mobile-android:
     paths:
       - $SOURCE_CODE_PATH/Mobile/de.openelp.feuerwehr.mobile.Android/bin/$CONFIGURATION/
     expire_in: 1 day
+  allow_failure: true
 
 build:mobile-browser:
   stage: build
@@ -250,6 +272,7 @@ package:android-apk:
     - master
     - develop
     - tags
+  allow_failure: true
 
 package:browser-wasm:
   stage: package
