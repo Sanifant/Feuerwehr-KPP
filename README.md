@@ -1,78 +1,75 @@
-## Introduction
+# Feuerwehr
 
-This is a simple pipeline example for a .NET Core application, showing just
-how easy it is to get up and running with .NET development using GitLab.
+Monorepo fuer die Feuerwehr-Anwendung auf Basis von .NET 10 und Avalonia.
 
-# Reference links
+## Einsatzkontext
 
-- [GitLab CI Documentation](https://docs.gitlab.com/ee/ci/)
-- [.NET Hello World tutorial](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/)
+Die Software ist fuer den kommunalen Einsatz bei Feuerwehren vorgesehen.
+Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Behoerden- und Leitstellenumgebungen.
 
-If you're new to .NET you'll want to check out the tutorial, but if you're
-already a seasoned developer considering building your own .NET app with GitLab,
-this should all look very familiar.
+## Nicht-funktionale Leitplanken
 
-## What's contained in this project
+- Hohe Verfuegbarkeit im Einsatzbetrieb
+- Nachvollziehbarkeit von Aenderungen und Prozessen
+- Datenschutzgerechte Verarbeitung einsatzrelevanter Daten
+- Rollenbasierte Nutzung und klare Berechtigungskonzepte
 
-The root of the repository contains the out of the `dotnet new console` command,
-which generates a new console application that just prints out "Hello, World."
-It's a simple example, but great for demonstrating how easy GitLab CI is to
-use with .NET. Check out the `Program.cs` and `dotnetcore.csproj` files to
-see how these work.
+## Projektueberblick
 
-In addition to the .NET Core content, there is a ready-to-go `.gitignore` file
-sourced from the the .NET Core [.gitignore](https://github.com/dotnet/core/blob/master/.gitignore). This
-will help keep your repository clean of build files and other configuration.
+Die Solution liegt unter `src/de.openelp.feuerwehr.slnx` und umfasst:
 
-Finally, the `.gitlab-ci.yml` contains the configuration needed for GitLab
-to build your code. Let's take a look, section by section.
+- Common: Geteilte Modelle und Kernlogik
+- Desktop: Avalonia Desktop-Anwendung
+- Mobile: Avalonia Shared UI plus Plattform-Hosts (Android, iOS, Browser, Desktop)
+- Web: ASP.NET Core Web API
 
-First, we note that we want to use the official Microsoft .NET SDK image
-to build our project.
+## Voraussetzungen
 
-```
-image: microsoft/dotnet:latest
-```
+- .NET SDK 10.0
+- Fuer Mobile-Targets zusaetzlich:
+    - Android SDK/Workloads
+    - Xcode/Apple Tooling fuer iOS (unter macOS)
 
-We're defining two stages here: `build`, and `test`. As your project grows
-in complexity you can add more of these.
+## Build
 
-```
-stages:
-    - build
-    - test
+Aus dem Repo-Root:
+
+```bash
+dotnet restore src/de.openelp.feuerwehr.slnx
+dotnet build src/de.openelp.feuerwehr.slnx
 ```
 
-Next, we define our build job which simply runs the `dotnet build` command and
-identifies the `bin` folder as the output directory. Anything in the `bin` folder
-will be automatically handed off to future stages, and is also downloadable through
-the web UI.
+## Starten
 
-```
-build:
-    stage: build
-    script:
-        - "dotnet build"
-    artifacts:
-      paths:
-        - bin/
+Web API:
+
+```bash
+dotnet run --project src/Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj
 ```
 
-Similar to the build step, we get our test output simply by running `dotnet test`.
+Desktop-App:
 
-```
-test:
-    stage: test
-    script: 
-        - "dotnet test"
+```bash
+dotnet run --project src/Desktop/de.openelp.feuerwehr.desktop/de.openelp.feuerwehr.desktop.csproj
 ```
 
-This should be enough to get you started. There are many, many powerful options 
-for your `.gitlab-ci.yml`. You can read about them in our documentation 
-[here](https://docs.gitlab.com/ee/ci/yaml/).
+Mobile Browser Host:
 
-## Developing with Gitpod
+```bash
+dotnet run --project src/Mobile/de.openelp.feuerwehr.mobile.Browser/de.openelp.feuerwehr.mobile.Browser.csproj
+```
 
-This template repository also has a fully-automated dev setup for [Gitpod](https://docs.gitlab.com/ee/integration/gitpod.html).
+## Changelog
 
-The `.gitpod.yml` ensures that, when you open this repository in Gitpod, you'll get a cloud workspace with .NET Core pre-installed, and your project will automatically be built and start running.
+Historie und relevante Aenderungen findest du in `CHANGELOG.md`.
+
+## Weitere Dokumente
+
+- Sicherheit: `Security.md`
+- Support: `Support.md`
+- Governance: `Governance.md`
+- Datenschutz und Compliance: `Datenschutz.md`
+
+## Beitrag leisten
+
+Siehe `CONTRIBUTING.md` fuer Richtlinien zur Mitarbeit.
