@@ -61,7 +61,10 @@ before_script:
   - cd $SOURCE_CODE_PATH
   - echo "Pipeline running for branch $CI_COMMIT_REF_NAME"
   - dotnet --info
-  - dotnet workload install android wasm-tools --skip-manifest-update || true
+  - echo "Installing workloads for .NET 10..."
+  - dotnet workload update --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json || true
+  - dotnet workload install android wasm-tools --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json --skip-manifest-update || true
+  - echo "Workload installation complete"
 
 # ============================================================
 # RESTORE STAGE
@@ -70,14 +73,15 @@ before_script:
 restore:
   stage: restore
   script:
-    - echo "Restoring NuGet packages..."
-    - dotnet restore $PROJECT_MODELS --packages ../$NUGET_PACKAGES_DIRECTORY
-    - dotnet restore $PROJECT_WEB_API --packages ../$NUGET_PACKAGES_DIRECTORY
-    - dotnet restore $PROJECT_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY
-    - dotnet restore $PROJECT_MOBILE --packages ../$NUGET_PACKAGES_DIRECTORY
-    - dotnet restore $PROJECT_MOBILE_ANDROID --packages ../$NUGET_PACKAGES_DIRECTORY
-    - dotnet restore $PROJECT_MOBILE_BROWSER --packages ../$NUGET_PACKAGES_DIRECTORY
-    - dotnet restore $PROJECT_MOBILE_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY
+    - echo "Restoring NuGet packages with .NET 10 feeds..."
+    - ls -la ../NuGet.config || echo "NuGet.config not found, using default feeds"
+    - dotnet restore $PROJECT_MODELS --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_WEB_API --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_MOBILE --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_MOBILE_ANDROID --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_MOBILE_BROWSER --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_MOBILE_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
   artifacts:
     paths:
       - $SOURCE_CODE_PATH*/$OBJECTS_DIRECTORY/
