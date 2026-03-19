@@ -79,16 +79,35 @@ setup-workloads:
   before_script:
     - cd $SOURCE_CODE_PATH
     - dotnet --info
+    - echo "Configuring NuGet sources for workload installation..."
+    - dotnet nuget list source || true
   script:
     - echo "Installing .NET Workloads for MAUI development..."
-    - echo "Note Some workloads may not be available for .NET 10 preview yet"
+    - echo "??  Note Some workloads may not be available for .NET 10 preview yet"
+    - echo "Current workloads:"
     - dotnet workload list || true
-    - echo "Attempting to install android workload..."
-    - dotnet workload install android --skip-manifest-update || echo "?? Android workload installation failed - Android builds will be skipped"
+    - echo ""
+    - echo "Attempting to install android workload with multiple feeds..."
+    - |
+      dotnet workload install android \
+        --source https://api.nuget.org/v3/index.json \
+        --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json \
+        --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json \
+        --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json \
+        --skip-manifest-update 2>&1 | tee /tmp/android-install.log || echo "?? Android workload installation failed - Android builds will be skipped"
+    - echo ""
     - echo "Attempting to install wasm-tools workload..."
-    - dotnet workload install wasm-tools --skip-manifest-update || echo "?? WASM tools installation failed - Browser builds may be limited"
-    - echo "Currently installed workloads:"
-    - dotnet workload list || echo "No workloads installed"
+    - |
+      dotnet workload install wasm-tools \
+        --source https://api.nuget.org/v3/index.json \
+        --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet10/nuget/v3/index.json \
+        --skip-manifest-update || echo "?? WASM tools installation failed - Browser builds may be limited"
+    - echo ""
+    - echo "Final installed workloads:"
+    - dotnet workload list || echo "No workloads successfully installed"
+    - echo ""
+    - echo "Checking for Android SDK availability..."
+    - ls -la /usr/share/dotnet/packs/ 2>/dev/null || echo "No packs directory found"
   allow_failure: true
 
 restore:
