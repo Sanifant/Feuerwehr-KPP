@@ -28,8 +28,9 @@ variables:
   # 2) Name of directory used for keeping restored dependencies.
   NUGET_PACKAGES_DIRECTORY: '.nuget'
   # 3) A relative path to the source code from project repository root.
-  # NOTE: Please edit this path so it matches the structure of your project!
   SOURCE_CODE_PATH: 'src/'
+  # 4) Solution file name (if exists)
+  SOLUTION_FILE: '*.sln'
 
 # ### Define global cache rule
 #
@@ -51,15 +52,13 @@ cache:
   # Per-stage and per-branch caching.
   key: "$CI_JOB_STAGE-$CI_COMMIT_REF_SLUG"
   paths:
-    # Specify three paths that should be cached:
-    #
-    # 1) Main JSON file holding information about package dependency tree, packages versions,
-    # frameworks etc. It also holds information where to the dependencies were restored.
-    - '$SOURCE_CODE_PATH$OBJECTS_DIRECTORY/project.assets.json'
-    # 2) Other NuGet and MSBuild related files. Also needed.
-    - '$SOURCE_CODE_PATH$OBJECTS_DIRECTORY/*.csproj.nuget.*'
-    # 3) Path to the directory where restored dependencies are kept.
+    # Cache NuGet packages directory
     - '$NUGET_PACKAGES_DIRECTORY'
+    # Cache obj directories for all project folders
+    - '$SOURCE_CODE_PATH*/$OBJECTS_DIRECTORY/project.assets.json'
+    - '$SOURCE_CODE_PATH*/$OBJECTS_DIRECTORY/*.csproj.nuget.*'
+    - '$SOURCE_CODE_PATH**/$OBJECTS_DIRECTORY/project.assets.json'
+    - '$SOURCE_CODE_PATH**/$OBJECTS_DIRECTORY/*.csproj.nuget.*'
   #
   # 'pull-push' policy means that latest cache will be downloaded (if it exists)
   # before executing the job, and a newer version will be uploaded afterwards.
@@ -85,19 +84,19 @@ cache:
 #
 # Learn more about GitLab cache: https://docs.gitlab.com/ee/ci/caching/index.html
 before_script:
-  - 'dotnet restore --packages $NUGET_PACKAGES_DIRECTORY'
+  - 'cd $SOURCE_CODE_PATH'
+  - 'dotnet restore --packages ../$NUGET_PACKAGES_DIRECTORY'
 
 build:
   stage: build
   # ### Build all projects discovered from solution file.
   #
-  # Note: this will fail if you have any projects in your solution that are not
-  # .NET Core-based projects (e.g. WCF service), which is based on .NET Framework,
-  # not .NET Core. In this scenario, you will need to use a separate solution
-  # file that only has .NET Core-based projects (`dotnet build MyApp.core.sln`),
-  # or build every .NET Core-based project by explicitly specifying a relative
-  # path to the directory where it is located (e.g. 'dotnet build ./src/ConsoleApp').
-  # Only one project path can be passed as a parameter to 'dotnet build' command.
+  # Builds all projects in the src directory.
+  # The project structure includes:
+  # - Web API project
+  # - Desktop application
+  # - Mobile projects (MAUI-based: Browser, Desktop, iOS, Android)
+  # - Common models library
   script:
     - 'dotnet build --no-restore'
 
@@ -105,14 +104,10 @@ tests:
   stage: test
   # ### Run the tests
   #
-  # You can either run tests for all test projects that are defined in your solution
-  # with 'dotnet test' or run tests only for specific project by specifying
-  # a relative path to the directory where it is located (e.g. 'dotnet test ./test/UnitTests').
-  #
-  # You may want to define separate testing jobs for different types of testing
-  # (e.g. integration tests, unit tests etc).
+  # Runs tests for all test projects in the solution.
+  # The --no-restore flag is used because packages are already restored in before_script.
   script:
-    - 'dotnet test --no-restore'
+    - 'dotnet test --no-restore --logger "console;verbosity=detailed"'
 
 deploy:
   stage: deploy
