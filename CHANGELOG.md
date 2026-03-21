@@ -9,6 +9,12 @@ Das Format orientiert sich an Keep a Changelog und Semantic Versioning.
 ### Added
 - Changelog-Datei eingeführt.
 - README auf die aktuelle Multi-Projekt-Struktur (Web, Desktop, Mobile, Common) angepasst.
+- Geraete-Verwaltungsmodul (Inventory) mit REST API-Endpunkten implementiert.
+- `InventoryItemController` fuer CRUD-Operationen auf Inventargegenstände (GET, POST, PUT, DELETE).
+- `InventoryService` als Service-Layer fuer Geschaeftslogik der Geraeteverwaltung.
+- `IInventoryRepository` Interface zur Entkopplung von Datenzugriff und Geschaeftslogik.
+- Umfangreiche Unit-Tests fuer `InventoryItemController` mit Edge-Cases und Grenzwertpruefungen.
+- Unterstuetzung fuer Inventargegenstände mit Eigenschaften: Id, Name, Beschreibung, Kaufdatum, Standort.
 
 ### Changed
 - README um kommunalen Einsatzkontext der Feuerwehr und nicht-funktionale Leitplanken erweitert.

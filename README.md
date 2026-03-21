@@ -18,10 +18,23 @@ Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Behoerden- u
 
 Die Solution liegt unter `src/de.openelp.feuerwehr.slnx` und umfasst:
 
-- Common: Geteilte Modelle und Kernlogik
+- Common: Geteilte Modelle und Kernlogik (inkl. Inventory-Service und Repository-Interfaces)
 - Desktop: Avalonia Desktop-Anwendung
 - Mobile: Avalonia Shared UI plus Plattform-Hosts (Android, iOS, Browser, Desktop)
-- Web: ASP.NET Core Web API
+- Web: ASP.NET Core Web API (inkl. Geraete-Verwaltung REST API)
+
+## Funktionsumfang
+
+### Geraete-Verwaltung (Inventory Management)
+- REST API zur Verwaltung von Feuerwehr-Inventar und Geraeten
+- CRUD-Operationen fuer Inventargegenstände:
+  - `GET /api/InventoryItem` - Alle Geraete abrufen
+  - `GET /api/InventoryItem/{id}` - Einzelnes Geraet abrufen
+  - `POST /api/InventoryItem` - Neues Geraet anlegen
+  - `PUT /api/InventoryItem/{id}` - Geraet aktualisieren
+  - `DELETE /api/InventoryItem/{id}` - Geraet loeschen
+- Repository-Pattern zur Entkopplung von Datenzugriff und Geschaeftslogik
+- Service-Layer fuer Geschaeftslogik und Orchestrierung
 
 ## Voraussetzungen
 
