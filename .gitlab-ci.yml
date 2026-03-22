@@ -31,24 +31,24 @@ variables:
   ARTIFACTS_PATH: 'artifacts/'
 
   # Project Paths
-  PROJECT_MODELS: 'Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.domain.csproj'
-  PROJECT_WEB_API: 'Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj'
-  PROJECT_DESKTOP: 'Desktop/de.openelp.feuerwehr.desktop/de.openelp.feuerwehr.desktop.csproj'
-  PROJECT_MOBILE: 'Mobile/de.openelp.feuerwehr.mobile/de.openelp.feuerwehr.mobile.csproj'
-  PROJECT_MOBILE_ANDROID: 'Mobile/de.openelp.feuerwehr.mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj'
-  PROJECT_MOBILE_DESKTOP: 'Mobile/de.openelp.feuerwehr.mobile.Desktop/de.openelp.feuerwehr.mobile.Desktop.csproj'
-  PROJECT_INFRASTRUCTURE: 'Common/de.openelp.feuerwehr.infrastructure/de.openelp.feuerwehr.infrastructure.csproj'
-  PROJECT_DOMAIN: 'Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.domain.csproj'
-  PROJECT_APPLICATION: 'Common/de.openelp.feuerwehr.application/de.openelp.feuerwehr.application.csproj'
+  PROJECT_MODELS: 'Common/domain/de.openelp.feuerwehr.domain.csproj'
+  PROJECT_WEB_API: 'Web/api/de.openelp.feuerwehr.Api.csproj'
+  PROJECT_DESKTOP: 'Desktop/desktop/de.openelp.feuerwehr.desktop.csproj'
+  PROJECT_MOBILE: 'Mobile/mobile/de.openelp.feuerwehr.mobile.csproj'
+  PROJECT_MOBILE_ANDROID: 'Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj'
+  PROJECT_MOBILE_DESKTOP: 'Mobile/mobile.Desktop/de.openelp.feuerwehr.mobile.Desktop.csproj'
+  PROJECT_INFRASTRUCTURE: 'Common/infrastructure/de.openelp.feuerwehr.infrastructure.csproj'
+  PROJECT_DOMAIN: 'Common/domain/de.openelp.feuerwehr.domain.csproj'
+  PROJECT_APPLICATION: 'Common/application/de.openelp.feuerwehr.application.csproj'
 
   # Test Project Paths
-  TEST_API: '../Web/de.openelp.feuerwehr.Api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj'
-  TEST_INFRASTRUCTURE: '../Common/de.openelp.feuerwehr.infrastructure.UnitTests/de.openelp.feuerwehr.infrastructure.UnitTests.csproj'
-  TEST_DOMAIN: '../Common/de.openelp.feuerwehr.domain.UnitTests/de.openelp.feuerwehr.domain.UnitTests.csproj'
-  TEST_APPLICATION: '../Common/de.openelp.feuerwehr.application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj'
-  TEST_DESKTOP: '../Desktop/de.openelp.feuerwehr.desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj'
-  TEST_MOBILE_DESKTOP: '../Mobile/de.openelp.feuerwehr.mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj'
-  TEST_MOBILE_ANDROID: '../Mobile/de.openelp.feuerwehr.mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj'
+  TEST_API: '../Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj'
+  TEST_INFRASTRUCTURE: '../Common/infrastructure.UnitTests/de.openelp.feuerwehr.infrastructure.UnitTests.csproj'
+  TEST_DOMAIN: '../Common/domain.UnitTests/de.openelp.feuerwehr.domain.UnitTests.csproj'
+  TEST_APPLICATION: '../Common/application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj'
+  TEST_DESKTOP: '../Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj'
+  TEST_MOBILE_DESKTOP: '../Mobile/mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj'
+  TEST_MOBILE_ANDROID: '../Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj'
 
   # Versioning
   VERSION_PREFIX: '1.0.0'
@@ -162,7 +162,7 @@ build:common:
     - dotnet build $PROJECT_MODELS --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Common/de.openelp.feuerwehr.models/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Common/domain/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:web-api:
@@ -172,7 +172,7 @@ build:web-api:
     - dotnet build $PROJECT_WEB_API --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Web/de.openelp.feuerwehr/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Web/api/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:desktop:
@@ -182,7 +182,7 @@ build:desktop:
     - dotnet build $PROJECT_DESKTOP --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Desktop/de.openelp.feuerwehr.desktop/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Desktop/desktop/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:mobile-core:
@@ -192,7 +192,7 @@ build:mobile-core:
     - dotnet build $PROJECT_MOBILE --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Mobile/de.openelp.feuerwehr.mobile/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Mobile/mobile/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:mobile-android:
@@ -202,7 +202,7 @@ build:mobile-android:
     - dotnet build $PROJECT_MOBILE_ANDROID --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Mobile/de.openelp.feuerwehr.mobile.Android/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Mobile/mobile.Android/bin/$CONFIGURATION/
     expire_in: 1 day
   allow_failure: true
 
@@ -213,7 +213,7 @@ build:mobile-desktop:
     - dotnet build $PROJECT_MOBILE_DESKTOP --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Mobile/de.openelp.feuerwehr.mobile.Desktop/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Mobile/mobile.Desktop/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:infrastructure:
@@ -223,7 +223,7 @@ build:infrastructure:
     - dotnet build $PROJECT_INFRASTRUCTURE --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Common/de.openelp.feuerwehr.infrastructure/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Common/infrastructure/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:application:
@@ -233,7 +233,7 @@ build:application:
     - dotnet build $PROJECT_APPLICATION --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - $SOURCE_CODE_PATH/Common/de.openelp.feuerwehr.application/bin/$CONFIGURATION/
+      - $SOURCE_CODE_PATH/Common/application/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-api:
@@ -243,7 +243,7 @@ build:test-api:
     - dotnet build $TEST_API --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Web/de.openelp.feuerwehr.Api.UnitTests/bin/$CONFIGURATION/
+      - ../Web/api.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-infrastructure:
@@ -253,7 +253,7 @@ build:test-infrastructure:
     - dotnet build $TEST_INFRASTRUCTURE --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Common/de.openelp.feuerwehr.infrastructure.UnitTests/bin/$CONFIGURATION/
+      - ../Common/infrastructure.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-domain:
@@ -263,7 +263,7 @@ build:test-domain:
     - dotnet build $TEST_DOMAIN --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Common/de.openelp.feuerwehr.domain.UnitTests/bin/$CONFIGURATION/
+      - ../Common/domain.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-application:
@@ -273,7 +273,7 @@ build:test-application:
     - dotnet build $TEST_APPLICATION --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Common/de.openelp.feuerwehr.application.UnitTests/bin/$CONFIGURATION/
+      - ../Common/application.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-desktop:
@@ -283,7 +283,7 @@ build:test-desktop:
     - dotnet build $TEST_DESKTOP --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Desktop/de.openelp.feuerwehr.desktop.UnitTests/bin/$CONFIGURATION/
+      - ../Desktop/desktop.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-mobile-desktop:
@@ -293,7 +293,7 @@ build:test-mobile-desktop:
     - dotnet build $TEST_MOBILE_DESKTOP --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Mobile/de.openelp.feuerwehr.mobile.Desktop.UnitTests/bin/$CONFIGURATION/
+      - ../Mobile/mobile.Desktop.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
 
 build:test-mobile-android:
@@ -303,7 +303,7 @@ build:test-mobile-android:
     - dotnet build $TEST_MOBILE_ANDROID --no-restore --configuration $CONFIGURATION
   artifacts:
     paths:
-      - ../Mobile/de.openelp.feuerwehr.mobile.Android.UnitTests/bin/$CONFIGURATION/
+      - ../Mobile/mobile.Android.UnitTests/bin/$CONFIGURATION/
     expire_in: 1 day
   allow_failure: true
 
@@ -575,7 +575,7 @@ build:docker-api:
         -t $DOCKER_IMAGE_API:$CI_COMMIT_SHORT_SHA \
         -t $DOCKER_IMAGE_API:$CI_COMMIT_REF_SLUG \
         -t $DOCKER_IMAGE_API:latest \
-        -f Web/de.openelp.feuerwehr/Dockerfile \
+        -f Web/api/Dockerfile \
         .
     - echo "Pushing images to registry..."
     - docker push $DOCKER_IMAGE_API:$CI_COMMIT_SHORT_SHA

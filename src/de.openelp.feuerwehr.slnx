@@ -1,21 +1,21 @@
 <Solution>
   <Folder Name="/Common/">
-    <Project Path="Common/de.openelp.feuerwehr.application/de.openelp.feuerwehr.application.csproj" Id="57b63e23-fdb5-44be-9375-5f8c71c67a0d" />
-    <Project Path="Common/de.openelp.feuerwehr.infrastructure/de.openelp.feuerwehr.infrastructure.csproj" Id="22416b46-d9ea-476f-bd3a-6a7b3dc09a76" />
-    <Project Path="Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.domain.csproj" Id="f40e96d6-4640-4eb1-9d95-5258e8e3df4c" />
+    <Project Path="Common/application/de.openelp.feuerwehr.application.csproj" Id="57b63e23-fdb5-44be-9375-5f8c71c67a0d" />
+    <Project Path="Common/infrastructure/de.openelp.feuerwehr.infrastructure.csproj" Id="22416b46-d9ea-476f-bd3a-6a7b3dc09a76" />
+    <Project Path="Common/domain/de.openelp.feuerwehr.domain.csproj" Id="f40e96d6-4640-4eb1-9d95-5258e8e3df4c" />
   </Folder>
   <Folder Name="/Desktop/">
-    <Project Path="Desktop/de.openelp.feuerwehr.desktop/de.openelp.feuerwehr.desktop.csproj" />
+    <Project Path="Desktop/desktop/de.openelp.feuerwehr.desktop.csproj" />
   </Folder>
   <Folder Name="/Mobile/">
-    <Project Path="Mobile/de.openelp.feuerwehr.mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj">
+    <Project Path="Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj">
       <Deploy />
     </Project>
-    <Project Path="Mobile/de.openelp.feuerwehr.mobile.Desktop/de.openelp.feuerwehr.mobile.Desktop.csproj" />
-    <Project Path="Mobile/de.openelp.feuerwehr.mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj">
+    <Project Path="Mobile/mobile.Desktop/de.openelp.feuerwehr.mobile.Desktop.csproj" />
+    <Project Path="Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj">
       <Deploy />
     </Project>
-    <Project Path="Mobile/de.openelp.feuerwehr.mobile/de.openelp.feuerwehr.mobile.csproj" />
+    <Project Path="Mobile/mobile/de.openelp.feuerwehr.mobile.csproj" />
   </Folder>
   <Folder Name="/Projektmappenelemente/">
     <File Path="../.gitlab-ci.yml" />
@@ -28,18 +28,18 @@
     <File Path="../Support.md" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="../Common/de.openelp.feuerwehr.application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj" Id="8024a8fd-cf86-4c6b-b41d-54fd979c1c7c" />
-    <Project Path="../Common/de.openelp.feuerwehr.domain.UnitTests/de.openelp.feuerwehr.domain.UnitTests.csproj" Id="84b44aff-5d08-432e-b88c-518d719fed74" />
-    <Project Path="../Common/de.openelp.feuerwehr.infrastructure.UnitTests/de.openelp.feuerwehr.infrastructure.UnitTests.csproj" Id="4731b817-db07-47e3-9df6-67d7ab25e704" />
-    <Project Path="../Desktop/de.openelp.feuerwehr.desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj" Id="f4678a99-27f9-4bf8-8ad4-d3a2790c2dec" />
-    <Project Path="../Mobile/de.openelp.feuerwehr.mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj" Id="39f4e87f-bdf1-437e-8078-234f3b7ce798" />
-    <Project Path="../Mobile/de.openelp.feuerwehr.mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj" Id="fd677494-6ad0-4d58-9ff0-f4ee5cd38012" />
+    <Project Path="../Common/application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj" Id="8024a8fd-cf86-4c6b-b41d-54fd979c1c7c" />
+    <Project Path="../Common/domain.UnitTests/de.openelp.feuerwehr.domain.UnitTests.csproj" Id="84b44aff-5d08-432e-b88c-518d719fed74" />
+    <Project Path="../Common/infrastructure.UnitTests/de.openelp.feuerwehr.infrastructure.UnitTests.csproj" Id="4731b817-db07-47e3-9df6-67d7ab25e704" />
+    <Project Path="../Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj" Id="f4678a99-27f9-4bf8-8ad4-d3a2790c2dec" />
+    <Project Path="../Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj" Id="39f4e87f-bdf1-437e-8078-234f3b7ce798" />
+    <Project Path="../Mobile/mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj" Id="fd677494-6ad0-4d58-9ff0-f4ee5cd38012" />
   </Folder>
   <Folder Name="/Tests/Web/">
-    <Project Path="../Web/de.openelp.feuerwehr.Api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj" Id="08f11560-5609-4331-8668-cc3e6101e328" />
+    <Project Path="../Web/Api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj" Id="08f11560-5609-4331-8668-cc3e6101e328" />
   </Folder>
   <Folder Name="/Web/">
-    <Project Path="Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj" />
+    <Project Path="Web/api/de.openelp.feuerwehr.Api.csproj" />
   </Folder>
   <Project Path="docker-compose.dcproj">
     <Build />
