@@ -31,13 +31,24 @@ variables:
   ARTIFACTS_PATH: 'artifacts/'
 
   # Project Paths
-  PROJECT_MODELS: 'Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.models.csproj'
+  PROJECT_MODELS: 'Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.domain.csproj'
   PROJECT_WEB_API: 'Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj'
   PROJECT_DESKTOP: 'Desktop/de.openelp.feuerwehr.desktop/de.openelp.feuerwehr.desktop.csproj'
   PROJECT_MOBILE: 'Mobile/de.openelp.feuerwehr.mobile/de.openelp.feuerwehr.mobile.csproj'
   PROJECT_MOBILE_ANDROID: 'Mobile/de.openelp.feuerwehr.mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj'
-  PROJECT_MOBILE_BROWSER: 'Mobile/de.openelp.feuerwehr.mobile.Browser/de.openelp.feuerwehr.mobile.Browser.csproj'
   PROJECT_MOBILE_DESKTOP: 'Mobile/de.openelp.feuerwehr.mobile.Desktop/de.openelp.feuerwehr.mobile.Desktop.csproj'
+  PROJECT_INFRASTRUCTURE: 'Common/de.openelp.feuerwehr.infrastructure/de.openelp.feuerwehr.infrastructure.csproj'
+  PROJECT_DOMAIN: 'Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.domain.csproj'
+  PROJECT_APPLICATION: 'Common/de.openelp.feuerwehr.application/de.openelp.feuerwehr.application.csproj'
+
+  # Test Project Paths
+  TEST_API: '../Web/de.openelp.feuerwehr.Api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj'
+  TEST_INFRASTRUCTURE: '../Common/de.openelp.feuerwehr.infrastructure.UnitTests/de.openelp.feuerwehr.infrastructure.UnitTests.csproj'
+  TEST_DOMAIN: '../Common/de.openelp.feuerwehr.domain.UnitTests/de.openelp.feuerwehr.domain.UnitTests.csproj'
+  TEST_APPLICATION: '../Common/de.openelp.feuerwehr.application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj'
+  TEST_DESKTOP: '../Desktop/de.openelp.feuerwehr.desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj'
+  TEST_MOBILE_DESKTOP: '../Mobile/de.openelp.feuerwehr.mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj'
+  TEST_MOBILE_ANDROID: '../Mobile/de.openelp.feuerwehr.mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj'
 
   # Versioning
   VERSION_PREFIX: '1.0.0'
@@ -46,7 +57,6 @@ variables:
   # Docker
   DOCKER_REGISTRY: '$CI_REGISTRY'
   DOCKER_IMAGE_API: '$CI_REGISTRY_IMAGE/api'
-  DOCKER_IMAGE_BROWSER: '$CI_REGISTRY_IMAGE/browser'
 
 # ### Global Cache Configuration
 cache:
@@ -117,13 +127,23 @@ restore:
     - echo "Restoring NuGet packages with .NET 10 feeds..."
     - ls -la ../NuGet.config || echo "NuGet.config not found, using default feeds"
     - dotnet restore $PROJECT_MODELS --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_INFRASTRUCTURE --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_DOMAIN --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $PROJECT_APPLICATION --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_WEB_API --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_MOBILE --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - echo "Attempting Android project restore..."
     - dotnet restore $PROJECT_MOBILE_ANDROID --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config || echo "?? Android restore skipped"
-    - dotnet restore $PROJECT_MOBILE_BROWSER --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
     - dotnet restore $PROJECT_MOBILE_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - echo "Restoring test projects..."
+    - dotnet restore $TEST_API --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $TEST_INFRASTRUCTURE --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $TEST_DOMAIN --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $TEST_APPLICATION --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $TEST_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $TEST_MOBILE_DESKTOP --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config
+    - dotnet restore $TEST_MOBILE_ANDROID --packages ../$NUGET_PACKAGES_DIRECTORY --configfile ../NuGet.config || echo "?? Android test restore skipped"
   artifacts:
     paths:
       - $SOURCE_CODE_PATH*/$OBJECTS_DIRECTORY/
@@ -186,16 +206,6 @@ build:mobile-android:
     expire_in: 1 day
   allow_failure: true
 
-build:mobile-browser:
-  stage: build
-  needs: ['restore', 'build:mobile-core']
-  script:
-    - dotnet build $PROJECT_MOBILE_BROWSER --no-restore --configuration $CONFIGURATION
-  artifacts:
-    paths:
-      - $SOURCE_CODE_PATH/Mobile/de.openelp.feuerwehr.mobile.Browser/bin/$CONFIGURATION/
-    expire_in: 1 day
-
 build:mobile-desktop:
   stage: build
   needs: ['restore', 'build:mobile-core']
@@ -206,25 +216,220 @@ build:mobile-desktop:
       - $SOURCE_CODE_PATH/Mobile/de.openelp.feuerwehr.mobile.Desktop/bin/$CONFIGURATION/
     expire_in: 1 day
 
+build:infrastructure:
+  stage: build
+  needs: ['restore', 'build:common']
+  script:
+    - dotnet build $PROJECT_INFRASTRUCTURE --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - $SOURCE_CODE_PATH/Common/de.openelp.feuerwehr.infrastructure/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:application:
+  stage: build
+  needs: ['restore', 'build:common', 'build:infrastructure']
+  script:
+    - dotnet build $PROJECT_APPLICATION --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - $SOURCE_CODE_PATH/Common/de.openelp.feuerwehr.application/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-api:
+  stage: build
+  needs: ['restore', 'build:web-api']
+  script:
+    - dotnet build $TEST_API --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Web/de.openelp.feuerwehr.Api.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-infrastructure:
+  stage: build
+  needs: ['restore', 'build:infrastructure']
+  script:
+    - dotnet build $TEST_INFRASTRUCTURE --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Common/de.openelp.feuerwehr.infrastructure.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-domain:
+  stage: build
+  needs: ['restore', 'build:common']
+  script:
+    - dotnet build $TEST_DOMAIN --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Common/de.openelp.feuerwehr.domain.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-application:
+  stage: build
+  needs: ['restore', 'build:application']
+  script:
+    - dotnet build $TEST_APPLICATION --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Common/de.openelp.feuerwehr.application.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-desktop:
+  stage: build
+  needs: ['restore', 'build:desktop']
+  script:
+    - dotnet build $TEST_DESKTOP --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Desktop/de.openelp.feuerwehr.desktop.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-mobile-desktop:
+  stage: build
+  needs: ['restore', 'build:mobile-desktop']
+  script:
+    - dotnet build $TEST_MOBILE_DESKTOP --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Mobile/de.openelp.feuerwehr.mobile.Desktop.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+
+build:test-mobile-android:
+  stage: build
+  needs: ['restore', 'build:mobile-android']
+  script:
+    - dotnet build $TEST_MOBILE_ANDROID --no-restore --configuration $CONFIGURATION
+  artifacts:
+    paths:
+      - ../Mobile/de.openelp.feuerwehr.mobile.Android.UnitTests/bin/$CONFIGURATION/
+    expire_in: 1 day
+  allow_failure: true
+
 # ============================================================
 # TEST STAGE
 # ============================================================
 
-test:unit:
+test:api:
   stage: test
-  needs: ['build:web-api', 'build:common']
+  needs: ['build:test-api']
   coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
   script:
-    - dotnet test --no-restore --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" || echo "No test projects found"
+    - echo "Running API unit tests..."
+    - dotnet test $TEST_API --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/API
   artifacts:
     when: always
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: '**/coverage.cobertura.xml'
+        path: '**/TestResults/API/**/coverage.cobertura.xml'
     paths:
-      - '**/TestResults/'
+      - '../TestResults/API/'
     expire_in: 30 days
+
+test:infrastructure:
+  stage: test
+  needs: ['build:test-infrastructure']
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  script:
+    - echo "Running Infrastructure unit tests..."
+    - dotnet test $TEST_INFRASTRUCTURE --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/Infrastructure
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/TestResults/Infrastructure/**/coverage.cobertura.xml'
+    paths:
+      - '../TestResults/Infrastructure/'
+    expire_in: 30 days
+
+test:domain:
+  stage: test
+  needs: ['build:test-domain']
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  script:
+    - echo "Running Domain unit tests..."
+    - dotnet test $TEST_DOMAIN --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/Domain
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/TestResults/Domain/**/coverage.cobertura.xml'
+    paths:
+      - '../TestResults/Domain/'
+    expire_in: 30 days
+
+test:application:
+  stage: test
+  needs: ['build:test-application']
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  script:
+    - echo "Running Application unit tests..."
+    - dotnet test $TEST_APPLICATION --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/Application
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/TestResults/Application/**/coverage.cobertura.xml'
+    paths:
+      - '../TestResults/Application/'
+    expire_in: 30 days
+
+test:desktop:
+  stage: test
+  needs: ['build:test-desktop']
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  script:
+    - echo "Running Desktop unit tests..."
+    - dotnet test $TEST_DESKTOP --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/Desktop
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/TestResults/Desktop/**/coverage.cobertura.xml'
+    paths:
+      - '../TestResults/Desktop/'
+    expire_in: 30 days
+
+test:mobile-desktop:
+  stage: test
+  needs: ['build:test-mobile-desktop']
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  script:
+    - echo "Running Mobile Desktop unit tests..."
+    - dotnet test $TEST_MOBILE_DESKTOP --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/MobileDesktop
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/TestResults/MobileDesktop/**/coverage.cobertura.xml'
+    paths:
+      - '../TestResults/MobileDesktop/'
+    expire_in: 30 days
+
+test:mobile-android:
+  stage: test
+  needs: ['build:test-mobile-android']
+  coverage: '/Total\s+\|\s+(\d+\.?\d*)%/'
+  script:
+    - echo "Running Mobile Android unit tests..."
+    - dotnet test $TEST_MOBILE_ANDROID --no-build --configuration $CONFIGURATION --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage" --results-directory ../TestResults/MobileAndroid
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/TestResults/MobileAndroid/**/coverage.cobertura.xml'
+    paths:
+      - '../TestResults/MobileAndroid/'
+    expire_in: 30 days
+  allow_failure: true
 
 # ============================================================
 # ANALYZE STAGE
@@ -259,7 +464,7 @@ security-scan:
 
 package:web-api:
   stage: package
-  needs: ['build:web-api', 'test:unit']
+  needs: ['build:web-api', 'test:api', 'test:infrastructure', 'test:domain', 'test:application']
   script:
     - echo "Publishing Web API..."
     - dotnet publish $PROJECT_WEB_API --no-restore --configuration $CONFIGURATION --output ../$ARTIFACTS_PATH/web-api
@@ -292,23 +497,6 @@ package:android-apk:
     - develop
     - tags
   allow_failure: true
-
-package:browser-wasm:
-  stage: package
-  needs: ['build:mobile-browser']
-  script:
-    - echo "Publishing Browser WASM..."
-    - dotnet publish $PROJECT_MOBILE_BROWSER --no-restore --configuration $CONFIGURATION --output ../$ARTIFACTS_PATH/browser
-  artifacts:
-    name: "browser-wasm-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - $ARTIFACTS_PATH/browser/
-    expire_in: 30 days
-  only:
-    - main
-    - master
-    - develop
-    - tags
 
 package:desktop:
   stage: package
