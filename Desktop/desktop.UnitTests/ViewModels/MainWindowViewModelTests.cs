@@ -2,9 +2,12 @@
 using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.Input;
+using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
 using de.openelp.feuerwehr.domain;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
 {
@@ -21,8 +24,11 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         [TestMethod]
         public void Constructor_WhenCalled_CreatesInstanceSuccessfully()
         {
-            // Arrange & Act
-            var viewModel = new MainWindowViewModel();
+            // Arrange
+            var mockServiceProvider = new Mock<IServiceProvider>();
+
+            // Act
+            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Assert
             Assert.IsNotNull(viewModel);
@@ -35,11 +41,14 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         [TestMethod]
         public void Constructor_WhenCalled_InitializesItemsProperty()
         {
-            // Arrange & Act
-            var viewModel = new MainWindowViewModel();
+            // Arrange
+            var mockServiceProvider = new Mock<IServiceProvider>();
+
+            // Act
+            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Assert
-            Assert.IsNotNull(viewModel.Items);
+            Assert.IsNotNull(viewModel.CurrentView);
         }
 
         /// <summary>
@@ -48,11 +57,17 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         [TestMethod]
         public void Constructor_WhenCalled_InitializesGreetingProperty()
         {
-            // Arrange & Act
-            var viewModel = new MainWindowViewModel();
+            // Arrange
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            var mockDashboardViewModel = new DashboardViewModel();
+            mockServiceProvider.Setup(sp => sp.GetService(typeof(DashboardViewModel)))
+                .Returns(mockDashboardViewModel);
+
+            // Act
+            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Assert
-            Assert.AreEqual("Welcome to Avalonia!", viewModel.Greeting);
+            Assert.IsNotNull(viewModel.CurrentView);
         }
 
         /// <summary>
@@ -65,11 +80,15 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         public void LoadItems_WhenCalled_DoesNotThrow()
         {
             // Arrange
-            var viewModel = new MainWindowViewModel();
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            var mockInventoryViewModel = new Mock<InventoryViewModel>(Mock.Of<ApiService>());
+            mockServiceProvider.Setup(sp => sp.GetService(typeof(InventoryViewModel)))
+                .Returns(mockInventoryViewModel.Object);
+
+            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Act & Assert
-            viewModel.LoadItems();
-            // The method uses fire-and-forget pattern, so we can only verify it doesn't throw immediately
+            viewModel.ShowInventoryCommand();
         }
 
         /// <summary>
@@ -81,13 +100,17 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         public void LoadItems_WhenCalledMultipleTimes_DoesNotThrow()
         {
             // Arrange
-            var viewModel = new MainWindowViewModel();
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            var mockInventoryViewModel = new Mock<InventoryViewModel>(Mock.Of<ApiService>());
+            mockServiceProvider.Setup(sp => sp.GetService(typeof(InventoryViewModel)))
+                .Returns(mockInventoryViewModel.Object);
+
+            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Act & Assert
-            viewModel.LoadItems();
-            viewModel.LoadItems();
-            viewModel.LoadItems();
-            // The method should handle multiple invocations without throwing
+            viewModel.ShowInventoryCommand();
+            viewModel.ShowInventoryCommand();
+            viewModel.ShowInventoryCommand();
         }
 
         /// <summary>
@@ -99,14 +122,22 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         public void LoadItems_WhenCalled_DoesNotImmediatelyModifyItems()
         {
             // Arrange
-            var viewModel = new MainWindowViewModel();
-            int initialCount = viewModel.Items.Count;
+            var mockServiceProvider = new Mock<IServiceProvider>();
+            var mockDashboardViewModel = new DashboardViewModel();
+            var mockInventoryViewModel = new Mock<InventoryViewModel>(Mock.Of<ApiService>());
+            mockServiceProvider.Setup(sp => sp.GetService(typeof(DashboardViewModel)))
+                .Returns(mockDashboardViewModel);
+            mockServiceProvider.Setup(sp => sp.GetService(typeof(InventoryViewModel)))
+                .Returns(mockInventoryViewModel.Object);
+
+            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
+            var initialView = viewModel.CurrentView;
 
             // Act
-            viewModel.LoadItems();
+            viewModel.ShowDashboardCommand();
 
             // Assert
-            Assert.AreEqual(initialCount, viewModel.Items.Count, "Items collection should not be modified immediately due to fire-and-forget async pattern.");
+            Assert.IsNotNull(viewModel.CurrentView);
         }
     }
 }

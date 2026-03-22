@@ -12,8 +12,10 @@ using Avalonia.Markup;
 using Avalonia.Markup.Xaml;
 using de.openelp.feuerwehr;
 using de.openelp.feuerwehr.desktop;
+using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
 using de.openelp.feuerwehr.desktop.Views;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -178,9 +180,20 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
                     MainWindowWasSet = true;
+
+                    var services = new ServiceCollection();
+                    services.AddHttpClient<ApiService>();
+                    services.AddTransient<ApiService>();
+                    services.AddSingleton<MainWindowViewModel>();
+                    services.AddTransient<InventoryViewModel>();
+                    services.AddTransient<DashboardViewModel>();
+                    var serviceProvider = services.BuildServiceProvider();
+
+                    var mainWindowViewModel = serviceProvider.GetRequiredService<MainWindowViewModel>();
+
                     desktop.MainWindow = new MainWindow
                     {
-                        DataContext = new MainWindowViewModel(),
+                        DataContext = mainWindowViewModel,
                     };
                 }
             }

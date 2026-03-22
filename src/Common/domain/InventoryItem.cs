@@ -15,9 +15,17 @@ namespace de.openelp.feuerwehr.domain
         
         public string Description { get; set; } = string.Empty;
 
+        public string Category { get; set; } = string.Empty;
+
+        public int Quantity { get; set; }
+
+        public string Condition { get; set; } = string.Empty;
+
         public DateOnly PurchaseDate { get; set; }
 
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
+
+        public DateOnly NextInspectionDate { get; set; }
 
 
         public InventoryItem() { 

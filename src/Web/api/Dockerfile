@@ -12,11 +12,13 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj", "Web/de.openelp.feuerwehr/"]
-COPY ["Common/de.openelp.feuerwehr.models/de.openelp.feuerwehr.models.csproj", "Common/de.openelp.feuerwehr.models/"]
-RUN dotnet restore "./Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj"
+COPY ["Web/api/de.openelp.feuerwehr.Api.csproj", "Web/api/"]
+COPY ["Common/domain/de.openelp.feuerwehr.domain.csproj", "Common/domain/"]
+COPY ["Common/application/de.openelp.feuerwehr.application.csproj", "Common/application/"]
+COPY ["Common/infrastructure/de.openelp.feuerwehr.infrastructure.csproj", "Common/infrastructure/"]
+RUN dotnet restore "./Web/api/de.openelp.feuerwehr.Api.csproj"
 COPY . .
-WORKDIR "/src/Web/de.openelp.feuerwehr"
+WORKDIR "/src/Web/api"
 RUN dotnet build "./de.openelp.feuerwehr.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Diese Stufe wird verwendet, um das Dienstprojekt zu veröffentlichen, das in die letzte Phase kopiert werden soll.

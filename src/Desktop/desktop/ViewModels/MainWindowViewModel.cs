@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using de.openelp.feuerwehr.desktop.Service;
+using de.openelp.feuerwehr.desktop.Views;
 using de.openelp.feuerwehr.domain;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.Net.Http;
@@ -10,45 +13,29 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        private HttpClient httpClient;
-        public MainWindowViewModel()
+        private readonly IServiceProvider _serviceProvider;
+
+        public MainWindowViewModel(IServiceProvider serviceProvider)
         {
-            httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("https://localhost:49402");
+            _serviceProvider = serviceProvider;
+            CurrentView = new DashboardView();
         }
-
-        private async Task LoadInventoryAsync(HttpClient httpClient)
-        {
-            try
-            {
-                var response = await httpClient.GetAsync("/api/InventoryItem");
-                if (response.IsSuccessStatusCode)
-                {
-                    var items = await response.Content.ReadFromJsonAsync<InventoryItem[]>();
-                    if (items != null)
-                    {
-                        foreach (var item in items)
-                        {
-                            Items.Add(item);
-                        }
-                    }
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                // Server ist nicht erreichbar - entsprechend behandeln
-                System.Diagnostics.Debug.WriteLine($"API-Fehler: {ex.Message}");
-            }
-        }
-
-        public ObservableCollection<InventoryItem> Items { get; } = new();
-
-        public string Greeting { get; } = "Welcome to Avalonia!";
 
         [RelayCommand]
-        public void LoadItems()
+        public void ShowDashboardCommand()
         {
-                _ = LoadInventoryAsync(httpClient);
+            CurrentView = _serviceProvider.GetRequiredService<DashboardViewModel>();
+            this.OnPropertyChanged(nameof(CurrentView));
         }
+
+        [RelayCommand]
+        public void ShowInventoryCommand()
+        {
+            CurrentView = _serviceProvider.GetRequiredService<InventoryViewModel>();
+            this.OnPropertyChanged(nameof(CurrentView));
+        }
+
+        public object CurrentView { get; set; }
+
     }
 }

@@ -3,7 +3,7 @@ services:
     image: ${DOCKER_REGISTRY-}deopenelpfeuerwehrapi
     build:
       context: .
-      dockerfile: Web/de.openelp.feuerwehr/Dockerfile
+      dockerfile: Web/api/Dockerfile
 
   redis:
     image: redis
