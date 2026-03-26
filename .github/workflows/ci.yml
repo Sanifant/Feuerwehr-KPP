@@ -33,7 +33,7 @@ jobs:
 
       - name: Test
         run: |
-          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-build --verbosity detailed --logger trx --collect:"XPlat Code Coverage"
+          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-build --verbosity normal --logger trx
 
       - name: Upload test results
         if: always()
@@ -145,7 +145,7 @@ jobs:
 
       - name: Install iOS workload
         run: |
-          dotnet workload install ios --version 10.0.200 --skip-manifest-update \
+          dotnet workload install ios --version 10.0.200 \
             --source https://api.nuget.org/v3/index.json \
             --source https://aka.ms/dotnet9/nuget/index.json
 
