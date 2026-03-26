@@ -33,7 +33,7 @@ jobs:
 
       - name: Test
         run: |
-          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-build --verbosity normal --logger trx
+          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-build --verbosity normal --coverage --report-trx
 
       - name: Upload test results
         if: always()
