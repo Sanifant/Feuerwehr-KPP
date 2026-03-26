@@ -30,11 +30,10 @@ jobs:
       - name: Build
         run: |
           dotnet build src/Web/api/de.openelp.feuerwehr.Api.csproj -c Release --no-restore
-          dotnet build src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-restore
 
       - name: Test
         run: |
-          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-build --verbosity normal
+          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-restore --verbosity normal
 
       - name: Upload test results
         if: always()
@@ -50,49 +49,49 @@ jobs:
           name: code-coverage-web-linux
           path: '**/coverage.cobertura.xml'
 
-#  desktop:
-#    name: Desktop (${{ matrix.os }})
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        os: [windows-latest, ubuntu-latest]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup .NET
-#        uses: actions/setup-dotnet@v4
-#        with:
-#          dotnet-version: ${{ env.DOTNET_VERSION }}
-#
-#      - name: Restore
-#        run: |
-#          dotnet restore src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj
-#          dotnet restore src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj
-#
-#      - name: Build
-#        run: |
-#          dotnet build src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release --no-restore
-#
-#      - name: Test
-#        run: |
-#          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
-#
-#      - name: Upload test results
-#        if: always()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: test-results-desktop-${{ matrix.os }}
-#          path: '**/*.trx'
-#
-#      - name: Upload code coverage
-#        if: always()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: code-coverage-desktop-${{ matrix.os }}
-#          path: '**/coverage.cobertura.xml'
+  desktop:
+    name: Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: |
+          dotnet restore src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj
+          dotnet restore src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj
+
+      - name: Build
+        run: |
+          dotnet build src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release --no-restore
+
+      - name: Test
+        run: |
+          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-desktop-${{ matrix.os }}
+          path: '**/*.trx'
+
+      - name: Upload code coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-desktop-${{ matrix.os }}
+          path: '**/coverage.cobertura.xml'
 #
 #  android-linux:
 #    name: Android (Linux)
