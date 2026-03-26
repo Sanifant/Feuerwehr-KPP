@@ -33,15 +33,15 @@
     </Project>
     <Project Path="Mobile/mobile/de.openelp.feuerwehr.mobile.csproj" />
   </Folder>
-  <Folder Name="/Tests/Common">
+  <Folder Name="/Tests/Common/">
     <Project Path="Tests/Common/application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj" Id="8024a8fd-cf86-4c6b-b41d-54fd979c1c7c" />
     <Project Path="Tests/Common/domain.UnitTests/de.openelp.feuerwehr.domain.UnitTests.csproj" Id="84b44aff-5d08-432e-b88c-518d719fed74" />
     <Project Path="Tests/Common/infrastructure.UnitTests/de.openelp.feuerwehr.infrastructure.UnitTests.csproj" Id="4731b817-db07-47e3-9df6-67d7ab25e704" />
   </Folder>
-  <Folder Name="/Tests/Desktop">
+  <Folder Name="/Tests/Desktop/">
     <Project Path="Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj" Id="f4678a99-27f9-4bf8-8ad4-d3a2790c2dec" />
   </Folder>
-  <Folder Name="/Tests/Mobile">
+  <Folder Name="/Tests/Mobile/">
     <Project Path="Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj" Id="39f4e87f-bdf1-437e-8078-234f3b7ce798" />
     <Project Path="Tests/Mobile/mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj" Id="fd677494-6ad0-4d58-9ff0-f4ee5cd38012" />
   </Folder>
