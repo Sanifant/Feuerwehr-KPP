@@ -1,0 +1,29 @@
+{
+  "name": "Feuerwehr KPP",
+  "dockerComposeFile": [
+    "../src/docker-compose.yml",
+    "docker-compose.devcontainer.yml"
+  ],
+  "service": "workspace",
+  "workspaceFolder": "/workspaces/Feuerwehr-KPP",
+  "runServices": [
+    "workspace",
+    "postgres",
+    "redis",
+    "pgadmin"
+  ],
+  "shutdownAction": "stopCompose",
+  "overrideCommand": false,
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-azuretools.vscode-docker",
+        "editorconfig.editorconfig"
+      ]
+    }
+  },
+  "postCreateCommand": "dotnet restore src/de.openelp.feuerwehr.slnx"
+}

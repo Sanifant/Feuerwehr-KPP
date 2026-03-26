@@ -1,4 +1,20 @@
 <Solution>
+  <Folder Name="/.gitlab/">
+    <File Path="../.gitlab/issue_templates/bug.md" />
+    <File Path="../.gitlab/issue_templates/feature.md" />
+    <File Path="../.gitlab/issue_templates/improvement.md" />
+    <File Path="../.gitlab/merge_request_templates/default.md" />
+  </Folder>
+  <Folder Name="/Projektmappenelemente/">
+    <File Path="../.gitlab-ci.yml" />
+    <File Path="../CHANGELOG.md" />
+    <File Path="../CONTRIBUTING.md" />
+    <File Path="../Datenschutz.md" />
+    <File Path="../Governance.md" />
+    <File Path="../README.md" />
+    <File Path="../Security.md" />
+    <File Path="../Support.md" />
+  </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/application/de.openelp.feuerwehr.application.csproj" Id="57b63e23-fdb5-44be-9375-5f8c71c67a0d" />
     <Project Path="Common/infrastructure/de.openelp.feuerwehr.infrastructure.csproj" Id="22416b46-d9ea-476f-bd3a-6a7b3dc09a76" />
@@ -16,16 +32,6 @@
       <Deploy />
     </Project>
     <Project Path="Mobile/mobile/de.openelp.feuerwehr.mobile.csproj" />
-  </Folder>
-  <Folder Name="/Projektmappenelemente/">
-    <File Path="../.gitlab-ci.yml" />
-    <File Path="../CHANGELOG.md" />
-    <File Path="../CONTRIBUTING.md" />
-    <File Path="../Datenschutz.md" />
-    <File Path="../Governance.md" />
-    <File Path="../README.md" />
-    <File Path="../Security.md" />
-    <File Path="../Support.md" />
   </Folder>
   <Folder Name="/Tests/Common">
     <Project Path="Tests/Common/application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj" Id="8024a8fd-cf86-4c6b-b41d-54fd979c1c7c" />
