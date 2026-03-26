@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Mobile\mobile.Desktop\de.openelp.feuerwehr.mobile.Desktop.csproj" />
+    <ProjectReference Include="..\..\..\Mobile\mobile.Desktop\de.openelp.feuerwehr.mobile.Desktop.csproj" />
   </ItemGroup>
 
   <ItemGroup>

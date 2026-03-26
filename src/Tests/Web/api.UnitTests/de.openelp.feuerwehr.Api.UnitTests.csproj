@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Web\api\de.openelp.feuerwehr.Api.csproj" />
+    <ProjectReference Include="..\..\..\Web\api\de.openelp.feuerwehr.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

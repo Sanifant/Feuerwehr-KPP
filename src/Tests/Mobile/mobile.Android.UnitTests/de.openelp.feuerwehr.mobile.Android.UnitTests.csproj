@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Mobile\mobile.Android\de.openelp.feuerwehr.mobile.Android.csproj" />
-    <ProjectReference Include="..\..\Mobile\mobile\de.openelp.feuerwehr.mobile.csproj" />
+    <ProjectReference Include="..\..\..\Mobile\mobile.Android\de.openelp.feuerwehr.mobile.Android.csproj" />
+    <ProjectReference Include="..\..\..\Mobile\mobile\de.openelp.feuerwehr.mobile.csproj" />
   </ItemGroup>
 
   <ItemGroup>

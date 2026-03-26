@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Mobile\mobile.iOS\de.openelp.feuerwehr.mobile.iOS.csproj" />
+    <ProjectReference Include="..\..\..\Mobile\mobile.iOS\de.openelp.feuerwehr.mobile.iOS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
