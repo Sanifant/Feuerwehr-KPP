@@ -1,0 +1,191 @@
+name: Update Changelog
+
+on:
+  push:
+    branches: [main, master, develop, '**']
+  pull_request:
+    branches: [main, master, develop]
+  release:
+    types: [published, created]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Get latest tag
+      id: get_tag
+      run: |
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "Latest tag: $LATEST_TAG"
+        
+    - name: Get commits since last tag
+      id: commits
+      run: |
+        if [ -z "${{ steps.get_tag.outputs.latest_tag }}" ]; then
+          COMMITS=$(git log --pretty=format:"%s" --no-merges)
+        else
+          COMMITS=$(git log ${{ steps.get_tag.outputs.latest_tag }}..HEAD --pretty=format:"%s" --no-merges)
+        fi
+        echo "commits<<EOF" >> $GITHUB_OUTPUT
+        echo "$COMMITS" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Generate Changelog Entry
+      id: generate_entry
+      run: |
+        # Kategorien initialisieren
+        ADDED=""
+        CHANGED=""
+        FIXED=""
+        REMOVED=""
+        SECURITY=""
+        DEPRECATED=""
+        
+        # Commits parsen
+        while IFS= read -r commit; do
+          if [[ "$commit" =~ ^feat(\(.*\))?:(.+) ]]; then
+            ADDED="${ADDED}- ${BASH_REMATCH[2]}\n"
+          elif [[ "$commit" =~ ^fix(\(.*\))?:(.+) ]]; then
+            FIXED="${FIXED}- ${BASH_REMATCH[2]}\n"
+          elif [[ "$commit" =~ ^chore(\(.*\))?:(.+) ]] || [[ "$commit" =~ ^refactor(\(.*\))?:(.+) ]]; then
+            CHANGED="${CHANGED}- ${BASH_REMATCH[2]}\n"
+          elif [[ "$commit" =~ ^docs(\(.*\))?:(.+) ]]; then
+            CHANGED="${CHANGED}- Dokumentation: ${BASH_REMATCH[2]}\n"
+          elif [[ "$commit" =~ ^perf(\(.*\))?:(.+) ]]; then
+            CHANGED="${CHANGED}- Performance: ${BASH_REMATCH[2]}\n"
+          elif [[ "$commit" =~ ^security(\(.*\))?:(.+) ]]; then
+            SECURITY="${SECURITY}- ${BASH_REMATCH[2]}\n"
+          elif [[ "$commit" =~ ^remove(\(.*\))?:(.+) ]]; then
+            REMOVED="${REMOVED}- ${BASH_REMATCH[2]}\n"
+          else
+            # Fallback für Commits ohne Conventional Commits Format
+            if [[ "$commit" =~ [Aa]dd|[Nn]ew|[Ii]mplement ]]; then
+              ADDED="${ADDED}- ${commit}\n"
+            elif [[ "$commit" =~ [Ff]ix|[Bb]ug ]]; then
+              FIXED="${FIXED}- ${commit}\n"
+            elif [[ "$commit" =~ [Uu]pdate|[Cc]hange|[Rr]efactor ]]; then
+              CHANGED="${CHANGED}- ${commit}\n"
+            fi
+          fi
+        done <<< "${{ steps.commits.outputs.commits }}"
+        
+        # Changelog-Entry zusammenstellen
+        ENTRY=""
+        if [ -n "$ADDED" ]; then
+          ENTRY="${ENTRY}### Added\n${ADDED}\n"
+        fi
+        if [ -n "$CHANGED" ]; then
+          ENTRY="${ENTRY}### Changed\n${CHANGED}\n"
+        fi
+        if [ -n "$FIXED" ]; then
+          ENTRY="${ENTRY}### Fixed\n${FIXED}\n"
+        fi
+        if [ -n "$SECURITY" ]; then
+          ENTRY="${ENTRY}### Security\n${SECURITY}\n"
+        fi
+        if [ -n "$REMOVED" ]; then
+          ENTRY="${ENTRY}### Removed\n${REMOVED}\n"
+        fi
+        
+        echo "entry<<EOF" >> $GITHUB_OUTPUT
+        echo -e "$ENTRY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Update Changelog for Push/PR
+      if: github.event_name != 'release'
+      run: |
+        if [ ! -f "CHANGELOG.md" ]; then
+          cat > CHANGELOG.md << 'EOL'
+        # Changelog
+        
+        Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
+        
+        Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und [Semantic Versioning](https://semver.org/lang/de/).
+        
+        ## [Unreleased]
+        
+        EOL
+        fi
+        
+        # Prüfen ob bereits Einträge existieren und ggf. ergänzen
+        echo "Changelog update für Push/PR - Entry würde hinzugefügt werden"
+        
+    - name: Create Release Section in Changelog
+      if: github.event_name == 'release'
+      run: |
+        RELEASE_TAG="${{ github.event.release.tag_name }}"
+        RELEASE_DATE=$(date +%Y-%m-%d)
+        
+        # Backup erstellen
+        cp CHANGELOG.md CHANGELOG.md.bak
+        
+        # Temporäre Datei erstellen
+        {
+          # Header übernehmen
+          sed -n '1,/## \[Unreleased\]/p' CHANGELOG.md
+          
+          # Neue Release-Sektion einfügen
+          echo ""
+          echo "## [$RELEASE_TAG] - $RELEASE_DATE"
+          echo ""
+          
+          # Unreleased-Inhalt in Release-Sektion verschieben
+          sed -n '/## \[Unreleased\]/,/## \[/p' CHANGELOG.md | sed '1d;$d'
+          
+          # Leere Unreleased-Sektion für zukünftige Änderungen
+          echo ""
+          echo "## [Unreleased]"
+          echo ""
+          
+          # Rest der Datei übernehmen (alte Versionen)
+          sed -n '/## \[/,$ {/## \[Unreleased\]/!p}' CHANGELOG.md | tail -n +2
+          
+        } > CHANGELOG.md.new
+        
+        mv CHANGELOG.md.new CHANGELOG.md
+        
+    - name: Commit and Push Changes
+      if: github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        if git diff --quiet CHANGELOG.md; then
+          echo "Keine Änderungen am CHANGELOG"
+        else
+          git add CHANGELOG.md
+          if [ "${{ github.event_name }}" == "release" ]; then
+            git commit -m "docs: Update CHANGELOG for release ${{ github.event.release.tag_name }} [skip ci]"
+          else
+            git commit -m "docs: Update CHANGELOG [skip ci]"
+          fi
+          git push
+        fi
+        
+    - name: Create PR Comment with Changelog Preview
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const entry = `${{ steps.generate_entry.outputs.entry }}`;
+          if (entry.trim()) {
+            const body = `## 📝 CHANGELOG Preview\n\nDiese Änderungen würden zum CHANGELOG hinzugefügt werden:\n\n${entry}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+          }

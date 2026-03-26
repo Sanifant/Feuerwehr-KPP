@@ -57,15 +57,15 @@
                 FontSize="16"
                 Margin="0,0,0,10"/>
 
-            <TextBox Grid.Column="0" Grid.Row="1">Name</TextBox>
+            <TextBlock Grid.Column="0" Grid.Row="1">Name</TextBlock>
             <TextBox Grid.Column="1" Grid.Row="1" x:DataType="vm:InventoryViewModel" Text="{Binding SelectedItem.Name}"/>
-            <TextBox Grid.Column="0" Grid.Row="2">Category</TextBox>
+            <TextBlock Grid.Column="0" Grid.Row="2">Category</TextBlock>
             <TextBox Grid.Column="1" Grid.Row="2" x:DataType="vm:InventoryViewModel" Text="{Binding SelectedItem.Category}"/>
-            <TextBox Grid.Column="0" Grid.Row="3">Quantity</TextBox>
+            <TextBlock Grid.Column="0" Grid.Row="3">Quantity</TextBlock>
             <TextBox Grid.Column="1" Grid.Row="3" x:DataType="vm:InventoryViewModel" Text="{Binding SelectedItem.Quantity}"/>
-            <TextBox Grid.Column="0" Grid.Row="4">Condition</TextBox>
+            <TextBlock Grid.Column="0" Grid.Row="4">Condition</TextBlock>
             <TextBox Grid.Column="1" Grid.Row="4" x:DataType="vm:InventoryViewModel" Text="{Binding SelectedItem.Condition}"/>
-            <TextBox Grid.Column="0" Grid.Row="5">Location</TextBox>
+            <TextBlock Grid.Column="0" Grid.Row="5">Location</TextBlock>
             <TextBox Grid.Column="1" Grid.Row="5" x:DataType="vm:InventoryViewModel" Text="{Binding SelectedItem.Location}"/>
 
 

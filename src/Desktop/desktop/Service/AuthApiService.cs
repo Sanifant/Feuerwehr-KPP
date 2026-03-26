@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -11,10 +12,10 @@ namespace de.openelp.feuerwehr.desktop.Service
     {
         private readonly HttpClient _http;
 
-        public AuthApiService(HttpClient http)
+        public AuthApiService(HttpClient http, IOptions<ApiSettings> settings)
         {
             _http = http;
-            _http.BaseAddress = new Uri("https://localhost:5001/");
+            _http.BaseAddress = new Uri(settings.Value.AuthBaseUrl);
         }
 
         public async Task<string?> Login(string username, string password)

@@ -1,4 +1,5 @@
 ﻿using de.openelp.feuerwehr.domain;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -16,7 +17,7 @@ namespace de.openelp.feuerwehr.desktop.Service
         public ApiService(HttpClient http)
         {
             _http = http;
-            _http.BaseAddress = new Uri("https://localhost:51520");
+            _http.BaseAddress = new Uri("https://localhost:8081");
         }
 
         public List<InventoryItem> GetAll()

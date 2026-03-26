@@ -22,3 +22,11 @@ Das Format orientiert sich an Keep a Changelog und Semantic Versioning.
 - Support-Dokument um Priorisierung fuer einsatzkritische Stoerungen erweitert.
 - Governance um fachliche Abstimmung mit kommunalen Stakeholdern erweitert.
 - Dokumentation um Datenschutz- und Compliance-Rahmen inklusive Audit-Logging erweitert.
+- **CI-Workflow** (.github/workflows/ci.yml) fuer automatisierte Builds und Tests bei jedem Push.
+  - Automatisches Builden der kompletten Solution.
+  - Ausfuehrung aller Unit-Tests mit Code Coverage.
+  - Upload von Test-Ergebnissen und Coverage-Berichten als Artefakte.
+- **CD-Workflow** (.github/workflows/cd.yml) fuer automatisierte Deployments.
+  - Container-Publishing: Docker-Image-Erstellung und Push zu GitHub Container Registry.
+  - Desktop-App-Publishing: Build fuer Windows x64 und ARM64 als Self-Contained Single-File.
+  - Android-App-Publishing: Automatischer Upload zu Google Play Store (Internal Testing bei `main`, Production bei Version-Tags).

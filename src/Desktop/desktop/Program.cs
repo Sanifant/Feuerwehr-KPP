@@ -1,8 +1,10 @@
 ﻿using Avalonia;
 using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IO;
 
 namespace de.openelp.feuerwehr.desktop
 {
@@ -14,7 +16,15 @@ namespace de.openelp.feuerwehr.desktop
         [STAThread]
         public static void Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
             var services = new ServiceCollection();
+
+            // Configuration
+            services.AddSingleton<IConfiguration>(configuration);
+            services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
 
             // ViewModels
             services.AddHttpClient<ApiService>();
@@ -29,6 +39,7 @@ namespace de.openelp.feuerwehr.desktop
 
             // HttpClient
             services.AddHttpClient<ApiService>();
+            services.AddHttpClient<AuthApiService>();
 
             // Build
             var provider = services.BuildServiceProvider();
