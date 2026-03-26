@@ -20,32 +20,8 @@ namespace de.openelp.feuerwehr.desktop
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            var services = new ServiceCollection();
-
-            // Configuration
-            services.AddSingleton<IConfiguration>(configuration);
-            services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
-
-            // ViewModels
-            services.AddHttpClient<ApiService>();
-            services.AddTransient<ApiService>();
-            services.AddSingleton<MainWindowViewModel>();
-            services.AddTransient<InventoryViewModel>();
-            services.AddTransient<DashboardViewModel>();
-            services.AddTransient<LoginViewModel>();
-
-            // Services
-            //services.AddSingleton<INavigationService, NavigationService>();
-
-            // HttpClient
-            services.AddHttpClient<ApiService>();
-            services.AddHttpClient<AuthApiService>();
-
-            // Build
-            var provider = services.BuildServiceProvider();
-
             BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+                .StartWithClassicDesktopLifetime(args);
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.

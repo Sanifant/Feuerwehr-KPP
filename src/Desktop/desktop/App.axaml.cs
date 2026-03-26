@@ -3,12 +3,13 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
 using de.openelp.feuerwehr.desktop.Views;
-using de.openelp.feuerwehr.desktop.Service;
-using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 
 namespace de.openelp.feuerwehr.desktop
 {
@@ -30,9 +31,13 @@ namespace de.openelp.feuerwehr.desktop
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
 
+                
+
                 var services = new ServiceCollection();
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
+
+                this.ConfigureServices(services);
 
                 var login = new LoginWindow();
                 var vm = _serviceProvider.GetRequiredService<LoginViewModel>();
@@ -61,14 +66,28 @@ namespace de.openelp.feuerwehr.desktop
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient<ApiService>();
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Configuration
+            services.AddSingleton<IConfiguration>(configuration);
+            services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
+
+            // ViewModels
             services.AddTransient<ApiService>();
+            services.AddSingleton<AuthTokenStore>();
             services.AddSingleton<MainWindowViewModel>();
             services.AddTransient<InventoryViewModel>();
             services.AddTransient<DashboardViewModel>();
             services.AddTransient<LoginViewModel>();
-            services.AddSingleton<AuthTokenStore>();
-            services.AddSingleton<AuthApiService>();
+
+            // Services
+            //services.AddSingleton<INavigationService, NavigationService>();
+
+            // HttpClient
+            services.AddHttpClient<ApiService>();
+            services.AddHttpClient<AuthApiService>();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

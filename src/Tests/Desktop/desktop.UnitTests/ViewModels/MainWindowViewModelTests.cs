@@ -80,12 +80,9 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         public void LoadItems_WhenCalled_DoesNotThrow()
         {
             // Arrange
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            var mockInventoryViewModel = new Mock<InventoryViewModel>(Mock.Of<ApiService>());
-            mockServiceProvider.Setup(sp => sp.GetService(typeof(InventoryViewModel)))
-                .Returns(mockInventoryViewModel.Object);
+            var services = new ServiceCollection();
 
-            var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
+            var viewModel = new MainWindowViewModel(services.BuildServiceProvider());
 
             // Act & Assert
             viewModel.ShowInventoryCommand();
