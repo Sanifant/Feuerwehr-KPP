@@ -121,8 +121,8 @@ jobs:
           dotnet build src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj -c Release --no-restore
 
       - name: Test Android
-         run: |
-           dotnet test src/Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj -c Release --verbosity normal --logger trx
+        run: |
+          dotnet test src/Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj -c Release --verbosity normal --logger trx
 
       - name: Upload test results
         if: always()
