@@ -30,6 +30,7 @@ jobs:
       - name: Build
         run: |
           dotnet build src/Web/api/de.openelp.feuerwehr.Api.csproj -c Release --no-restore
+          dotnet build src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-restore
 
       - name: Test
         run: |
