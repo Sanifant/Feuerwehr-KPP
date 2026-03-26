@@ -1,0 +1,59 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:de.openelp.feuerwehr.desktop.ViewModels"
+        xmlns:views="using:de.openelp.feuerwehr.desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+        x:Class="de.openelp.feuerwehr.desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="de.openelp.feuerwehr.desktop">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+    <Window.DataTemplates>
+
+        <!-- Mapping ViewModel → View -->
+        <DataTemplate DataType="{x:Type vm:InventoryViewModel}">
+            <views:InventoryView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
+        </DataTemplate>
+
+    </Window.DataTemplates>
+
+    <Grid ColumnDefinitions="250,*">
+
+        <!-- Sidebar -->
+        <StackPanel Background="#2C2F33">
+
+            <Image Source="/Assets/Logo.png"
+                   Height="100"
+                   Margin="10"/>
+
+            <Button Content="Dashboard"
+                    Command="{Binding ShowDashboardCommand}"
+                    Margin="10"/>
+
+            <Button Content="Inventory"
+                    Command="{Binding ShowInventoryCommand}"
+                    Margin="10"/>
+
+            <Button Content="Inspections" Margin="10"/>
+            <Button Content="Vehicles" Margin="10"/>
+            <Button Content="Users" Margin="10"/>
+
+        </StackPanel>
+
+        <!-- Dynamischer Content -->
+        <ContentControl Grid.Column="1"
+                        Content="{Binding CurrentView}"/>
+
+    </Grid>
+</Window>

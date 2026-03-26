@@ -1,0 +1,38 @@
+services:
+  de.openelp.feuerwehr.api:
+    image: ${DOCKER_REGISTRY-}deopenelpfeuerwehrapi
+    build:
+      context: .
+      dockerfile: Web/api/Dockerfile
+
+  redis:
+    image: redis
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-feuerwehr}
+      POSTGRES_USER: ${POSTGRES_USER:-feuerwehr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-feuerwehr}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-stefan@openelp.de}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+  pgadmin_data:
