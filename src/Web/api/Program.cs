@@ -12,7 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
-builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

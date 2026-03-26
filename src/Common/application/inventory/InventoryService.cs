@@ -2,7 +2,7 @@
 
 namespace de.openelp.feuerwehr.application.inventory
 {
-    public class InventoryService
+    public class InventoryService : IInventoryService
     {
 
         private readonly IInventoryRepository _repo;
