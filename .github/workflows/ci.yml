@@ -23,6 +23,15 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
+    - name: install android workload
+      run: dotnet workload install android --skip-manifest-update
+
+    - name: install ios workload
+      run: dotnet workload install ios --skip-manifest-update
+        
+    - name: install wasm-tools workload
+      run: dotnet workload install wasm-tools --skip-manifest-update
+        
     - name: Restore dependencies
       run: dotnet restore ${{ env.SOLUTION_FILE }}
       
