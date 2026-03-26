@@ -37,7 +37,7 @@
     <Project Path="Tests/Mobile/mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj" Id="fd677494-6ad0-4d58-9ff0-f4ee5cd38012" />
   </Folder>
   <Folder Name="/Tests/Web/">
-    <Project Path="Tests/Web/Api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj" Id="08f11560-5609-4331-8668-cc3e6101e328" />
+    <Project Path="Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj" Id="08f11560-5609-4331-8668-cc3e6101e328" />
   </Folder>
   <Folder Name="/Web/">
     <Project Path="Web/api/de.openelp.feuerwehr.Api.csproj" />
