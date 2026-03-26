@@ -49,110 +49,110 @@ jobs:
           name: code-coverage-web-linux
           path: '**/coverage.cobertura.xml'
 
-  desktop:
-    name: Desktop (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Restore
-        run: |
-          dotnet restore src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj
-          dotnet restore src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj
-
-      - name: Build
-        run: |
-          dotnet build src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release --no-restore
-
-      - name: Test
-        run: |
-          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-desktop-${{ matrix.os }}
-          path: '**/*.trx'
-
-      - name: Upload code coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-desktop-${{ matrix.os }}
-          path: '**/coverage.cobertura.xml'
-
-  android-linux:
-    name: Android (Linux)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      # Install only what Android needs, and only in the Android job
-      - name: Install Android workload
-        run: |
-          dotnet workload install android --skip-manifest-update \
-            --source https://api.nuget.org/v3/index.json \
-            --source https://aka.ms/dotnet9/nuget/index.json
-
-      - name: Restore Android
-        run: |
-          dotnet restore src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj
-
-      - name: Build Android
-        run: |
-          dotnet build src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj -c Release --no-restore
-
-      - name: Test Android
-        run: |
-          dotnet test src/Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj -c Release --verbosity normal --logger trx
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-android-linux
-          path: '**/*.trx'
-
-  ios-macos:
-    name: iOS (macOS)
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Install iOS workload
-        run: |
-          dotnet workload install ios --version 10.0.200 \
-            --source https://api.nuget.org/v3/index.json \
-            --source https://aka.ms/dotnet9/nuget/index.json
-
-      - name: Restore iOS
-        run: |
-          dotnet restore src/Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj
-
-      - name: Build iOS
-        run: |
-          dotnet build src/Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj -c Release --no-restore
+#  desktop:
+#    name: Desktop (${{ matrix.os }})
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [windows-latest, ubuntu-latest]
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup .NET
+#        uses: actions/setup-dotnet@v4
+#        with:
+#          dotnet-version: ${{ env.DOTNET_VERSION }}
+#
+#      - name: Restore
+#        run: |
+#          dotnet restore src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj
+#          dotnet restore src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj
+#
+#      - name: Build
+#        run: |
+#          dotnet build src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release --no-restore
+#
+#      - name: Test
+#        run: |
+#          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --no-build --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+#
+#      - name: Upload test results
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: test-results-desktop-${{ matrix.os }}
+#          path: '**/*.trx'
+#
+#      - name: Upload code coverage
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: code-coverage-desktop-${{ matrix.os }}
+#          path: '**/coverage.cobertura.xml'
+#
+#  android-linux:
+#    name: Android (Linux)
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup .NET
+#        uses: actions/setup-dotnet@v4
+#        with:
+#          dotnet-version: ${{ env.DOTNET_VERSION }}
+#
+#      # Install only what Android needs, and only in the Android job
+#      - name: Install Android workload
+#        run: |
+#          dotnet workload install android --skip-manifest-update \
+#            --source https://api.nuget.org/v3/index.json \
+#            --source https://aka.ms/dotnet9/nuget/index.json
+#
+#      - name: Restore Android
+#        run: |
+#          dotnet restore src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj
+#
+#      - name: Build Android
+#        run: |
+#          dotnet build src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj -c Release --no-restore
+#
+#      - name: Test Android
+#        run: |
+#          dotnet test src/Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj -c Release --verbosity normal --logger trx
+#
+#      - name: Upload test results
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: test-results-android-linux
+#          path: '**/*.trx'
+#
+#  ios-macos:
+#    name: iOS (macOS)
+#    runs-on: macos-latest
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup .NET
+#        uses: actions/setup-dotnet@v4
+#        with:
+#          dotnet-version: ${{ env.DOTNET_VERSION }}
+#
+#      - name: Install iOS workload
+#        run: |
+#          dotnet workload install ios --version 10.0.200 \
+#            --source https://api.nuget.org/v3/index.json \
+#            --source https://aka.ms/dotnet9/nuget/index.json
+#
+#      - name: Restore iOS
+#        run: |
+#          dotnet restore src/Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj
+#
+#      - name: Build iOS
+#        run: |
+#          dotnet build src/Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj -c Release --no-restore

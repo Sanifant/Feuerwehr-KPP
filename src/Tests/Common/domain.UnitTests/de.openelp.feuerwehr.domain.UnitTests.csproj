@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\domain\de.openelp.feuerwehr.domain.csproj" />
+    <ProjectReference Include="..\..\..\Common\domain\de.openelp.feuerwehr.domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

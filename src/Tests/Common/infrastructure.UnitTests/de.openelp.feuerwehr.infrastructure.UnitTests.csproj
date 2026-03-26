@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\infrastructure\de.openelp.feuerwehr.infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Common\infrastructure\de.openelp.feuerwehr.infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
