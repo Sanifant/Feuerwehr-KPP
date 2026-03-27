@@ -22,7 +22,8 @@ namespace de.openelp.feuerwehr.desktop.Service
 
         public List<InventoryItem> GetAll()
         {
-            var items = _http.GetFromJsonAsync<List<InventoryItem>>(apiUrl).Result;
+            List<InventoryItem> items = new List<InventoryItem>();
+            items.AddRange(_http.GetFromJsonAsync<List<InventoryItem>>(apiUrl).Result);
             return items;
         }
 

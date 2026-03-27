@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 
 using CommunityToolkit.Mvvm.Input;
@@ -6,7 +6,7 @@ using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
 using de.openelp.feuerwehr.domain;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Moq;
 
 namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
@@ -14,14 +14,13 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
     /// <summary>
     /// Unit tests for the <see cref="MainWindowViewModel"/> class.
     /// </summary>
-    [TestClass]
     public partial class MainWindowViewModelTests
     {
         /// <summary>
         /// Tests that the constructor successfully creates an instance of MainWindowViewModel
         /// without throwing any exceptions.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_WhenCalled_CreatesInstanceSuccessfully()
         {
             // Arrange
@@ -31,14 +30,14 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Assert
-            Assert.IsNotNull(viewModel);
-            Assert.IsInstanceOfType(viewModel, typeof(MainWindowViewModel));
+            Assert.NotNull(viewModel);
+            Assert.IsType<MainWindowViewModel>(viewModel);
         }
 
         /// <summary>
         /// Tests that the constructor initializes the Items property to a non-null ObservableCollection.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_WhenCalled_InitializesItemsProperty()
         {
             // Arrange
@@ -48,13 +47,13 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Assert
-            Assert.IsNotNull(viewModel.CurrentView);
+            Assert.NotNull(viewModel.CurrentView);
         }
 
         /// <summary>
         /// Tests that the constructor initializes the Greeting property to the expected default value.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_WhenCalled_InitializesGreetingProperty()
         {
             // Arrange
@@ -67,7 +66,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Assert
-            Assert.IsNotNull(viewModel.CurrentView);
+            Assert.NotNull(viewModel.CurrentView);
         }
 
         /// <summary>
@@ -76,7 +75,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         /// Note: Due to the fire-and-forget pattern and lack of dependency injection for HttpClient,
         /// comprehensive testing of the async behavior and HTTP operations requires design changes.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void LoadItems_WhenCalled_DoesNotThrow()
         {
             // Arrange
@@ -93,7 +92,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         /// This verifies the method is safe to invoke repeatedly, which is important for UI scenarios
         /// where users might trigger the load operation multiple times.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void LoadItems_WhenCalledMultipleTimes_DoesNotThrow()
         {
             // Arrange
@@ -115,7 +114,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
         /// Since LoadItems uses a fire-and-forget async pattern, the Items collection
         /// should not be modified synchronously when the method returns.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void LoadItems_WhenCalled_DoesNotImmediatelyModifyItems()
         {
             // Arrange
@@ -134,7 +133,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             viewModel.ShowDashboardCommand();
 
             // Assert
-            Assert.IsNotNull(viewModel.CurrentView);
+            Assert.NotNull(viewModel.CurrentView);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,7 +16,7 @@ using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
 using de.openelp.feuerwehr.desktop.Views;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Moq;
 
 namespace de.openelp.feuerwehr.desktop.UnitTests
@@ -24,7 +24,6 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
     /// <summary>
     /// Unit tests for the <see cref="App"/> class.
     /// </summary>
-    [TestClass]
     public partial class AppTests
     {
         /// <summary>
@@ -34,7 +33,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         /// is a static method that cannot be mocked. This serves as a smoke test to ensure 
         /// the initialization logic doesn't throw unexpected exceptions.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Initialize_WhenCalled_CompletesWithoutException()
         {
             // Arrange
@@ -48,7 +47,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         /// <summary>
         /// Tests that OnFrameworkInitializationCompleted does not set MainWindow when ApplicationLifetime is null.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OnFrameworkInitializationCompleted_ApplicationLifetimeIsNull_DoesNotThrowException()
         {
             // Arrange
@@ -61,14 +60,14 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             // Assert
             // If ApplicationLifetime is null, the method should complete without errors
             // and should not attempt to set MainWindow
-            Assert.IsFalse(testApp.MainWindowWasSet);
+            Assert.False(testApp.MainWindowWasSet);
         }
 
         /// <summary>
         /// Tests that OnFrameworkInitializationCompleted does not set MainWindow when ApplicationLifetime 
         /// is not IClassicDesktopStyleApplicationLifetime.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OnFrameworkInitializationCompleted_ApplicationLifetimeIsNotDesktop_DoesNotSetMainWindow()
         {
             // Arrange
@@ -82,7 +81,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             // Assert
             // If ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime,
             // MainWindow should not be set
-            Assert.IsFalse(testApp.MainWindowWasSet);
+            Assert.False(testApp.MainWindowWasSet);
         }
 
         /// <summary>
@@ -90,7 +89,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         /// is IClassicDesktopStyleApplicationLifetime.
         /// This test requires Avalonia framework initialization and may be inconclusive in some test environments.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OnFrameworkInitializationCompleted_ApplicationLifetimeIsDesktop_SetsMainWindow()
         {
             // Arrange
@@ -114,7 +113,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
 
             // Assert
             // Verify that MainWindow was set
-            Assert.IsTrue(testApp.MainWindowWasSet);
+            Assert.True(testApp.MainWindowWasSet);
             mockDesktopLifetime.VerifySet(x => x.MainWindow = It.IsAny<Window>(), Times.Once);
         }
 
@@ -123,7 +122,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         /// is IClassicDesktopStyleApplicationLifetime.
         /// This test verifies that the MainWindow is configured with a MainWindowViewModel as its DataContext.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void OnFrameworkInitializationCompleted_ApplicationLifetimeIsDesktop_SetsMainWindowDataContext()
         {
             // Arrange
@@ -143,14 +142,13 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
 
                 // Assert
                 // Verify that MainWindow was set and has a DataContext of type MainWindowViewModel
-                Assert.IsNotNull(capturedWindow, "MainWindow should have been set");
-                Assert.IsNotNull(capturedWindow.DataContext, "MainWindow DataContext should be set");
-                Assert.IsInstanceOfType(capturedWindow.DataContext, typeof(MainWindowViewModel),
-                    "DataContext should be of type MainWindowViewModel");
+                Assert.NotNull(capturedWindow);
+                Assert.NotNull(capturedWindow.DataContext);
+                Assert.IsType<MainWindowViewModel>(capturedWindow.DataContext);
             }
             catch (Exception ex) when (ex.Message.Contains("Avalonia") || ex.Message.Contains("initialized"))
             {
-                Assert.Inconclusive(
+                Assert.Fail(
                     "This test requires Avalonia framework to be initialized. " +
                     "The test could not complete due to: " + ex.Message);
             }
@@ -205,3 +203,4 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         }
     }
 }
+

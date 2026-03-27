@@ -35,7 +35,7 @@ namespace de.openelp.feuerwehr.desktop.Service
 
         private class LoginResponse
         {
-            public string Token { get; set; }
+            public string Token { get; set; } = string.Empty;
         }
     }
 }

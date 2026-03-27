@@ -14,11 +14,11 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
     {
         private readonly ApiService _api;
 
-        public string Name { get; set; }
-        public string Category { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        public string Condition { get; set; }
-        public string Location { get; set; }
+        public string Condition { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
 
 
 

@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using de.openelp.feuerwehr.desktop;
 using de.openelp.feuerwehr.desktop.ViewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Moq;
 
 namespace de.openelp.feuerwehr.desktop.UnitTests
@@ -12,13 +12,12 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
     /// <summary>
     /// Unit tests for the <see cref="ViewLocator"/> class.
     /// </summary>
-    [TestClass]
     public class ViewLocatorTests
     {
         /// <summary>
         /// Tests that Build returns null when the parameter is null.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Build_NullParameter_ReturnsNull()
         {
             // Arrange
@@ -28,14 +27,14 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Build(null);
 
             // Assert
-            Assert.IsNull(result);
+            Assert.Null(result);
         }
 
         /// <summary>
         /// Tests that Build returns the corresponding view instance when a valid view model
         /// with a matching view type is provided.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Build_ValidViewModelWithMatchingView_ReturnsViewInstance()
         {
             // Arrange
@@ -58,17 +57,17 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             // Since TestView is in a different assembly and Type.GetType() cannot resolve it,
             // the ViewLocator will return a TextBlock with "Not Found" message
             // This test should verify that behavior instead
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(TextBlock));
+            Assert.NotNull(result);
+            Assert.IsType<TextBlock>(result);
             var textBlock = (TextBlock)result;
-            StringAssert.Contains(textBlock.Text, "Not Found:");
+            Assert.Contains("Not Found:", textBlock.Text);
         }
 
         /// <summary>
         /// Tests that Build returns a TextBlock with an error message when the view model
         /// has no corresponding view type.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Build_ViewModelWithoutMatchingView_ReturnsTextBlockWithErrorMessage()
         {
             // Arrange
@@ -80,17 +79,17 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Build(viewModel);
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(TextBlock));
+            Assert.NotNull(result);
+            Assert.IsType<TextBlock>(result);
             var textBlock = (TextBlock)result;
-            Assert.AreEqual("Not Found: " + expectedTypeName, textBlock.Text);
+            Assert.Equal("Not Found: " + expectedTypeName, textBlock.Text);
         }
 
         /// <summary>
         /// Tests that Build returns a TextBlock with an error message when an object
         /// without "ViewModel" in its type name is provided.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Build_ObjectWithoutViewModelInName_ReturnsTextBlockWithErrorMessage()
         {
             // Arrange
@@ -102,10 +101,10 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Build(obj);
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(TextBlock));
+            Assert.NotNull(result);
+            Assert.IsType<TextBlock>(result);
             var textBlock = (TextBlock)result;
-            Assert.AreEqual("Not Found: " + expectedTypeName, textBlock.Text);
+            Assert.Equal("Not Found: " + expectedTypeName, textBlock.Text);
         }
 
         /// <summary>
@@ -170,7 +169,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         /// <summary>
         /// Tests that Match returns false when the data parameter is null.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Match_NullData_ReturnsFalse()
         {
             // Arrange
@@ -181,13 +180,13 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns true when the data parameter is an instance of ViewModelBase.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Match_ViewModelBaseInstance_ReturnsTrue()
         {
             // Arrange
@@ -199,7 +198,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.True(result);
         }
 
         /// <summary>
@@ -207,10 +206,10 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
         /// Covers various non-ViewModelBase object types including strings, integers, and other objects.
         /// </summary>
         /// <param name="data">The test data object.</param>
-        [TestMethod]
-        [DataRow("test string")]
-        [DataRow("")]
-        [DataRow("   ")]
+        [Theory]
+        [InlineData("test string")]
+        [InlineData("")]
+        [InlineData("   ")]
         public void Match_StringData_ReturnsFalse(string data)
         {
             // Arrange
@@ -220,19 +219,19 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns false when the data parameter is a primitive numeric type.
         /// </summary>
         /// <param name="data">The test data object.</param>
-        [TestMethod]
-        [DataRow(0)]
-        [DataRow(1)]
-        [DataRow(-1)]
-        [DataRow(int.MinValue)]
-        [DataRow(int.MaxValue)]
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(-1)]
+        [InlineData(int.MinValue)]
+        [InlineData(int.MaxValue)]
         public void Match_IntegerData_ReturnsFalse(int data)
         {
             // Arrange
@@ -242,13 +241,13 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns false when the data parameter is a DateTime object.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Match_DateTimeData_ReturnsFalse()
         {
             // Arrange
@@ -259,13 +258,13 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns false when the data parameter is a Guid object.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Match_GuidData_ReturnsFalse()
         {
             // Arrange
@@ -276,16 +275,16 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns false when the data parameter is a boolean value.
         /// </summary>
         /// <param name="data">The test boolean value.</param>
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         public void Match_BooleanData_ReturnsFalse(bool data)
         {
             // Arrange
@@ -295,22 +294,22 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns false when the data parameter is a double value, including special values.
         /// </summary>
         /// <param name="data">The test double value.</param>
-        [TestMethod]
-        [DataRow(0.0)]
-        [DataRow(1.5)]
-        [DataRow(-1.5)]
-        [DataRow(double.MinValue)]
-        [DataRow(double.MaxValue)]
-        [DataRow(double.NaN)]
-        [DataRow(double.PositiveInfinity)]
-        [DataRow(double.NegativeInfinity)]
+        [Theory]
+        [InlineData(0.0)]
+        [InlineData(1.5)]
+        [InlineData(-1.5)]
+        [InlineData(double.MinValue)]
+        [InlineData(double.MaxValue)]
+        [InlineData(double.NaN)]
+        [InlineData(double.PositiveInfinity)]
+        [InlineData(double.NegativeInfinity)]
         public void Match_DoubleData_ReturnsFalse(double data)
         {
             // Arrange
@@ -320,13 +319,13 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
 
         /// <summary>
         /// Tests that Match returns false when the data parameter is an unrelated object type.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Match_UnrelatedObjectType_ReturnsFalse()
         {
             // Arrange
@@ -337,7 +336,7 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
             var result = viewLocator.Match(data);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.False(result);
         }
     }
 }

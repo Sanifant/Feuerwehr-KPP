@@ -8,7 +8,7 @@ namespace de.openelp.feuerwehr.domain
         public Guid Id { get; set; }
 
         [Required]
-        public string Number { get; set; }
+        public string Number { get; set; } = string.Empty;
 
         public string Address { get; set; } = string.Empty;
 

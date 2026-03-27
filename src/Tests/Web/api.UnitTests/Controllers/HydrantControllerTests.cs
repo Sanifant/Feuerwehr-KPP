@@ -6,7 +6,7 @@ using de.openelp.feuerwehr.Api.Controllers;
 using de.openelp.feuerwehr.application.hydrant;
 using de.openelp.feuerwehr.domain;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Moq;
 
 namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
@@ -14,7 +14,6 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
     /// <summary>
     /// Unit tests for the HydrantController class.
     /// </summary>
-    [TestClass]
     public class HydrantControllerTests
     {
         /// <summary>
@@ -23,7 +22,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateHydrant method is called once with the provided hydrant,
         /// and a 201 Created response is returned.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Post_ValidHydrant_CallsServiceCreateHydrant()
         {
             // Arrange
@@ -44,7 +43,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
 
             // Assert
             mockService.Verify(s => s.CreateHydrant(hydrant), Times.Once);
-            Assert.IsInstanceOfType(result.Result, typeof(CreatedAtActionResult));
+            Assert.IsType<CreatedAtActionResult>(result.Result);
         }
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: Service returns a list of two hydrants.
         /// Expected: Controller returns all hydrants.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Get_ServiceReturnsHydrants_ReturnsAllHydrants()
         {
             // Arrange
@@ -69,8 +68,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Get();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(2, result.Count());
+            Assert.NotNull(result);
+            Assert.Equal(hydrants, result);
         }
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: Valid hydrant ID.
         /// Expected: OkObjectResult containing the hydrant.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void GetById_ExistingHydrant_ReturnsOkWithHydrant()
         {
             // Arrange
@@ -92,9 +91,9 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Get(hydrantId);
 
             // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(OkObjectResult));
+            Assert.IsType<OkObjectResult>(result.Result);
             var okResult = result.Result as OkObjectResult;
-            Assert.AreEqual(hydrant, okResult.Value);
+            Assert.Equal(hydrant, okResult.Value);
         }
 
         /// <summary>
@@ -102,7 +101,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: ID of a non-existent hydrant.
         /// Expected: NotFoundResult.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void GetById_NonExistingHydrant_ReturnsNotFound()
         {
             // Arrange
@@ -115,7 +114,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Get(hydrantId);
 
             // Assert
-            Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
+            Assert.IsType<NotFoundResult>(result.Result);
         }
 
         /// <summary>
@@ -123,7 +122,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: Valid hydrant ID and hydrant data.
         /// Expected: NoContentResult and UpdateHydrant called once.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Put_ExistingHydrant_ReturnsNoContent()
         {
             // Arrange
@@ -138,7 +137,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Put(hydrantId, hydrant);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.IsType<NoContentResult>(result);
             mockService.Verify(s => s.UpdateHydrant(It.Is<Hydrant>(h => h.Id == hydrantId)), Times.Once);
         }
 
@@ -147,7 +146,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: ID of a non-existent hydrant.
         /// Expected: NotFoundResult.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Put_NonExistingHydrant_ReturnsNotFound()
         {
             // Arrange
@@ -161,7 +160,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Put(hydrantId, hydrant);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            Assert.IsType<NotFoundResult>(result);
         }
 
         /// <summary>
@@ -169,7 +168,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: Valid hydrant ID.
         /// Expected: NoContentResult and DeleteHydrant called once.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Delete_ExistingHydrant_ReturnsNoContent()
         {
             // Arrange
@@ -181,9 +180,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
 
             // Act
             var result = controller.Delete(hydrantId);
-
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.IsType<NoContentResult>(result);
             mockService.Verify(s => s.DeleteHydrant(hydrantId), Times.Once);
         }
 
@@ -192,7 +190,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: ID of a non-existent hydrant.
         /// Expected: NotFoundResult.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Delete_NonExistingHydrant_ReturnsNotFound()
         {
             // Arrange
@@ -205,7 +203,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Delete(hydrantId);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+            Assert.IsType<NotFoundResult>(result);
         }
     }
 }

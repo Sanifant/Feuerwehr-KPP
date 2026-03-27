@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.domain;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 using Moq;
 
 namespace de.openelp.feuerwehr.application.inventory.UnitTests
@@ -13,7 +13,6 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
     /// <summary>
     /// Unit tests for the <see cref="InventoryService"/> class.
     /// </summary>
-    [TestClass]
     public class InventoryServiceTests
     {
         /// <summary>
@@ -21,7 +20,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: Valid mocked IInventoryRepository instance.
         /// Expected: InventoryService object is created without throwing any exceptions.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_ValidRepository_CreatesInstanceSuccessfully()
         {
             // Arrange
@@ -31,7 +30,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             InventoryService service = new InventoryService(mockRepository.Object);
 
             // Assert
-            Assert.IsNotNull(service);
+            Assert.NotNull(service);
         }
 
         /// <summary>
@@ -39,7 +38,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: null repository reference.
         /// Expected: Constructor accepts null (no explicit validation present in code).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_NullRepository_AcceptsNull()
         {
             // Arrange
@@ -49,7 +48,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             InventoryService service = new InventoryService(nullRepository!);
 
             // Assert
-            Assert.IsNotNull(service);
+            Assert.NotNull(service);
         }
 
         /// <summary>
@@ -57,7 +56,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: A valid InventoryItem instance.
         /// Expected: The repository's Add method is called exactly once with the provided item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ValidItem_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -84,7 +83,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: A valid InventoryItem instance.
         /// Expected: The exact same item instance is passed to the repository's Add method.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ValidItem_PassesExactItemToRepository()
         {
             // Arrange
@@ -106,8 +105,8 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             service.CreateItem(expectedItem);
 
             // Assert
-            Assert.IsNotNull(capturedItem);
-            Assert.AreSame(expectedItem, capturedItem);
+            Assert.NotNull(capturedItem);
+            Assert.Same(expectedItem, capturedItem);
         }
 
         /// <summary>
@@ -115,7 +114,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: null item parameter.
         /// Expected: The repository's Add method is called with null (testing edge case even though parameter is non-nullable).
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_NullItem_CallsRepositoryAddWithNull()
         {
             // Arrange
@@ -134,7 +133,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with only required properties set.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_MinimalItem_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -157,7 +156,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with empty strings for string properties.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ItemWithEmptyStrings_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -182,7 +181,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with very long strings for Name, Description, and Location.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ItemWithLongStrings_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -208,7 +207,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with special characters, control characters, and Unicode in strings.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ItemWithSpecialCharacters_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -233,7 +232,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with DateOnly.MinValue for PurchaseDate.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ItemWithMinDate_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -257,7 +256,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with DateOnly.MaxValue for PurchaseDate.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ItemWithMaxDate_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -281,7 +280,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// Input: An InventoryItem with Guid.Empty for Id.
         /// Expected: The repository's Add method is called once with the item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void CreateItem_ItemWithEmptyGuid_CallsRepositoryAddOnce()
         {
             // Arrange
@@ -303,7 +302,7 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         /// <summary>
         /// Tests that GetAll returns an empty list when the repository returns an empty collection.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task GetAll_WhenRepositoryReturnsEmptyCollection_ReturnsEmptyList()
         {
             // Arrange
@@ -315,14 +314,14 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             var result = await service.GetAll();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         /// <summary>
         /// Tests that GetAll returns a list with a single item when the repository returns a single item.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task GetAll_WhenRepositoryReturnsSingleItem_ReturnsListWithSingleItem()
         {
             // Arrange
@@ -341,16 +340,16 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             var result = await service.GetAll();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
-            Assert.AreEqual(item.Id, result[0].Id);
-            Assert.AreEqual(item.Name, result[0].Name);
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(item.Id, result[0].Id);
+            Assert.Equal(item.Name, result[0].Name);
         }
 
         /// <summary>
         /// Tests that GetAll returns a list with multiple items when the repository returns multiple items.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public async Task GetAll_WhenRepositoryReturnsMultipleItems_ReturnsListWithAllItems()
         {
             // Arrange
@@ -368,19 +367,19 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             var result = await service.GetAll();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(3, result.Count);
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
             for (int i = 0; i < items.Length; i++)
             {
-                Assert.AreEqual(items[i].Id, result[i].Id);
-                Assert.AreEqual(items[i].Name, result[i].Name);
+                Assert.Equal(items[i].Id, result[i].Id);
+                Assert.Equal(items[i].Name, result[i].Name);
             }
         }
 
         /// <summary>
         /// Tests that GetAll returns a completed task and does not delay execution.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void GetAll_ReturnsCompletedTask()
         {
             // Arrange
@@ -392,8 +391,8 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
             var task = service.GetAll();
 
             // Assert
-            Assert.IsNotNull(task);
-            Assert.IsTrue(task.IsCompleted);
+            Assert.NotNull(task);
+            Assert.True(task.IsCompleted);
         }
     }
 }

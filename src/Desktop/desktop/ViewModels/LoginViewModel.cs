@@ -13,11 +13,11 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         private readonly AuthApiService _authApi;
         private readonly AuthTokenStore _tokenStore;
 
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string ErrorMessage { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string ErrorMessage { get; set; } = string.Empty;
 
-        
+
 
         public Action OnLoginSuccess { get; set; }
 
@@ -25,6 +25,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         {
             _authApi = authApi;
             _tokenStore = tokenStore;
+            ErrorMessage = string.Empty;
         }
 
         [RelayCommand]
@@ -51,6 +52,6 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
     public class AuthTokenStore
     {
-        public string Token { get; internal set; }
+        public string Token { get; internal set; } = string.Empty;
     }
 }
