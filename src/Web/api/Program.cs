@@ -1,3 +1,4 @@
+using de.openelp.feuerwehr.application.hydrant;
 using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<InventoryService>();
+
+builder.Services.AddScoped<IHydrantRepository, HydrantRepository>();
+builder.Services.AddScoped<HydrantService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
