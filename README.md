@@ -39,6 +39,7 @@ Die Solution liegt unter `src/de.openelp.feuerwehr.slnx` und umfasst:
 ## Voraussetzungen
 
 - .NET SDK 10.0
+- Docker und Docker Compose fuer das Development Environment
 - Fuer Mobile-Targets zusaetzlich:
     - Android SDK/Workloads
     - Xcode/Apple Tooling fuer iOS (unter macOS)
@@ -53,6 +54,20 @@ dotnet build src/de.openelp.feuerwehr.slnx
 ```
 
 ## Starten
+
+Development Environment in VS Code:
+
+```bash
+code .
+```
+
+Anschliessend den Ordner im Devcontainer neu oeffnen. Dabei werden der Workspace-Container sowie `postgres`, `redis` und `pgadmin` automatisch ueber Docker Compose gestartet.
+
+Manueller Start der relevanten Services ohne Devcontainer:
+
+```bash
+docker compose -f src/docker/docker-compose.yml -f src/docker/docker-compose.override.yml up -d postgres redis pgadmin de.openelp.feuerwehr.api
+```
 
 Web API:
 

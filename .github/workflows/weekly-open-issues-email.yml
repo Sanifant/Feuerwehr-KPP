@@ -1,0 +1,80 @@
+name: Weekly open issues email
+
+on:
+  schedule:
+    # GitHub schedules are UTC. 10:00 UTC is around noon in Europe/Berlin (summer time).
+    - cron: "0 10 * * 5"
+  workflow_dispatch:
+
+jobs:
+  summarize-and-send:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+
+    steps:
+      - name: Build open issues summary
+        id: issue-summary
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const onlyIssues = issues.filter((issue) => !issue.pull_request);
+            const now = new Date().toISOString().slice(0, 10);
+
+            let body = '';
+            body += `Weekly issue summary for ${owner}/${repo}\n`;
+            body += `Generated: ${now} (UTC)\n\n`;
+
+            if (onlyIssues.length === 0) {
+              body += 'There are currently no open issues.\n';
+            } else {
+              body += `Open issues: ${onlyIssues.length}\n\n`;
+
+              for (const issue of onlyIssues) {
+                const labels = issue.labels.map((l) => (typeof l === 'string' ? l : l.name)).filter(Boolean);
+                const shortBody = (issue.body || '')
+                  .replace(/\r?\n+/g, ' ')
+                  .replace(/\s+/g, ' ')
+                  .trim()
+                  .slice(0, 240);
+
+                body += `#${issue.number}: ${issue.title}\n`;
+                body += `URL: ${issue.html_url}\n`;
+                body += `Created by: ${issue.user?.login || 'unknown'} on ${issue.created_at}\n`;
+                body += `Labels: ${labels.length ? labels.join(', ') : 'none'}\n`;
+                body += `Summary: ${shortBody || 'No description provided.'}\n\n`;
+              }
+            }
+
+            const filePath = 'weekly-open-issues-summary.txt';
+            fs.writeFileSync(filePath, body, 'utf8');
+
+            core.setOutput('subject', `[${owner}/${repo}] Weekly open issues summary (${now})`);
+            core.setOutput('body_file', filePath);
+
+      - name: Send summary email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.ISSUE_SUMMARY_SMTP_SERVER }}
+          server_port: ${{ secrets.ISSUE_SUMMARY_SMTP_PORT }}
+          username: ${{ secrets.ISSUE_SUMMARY_SMTP_USERNAME }}
+          password: ${{ secrets.ISSUE_SUMMARY_SMTP_PASSWORD }}
+          subject: ${{ steps.issue-summary.outputs.subject }}
+          to: ${{ secrets.ISSUE_SUMMARY_EMAIL_TO }}
+          from: ${{ secrets.ISSUE_SUMMARY_EMAIL_FROM }}
+          secure: true
+          body: Open issues summary is attached.
+          attachments: ${{ steps.issue-summary.outputs.body_file }}

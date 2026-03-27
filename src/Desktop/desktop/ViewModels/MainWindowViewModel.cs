@@ -18,21 +18,27 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         public MainWindowViewModel(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            CurrentView = new DashboardView();
+            CurrentView = _serviceProvider.GetService<DashboardViewModel>() ?? new DashboardViewModel();
         }
 
         [RelayCommand]
         public void ShowDashboardCommand()
         {
-            CurrentView = _serviceProvider.GetRequiredService<DashboardViewModel>();
-            this.OnPropertyChanged(nameof(CurrentView));
+            var vm = _serviceProvider.GetService<DashboardViewModel>();
+            if (vm is null) return;
+
+            CurrentView = vm;
+            OnPropertyChanged(nameof(CurrentView));
         }
 
         [RelayCommand]
         public void ShowInventoryCommand()
         {
-            CurrentView = _serviceProvider.GetRequiredService<InventoryViewModel>();
-            this.OnPropertyChanged(nameof(CurrentView));
+            var vm = _serviceProvider.GetService<InventoryViewModel>();
+            if (vm is null) return;
+
+            CurrentView = vm;
+            OnPropertyChanged(nameof(CurrentView));
         }
 
         public object CurrentView { get; set; }

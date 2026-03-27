@@ -1,0 +1,68 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/dotnet-postgres
+{
+    "name": "C# (.NET) and PostgreSQL",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"containerEnv": {
+		"ANDROID_SDK_ROOT": "/home/vscode/android-sdk",
+		"ANDROID_HOME": "/home/vscode/android-sdk"
+	},
+	"remoteEnv": {
+		"ANDROID_SDK_ROOT": "/home/vscode/android-sdk",
+		"ANDROID_HOME": "/home/vscode/android-sdk"
+	},
+	"features": {
+		// Java is required by the Android SDK installer
+		"ghcr.io/devcontainers/features/java:1": {
+			"version": "21"
+		},
+		// See: https://github.com/CASL0/devcontainer-features/tree/main/src/android-sdk
+		"ghcr.io/casl0/devcontainer-features/android-sdk:1": {
+			"installNdk": true,
+			"cmakeVersion": "3.22.1"
+		}
+	},
+
+	// Configure tool-specific properties.
+	// "customizations": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [5000, 5001, 5432, 5050, 5540],
+	"portsAttributes": {
+		"5001": {
+			"protocol": "https"
+		},
+		"5050": {
+			"protocol": "http",
+			"label": "pgAdmin"
+		},
+		"5540": {
+			"protocol": "http",
+			"label": "redis insight"
+		}
+
+		
+	},
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "dotnet --info && dotnet restore src/de.openelp.feuerwehr.slnx",
+	// Ensure Android SDK prerequisites are available after each container restart.
+	"postStartCommand": "bash .devcontainer/post-start.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-dotnettools.vscode-dotnet-runtime",
+                "AvaloniaTeam.vscode-avalonia",
+                "ms-dotnettools.csharp",
+                "MS-CEINTL.vscode-language-pack-de",
+                "ms-ossdata.vscode-pgsql",
+                "ms-dotnettools.csdevkit"
+            ]
+        }
+    }
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

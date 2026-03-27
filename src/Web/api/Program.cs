@@ -13,7 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
-builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 
 builder.Services.AddScoped<IHydrantRepository, HydrantRepository>();
 builder.Services.AddScoped<HydrantService>();
@@ -26,7 +26,6 @@ var app = builder.Build();
 
 app.ApplyMigrations();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
