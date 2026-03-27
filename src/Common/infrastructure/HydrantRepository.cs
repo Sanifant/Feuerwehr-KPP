@@ -37,10 +37,9 @@ namespace de.openelp.feuerwehr.infrastructure
             return _context.Hydrants.ToList();
         }
 
-        public Hydrant GetById(Guid id)
+        public Hydrant? GetById(Guid id)
         {
-            return _context.Hydrants.Find(id)
-                ?? throw new InvalidOperationException($"Hydrant mit ID {id} wurde nicht gefunden.");
+            return _context.Hydrants.Find(id);
         }
 
         public void Update(Hydrant hydrant)

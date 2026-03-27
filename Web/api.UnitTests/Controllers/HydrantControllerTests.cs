@@ -108,7 +108,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             // Arrange
             var hydrantId = Guid.NewGuid();
             var mockService = new Mock<HydrantService>(Mock.Of<IHydrantRepository>());
-            mockService.Setup(s => s.GetById(hydrantId)).Throws<InvalidOperationException>();
+            mockService.Setup(s => s.GetById(hydrantId)).Returns((Hydrant?)null);
             var controller = new HydrantController(mockService.Object);
 
             // Act
@@ -128,8 +128,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         {
             // Arrange
             var hydrantId = Guid.NewGuid();
+            var existing = new Hydrant { Id = hydrantId, Number = "H-001", Address = "Teststraße 1" };
             var hydrant = new Hydrant { Number = "H-001-Updated", Address = "Updatedstraße 1" };
             var mockService = new Mock<HydrantService>(Mock.Of<IHydrantRepository>());
+            mockService.Setup(s => s.GetById(hydrantId)).Returns(existing);
             var controller = new HydrantController(mockService.Object);
 
             // Act
@@ -152,7 +154,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var hydrantId = Guid.NewGuid();
             var hydrant = new Hydrant { Number = "H-999" };
             var mockService = new Mock<HydrantService>(Mock.Of<IHydrantRepository>());
-            mockService.Setup(s => s.UpdateHydrant(It.IsAny<Hydrant>())).Throws<InvalidOperationException>();
+            mockService.Setup(s => s.GetById(hydrantId)).Returns((Hydrant?)null);
             var controller = new HydrantController(mockService.Object);
 
             // Act
@@ -172,7 +174,9 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         {
             // Arrange
             var hydrantId = Guid.NewGuid();
+            var existing = new Hydrant { Id = hydrantId, Number = "H-001" };
             var mockService = new Mock<HydrantService>(Mock.Of<IHydrantRepository>());
+            mockService.Setup(s => s.GetById(hydrantId)).Returns(existing);
             var controller = new HydrantController(mockService.Object);
 
             // Act
@@ -194,7 +198,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             // Arrange
             var hydrantId = Guid.NewGuid();
             var mockService = new Mock<HydrantService>(Mock.Of<IHydrantRepository>());
-            mockService.Setup(s => s.DeleteHydrant(hydrantId)).Throws<InvalidOperationException>();
+            mockService.Setup(s => s.GetById(hydrantId)).Returns((Hydrant?)null);
             var controller = new HydrantController(mockService.Object);
 
             // Act

@@ -26,14 +26,10 @@ namespace de.openelp.feuerwehr.Api.Controllers
         [HttpGet("{id}")]
         public ActionResult<Hydrant> Get(Guid id)
         {
-            try
-            {
-                return Ok(_service.GetById(id));
-            }
-            catch (InvalidOperationException)
-            {
+            var hydrant = _service.GetById(id);
+            if (hydrant == null)
                 return NotFound();
-            }
+            return Ok(hydrant);
         }
 
         // POST api/Hydrant
@@ -48,31 +44,21 @@ namespace de.openelp.feuerwehr.Api.Controllers
         [HttpPut("{id}")]
         public ActionResult Put(Guid id, [FromBody] Hydrant value)
         {
-            value.Id = id;
-            try
-            {
-                _service.UpdateHydrant(value);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
+            if (_service.GetById(id) == null)
                 return NotFound();
-            }
+            value.Id = id;
+            _service.UpdateHydrant(value);
+            return NoContent();
         }
 
         // DELETE api/Hydrant/5
         [HttpDelete("{id}")]
         public ActionResult Delete(Guid id)
         {
-            try
-            {
-                _service.DeleteHydrant(id);
-                return NoContent();
-            }
-            catch (InvalidOperationException)
-            {
+            if (_service.GetById(id) == null)
                 return NotFound();
-            }
+            _service.DeleteHydrant(id);
+            return NoContent();
         }
     }
 }

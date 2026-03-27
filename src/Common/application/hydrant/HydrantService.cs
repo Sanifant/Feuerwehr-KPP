@@ -23,7 +23,7 @@ namespace de.openelp.feuerwehr.application.hydrant
             return Task.FromResult(new List<Hydrant>(_repo.GetAll()));
         }
 
-        public Hydrant GetById(Guid id)
+        public Hydrant? GetById(Guid id)
         {
             return _repo.GetById(id);
         }

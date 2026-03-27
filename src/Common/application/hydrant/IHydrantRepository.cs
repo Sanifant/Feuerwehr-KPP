@@ -8,7 +8,7 @@ namespace de.openelp.feuerwehr.application.hydrant
     {
         IEnumerable<Hydrant> GetAll();
 
-        Hydrant GetById(Guid id);
+        Hydrant? GetById(Guid id);
 
         void Add(Hydrant hydrant);
 
