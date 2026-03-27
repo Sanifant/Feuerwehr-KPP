@@ -66,7 +66,7 @@ Anschliessend den Ordner im Devcontainer neu oeffnen. Dabei werden der Workspace
 Manueller Start der relevanten Services ohne Devcontainer:
 
 ```bash
-docker compose -f src/docker-compose.yml -f src/docker-compose.override.yml up -d postgres redis pgadmin de.openelp.feuerwehr.api
+docker compose -f src/docker/docker-compose.yml -f src/docker/docker-compose.override.yml up -d postgres redis pgadmin de.openelp.feuerwehr.api
 ```
 
 Web API:
