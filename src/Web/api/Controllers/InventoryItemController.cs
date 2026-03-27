@@ -10,7 +10,7 @@ namespace de.openelp.feuerwehr.Api.Controllers
     [ApiController]
     public class InventoryItemController : ControllerBase
     {
-        IInventoryService _service;
+        private readonly IInventoryService _service;
 
         public InventoryItemController(IInventoryService service)
         {
