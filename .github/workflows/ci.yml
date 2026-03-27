@@ -77,7 +77,7 @@ jobs:
 
       - name: Test
         run: |
-          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --verbosity normal --logger trx
 
       - name: Upload test results
         if: always()
