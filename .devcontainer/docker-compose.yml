@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    depends_on:
+      - postgres
+      - redis
+      - pgadmin
+    environment:
+      DOTNET_NOLOGO: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=feuerwehr;Username=feuerwehr;Password=feuerwehr
+      ConnectionStrings__Redis: redis:6379
+    network_mode: service:postgres
+
+  postgres:
+    image: postgres:14.3
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: feuerwehr
+      POSTGRES_USER: feuerwehr
+      POSTGRES_DB: feuerwehr
+  
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-stefan@openelp.de}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_LISTEN_PORT: 5050
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    network_mode: service:postgres
+
+  redis:
+    image: redis
+    network_mode: service:postgres
+
+  redis-ui:
+    image: redis/redisinsight
+    depends_on:
+      - redis
+    environment:
+      RI_APP_PORT: 5540
+      RI_APP_HOST: redis
+    network_mode: service:postgres
+
+volumes:
+  postgres-data:
+  pgadmin_data:
