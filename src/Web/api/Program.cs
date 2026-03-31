@@ -18,6 +18,8 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IHydrantRepository, HydrantRepository>();
 builder.Services.AddScoped<HydrantService>();
 
+builder.Services.AddScoped<IDatabaseHealthChecker, DatabaseHealthChecker>();
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
