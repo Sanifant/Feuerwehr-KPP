@@ -6,6 +6,7 @@ namespace de.openelp.feuerwehr.Api.HealthChecks
     public static class StatusResponseWriter
     {
         public const string DatabaseHealthCheckName = "database";
+        public const string RedisHealthCheckName = "redis";
 
         public static Task WriteAsync(HttpContext context, HealthReport report)
         {
@@ -15,13 +16,18 @@ namespace de.openelp.feuerwehr.Api.HealthChecks
                 ? dbEntry.Status
                 : report.Status;
 
+            var redisStatus = report.Entries.TryGetValue(RedisHealthCheckName, out var redisEntry)
+                ? redisEntry.Status
+                : report.Status;
+
             var response = new StatusResponse
             {
                 Status = report.Status.ToString(),
-                Database = dbStatus.ToString()
+                Database = dbStatus.ToString(),
+                Redis = redisStatus.ToString()
             };
 
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response), context.RequestAborted);
         }
     }
 }
