@@ -1,6 +1,8 @@
 using de.openelp.feuerwehr.application.hydrant;
 using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.infrastructure;
+using de.openelp.feuerwehr.Api.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
@@ -18,7 +20,8 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IHydrantRepository, HydrantRepository>();
 builder.Services.AddScoped<HydrantService>();
 
-builder.Services.AddScoped<IDatabaseHealthChecker, DatabaseHealthChecker>();
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>(StatusResponseWriter.DatabaseHealthCheckName);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -39,5 +42,10 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/api/status", new HealthCheckOptions
+{
+    ResponseWriter = StatusResponseWriter.WriteAsync
+});
 
 app.Run();
