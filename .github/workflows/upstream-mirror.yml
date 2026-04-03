@@ -1,0 +1,22 @@
+name: Mirror to Upstream Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to upstream repository
+        env:
+          UPSTREAM_URL: ${{ secrets.UPSTREAM_REPO_URL }}
+        run: |
+          git remote add upstream "$UPSTREAM_URL"
+          git push upstream --mirror
