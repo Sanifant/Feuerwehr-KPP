@@ -7,6 +7,9 @@ services:
 
   redis:
     image: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
 
   postgres:
     image: postgres:16
@@ -19,6 +22,18 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  postgresAuth:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-auth_db}
+      POSTGRES_USER: ${POSTGRES_USER:-Auth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Auth}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgresAuth_data:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -44,4 +59,5 @@ services:
 
 volumes:
   postgres_data:
+  postgresAuth_data:
   pgadmin_data:

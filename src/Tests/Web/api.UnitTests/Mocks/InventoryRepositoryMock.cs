@@ -20,6 +20,21 @@ namespace de.openelp.feuerwehr.Api.UnitTests.Mocks
             InventoryItems = InventoryItems.Where(i => i.Id != id).ToList();
         }
 
+        public IEnumerable<InventoryItem> GetByCategory(Guid category)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<InventoryItemRelationship> GetRelationships()
+        {
+            throw new NotImplementedException();
+        }
+
+        public InventoryItemRelationship GetRelationshipById(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<InventoryItem> GetAll()
         {
             return InventoryItems;

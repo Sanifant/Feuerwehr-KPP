@@ -41,6 +41,7 @@
   </Folder>
   <Folder Name="/Web/">
     <Project Path="Web/api/de.openelp.feuerwehr.Api.csproj" />
+    <Project Path="Web/de.openelp.authentification/de.openelp.authentification.csproj" />
   </Folder>
   <Folder Name="/docker/">
     <Project Path="docker/docker-compose.dcproj">

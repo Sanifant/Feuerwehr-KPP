@@ -15,6 +15,7 @@ using de.openelp.feuerwehr.desktop;
 using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.desktop.ViewModels;
 using de.openelp.feuerwehr.desktop.Views;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Moq;
@@ -180,6 +181,17 @@ namespace de.openelp.feuerwehr.desktop.UnitTests
                     MainWindowWasSet = true;
 
                     var services = new ServiceCollection();
+                    var configuration = new ConfigurationBuilder()
+                        .AddInMemoryCollection(new Dictionary<string, string?>
+                        {
+                            ["ApiSettings:BaseUrl"] = "https://localhost:8081",
+                            ["ApiSettings:AuthBaseUrl"] = "http://localhost:5013"
+                        })
+                        .Build();
+
+                    services.AddSingleton<IConfiguration>(configuration);
+                    services.Configure<ApiSettings>(configuration.GetSection("ApiSettings"));
+                    services.AddSingleton<AuthTokenStore>();
                     services.AddHttpClient<ApiService>();
                     services.AddTransient<ApiService>();
                     services.AddSingleton<MainWindowViewModel>();

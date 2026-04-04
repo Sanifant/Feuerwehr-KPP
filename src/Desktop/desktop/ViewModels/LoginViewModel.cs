@@ -1,10 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using de.openelp.feuerwehr.desktop.Service;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace de.openelp.feuerwehr.desktop.ViewModels
 {
@@ -36,7 +33,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
         private async Task Login()
         {
-            var token = "token"; // await _authApi.Login(Username, Password);
+            var token = await _authApi.Login(Username, Password);
 
             if (token == null)
             {

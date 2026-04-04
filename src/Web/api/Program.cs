@@ -1,12 +1,66 @@
+using System.Text;
 using de.openelp.feuerwehr.application.hydrant;
 using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using de.openelp.feuerwehr.infrastructure.Seed;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. JWT-Validierung konfigurieren
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["Secret"];
+var issuer = jwtSettings["Issuer"];
+var audience = jwtSettings["Audience"];
+
+if (string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
+{
+    throw new InvalidOperationException("JWT Settings fehlen in appsettings.json oder Umgebungsvariablen!");
+}
+
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = key,
+
+            ValidateIssuer = true,
+            ValidIssuer = issuer,
+
+            ValidateAudience = true,
+            ValidAudience = audience,
+
+            ValidateLifetime = true, // Prüft Ablaufzeit (exp claim)
+            ClockSkew = TimeSpan.Zero // Keine Toleranz bei Ablauf (strenger)
+        };
+
+        // Optional: Event-Handler für Fehler (z.B. Logging)
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                if (context.Exception is SecurityTokenExpiredException)
+                {
+                    // Token ist abgelaufen -> Client sollte Refresh-Token nutzen
+                    context.Response.Headers.Append("Token-Expired", "true");
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
 // Add services to the container.
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -33,6 +87,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); 
+app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();

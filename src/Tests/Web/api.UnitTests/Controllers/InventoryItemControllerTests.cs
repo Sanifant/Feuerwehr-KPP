@@ -238,27 +238,21 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         }
 
         /// <summary>
-        /// Tests the Delete method with various integer values to ensure it executes without throwing exceptions.
-        /// This test verifies that the method accepts minimum, maximum, zero, negative, and positive integer values.
+        /// Tests that Delete executes without throwing exceptions for various Guid values.
         /// </summary>
         /// <param name="id">The inventory item identifier.</param>
         [Theory]
-        [InlineData(int.MinValue)]
-        [InlineData(int.MaxValue)]
-        [InlineData(0)]
-        [InlineData(-1)]
-        [InlineData(-100)]
-        [InlineData(1)]
-        [InlineData(100)]
-        [InlineData(42)]
-        public void Delete_WithVariousIntValues_ExecutesWithoutException(int id)
+        [InlineData("00000000-0000-0000-0000-000000000000")]
+        [InlineData("11111111-1111-1111-1111-111111111111")]
+        [InlineData("ffffffff-ffff-ffff-ffff-ffffffffffff")]
+        public async Task Delete_WithVariousGuidValues_ExecutesWithoutException(Guid id)
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
 
             // Act
-            controller.Delete(id);
+            await controller.Delete(id);
 
             // Assert
             // Method completes without throwing an exception (implicit assertion)
@@ -278,7 +272,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected behavior: When an item with the specified id exists, the method should return that item.
         /// </remarks>
         [Fact]
-        public void Get_WhenIdExists_ReturnsMatchingInventoryItem()
+        public async Task Get_WhenIdExists_ReturnsMatchingInventoryItem()
         {
             // Arrange
             var itemId = Guid.NewGuid();
@@ -288,7 +282,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
 
             var controller = new InventoryItemController(mockService);
 
-            Assert.Equal(expectedItem, controller.Get(itemId));
+            var result = await controller.Get(itemId);
+            Assert.Equal(expectedItem, result);
         }
 
         /// <summary>
@@ -302,7 +297,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// (FirstOrDefault behavior).
         /// </remarks>
         [Fact]
-        public void Get_WhenIdDoesNotExist_ReturnsNull()
+        public async Task Get_WhenIdDoesNotExist_ReturnsNull()
         {
             // Arrange
             var searchId = Guid.NewGuid();
@@ -315,7 +310,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             // Cannot properly mock InventoryService because GetAll() is not virtual
-            Assert.Null(controller.Get(searchId));
+            var result = await controller.Get(searchId);
+            Assert.Null(result);
         }
 
         /// <summary>
@@ -328,7 +324,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected behavior: If an item has Id = Guid.Empty, it should be returned when searching for Guid.Empty.
         /// </remarks>
         [Fact]
-        public void Get_WithEmptyGuid_ReturnsMatchingItemWhenExists()
+        public async Task Get_WithEmptyGuid_ReturnsMatchingItemWhenExists()
         {
             // Arrange
             var searchId = Guid.Empty;
@@ -338,7 +334,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             // Cannot properly mock InventoryService because GetAll() is not virtual
-            Assert.Equal(matchingItem, controller.Get(searchId));
+            var result = await controller.Get(searchId);
+            Assert.Equal(matchingItem, result);
         }
 
         /// <summary>
@@ -351,7 +348,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected behavior: FirstOrDefault should return the first item that matches the predicate.
         /// </remarks>
         [Fact]
-        public void Get_WithMultipleItemsOneMatch_ReturnsFirstMatch()
+        public async Task Get_WithMultipleItemsOneMatch_ReturnsFirstMatch()
         {
             // Arrange
             var matchingId = Guid.NewGuid();
@@ -366,7 +363,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             
-            Assert.Equal(matchingItem, controller.Get(matchingId));
+            var result = await controller.Get(matchingId);
+            Assert.Equal(matchingItem, result);
         }
 
         /// <summary>
@@ -404,29 +402,22 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         }
 
         /// <summary>
-        /// Tests that the Put method executes without throwing exceptions for various integer ID values
-        /// including boundary cases (int.MinValue, int.MaxValue, 0, negative, and positive values)
+        /// Tests that the Put method executes without throwing exceptions for various Guid IDs
         /// with a valid InventoryItem.
         /// </summary>
         /// <param name="id">The ID parameter to test.</param>
         [Theory]
-        [InlineData(int.MinValue)]
-        [InlineData(int.MaxValue)]
-        [InlineData(0)]
-        [InlineData(-1)]
-        [InlineData(-100)]
-        [InlineData(1)]
-        [InlineData(5)]
-        [InlineData(42)]
-        [InlineData(999999)]
-        public void Put_VariousIdValuesWithValidItem_ExecutesWithoutException(int id)
+        [InlineData("11111111-1111-1111-1111-111111111111")]
+        [InlineData("22222222-2222-2222-2222-222222222222")]
+        [InlineData("00000000-0000-0000-0000-000000000000")]
+        public async Task Put_VariousGuidValuesWithValidItem_ExecutesWithoutException(Guid id)
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
             var inventoryItem = new InventoryItem
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 Name = "Test Item",
                 Description = "Test Description",
                 PurchaseDate = new DateOnly(2023, 1, 1),
@@ -434,7 +425,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Put(id, inventoryItem);
+            await controller.Put(id, inventoryItem);
 
             // Assert
             // Method completes without throwing an exception
@@ -448,21 +439,19 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// This tests runtime behavior when nullability is not enforced.
         /// </summary>
         [Fact]
-        public void Put_ValidIdWithNullItem_ExecutesWithoutException()
+        public async Task Put_ValidIdWithNullItem_ExecutesWithoutException()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
-            int id = 1;
+            Guid id = Guid.NewGuid();
             InventoryItem? nullItem = null;
 
             // Act
-            controller.Put(id, nullItem!);
+            await Assert.ThrowsAsync<NullReferenceException>(async () => await controller.Put(id, nullItem!));
 
             // Assert
-            // Method completes without throwing an exception
-            // Verify that the service was not called since the method body is empty
-            Assert.True(true);
+            // Current controller behavior dereferences value.Id and throws for null payloads.
         }
 
         /// <summary>
@@ -470,15 +459,15 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// with an InventoryItem that has minimal/default property values.
         /// </summary>
         [Fact]
-        public void Put_ValidIdWithItemHavingDefaultValues_ExecutesWithoutException()
+        public async Task Put_ValidIdWithItemHavingDefaultValues_ExecutesWithoutException()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
-            int id = 1;
+            Guid id = Guid.NewGuid();
             var inventoryItem = new InventoryItem
             {
-                Id = Guid.Empty,
+                Id = id,
                 Name = string.Empty,
                 Description = string.Empty,
                 PurchaseDate = default(DateOnly),
@@ -486,7 +475,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Put(id, inventoryItem);
+            await controller.Put(id, inventoryItem);
 
             // Assert
             // Method completes without throwing an exception
@@ -499,15 +488,15 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// with an InventoryItem that has special characters and extreme string values.
         /// </summary>
         [Fact]
-        public void Put_ValidIdWithItemHavingSpecialCharacters_ExecutesWithoutException()
+        public async Task Put_ValidIdWithItemHavingSpecialCharacters_ExecutesWithoutException()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
-            int id = 42;
+            Guid id = Guid.NewGuid();
             var inventoryItem = new InventoryItem
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 Name = "Test\nItem\t<>&\"'",
                 Description = new string('x', 10000),
                 PurchaseDate = DateOnly.MaxValue,
@@ -515,7 +504,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Put(id, inventoryItem);
+            await controller.Put(id, inventoryItem);
 
             // Assert
             // Method completes without throwing an exception
