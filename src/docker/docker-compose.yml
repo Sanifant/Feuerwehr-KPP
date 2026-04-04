@@ -33,6 +33,15 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  redis-ui:
+    image: redis/redisinsight
+    depends_on:
+      - redis
+    ports:
+      - "5540:5540"
+    environment:
+      REDIS_HOST: redis
+
 volumes:
   postgres_data:
   pgadmin_data:
