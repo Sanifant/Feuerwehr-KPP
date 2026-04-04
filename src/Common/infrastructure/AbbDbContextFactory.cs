@@ -13,7 +13,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         Console.WriteLine($"Current Directory: {basePath}");
         var config = new ConfigurationBuilder()
             .SetBasePath(basePath)
-            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("appSettings.json", optional: false)
             .AddEnvironmentVariables()
             .Build();
 

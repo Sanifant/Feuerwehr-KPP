@@ -3,7 +3,7 @@ using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
+using de.openelp.feuerwehr.infrastructure.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<DatabaseSeeder>();
 
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
@@ -24,8 +25,6 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.ApplyMigrations();
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -37,5 +36,14 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    Console.WriteLine("Applying migrations and seeding database...");
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+    await seeder.SeedAsync();
+}
 
 app.Run();

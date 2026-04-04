@@ -1,6 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/dotnet:2-10.0
 
 RUN dotnet workload install android
+RUN dotnet tool install --global dotnet-ef
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>

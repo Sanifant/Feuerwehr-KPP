@@ -15,7 +15,8 @@ namespace de.openelp.feuerwehr.domain
 
         public string Description { get; set; } = string.Empty;
 
-        public string Category { get; set; } = string.Empty;
+        public Guid? CategoryId { get; set; }           // nullable → Item muss nicht kategorisiert sein
+        public InventoryCategory? Category { get; set; }
 
         public int Quantity { get; set; }
 
@@ -27,6 +28,9 @@ namespace de.openelp.feuerwehr.domain
 
         public DateOnly NextInspectionDate { get; set; }
 
+
+        public ICollection<InventoryItemRelationship> ChildRelationships { get; set; }
+            = new List<InventoryItemRelationship>();
 
         public InventoryItem() { 
 

@@ -17,5 +17,11 @@ namespace de.openelp.feuerwehr.application.inventory
 
         void Delete(Guid id);
 
+        IEnumerable<InventoryItem> GetByCategory(Guid category);
+
+        IEnumerable<InventoryItemRelationship> GetRelationships();
+
+        InventoryItemRelationship GetRelationshipById(Guid id);
+
     }
 }

@@ -15,7 +15,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         private readonly ApiService _api;
 
         public string Name { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
+        public InventoryCategory? Category { get; set; }
         public int Quantity { get; set; }
         public string Condition { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
@@ -27,7 +27,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         public InventoryDialogViewModel(ApiService api)
         {
             _api = api;
-
+            OnSaved = () => { };
         }
 
         [RelayCommand]

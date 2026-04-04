@@ -26,29 +26,35 @@ namespace de.openelp.feuerwehr.Api.Controllers
 
         // GET api/<InventoryItemController>/5
         [HttpGet("{id}")]
-        public InventoryItem Get(Guid id)
+        public async Task<InventoryItem> Get(Guid id)
         {
-            return _service.GetAll().Result.FirstOrDefault(i => i.Id == id);
+            return await _service.GetById(id);
         }
 
         // POST api/<InventoryItemController>
         [HttpPost]
-        public async void Post([FromBody] InventoryItem value)
+        public async Task Post([FromBody] InventoryItem value)
         {
             _service.CreateItem(value);
         }
 
         // PUT api/<InventoryItemController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] InventoryItem value)
+        public async Task Put(Guid id, [FromBody] InventoryItem value)
         {
-
+            if(id != value.Id)
+            {
+                BadRequest();
+                return;
+            }
+            _service.UpdateItem(value);
         }
 
         // DELETE api/<InventoryItemController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task Delete(Guid id)
         {
+            _service.DeleteItem(id);
         }
     }
 }
