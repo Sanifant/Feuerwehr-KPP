@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Ensure transitive package assemblies (e.g. Moq → Castle.Core) are copied to the test output directory
+         so the testhost can resolve them in containerized / CI environments that lack a global NuGet probe path. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+</Project>

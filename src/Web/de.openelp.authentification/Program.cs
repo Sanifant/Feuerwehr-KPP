@@ -18,7 +18,10 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 // JWT Configuration
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT_SECRET missing");
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var issuer = jwtSettings["Issuer"];
+var audience = jwtSettings["Audience"];
+var jwtSecret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT_SECRET missing");
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -30,8 +33,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = issuer,
+            ValidAudience = audience,
             IssuerSigningKey = key
         };
     });
@@ -46,6 +49,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
@@ -65,7 +69,7 @@ using (var scope = app.Services.CreateScope())
     string adminUsername = Environment.GetEnvironmentVariable("AdminUser") ?? string.Empty;
     string adminPassword = Environment.GetEnvironmentVariable("AdminPassword") ?? string.Empty;
 
-    if(!string.IsNullOrEmpty(adminUsername) || !string.IsNullOrEmpty(adminPassword))
+    if(!string.IsNullOrEmpty(adminUsername) && !string.IsNullOrEmpty(adminPassword))
     {
         var user = db.Users.FirstOrDefault(u => u.Username == adminUsername);
         if (user == null)

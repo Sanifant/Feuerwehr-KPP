@@ -40,6 +40,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true, // Prüft Ablaufzeit (exp claim)
             ClockSkew = TimeSpan.Zero // Keine Toleranz bei Ablauf (strenger)
         };
+        EnableDetailedErrors = true; // Hilfreich für Debugging, in Produktion ggf. false setzen
         options.IncludeErrorDetails = true;
         options.Events = new JwtBearerEvents
         {
@@ -54,6 +55,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
+
+
 
 builder.Services.AddAuthorization();
 // Add services to the container.
@@ -78,11 +81,12 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
 
-//app.UseAuthentication(); 
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();
