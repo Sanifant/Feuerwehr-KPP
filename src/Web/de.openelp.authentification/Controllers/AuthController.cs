@@ -2,6 +2,8 @@
 using de.openelp.authentification.Data;
 using de.openelp.authentification.Models;
 using de.openelp.authentification.Services;
+using de.openelp.feuerwehr.domain;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,6 +64,14 @@ public class AuthController : ControllerBase
 
         _context.RefreshTokens.Add(newRefreshToken);
         await _context.SaveChangesAsync();
+
+        var appUser = new ApplicationUser
+        {
+            Name = user.Username,
+            Roles = user.Role,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
 
         return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken });
     }

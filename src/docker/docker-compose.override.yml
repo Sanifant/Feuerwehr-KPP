@@ -4,9 +4,27 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=feuerwehr;Username=feuerwehr;Password=feuerwehr
     ports:
       - "8080:8080"
       - "8081:8081"
+    volumes:
+      - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
+      - ${HOME}/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro
+      - ${HOME}/.aspnet/https:/home/app/.aspnet/https:ro
+      - ${HOME}/.aspnet/https:/root/.aspnet/https:ro
+
+  de.openelp.authentification:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8090
+      - ASPNETCORE_HTTPS_PORTS=8091
+      - ConnectionStrings__DefaultConnection=Host=postgresAuth;Port=5432;Database=auth_db;Username=Auth;Password=Auth
+      - AdminUser=admin
+      - AdminPassword=admin
+    ports:
+      - "8090:8090"
+      - "8091:8091"
     volumes:
       - ${HOME}/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
       - ${HOME}/.microsoft/usersecrets:/root/.microsoft/usersecrets:ro

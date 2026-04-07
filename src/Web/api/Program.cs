@@ -23,11 +23,7 @@ if (string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(issuer) || string.Is
 
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -44,8 +40,7 @@ builder.Services.AddAuthentication(options =>
             ValidateLifetime = true, // Prüft Ablaufzeit (exp claim)
             ClockSkew = TimeSpan.Zero // Keine Toleranz bei Ablauf (strenger)
         };
-
-        // Optional: Event-Handler für Fehler (z.B. Logging)
+        options.IncludeErrorDetails = true;
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -87,8 +82,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); 
-app.UseAuthorization();
+//app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();

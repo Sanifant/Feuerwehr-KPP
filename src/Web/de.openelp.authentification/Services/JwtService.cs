@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using de.openelp.authentification.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 
 namespace de.openelp.authentification.Services;
@@ -25,12 +26,18 @@ public class JwtService : IJwtService
         var now = DateTime.UtcNow;
         var expiration = now.AddMinutes(15); // Access Token: 15 Min
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Unique ID für das Token
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Role, user.Role.Split(';').ToString())
         };
+
+        foreach(var role in user.Role.Split(';'))
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role.Trim()));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

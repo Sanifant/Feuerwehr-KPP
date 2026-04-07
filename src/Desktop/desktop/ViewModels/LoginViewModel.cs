@@ -1,5 +1,7 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using de.openelp.feuerwehr.desktop.Service;
+using de.openelp.feuerwehr.domain;
 using System;
 using System.Threading.Tasks;
 
@@ -12,6 +14,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+
         public string ErrorMessage { get; set; } = string.Empty;
 
 
@@ -35,13 +38,14 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         {
             var token = await _authApi.Login(Username, Password);
 
-            if (token == null)
+            if(!token.Success)
             {
-                ErrorMessage = "Invalid credentials";
+                ErrorMessage = token?.ErrorMessage ?? "Login failed";
+                OnPropertyChanged(nameof(ErrorMessage));
                 return;
             }
 
-            _tokenStore.Token = token;
+            _tokenStore.Token = token.User;
 
             OnLoginSuccess?.Invoke();
         }
@@ -49,6 +53,6 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
     public class AuthTokenStore
     {
-        public string Token { get; internal set; } = string.Empty;
+        public ApplicationUser Token { get; internal set; }
     }
 }

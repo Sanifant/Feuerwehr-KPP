@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using System.Net.Http;
 
 namespace de.openelp.feuerwehr.desktop
 {
@@ -86,8 +87,21 @@ namespace de.openelp.feuerwehr.desktop
             //services.AddSingleton<INavigationService, NavigationService>();
 
             // HttpClient
+#if DEBUG
+            // Nur für Entwicklung: Selbstsignierte Zertifikate akzeptieren
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            services.AddHttpClient<ApiService>()
+                .ConfigurePrimaryHttpMessageHandler(() => handler);
+            services.AddHttpClient<AuthApiService>()
+                .ConfigurePrimaryHttpMessageHandler(() => handler);
+#else
             services.AddHttpClient<ApiService>();
             services.AddHttpClient<AuthApiService>();
+#endif
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using de.openelp.feuerwehr.domain;
+using Microsoft.Extensions.Options;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -23,27 +24,37 @@ namespace de.openelp.feuerwehr.desktop.Service
             _http.BaseAddress = new Uri(settings.Value.AuthBaseUrl);
         }
 
-        public async Task<string?> Login(string username, string password)
+        public async Task<LoginResponse?> Login(string username, string password)
         {
             try
             {
                 var response = await _http.PostAsJsonAsync(LoginEndpoint, new LoginRequest(username, password));
 
                 if (!response.IsSuccessStatusCode)
-                    return null;
+                {
+                    var reason = await response.Content.ReadAsStringAsync();
 
-                var result = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions);
-                return string.IsNullOrWhiteSpace(result?.AccessToken) ? null : result.AccessToken;
+                    return new LoginResponse(false, reason, new ApplicationUser());
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<ApplicationUser>(JsonOptions);
+                return string.IsNullOrWhiteSpace(result?.AccessToken) ?
+                    new LoginResponse(false, "Keinen Access Token empfangen", new ApplicationUser()) :
+                    new LoginResponse(true, "", result);
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException httpEx)
             {
                 return null;
             }
-            catch (JsonException)
+            catch (JsonException jsonEx)
             {
                 return null;
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException notSupportedEx)
+            {
+                return null;
+            }
+            catch (Exception ex)
             {
                 return null;
             }
@@ -51,13 +62,6 @@ namespace de.openelp.feuerwehr.desktop.Service
 
         private sealed record LoginRequest(string Username, string Password);
 
-        private sealed class LoginResponse
-        {
-            [JsonPropertyName("accessToken")]
-            public string AccessToken { get; set; } = string.Empty;
-
-            [JsonPropertyName("refreshToken")]
-            public string RefreshToken { get; set; } = string.Empty;
-        }
+        public sealed record LoginResponse(bool Success, string ErrorMessage, ApplicationUser User);
     }
 }

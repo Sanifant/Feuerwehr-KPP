@@ -25,13 +25,13 @@ namespace de.openelp.feuerwehr.desktop.Service
 
         private HttpRequestMessage CreateAuthorizedRequest(HttpMethod method, string relativeUrl)
         {
-            if (string.IsNullOrWhiteSpace(_tokenStore.Token))
+            if (_tokenStore.Token == null || string.IsNullOrWhiteSpace(_tokenStore.Token.AccessToken))
             {
                 throw new InvalidOperationException("Authentication token is required for API requests.");
             }
 
             var request = new HttpRequestMessage(method, relativeUrl);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _tokenStore.Token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _tokenStore.Token.AccessToken);
             return request;
         }
 

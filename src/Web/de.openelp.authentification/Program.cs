@@ -2,8 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using de.openelp.authentification.Data;
 using de.openelp.authentification.Services;
+using de.openelp.authentification.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,21 +37,49 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    Console.WriteLine("Applying migrations and seeding database...");
+    var db = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    db.Database.Migrate();
+    //var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+    //await seeder.SeedAsync();
+    string adminUsername = Environment.GetEnvironmentVariable("AdminUser") ?? string.Empty;
+    string adminPassword = Environment.GetEnvironmentVariable("AdminPassword") ?? string.Empty;
+
+    if(!string.IsNullOrEmpty(adminUsername) || !string.IsNullOrEmpty(adminPassword))
+    {
+        var user = db.Users.FirstOrDefault(u => u.Username == adminUsername);
+        if (user == null)
+        {
+            db.Add(new User
+            {
+                Username = adminUsername,
+                PasswordHash = new PasswordHasher().HashPassword(adminPassword),
+                Role = "User;Admin"
+            });
+            db.SaveChanges();
+        }
+    }
+
+}
 
 app.Run();
