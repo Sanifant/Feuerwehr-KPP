@@ -28,26 +28,34 @@
 
     </Window.DataTemplates>
 
-    <Grid ColumnDefinitions="250,*">
+    <Grid ColumnDefinitions="150,*">
 
         <!-- Sidebar -->
         <StackPanel Background="#2C2F33">
 
             <Image Source="/Assets/Logo.png"
                    Height="100"
-                   Margin="10"/>
+                   Margin="15"/>
 
-            <Button Content="Dashboard"
-                    Command="{Binding ShowDashboardCommand}"
-                    Margin="10"/>
+            <ListBox ItemsSource="{Binding NavigationItems}" Name="Navigation">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding Name}"
+                                Command="{Binding DataContext.ShowViewCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding ViewModelType}"
+                                Foreground="AntiqueWhite"
+                                Margin="2"
+                                Width="140"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
 
-            <Button Content="Inventory"
-                    Command="{Binding ShowInventoryCommand}"
-                    Margin="10"/>
-
-            <Button Content="Inspections" Margin="10"/>
-            <Button Content="Vehicles" Margin="10"/>
-            <Button Content="Users" Margin="10"/>
+            <Button Content="Inspections"
+                    Margin="2" Foreground="AntiqueWhite" Width="140"/>
+            <Button Content="Vehicles"
+                    Margin="2" Foreground="AntiqueWhite" Width="140"/>
+            <Button Content="Users"
+                    Margin="2" Foreground="AntiqueWhite" Width="140"/>
 
         </StackPanel>
 

@@ -15,6 +15,13 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
     {
         private readonly IServiceProvider _serviceProvider;
 
+        public ObservableCollection<NavigationItem> NavigationItems { get; set; } = new()
+        {
+            new NavigationItem { Name = "Dashboard", ViewModelType = typeof(DashboardViewModel) },
+            new NavigationItem { Name = "Inventory", ViewModelType = typeof(InventoryViewModel) },
+            // Weitere Navigationselemente hier hinzufügen
+        };
+
         public MainWindowViewModel(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -22,19 +29,9 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         }
 
         [RelayCommand]
-        public void ShowDashboardCommand()
+        public void ShowView(NavigationItem item)
         {
-            var vm = _serviceProvider.GetService<DashboardViewModel>();
-            if (vm is null) return;
-
-            CurrentView = vm;
-            OnPropertyChanged(nameof(CurrentView));
-        }
-
-        [RelayCommand]
-        public void ShowInventoryCommand()
-        {
-            var vm = _serviceProvider.GetService<InventoryViewModel>();
+            var vm = _serviceProvider.GetService(item.ViewModelType);
             if (vm is null) return;
 
             CurrentView = vm;
