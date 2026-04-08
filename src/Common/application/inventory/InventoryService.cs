@@ -14,6 +14,13 @@ namespace de.openelp.feuerwehr.application.inventory
 
         public void CreateItem(InventoryItem item)
         {
+            if (item.Id == Guid.Empty)
+            {
+                item.Id = Guid.NewGuid();
+            }
+
+            item.Id = Guid.NewGuid();
+
             _repo.Add(item);
         }
 
@@ -35,6 +42,11 @@ namespace de.openelp.feuerwehr.application.inventory
         public Task<InventoryItem> GetById(Guid id)
         {
             return Task.FromResult(_repo.GetById(id));
+        }
+
+        public Task<List<InventoryCategory>> GetCategories()
+        {
+            return Task.FromResult(_repo.GetCategories().ToList()); 
         }
 
         public void LinkItems(Guid parentId, Guid childId, ItemRelationshipLabel label)

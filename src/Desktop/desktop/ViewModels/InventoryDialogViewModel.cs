@@ -20,7 +20,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         public string Condition { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
 
-
+        public InventoryCategory[] Categories => _api.GetInventoryCategories();
 
         public Action OnSaved { get; set; }
 

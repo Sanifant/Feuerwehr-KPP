@@ -19,7 +19,7 @@ public class JwtService : IJwtService
 
     public (string, string) GenerateTokens(User user)
     {
-        var secretKey = _config["Jwt:Secret"] ?? throw new InvalidOperationException("JWT_SECRET missing");
+        var secretKey = _config["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT_SECRET missing");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -30,8 +30,7 @@ public class JwtService : IJwtService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Role, user.Role.Split(';').ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         foreach(var role in user.Role.Split(';'))
@@ -40,8 +39,8 @@ public class JwtService : IJwtService
         }
 
         var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
+            issuer: _config["JwtSettings:Issuer"],
+            audience: _config["JwtSettings:Audience"],
             claims: claims,
             expires: expiration,
             signingCredentials: credentials

@@ -25,6 +25,11 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         public MainWindowViewModel(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+            foreach (var item in NavigationItems)
+            {
+                item.ShowViewCommand = ShowViewCommand;
+            }
+
             CurrentView = _serviceProvider.GetService<DashboardViewModel>() ?? new DashboardViewModel();
         }
 

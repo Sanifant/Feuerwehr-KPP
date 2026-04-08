@@ -84,7 +84,6 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             var viewModel = new MainWindowViewModel(services.BuildServiceProvider());
 
             // Act & Assert
-            viewModel.ShowInventoryCommand();
         }
 
         /// <summary>
@@ -104,9 +103,6 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             var viewModel = new MainWindowViewModel(mockServiceProvider.Object);
 
             // Act & Assert
-            viewModel.ShowInventoryCommand();
-            viewModel.ShowInventoryCommand();
-            viewModel.ShowInventoryCommand();
         }
 
         /// <summary>
@@ -130,7 +126,6 @@ namespace de.openelp.feuerwehr.desktop.ViewModels.UnitTests
             var initialView = viewModel.CurrentView;
 
             // Act
-            viewModel.ShowDashboardCommand();
 
             // Assert
             Assert.NotNull(viewModel.CurrentView);

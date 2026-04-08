@@ -53,5 +53,16 @@ namespace de.openelp.feuerwehr.desktop.Service
             using var response = await _http.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
+
+        internal InventoryCategory[] GetInventoryCategories()
+        {
+            var apiUrl = ApiUrl + "/categories";
+            using var request = CreateAuthorizedRequest(HttpMethod.Get, apiUrl);
+            using var response = _http.Send(request);
+            response.EnsureSuccessStatusCode();
+
+            var categories = response.Content.ReadFromJsonAsync<InventoryCategory[]>().GetAwaiter().GetResult();
+            return categories ?? Array.Empty<InventoryCategory>();
+        }
     }
 }

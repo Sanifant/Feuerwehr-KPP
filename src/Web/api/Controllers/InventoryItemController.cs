@@ -18,7 +18,14 @@ namespace de.openelp.feuerwehr.Api.Controllers
             _service = service;
         }
 
-        // GET: api/<InventoryItemController>
+        /// <summary>
+        /// Returns all inventory items.
+        /// </summary>
+        /// <remarks>
+        /// This endpoint requires authentication. Users must have the appropriate roles to access the inventory items.
+        /// </remarks>
+        /// <returns>The list of inventory items.</returns>
+        /// <response code="200">Returns the list of inventory items.</response>
         [HttpGet]
         [Authorize]
         public IEnumerable<InventoryItem> Get()
@@ -26,7 +33,16 @@ namespace de.openelp.feuerwehr.Api.Controllers
             return _service.GetAll().Result;
         }
 
-        // GET api/<InventoryItemController>/5
+        /// <summary>
+        /// Retrieves the inventory item with the specified unique identifier.
+        /// </summary>
+        /// <remarks>
+        /// This endpoint requires authentication. Users must have the appropriate roles to access the inventory item.
+        /// </remarks>
+        /// <param name="id">The unique identifier of the inventory item to retrieve.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the inventory item with the
+        /// specified identifier.</returns>
+        /// <response code="200">Returns the inventory item with the specified identifier.</response>
         [HttpGet("{id}")]
         [Authorize]
         public async Task<InventoryItem> Get(Guid id)
@@ -39,6 +55,8 @@ namespace de.openelp.feuerwehr.Api.Controllers
         [Authorize(Roles = "User")]
         public async Task Post([FromBody] InventoryItem value)
         {
+            if(value == null) BadRequest();
+
             _service.CreateItem(value);
         }
 
@@ -62,6 +80,13 @@ namespace de.openelp.feuerwehr.Api.Controllers
         public async Task Delete(Guid id)
         {
             _service.DeleteItem(id);
+        }
+
+        [HttpGet("categories")]
+        [Authorize]
+        public async Task<IEnumerable<InventoryCategory>> GetCategories()
+        {
+            return await _service.GetCategories();
         }
     }
 }

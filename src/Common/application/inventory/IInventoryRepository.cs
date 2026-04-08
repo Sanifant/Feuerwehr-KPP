@@ -22,6 +22,6 @@ namespace de.openelp.feuerwehr.application.inventory
         IEnumerable<InventoryItemRelationship> GetRelationships();
 
         InventoryItemRelationship GetRelationshipById(Guid id);
-
+        IEnumerable<InventoryCategory> GetCategories();
     }
 }

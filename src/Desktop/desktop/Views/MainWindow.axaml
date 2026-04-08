@@ -2,11 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:de.openelp.feuerwehr.desktop.ViewModels"
         xmlns:views="using:de.openelp.feuerwehr.desktop.Views"
+        xmlns:service="using:de.openelp.feuerwehr.desktop.Service"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
         x:Class="de.openelp.feuerwehr.desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="False"
         Icon="/Assets/avalonia-logo.ico"
         Title="de.openelp.feuerwehr.desktop">
 
@@ -37,15 +39,16 @@
                    Height="100"
                    Margin="15"/>
 
-            <ListBox ItemsSource="{Binding NavigationItems}" Name="Navigation">
+            <ListBox ItemsSource="{Binding NavigationItems}" 
+                     Name="Navigation" 
+                     Background="#2C2F33">
                 <ListBox.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate DataType="{x:Type service:NavigationItem}" x:DataType="service:NavigationItem">
                         <Button Content="{Binding Name}"
-                                Command="{Binding DataContext.ShowViewCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding ViewModelType}"
+                                Command="{Binding ShowViewCommand}"
+                                CommandParameter="{Binding .}"
                                 Foreground="AntiqueWhite"
-                                Margin="2"
-                                Width="140"/>
+                                Width="125"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

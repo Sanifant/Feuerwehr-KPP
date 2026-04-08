@@ -17,5 +17,7 @@ namespace de.openelp.feuerwehr.application.inventory
         void DeleteItem(Guid id);
 
         void LinkItems(Guid parentId, Guid childId, ItemRelationshipLabel label);
+
+        Task<List<InventoryCategory>> GetCategories();
     }
 }

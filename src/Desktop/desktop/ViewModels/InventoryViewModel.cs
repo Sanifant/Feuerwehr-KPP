@@ -23,6 +23,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         }
 
         public ObservableCollection<InventoryItem> Items { get; set; } = new();
+           
 
         [ObservableProperty]
         private InventoryItem _selectedItem;

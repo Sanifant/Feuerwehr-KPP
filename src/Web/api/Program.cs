@@ -1,12 +1,16 @@
-using System.Text;
 using de.openelp.feuerwehr.application.hydrant;
 using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.infrastructure;
-using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
 using de.openelp.feuerwehr.infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
+using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,9 +27,13 @@ if (string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(issuer) || string.Is
 
 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
+// Configure logging providers
+builder.Logging.ClearProviders(); // Remove default providers
+builder.Logging.AddConsole();     // Add console logging
+builder.Logging.AddSystemdConsole(); // Add systemd console logging for better integration with systemd journal
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
+    .AddJwtBearer(options => {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -56,7 +64,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 
-
 builder.Services.AddAuthorization();
 // Add services to the container.
 
@@ -78,8 +85,30 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var expiration = DateTime.UtcNow.AddMinutes(15);
+    var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, "admin"),
+                new Claim(ClaimTypes.Name, "admin"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Role, "User"),
+                new Claim(ClaimTypes.Role, "Admin")
+            };
+
+    var token = new JwtSecurityToken(
+        issuer: issuer,
+        audience: audience,
+        claims: claims,
+        expires: expiration,
+        signingCredentials: credentials
+    );
+    var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
     app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.MapScalarApiReference()
+        .WithSummary(accessToken)
+        .WithDescription("API-Dokumentation für die Feuerwehr-App");
     app.UseDeveloperExceptionPage();
 }
 

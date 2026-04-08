@@ -22,6 +22,9 @@ namespace de.openelp.feuerwehr.infrastructure
 
         public void Add(InventoryItem item)
         {
+            item.CategoryId = item.Category.Id;
+            item.Category = null;
+
             _context.InventoryItems.Add(item);
             _context.SaveChanges();
         }
@@ -48,6 +51,11 @@ namespace de.openelp.feuerwehr.infrastructure
         {
             return _context.InventoryItems.Find(id) 
                 ?? throw new InvalidOperationException($"InventoryItem mit ID {id} wurde nicht gefunden.");
+        }
+
+        public IEnumerable<InventoryCategory> GetCategories()
+        {
+            return _context.InventoryCategories.ToList();
         }
 
         public InventoryItemRelationship GetRelationshipById(Guid id)
