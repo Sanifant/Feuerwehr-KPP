@@ -61,8 +61,9 @@ public class ApiServiceTests
 
     private static ApiService CreateSut(HttpMessageHandler handler, string token)
     {
+        var user = new ApplicationUser { AccessToken = token };
         var httpClient = new HttpClient(handler);
-        var tokenStore = new AuthTokenStore { Token = token };
+        var tokenStore = new AuthTokenStore { Token = user };
         var options = Options.Create(new ApiSettings { BaseUrl = "https://inventory.local/" });
         return new ApiService(httpClient, tokenStore, options);
     }

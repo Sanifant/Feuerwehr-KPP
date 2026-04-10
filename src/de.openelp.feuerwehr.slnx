@@ -32,17 +32,15 @@
     <Project Path="Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj" Id="f4678a99-27f9-4bf8-8ad4-d3a2790c2dec" />
   </Folder>
   <Folder Name="/Tests/Mobile/">
-    <Project Path="Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj" Id="39f4e87f-bdf1-437e-8078-234f3b7ce798" />
-    <Project Path="Tests/Mobile/mobile.Desktop.UnitTests/de.openelp.feuerwehr.mobile.Desktop.UnitTests.csproj" Id="fd677494-6ad0-4d58-9ff0-f4ee5cd38012" />
+    <Project Path="Tests/Mobile/mobile.UnitTests/de.openelp.feuerwehr.mobile.UnitTests.csproj" Id="88bd8281-2684-48ce-a1ed-6cffd879e776" />
   </Folder>
   <Folder Name="/Tests/Web/">
     <Project Path="Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj" Id="08f11560-5609-4331-8668-cc3e6101e328" />
+    <Project Path="Tests/Web/authentication.UnitTests/de.openelp.authentification.UnitTests.csproj" Id="6878dde0-74f6-4151-bcc8-1c676d1395e6" />
   </Folder>
   <Folder Name="/Web/">
     <Project Path="Web/api/de.openelp.feuerwehr.Api.csproj" />
-    <Project Path="Web/de.openelp.authentification/de.openelp.authentification.csproj">
-      <Build Solution="Debug|*" Project="true" />
-    </Project>
+    <Project Path="Web/de.openelp.authentification/de.openelp.authentification.csproj" />
   </Folder>
   <Folder Name="/docker/">
     <Project Path="docker/docker-compose.dcproj">

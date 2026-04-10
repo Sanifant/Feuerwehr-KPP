@@ -22,7 +22,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_ValidInventoryItem_CallsServiceCreateItem()
+        public async Task Post_ValidInventoryItem_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -37,7 +37,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -49,7 +49,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithMinimalFields_CallsServiceCreateItem()
+        public async Task Post_InventoryItemWithMinimalFields_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -60,7 +60,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -72,7 +72,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithEmptyDescription_CallsServiceCreateItem()
+        public async Task Post_InventoryItemWithEmptyDescription_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -84,7 +84,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -96,7 +96,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithSpecialCharacters_CallsServiceCreateItem()
+        public async Task Post_InventoryItemWithSpecialCharacters_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -109,7 +109,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -121,7 +121,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithVeryLongStrings_CallsServiceCreateItem()
+        public async Task Post_InventoryItemWithVeryLongStrings_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -134,7 +134,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -146,7 +146,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithWhitespaceStrings_CallsServiceCreateItem()
+        public async Task Post_InventoryItemWithWhitespaceStrings_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -159,7 +159,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -171,7 +171,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithEmptyGuid_CallsServiceCreateItem()
+        public async Task Post_InventoryItemWithEmptyGuid_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -183,7 +183,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -195,7 +195,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithMinDateValue_CallsServiceCreateItem()
+        public  async Task Post_InventoryItemWithMinDateValue_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -207,7 +207,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
@@ -219,7 +219,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
         [Fact]
-        public void Post_InventoryItemWithMaxDateValue_CallsServiceCreateItem()
+        public  async Task Post_InventoryItemWithMaxDateValue_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -231,7 +231,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
             Assert.Single(mockService.Items);
