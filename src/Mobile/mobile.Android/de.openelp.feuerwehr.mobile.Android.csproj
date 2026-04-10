@@ -14,6 +14,10 @@
     <UseShortFileNames>true</UseShortFileNames>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <AndroidSdkDirectory>/opt/android-sdk/cmdline-tools</AndroidSdkDirectory>
+  </PropertyGroup>
+
   <ItemGroup>
     <AndroidResource Include="Icon.png">
       <Link>Resources\drawable\Icon.png</Link>
