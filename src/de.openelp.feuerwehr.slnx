@@ -23,6 +23,16 @@
     </Project>
     <Project Path="Mobile/mobile/de.openelp.feuerwehr.mobile.csproj" />
   </Folder>
+  <Folder Name="/Projektmappenelemente/GitHub Workflows/">
+    <File Path="../.github/workflows/cd.yml" />
+    <File Path="../.github/workflows/changelog.yml" />
+    <File Path="../.github/workflows/ci.yml" />
+    <File Path="../.github/workflows/label.yml" />
+    <File Path="../.github/workflows/sonarqube.yml" />
+    <File Path="../.github/workflows/stale.yml" />
+    <File Path="../.github/workflows/summary.yml" />
+    <File Path="../.github/workflows/weekly-open-issues-email.yml" />
+  </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/Common/">
     <Project Path="Tests/Common/application.UnitTests/de.openelp.feuerwehr.application.UnitTests.csproj" Id="8024a8fd-cf86-4c6b-b41d-54fd979c1c7c" />

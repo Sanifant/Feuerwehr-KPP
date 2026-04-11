@@ -9,7 +9,7 @@ namespace de.openelp.feuerwehr.Api.UnitTests.Mocks
 {
     internal class InventoryServiceMock : IInventoryService
     {
-        public List<InventoryItem> Items { get; set; } = new List<InventoryItem>();
+        public List<InventoryItem> Items { get; set; } = [];
 
         public void CreateItem(InventoryItem item)
         {
@@ -51,6 +51,11 @@ namespace de.openelp.feuerwehr.Api.UnitTests.Mocks
         public void LinkItems(Guid parentId, Guid childId, ItemRelationshipLabel label)
         {
             // Not needed for current controller tests.
+        }
+
+        public Task<List<InventoryCategory>> GetCategories()
+        {
+            throw new NotImplementedException();
         }
     }
 }

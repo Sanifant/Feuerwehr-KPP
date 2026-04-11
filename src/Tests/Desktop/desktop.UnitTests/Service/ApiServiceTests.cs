@@ -12,7 +12,7 @@ using de.openelp.feuerwehr.domain;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace de.openelp.feuerwehr.desktop.Service.UnitTests;
+namespace de.openelp.feuerwehr.desktop.UnitTests.Service;
 
 public class ApiServiceTests
 {

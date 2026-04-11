@@ -22,7 +22,7 @@ namespace de.openelp.feuerwehr.infrastructure
 
         public void Add(InventoryItem item)
         {
-            item.CategoryId = item.Category.Id;
+            item.CategoryId = item.Category?.Id;
             item.Category = null;
 
             _context.InventoryItems.Add(item);

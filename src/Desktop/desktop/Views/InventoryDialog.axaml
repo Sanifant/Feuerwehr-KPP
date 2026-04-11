@@ -15,7 +15,7 @@
 
     <StackPanel Margin="20" Spacing="10">
 
-        <TextBox Watermark="Name"
+        <TextBox PlaceholderText="Name"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Name}"/>
         <TextBlock Text="Category"/>
@@ -29,13 +29,13 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-        <TextBox Watermark="Quantity"
+        <TextBox PlaceholderText="Quantity"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Quantity}"/>
-        <TextBox Watermark="Condition"
+        <TextBox PlaceholderText="Condition"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Condition}"/>
-        <TextBox Watermark="Location"
+        <TextBox PlaceholderText="Location"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Location}"/>
 

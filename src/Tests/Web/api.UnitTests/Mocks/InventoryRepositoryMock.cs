@@ -8,16 +8,16 @@ namespace de.openelp.feuerwehr.Api.UnitTests.Mocks
 {
     internal class InventoryRepositoryMock : IInventoryRepository
     {
-        public IEnumerable<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
+        public IEnumerable<InventoryItem> InventoryItems { get; set; } = [];
 
         public void Add(InventoryItem item)
         {
-            InventoryItems = InventoryItems.Append(item).ToList();
+            InventoryItems = [.. InventoryItems, item];
         }
 
         public void Delete(Guid id)
         {
-            InventoryItems = InventoryItems.Where(i => i.Id != id).ToList();
+            InventoryItems = [.. InventoryItems.Where(i => i.Id != id)];
         }
 
         public IEnumerable<InventoryItem> GetByCategory(Guid category)
@@ -50,9 +50,14 @@ namespace de.openelp.feuerwehr.Api.UnitTests.Mocks
             var existingItem = InventoryItems.FirstOrDefault(i => i.Id == item.Id);
             if (existingItem != null)
             {
-                InventoryItems = InventoryItems.Where(i => i.Id != item.Id).ToList();
-                InventoryItems = InventoryItems.Append(item).ToList();
+                InventoryItems = [.. InventoryItems.Where(i => i.Id != item.Id)];
+                InventoryItems = [.. InventoryItems, item];
             }
+        }
+
+        public IEnumerable<InventoryCategory> GetCategories()
+        {
+            throw new NotImplementedException();
         }
     }
 }
