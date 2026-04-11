@@ -7,10 +7,7 @@ namespace de.openelp.feuerwehr.application.inventory
 
         private readonly IInventoryRepository _repo;
 
-        public InventoryService(IInventoryRepository repo)
-        {
-            _repo = repo;
-        }
+        public InventoryService(IInventoryRepository repo) => _repo = repo;
 
         public void CreateItem(InventoryItem item)
         {

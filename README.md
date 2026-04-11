@@ -2,6 +2,8 @@
 
 Monorepo fuer die Feuerwehr-Anwendung auf Basis von .NET 10 und Avalonia.
 
+[![CI - Build and Test](https://github.com/Sanifant/Feuerwehr-KPP/actions/workflows/ci.yml/badge.svg)](https://github.com/Sanifant/Feuerwehr-KPP/actions/workflows/ci.yml)
+
 ## Einsatzkontext
 
 Die Software ist fuer den kommunalen Einsatz bei Feuerwehren vorgesehen.
