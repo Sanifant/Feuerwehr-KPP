@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using de.openelp.feuerwehr.desktop.Interfaces;
 using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.domain;
 using System;
@@ -12,7 +13,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
     public partial class InventoryDialogViewModel : ViewModelBase
     {
-        private readonly ApiService _api;
+        private readonly IApiService _api;
 
         public string Name { get; set; } = string.Empty;
         public InventoryCategory? Category { get; set; }
@@ -24,7 +25,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
         public Action OnSaved { get; set; }
 
-        public InventoryDialogViewModel(ApiService api)
+        public InventoryDialogViewModel(IApiService api)
         {
             _api = api;
             OnSaved = () => { };

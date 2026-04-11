@@ -15,6 +15,8 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
     {
         private readonly IServiceProvider _serviceProvider;
 
+        public string Title { get; set; } = "Feuerwehrverwaltung";
+
         public ObservableCollection<NavigationItem> NavigationItems { get; set; } = new()
         {
             new NavigationItem { Name = "Dashboard", ViewModelType = typeof(DashboardViewModel) },

@@ -17,17 +17,18 @@ namespace de.openelp.feuerwehr.desktop.UnitTests.Service;
 public class ApiServiceTests
 {
     [Fact]
-    public void GetAll_AddsBearerTokenToRequest()
+    public async Task GetAll_AddsBearerTokenToRequest()
     {
         var handler = new CaptureHandler(_ =>
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = JsonContent.Create(new List<InventoryItem> { new() { Name = "Helm" } })
-            }));
+            }
+            ));
 
         var sut = CreateSut(handler, "jwt-token");
 
-        var result = sut.GetAll();
+        var result = await sut.GetAll();
 
         Assert.Single(result);
         Assert.NotNull(handler.LastRequest);
@@ -51,12 +52,12 @@ public class ApiServiceTests
     }
 
     [Fact]
-    public void GetAll_WithoutToken_Throws()
+    public async Task GetAll_WithoutToken_Throws()
     {
         var handler = new CaptureHandler(_ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
         var sut = CreateSut(handler, string.Empty);
 
-        Assert.Throws<InvalidOperationException>(() => sut.GetAll());
+        await Assert.ThrowsAsync<InvalidOperationException>(sut.GetAll);
     }
 
     private static ApiService CreateSut(HttpMessageHandler handler, string token)

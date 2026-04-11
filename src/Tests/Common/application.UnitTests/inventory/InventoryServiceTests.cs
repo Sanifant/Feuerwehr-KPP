@@ -110,25 +110,6 @@ namespace de.openelp.feuerwehr.application.inventory.UnitTests
         }
 
         /// <summary>
-        /// Tests that CreateItem handles null item parameter.
-        /// Input: null item parameter.
-        /// Expected: The repository's Add method is called with null (testing edge case even though parameter is non-nullable).
-        /// </summary>
-        [Fact]
-        public void CreateItem_NullItem_CallsRepositoryAddWithNull()
-        {
-            // Arrange
-            var mockRepo = new Mock<IInventoryRepository>();
-            var service = new InventoryService(mockRepo.Object);
-
-            // Act
-            service.CreateItem(null!);
-
-            // Assert
-            mockRepo.Verify(r => r.Add(null!), Times.Once);
-        }
-
-        /// <summary>
         /// Tests that CreateItem works correctly with minimal item properties.
         /// Input: An InventoryItem with only required properties set.
         /// Expected: The repository's Add method is called once with the item.

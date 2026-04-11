@@ -7,10 +7,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using de.openelp.feuerwehr.desktop.Interfaces;
 
 namespace de.openelp.feuerwehr.desktop.Service
 {
-    public class ApiService
+    public class ApiService : IApiService
     {
         private readonly HttpClient _http;
         private readonly AuthTokenStore _tokenStore;
@@ -35,13 +36,13 @@ namespace de.openelp.feuerwehr.desktop.Service
             return request;
         }
 
-        public List<InventoryItem> GetAll()
+        public async Task<List<InventoryItem>> GetAll()
         {
             using var request = CreateAuthorizedRequest(HttpMethod.Get, ApiUrl);
-            using var response = _http.Send(request);
+            using var response = await _http.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            var items = response.Content.ReadFromJsonAsync<List<InventoryItem>>().GetAwaiter().GetResult();
+            var items = await response.Content.ReadFromJsonAsync<List<InventoryItem>>();
             return items ?? new List<InventoryItem>();
         }
 
@@ -54,7 +55,7 @@ namespace de.openelp.feuerwehr.desktop.Service
             response.EnsureSuccessStatusCode();
         }
 
-        internal InventoryCategory[] GetInventoryCategories()
+        public InventoryCategory[] GetInventoryCategories()
         {
             var apiUrl = ApiUrl + "/categories";
             using var request = CreateAuthorizedRequest(HttpMethod.Get, apiUrl);

@@ -3,6 +3,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:de.openelp.feuerwehr.desktop.ViewModels"
+        WindowDecorations="None"
+        WindowStartupLocation="CenterScreen"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         Width="400" Height="250"
         x:Class="de.openelp.feuerwehr.desktop.LoginWindow"
@@ -15,11 +17,11 @@
                    FontWeight="Bold"
                    HorizontalAlignment="Center"/>
 
-        <TextBox Watermark="Username"
+        <TextBox PlaceholderText="Username"
                  x:DataType="vm:LoginViewModel"
                  Text="{Binding Username}"/>
 
-        <TextBox Watermark="Password"
+        <TextBox PlaceholderText="Password"
                  PasswordChar="*"
                  x:DataType="vm:LoginViewModel"
                  Text="{Binding Password}"/>

@@ -1,70 +1,80 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:de.openelp.feuerwehr.desktop.ViewModels"
-        xmlns:views="using:de.openelp.feuerwehr.desktop.Views"
-        xmlns:service="using:de.openelp.feuerwehr.desktop.Service"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
-        x:Class="de.openelp.feuerwehr.desktop.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        x:CompileBindings="False"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="de.openelp.feuerwehr.desktop">
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:vm="using:de.openelp.feuerwehr.desktop.ViewModels"
+		xmlns:views="using:de.openelp.feuerwehr.desktop.Views"
+		xmlns:service="using:de.openelp.feuerwehr.desktop.Service"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+		x:Class="de.openelp.feuerwehr.desktop.Views.MainWindow"
+		x:DataType="vm:MainWindowViewModel"
+		x:CompileBindings="False"
+		Icon="/Assets/avalonia-logo.ico"
+		Title="{Binding Title}">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
-    <Window.DataTemplates>
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:MainWindowViewModel/>
+	</Design.DataContext>
+	<Window.DataTemplates>
 
-        <!-- Mapping ViewModel → View -->
-        <DataTemplate DataType="{x:Type vm:InventoryViewModel}">
-            <views:InventoryView/>
-        </DataTemplate>
+		<!-- Mapping ViewModel → View -->
+		<DataTemplate DataType="{x:Type vm:InventoryViewModel}">
+			<views:InventoryView/>
+		</DataTemplate>
 
-        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
-            <views:DashboardView/>
-        </DataTemplate>
+		<DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+			<views:DashboardView/>
+		</DataTemplate>
 
-    </Window.DataTemplates>
+	</Window.DataTemplates>
+	<DockPanel>
+		<Menu DockPanel.Dock="Top" Background="#2C2F33" Foreground="AntiqueWhite">
+			<MenuItem Header="File">
+				<MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
+			</MenuItem>
+			<MenuItem Header="Help">
+				<MenuItem Header="About" Command="{Binding ShowAboutCommand}"/>
+			</MenuItem>
+		</Menu>
 
-    <Grid ColumnDefinitions="150,*">
+		<Grid ColumnDefinitions="150,*">
 
-        <!-- Sidebar -->
-        <StackPanel Background="#2C2F33">
+			<!-- Sidebar -->
+			<StackPanel Background="#2C2F33">
 
-            <Image Source="/Assets/Logo.png"
-                   Height="100"
-                   Margin="15"/>
+				<Image Source="/Assets/Logo.png"
+					   Height="100"
+					   Margin="15"/>
 
-            <ListBox ItemsSource="{Binding NavigationItems}" 
-                     Name="Navigation" 
-                     Background="#2C2F33">
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type service:NavigationItem}" x:DataType="service:NavigationItem">
-                        <Button Content="{Binding Name}"
-                                Command="{Binding ShowViewCommand}"
-                                CommandParameter="{Binding .}"
-                                Foreground="AntiqueWhite"
-                                Width="125"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+				<ListBox ItemsSource="{Binding NavigationItems}"
+						 Name="Navigation"
+						 Background="#2C2F33">
+					<ListBox.ItemTemplate>
+						<DataTemplate DataType="{x:Type service:NavigationItem}" x:DataType="service:NavigationItem">
+							<Button Content="{Binding Name}"
+									Command="{Binding ShowViewCommand}"
+									CommandParameter="{Binding .}"
+									Foreground="AntiqueWhite"
+									Width="125"/>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
 
-            <Button Content="Inspections"
-                    Margin="2" Foreground="AntiqueWhite" Width="140"/>
-            <Button Content="Vehicles"
-                    Margin="2" Foreground="AntiqueWhite" Width="140"/>
-            <Button Content="Users"
-                    Margin="2" Foreground="AntiqueWhite" Width="140"/>
+				<Button Content="Inspections"
+						Margin="2" Foreground="AntiqueWhite" Width="140"/>
+				<Button Content="Vehicles"
+						Margin="2" Foreground="AntiqueWhite" Width="140"/>
+				<Button Content="Users"
+						Margin="2" Foreground="AntiqueWhite" Width="140"/>
 
-        </StackPanel>
+			</StackPanel>
 
-        <!-- Dynamischer Content -->
-        <ContentControl Grid.Column="1"
-                        Content="{Binding CurrentView}"/>
+			<!-- Dynamischer Content -->
+			<ContentControl Grid.Column="1"
+							Content="{Binding CurrentView}"/>
 
-    </Grid>
+		</Grid>
+	</DockPanel>
 </Window>
