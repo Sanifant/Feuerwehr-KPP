@@ -25,6 +25,24 @@ namespace de.openelp.feuerwehr.desktop.UnitTests.ViewModels
         }
 
         [Fact]
+        public void Constructor_WhenCalled_PopulatesItemsCollection()
+        {
+            // Arrange
+            var mockApiService = new Mocks.MockApiService();
+            mockApiService.Items = new List<InventoryItem>
+            {
+                new InventoryItem { Id = Guid.NewGuid(), Name = "Item 1", CategoryId = Guid.NewGuid(), Quantity = 10 },
+                new InventoryItem { Id = Guid.NewGuid(), Name = "Item 2", CategoryId = Guid.NewGuid(), Quantity = 5 }
+            };
+
+            // Act
+            var viewModel = new InventoryViewModel(mockApiService);
+
+            // Assert
+            Assert.NotEmpty(viewModel.Items);
+        }
+
+        [Fact]
         public void LoadItems_WhenCalled_PopulatesItemsCollection()
         {
             // Arrange
@@ -36,11 +54,14 @@ namespace de.openelp.feuerwehr.desktop.UnitTests.ViewModels
             };
             var viewModel = new InventoryViewModel(mockApiService);
 
-            Assert.Empty(viewModel.Items);
+            Assert.Equal(2, viewModel.Items.Count);
+
             // Act
+            mockApiService.Items.Add(new InventoryItem { Id = Guid.NewGuid(), Name = "Item 3", CategoryId = Guid.NewGuid(), Quantity = 15 });
             viewModel.LoadItemsCommand.Execute(null);
+
             // Assert
-            Assert.NotEmpty(viewModel.Items);
+            Assert.Equal(3, viewModel.Items.Count);
         }
     }
 }
