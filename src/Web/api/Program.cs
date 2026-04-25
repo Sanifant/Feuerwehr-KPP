@@ -77,6 +77,14 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IHydrantRepository, HydrantRepository>();
 builder.Services.AddScoped<HydrantService>();
 
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")
+        ?? throw new InvalidOperationException("Connection string 'Redis' not found.")));
+
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>(StatusResponseWriter.DatabaseHealthCheckName, tags: ["ready"])
+    .AddCheck<RedisHealthCheck>(StatusResponseWriter.RedisHealthCheckName, failureStatus: HealthStatus.Degraded, tags: ["ready"]);
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
