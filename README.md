@@ -25,6 +25,24 @@ Die Solution liegt unter `src/de.openelp.feuerwehr.slnx` und umfasst:
 - Mobile: Avalonia Shared UI plus Plattform-Hosts (Android, iOS, Browser, Desktop)
 - Web: ASP.NET Core Web API (inkl. Geraete-Verwaltung REST API)
 
+```mermaid
+flowchart LR
+
+    F1[feature/*] -->|PR| D[develop]
+    FX[fix/*] -->|PR| D
+
+    D -->|Deploy| INT[(Integration / Portainer Stack)]
+    D -->|Build tags: int-SHA + int-latest| R1[(Container Registry)]
+
+    D -->|PR[(Promotion)]| M[main]
+    M -->|Tag release: vX.Y.Z| T[(Git Tag)]
+    M -->|Build tags: vX.Y.Z (+ optional prod-latest)| R2[(Container Registry)]
+    M -->|Deploy pinned tag vX.Y.Z| PROD[(Production / Portainer Stack)]
+
+    H[hotfix/* (from main)] -->|PR| M
+    H -->|PR back-merge| D
+
+
 ## Funktionsumfang
 
 ### Geraete-Verwaltung (Inventory Management)

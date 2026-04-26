@@ -1,0 +1,44 @@
+services:
+  api:
+    image: ghcr.io/sanifant/feuerwehr-kpp-api:int-latest
+    container_name: feuerwehr_api_int
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Integration"
+      ASPNETCORE_URLS: "http://+:8080"
+
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=feuerwehr_inventory_int;Username=feuerwehr_user;Password=${POSTGRES_PASSWORD};Include Error Detail=true"
+      ConnectionStrings__Redis: "redis:6379"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "feuerwehr_inventory_int"
+      POSTGRES_USER: "feuerwehr_user"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - postgres_int_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U feuerwehr_user -d feuerwehr_inventory_int"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_int_data:/data
+
+volumes:
+  postgres_int_data:
+  redis_int_data:
