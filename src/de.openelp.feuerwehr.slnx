@@ -33,7 +33,6 @@
     <File Path="../.github/workflows/stale.yml" />
     <File Path="../.github/workflows/summary.yml" />
     <File Path="../.github/workflows/weekly-open-issues-email.yml" />
-    <File Path="container-deploy.yml" />
   </Folder>
   <Folder Name="/Tests/" />
   <Folder Name="/Tests/Common/">
