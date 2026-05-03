@@ -1,25 +1,107 @@
-# Add 'root' label to any root file changes
-# Quotation marks are required for the leading asterisk
+# Auto-label configuration for GitHub Actions Labeler
+# Repo: Sanifant/Feuerwehr-KPP (C#/.NET)
+
+# ---- Meta / Repo management ----
 root:
-- changed-files:
-  - any-glob-to-any-file: '*'
-
-## Equivalent of the above mentioned configuration using another syntax
-Documentation:
-- changed-files:
-  - any-glob-to-any-file: ['docs/**', 'guides/**']
-
-# Add 'source' label to any change to src files within the source dir EXCEPT for the docs sub-folder
-source:
-- all:
   - changed-files:
-    - any-glob-to-any-file: 'src/**/*'
-    - all-globs-to-all-files: '!src/docs/*'
+      - any-glob-to-any-file: "*"
 
-# Add 'feature' label to any PR where the head branch name starts with `feature` or has a `feature` section in the name
+meta:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "README.md"
+          - "CHANGELOG.md"
+          - "CONTRIBUTING.md"
+          - "LICENSE"
+          - "Governance.md"
+          - "Datenschutz.md"
+          - "Security.md"
+
+# ---- Documentation ----
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "guides/**"
+          - "**/*.md"
+
+# ---- GitHub / CI ----
+github-actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+
+github-config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+
+# ---- .NET / Build ----
+dotnet:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.cs"
+          - "**/*.csproj"
+          - "**/*.sln"
+          - "**/*.slnx"
+          - "**/*.props"
+          - "**/*.targets"
+          - "src/global.json"
+          - "NuGet.config"
+
+# ---- Solution areas (based on repo folders) ----
+common:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Common/**"
+          - "src/Common/**"
+
+desktop:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Desktop/**"
+
+mobile:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/Mobile/**"
+
+web:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Web/**"
+          - "src/Web/**"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*Test*/**"
+          - "**/*Tests*/**"
+          - "src/Tests/**"
+
+# ---- Docker / Dev Environment ----
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/Dockerfile"
+          - "**/*.dockerfile"
+          - "src/docker/**"
+
+devcontainer:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".devcontainer/**"
+
+gitpod:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".gitpod.yml"
+
+# ---- Branch based labels (optional) ----
 feature:
- - head-branch: ['^feature', 'feature']
+  - head-branch:
+      - "^feature"
+      - "feature"
 
-# Add 'release' label to any PR that is opened against the `main` branch
 release:
- - base-branch: 'main'
+  - base-branch: "main"
