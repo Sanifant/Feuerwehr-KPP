@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using de.openelp.feuerwehr.desktop.Service;
+using de.openelp.feuerwehr.domain;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace de.openelp.feuerwehr.desktop.ViewModels
 {
@@ -13,11 +12,12 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         private readonly AuthApiService _authApi;
         private readonly AuthTokenStore _tokenStore;
 
-        public string Username { get; set; }
-        public string Password { get; set; }
-        public string ErrorMessage { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
 
-        
+        public string ErrorMessage { get; set; } = string.Empty;
+
+
 
         public Action OnLoginSuccess { get; set; }
 
@@ -25,6 +25,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         {
             _authApi = authApi;
             _tokenStore = tokenStore;
+            ErrorMessage = string.Empty;
         }
 
         [RelayCommand]
@@ -35,15 +36,16 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
         private async Task Login()
         {
-            var token = "token"; // await _authApi.Login(Username, Password);
+            var token = await _authApi.Login(Username, Password);
 
-            if (token == null)
+            if(!token.Success)
             {
-                ErrorMessage = "Invalid credentials";
+                ErrorMessage = token?.ErrorMessage ?? "Login failed";
+                OnPropertyChanged(nameof(ErrorMessage));
                 return;
             }
 
-            _tokenStore.Token = token;
+            _tokenStore.Token = token.User;
 
             OnLoginSuccess?.Invoke();
         }
@@ -51,6 +53,6 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 
     public class AuthTokenStore
     {
-        public string Token { get; internal set; }
+        public ApplicationUser Token { get; internal set; }
     }
 }

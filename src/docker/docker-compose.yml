@@ -4,9 +4,23 @@ services:
     build:
       context: .
       dockerfile: ../Web/api/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+
+  de.openelp.authentification:
+    image: ${DOCKER_REGISTRY-}deopenelpauthentification
+    build:
+      context: .
+      dockerfile: ../Web/de.openelp.authentification/Dockerfile
+    depends_on:
+      - postgresAuth
 
   redis:
     image: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
 
   postgres:
     image: postgres:16
@@ -20,11 +34,24 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  postgresAuth:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_AUTH_DB:-auth_db}
+      POSTGRES_USER: ${POSTGRES_AUTH_USER:-Auth}
+      POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-Auth}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgresAuth_data:/var/lib/postgresql/data
+
   pgadmin:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
     depends_on:
       - postgres
+      - postgresAuth
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-stefan@openelp.de}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
@@ -33,6 +60,16 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  redis-ui:
+    image: redis/redisinsight
+    depends_on:
+      - redis
+    ports:
+      - "5540:5540"
+    environment:
+      REDIS_HOST: redis
+
 volumes:
   postgres_data:
+  postgresAuth_data:
   pgadmin_data:

@@ -1,0 +1,138 @@
+name: Build & Deploy (GHCR + Portainer)
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    tags:
+      - "v*.*.*"
+
+env:
+  REGISTRY: ghcr.io
+  # GHCR image name convention: ghcr.io/<owner>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_ref_int: ${{ steps.meta.outputs.tags_int }}
+      image_ref_release: ${{ steps.meta.outputs.tags_release }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          # default empty
+          echo "tags_int=" >> "$GITHUB_OUTPUT"
+          echo "tags_release=" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+            echo "tags_int=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:int-${SHORT_SHA},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:int-latest" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            # optional: main-latest (nur wenn du das willst)
+            echo "tags_release=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME}"
+            echo "tags_release=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build & push (Docker)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          # Passe den Pfad auf euren echten Dockerfile an:
+          # In eurem Repo existiert z.B. src/Web/api/Dockerfile
+          file: src/Web/api/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tags_int }}
+            ${{ steps.meta.outputs.tags_release }}
+
+  deploy_integration:
+    needs: build_and_push
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: integration
+    steps:
+      - name: Trigger Portainer (integration)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+
+      - name: Portainer API login (verify only)
+        id: portainer
+        shell: bash
+        run: |
+          set -euo pipefail
+          JWT=$(curl -fsSL -X POST "${{ secrets.PORTAINER_URL }}/api/auth" \
+            -H "Content-Type: application/json" \
+            -d '{"Username":"${{ secrets.PORTAINER_USER }}","Password":"${{ secrets.PORTAINER_PASS }}"}' \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['jwt'])")
+          echo "jwt=$JWT" >> "$GITHUB_OUTPUT"
+
+      - name: Verify stack reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL \
+            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ vars.PORTAINER_STACK_ID }}" \
+            -H "Authorization: Bearer ${{ steps.portainer.outputs.jwt }}" \
+            | python3 -c "import sys,json; s=json.load(sys.stdin); print('Stack:', s.get('Name'), 'EndpointId:', s.get('EndpointId'))"
+
+  deploy_production:
+    needs: build_and_push
+    # Empfehlung: nur auf Tag deployen (Version ist dann fix)
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Portainer (production)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+
+      - name: Portainer API login (verify only)
+        id: portainer
+        shell: bash
+        run: |
+          set -euo pipefail
+          JWT=$(curl -fsSL -X POST "${{ secrets.PORTAINER_URL }}/api/auth" \
+            -H "Content-Type: application/json" \
+            -d '{"Username":"${{ secrets.PORTAINER_USER }}","Password":"${{ secrets.PORTAINER_PASS }}"}' \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['jwt'])")
+          echo "jwt=$JWT" >> "$GITHUB_OUTPUT"
+
+      - name: Verify stack reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL \
+            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ vars.PORTAINER_STACK_ID }}" \
+            -H "Authorization: Bearer ${{ steps.portainer.outputs.jwt }}" \
+            | python3 -c "import sys,json; s=json.load(sys.stdin); print('Stack:', s.get('Name'), 'EndpointId:', s.get('EndpointId'))"

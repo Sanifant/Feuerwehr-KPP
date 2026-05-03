@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   app:
+    container_name: feuerwehr-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -11,50 +12,43 @@ services:
     depends_on:
       - postgres
       - redis
-      - pgadmin
+      - postgresAuth
     environment:
       DOTNET_NOLOGO: "true"
       DOTNET_CLI_TELEMETRY_OPTOUT: "1"
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=feuerwehr;Username=feuerwehr;Password=feuerwehr
-      ConnectionStrings__Redis: redis:6379
+      POSTGRES_PASSWORD: feuerwehr
+      POSTGRES_USER: feuerwehr
+      POSTGRES_DB: feuerwehr
+      POSTGRES_HOST: postgres
+      POSTGRES_AUTH_DB: auth_db
+      POSTGRES_AUTH_USER: Auth
+      POSTGRES_AUTH_PASSWORD: Auth
+      POSTGRES_AUTH_HOST: postgresAuth
+      REDIS_HOST: redis
+      ASPNETCORE_ENVIRONMENT: Development
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      JWT_SECRET: MeinSehrGeheimerUndLangerSchlüssel
+      JWT_ISSUER: AuthService
+      JWT_AUDIENCE: FeuerwehrAPI
     network_mode: service:postgres
 
   postgres:
-    image: postgres:14.3
+    image: postgres:latest
     restart: unless-stopped
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: feuerwehr
       POSTGRES_USER: feuerwehr
       POSTGRES_DB: feuerwehr
-  
-  pgadmin:
-    image: dpage/pgadmin4:latest
+
+  postgresAuth:
+    image: postgres:latest
     restart: unless-stopped
-    depends_on:
-      - postgres
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-stefan@openelp.de}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_LISTEN_PORT: 5050
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    network_mode: service:postgres
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: Auth
+      POSTGRES_PASSWORD: Auth
 
   redis:
     image: redis
     network_mode: service:postgres
-
-  redis-ui:
-    image: redis/redisinsight
-    depends_on:
-      - redis
-    environment:
-      RI_APP_PORT: 5540
-      RI_APP_HOST: redis
-    network_mode: service:postgres
-
-volumes:
-  postgres-data:
-  pgadmin_data:

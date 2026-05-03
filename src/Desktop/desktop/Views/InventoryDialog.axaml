@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:domain="using:de.openelp.feuerwehr.domain"
         xmlns:vm="using:de.openelp.feuerwehr.desktop.ViewModels"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -14,19 +15,27 @@
 
     <StackPanel Margin="20" Spacing="10">
 
-        <TextBox Watermark="Name"
+        <TextBox PlaceholderText="Name"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Name}"/>
-        <TextBox Watermark="Category"
-                x:DataType="vm:InventoryDialogViewModel"
-                 Text="{Binding Category}"/>
-        <TextBox Watermark="Quantity"
+        <TextBlock Text="Category"/>
+        <ComboBox x:DataType="vm:InventoryDialogViewModel"
+                  PlaceholderText="Select a category"
+                  ItemsSource="{Binding Categories}"
+                  SelectedItem="{Binding Category}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="domain:InventoryCategory">
+                    <TextBlock Text="{Binding Name}"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        <TextBox PlaceholderText="Quantity"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Quantity}"/>
-        <TextBox Watermark="Condition"
+        <TextBox PlaceholderText="Condition"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Condition}"/>
-        <TextBox Watermark="Location"
+        <TextBox PlaceholderText="Location"
                 x:DataType="vm:InventoryDialogViewModel"
                  Text="{Binding Location}"/>
 

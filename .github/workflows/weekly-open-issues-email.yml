@@ -35,13 +35,13 @@ jobs:
             const now = new Date().toISOString().slice(0, 10);
 
             let body = '';
-            body += `Weekly issue summary for ${owner}/${repo}\n`;
-            body += `Generated: ${now} (UTC)\n\n`;
+            body += `<h1>Weekly issue summary for ${owner}/${repo}</h1>\n`;
+            body += `<p>Generated: ${now} (UTC)</p>\n`;
 
             if (onlyIssues.length === 0) {
-              body += 'There are currently no open issues.\n';
+              body += '<p>There are currently no open issues.</p>\n';
             } else {
-              body += `Open issues: ${onlyIssues.length}\n\n`;
+              body += `<p>Open issues: ${onlyIssues.length}</p>\n\n`;
 
               for (const issue of onlyIssues) {
                 const labels = issue.labels.map((l) => (typeof l === 'string' ? l : l.name)).filter(Boolean);
@@ -51,19 +51,20 @@ jobs:
                   .trim()
                   .slice(0, 240);
 
-                body += `#${issue.number}: ${issue.title}\n`;
-                body += `URL: ${issue.html_url}\n`;
-                body += `Created by: ${issue.user?.login || 'unknown'} on ${issue.created_at}\n`;
-                body += `Labels: ${labels.length ? labels.join(', ') : 'none'}\n`;
-                body += `Summary: ${shortBody || 'No description provided.'}\n\n`;
+                body += `<h2>#${issue.number}: ${issue.title}</h2>\n`;
+                body += `<p>URL: <a href="${issue.html_url}">${issue.html_url}</a></p>\n`;
+                body += `<p>Created by: ${issue.user?.login || 'unknown'} on ${issue.created_at}</p>\n`;
+                body += `<p>Labels: ${labels.length ? labels.join(', ') : 'none'}</p>\n`;
+                body += `<p>Summary: ${shortBody || 'No description provided.'}</p>\n\n`;
               }
             }
 
-            const filePath = 'weekly-open-issues-summary.txt';
+            const filePath = 'weekly-open-issues-summary.html';
             fs.writeFileSync(filePath, body, 'utf8');
 
             core.setOutput('subject', `[${owner}/${repo}] Weekly open issues summary (${now})`);
             core.setOutput('body_file', filePath);
+            core.setOutput('body', body);
 
       - name: Send summary email
         uses: dawidd6/action-send-mail@v3
@@ -76,5 +77,5 @@ jobs:
           to: ${{ secrets.ISSUE_SUMMARY_EMAIL_TO }}
           from: ${{ secrets.ISSUE_SUMMARY_EMAIL_FROM }}
           secure: true
-          body: Open issues summary is attached.
+          body: ${{ steps.issue-summary.outputs.body }}
           attachments: ${{ steps.issue-summary.outputs.body_file }}

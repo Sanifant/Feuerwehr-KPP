@@ -2,7 +2,7 @@ name: CD - Deploy
 
 on:
   push:
-    branches: [main, master]
+    branches: [develop, main, master]
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -159,3 +159,67 @@ jobs:
         releaseFiles: ./publish/android/*.aab
         track: production
         status: completed
+
+  deploy_integration:
+    needs: publish-container
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: integration
+    steps:
+      - name: Deploy via Portainer webhook (integration)
+        run: curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+
+      - name: Portainer API login (verify only)
+        id: portainer
+        shell: bash
+        run: |
+          set -euo pipefail
+          JWT=$(curl -fsSL -X POST "${{ secrets.PORTAINER_URL }}/api/auth" \
+            -H "Content-Type: application/json" \
+            -d '{"Username":"${{ secrets.PORTAINER_USER }}","Password":"${{ secrets.PORTAINER_PASS }}"}' \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['jwt'])")
+          echo "jwt=$JWT" >> "$GITHUB_OUTPUT"
+
+      - name: Verify stack reachable
+        shell: bash
+        env:
+          JWT: ${{ steps.portainer.outputs.jwt }}
+        run: |
+          set -euo pipefail
+          curl -fsSL "${{ secrets.PORTAINER_URL }}/api/stacks/${{ vars.PORTAINER_STACK_ID }}" \
+            -H "Authorization: Bearer ${JWT}" \
+            | python3 -c "import sys,json; s=json.load(sys.stdin); print('OK stack:', s.get('Id'), s.get('Name'), 'endpoint:', s.get('EndpointId'))"
+
+      - name: Verify container running (feuerwehr_api)
+        shell: bash
+        env:
+          JWT: ${{ steps.portainer.outputs.jwt }}
+          ENDPOINT_ID: ${{ vars.PORTAINER_ENDPOINT_ID }}
+          CONTAINER_NAME: feuerwehr_api
+        run: |
+          set -euo pipefail
+          curl -fsSL \
+            "${{ secrets.PORTAINER_URL }}/api/endpoints/${ENDPOINT_ID}/docker/containers/json?all=1" \
+            -H "Authorization: Bearer ${JWT}" \
+            | python3 - <<'PY'
+            import sys, json, os
+            containers = json.load(sys.stdin)
+            name = os.environ["CONTAINER_NAME"]
+            hits = [c for c in containers if any(n.lstrip("/") == name for n in c.get("Names", []))]
+            if not hits:
+                raise SystemExit(f"Container '{name}' not found")
+            c = hits[0]
+            print("Container:", c["Id"][:12], "image:", c.get("Image"), "state:", c.get("State"), "status:", c.get("Status"))
+            if c.get("State") != "running":
+                raise SystemExit("Container not running")
+            PY
+
+  concurrency:
+    needs: publish-container
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy via Portainer webhook (production)
+        run: curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+      # (optional) repeat verify steps here, but likely with different stack id / endpoint id

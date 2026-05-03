@@ -22,6 +22,9 @@ namespace de.openelp.feuerwehr.infrastructure
 
         public void Add(InventoryItem item)
         {
+            item.CategoryId = item.Category?.Id;
+            item.Category = null;
+
             _context.InventoryItems.Add(item);
             _context.SaveChanges();
         }
@@ -37,10 +40,37 @@ namespace de.openelp.feuerwehr.infrastructure
             return _context.InventoryItems.ToList();
         }
 
+        public IEnumerable<InventoryItem> GetByCategory(Guid category)
+        {
+            return _context.InventoryItems
+                .Where(i => i.CategoryId != null && i.CategoryId == category)
+                .ToList();
+        }
+
         public InventoryItem GetById(Guid id)
         {
             return _context.InventoryItems.Find(id) 
                 ?? throw new InvalidOperationException($"InventoryItem mit ID {id} wurde nicht gefunden.");
+        }
+
+        public IEnumerable<InventoryCategory> GetCategories()
+        {
+            return _context.InventoryCategories.ToList();
+        }
+
+        public InventoryItemRelationship GetRelationshipById(Guid id)
+        {
+            return _context.InventoryItemRelationships
+                .Include(r => r.RelationshipLabel)
+                .FirstOrDefault(r => r.Id == id) 
+                ?? throw new InvalidOperationException($"InventoryItemRelationship mit ID {id} wurde nicht gefunden.");
+        }
+
+        public IEnumerable<InventoryItemRelationship> GetRelationships()
+        {
+            return _context.InventoryItemRelationships
+                .Include(r => r.RelationshipLabel)
+                .ToList();
         }
 
         public void Update(InventoryItem item)

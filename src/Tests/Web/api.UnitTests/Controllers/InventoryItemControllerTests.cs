@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,14 +7,13 @@ using de.openelp.feuerwehr.Api.Controllers;
 using de.openelp.feuerwehr.Api.UnitTests.Mocks;
 using de.openelp.feuerwehr.application.inventory;
 using de.openelp.feuerwehr.domain;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
 {
     /// <summary>
     /// Unit tests for the InventoryItemController class.
     /// </summary>
-    [TestClass]
     public class InventoryItemControllerTests
     {
         /// <summary>
@@ -22,8 +21,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: A valid InventoryItem object.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_ValidInventoryItem_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_ValidInventoryItem_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -38,10 +37,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -49,8 +48,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with only the Name property set (required field).
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithMinimalFields_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_InventoryItemWithMinimalFields_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -61,10 +60,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -72,8 +71,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with empty Description string.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithEmptyDescription_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_InventoryItemWithEmptyDescription_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -85,10 +84,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -96,8 +95,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with special characters in Name and Description.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithSpecialCharacters_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_InventoryItemWithSpecialCharacters_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -110,10 +109,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -121,8 +120,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with very long Name and Description strings.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithVeryLongStrings_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_InventoryItemWithVeryLongStrings_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -135,10 +134,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -146,8 +145,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with whitespace-only strings for Name and Location.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithWhitespaceStrings_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_InventoryItemWithWhitespaceStrings_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -160,10 +159,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -171,8 +170,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with Guid.Empty as Id.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithEmptyGuid_CallsServiceCreateItem()
+        [Fact]
+        public async Task Post_InventoryItemWithEmptyGuid_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -184,10 +183,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -195,8 +194,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with DateOnly.MinValue as PurchaseDate.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithMinDateValue_CallsServiceCreateItem()
+        [Fact]
+        public  async Task Post_InventoryItemWithMinDateValue_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -208,10 +207,10 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
@@ -219,8 +218,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Input: An InventoryItem with DateOnly.MaxValue as PurchaseDate.
         /// Expected: The service's CreateItem method is called once with the provided item.
         /// </summary>
-        [TestMethod]
-        public void Post_InventoryItemWithMaxDateValue_CallsServiceCreateItem()
+        [Fact]
+        public  async Task Post_InventoryItemWithMaxDateValue_CallsServiceCreateItem()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
@@ -232,38 +231,32 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Post(inventoryItem);
+            await controller.Post(inventoryItem);
 
             // Assert
-            Assert.HasCount(1, mockService.Items);
+            Assert.Single(mockService.Items);
         }
 
         /// <summary>
-        /// Tests the Delete method with various integer values to ensure it executes without throwing exceptions.
-        /// This test verifies that the method accepts minimum, maximum, zero, negative, and positive integer values.
+        /// Tests that Delete executes without throwing exceptions for various Guid values.
         /// </summary>
         /// <param name="id">The inventory item identifier.</param>
-        [TestMethod]
-        [DataRow(int.MinValue)]
-        [DataRow(int.MaxValue)]
-        [DataRow(0)]
-        [DataRow(-1)]
-        [DataRow(-100)]
-        [DataRow(1)]
-        [DataRow(100)]
-        [DataRow(42)]
-        public void Delete_WithVariousIntValues_ExecutesWithoutException(int id)
+        [Theory]
+        [InlineData("00000000-0000-0000-0000-000000000000")]
+        [InlineData("11111111-1111-1111-1111-111111111111")]
+        [InlineData("ffffffff-ffff-ffff-ffff-ffffffffffff")]
+        public async Task Delete_WithVariousGuidValues_ExecutesWithoutException(Guid id)
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
 
             // Act
-            controller.Delete(id);
+            await controller.Delete(id);
 
             // Assert
             // Method completes without throwing an exception (implicit assertion)
-            Assert.IsTrue(true);
+            Assert.True(true);
         }
 
         /// <summary>
@@ -278,8 +271,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// 
         /// Expected behavior: When an item with the specified id exists, the method should return that item.
         /// </remarks>
-        [TestMethod]
-        public void Get_WhenIdExists_ReturnsMatchingInventoryItem()
+        [Fact]
+        public async Task Get_WhenIdExists_ReturnsMatchingInventoryItem()
         {
             // Arrange
             var itemId = Guid.NewGuid();
@@ -289,7 +282,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
 
             var controller = new InventoryItemController(mockService);
 
-            Assert.AreEqual(expectedItem, controller.Get(itemId));
+            var result = await controller.Get(itemId);
+            Assert.Equal(expectedItem, result);
         }
 
         /// <summary>
@@ -302,8 +296,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Expected behavior: When no item with the specified id exists, the method should return null
         /// (FirstOrDefault behavior).
         /// </remarks>
-        [TestMethod]
-        public void Get_WhenIdDoesNotExist_ReturnsNull()
+        [Fact]
+        public async Task Get_WhenIdDoesNotExist_ReturnsNull()
         {
             // Arrange
             var searchId = Guid.NewGuid();
@@ -316,7 +310,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             // Cannot properly mock InventoryService because GetAll() is not virtual
-            Assert.IsNull(controller.Get(searchId));
+            var result = await controller.Get(searchId);
+            Assert.Null(result);
         }
 
         /// <summary>
@@ -328,8 +323,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// 
         /// Expected behavior: If an item has Id = Guid.Empty, it should be returned when searching for Guid.Empty.
         /// </remarks>
-        [TestMethod]
-        public void Get_WithEmptyGuid_ReturnsMatchingItemWhenExists()
+        [Fact]
+        public async Task Get_WithEmptyGuid_ReturnsMatchingItemWhenExists()
         {
             // Arrange
             var searchId = Guid.Empty;
@@ -339,7 +334,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             // Cannot properly mock InventoryService because GetAll() is not virtual
-            Assert.AreEqual(matchingItem, controller.Get(searchId));
+            var result = await controller.Get(searchId);
+            Assert.Equal(matchingItem, result);
         }
 
         /// <summary>
@@ -351,8 +347,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// 
         /// Expected behavior: FirstOrDefault should return the first item that matches the predicate.
         /// </remarks>
-        [TestMethod]
-        public void Get_WithMultipleItemsOneMatch_ReturnsFirstMatch()
+        [Fact]
+        public async Task Get_WithMultipleItemsOneMatch_ReturnsFirstMatch()
         {
             // Arrange
             var matchingId = Guid.NewGuid();
@@ -367,13 +363,14 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             
-            Assert.AreEqual(matchingItem, controller.Get(matchingId));
+            var result = await controller.Get(matchingId);
+            Assert.Equal(matchingItem, result);
         }
 
         /// <summary>
         /// Tests that the constructor successfully creates an instance when provided with a valid InventoryService.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_ValidService_CreatesInstanceSuccessfully()
         {
             // Arrange
@@ -383,7 +380,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(mockService);
 
             // Assert
-            Assert.IsNotNull(controller);
+            Assert.NotNull(controller);
         }
 
         /// <summary>
@@ -391,7 +388,7 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// Note: The parameter is marked as non-nullable, but runtime enforcement is not present in the constructor.
         /// This test documents the current behavior where null is accepted without validation.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Constructor_NullService_CreatesInstanceWithoutThrowingException()
         {
             // Arrange
@@ -401,33 +398,26 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var controller = new InventoryItemController(nullService!);
 
             // Assert
-            Assert.IsNotNull(controller);
+            Assert.NotNull(controller);
         }
 
         /// <summary>
-        /// Tests that the Put method executes without throwing exceptions for various integer ID values
-        /// including boundary cases (int.MinValue, int.MaxValue, 0, negative, and positive values)
+        /// Tests that the Put method executes without throwing exceptions for various Guid IDs
         /// with a valid InventoryItem.
         /// </summary>
         /// <param name="id">The ID parameter to test.</param>
-        [TestMethod]
-        [DataRow(int.MinValue)]
-        [DataRow(int.MaxValue)]
-        [DataRow(0)]
-        [DataRow(-1)]
-        [DataRow(-100)]
-        [DataRow(1)]
-        [DataRow(5)]
-        [DataRow(42)]
-        [DataRow(999999)]
-        public void Put_VariousIdValuesWithValidItem_ExecutesWithoutException(int id)
+        [Theory]
+        [InlineData("11111111-1111-1111-1111-111111111111")]
+        [InlineData("22222222-2222-2222-2222-222222222222")]
+        [InlineData("00000000-0000-0000-0000-000000000000")]
+        public async Task Put_VariousGuidValuesWithValidItem_ExecutesWithoutException(Guid id)
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
             var inventoryItem = new InventoryItem
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 Name = "Test Item",
                 Description = "Test Description",
                 PurchaseDate = new DateOnly(2023, 1, 1),
@@ -435,12 +425,12 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Put(id, inventoryItem);
+            await controller.Put(id, inventoryItem);
 
             // Assert
             // Method completes without throwing an exception
             // Verify that the service was not called since the method body is empty
-            Assert.IsTrue(true);
+            Assert.True(true);
         }
 
         /// <summary>
@@ -448,38 +438,36 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
         /// with a null InventoryItem value, even though the parameter is non-nullable.
         /// This tests runtime behavior when nullability is not enforced.
         /// </summary>
-        [TestMethod]
-        public void Put_ValidIdWithNullItem_ExecutesWithoutException()
+        [Fact]
+        public async Task Put_ValidIdWithNullItem_ExecutesWithoutException()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
-            int id = 1;
+            Guid id = Guid.NewGuid();
             InventoryItem? nullItem = null;
 
             // Act
-            controller.Put(id, nullItem!);
+            await Assert.ThrowsAsync<NullReferenceException>(async () => await controller.Put(id, nullItem!));
 
             // Assert
-            // Method completes without throwing an exception
-            // Verify that the service was not called since the method body is empty
-            Assert.IsTrue(true);
+            // Current controller behavior dereferences value.Id and throws for null payloads.
         }
 
         /// <summary>
         /// Tests that the Put method executes without throwing exceptions when provided
         /// with an InventoryItem that has minimal/default property values.
         /// </summary>
-        [TestMethod]
-        public void Put_ValidIdWithItemHavingDefaultValues_ExecutesWithoutException()
+        [Fact]
+        public async Task Put_ValidIdWithItemHavingDefaultValues_ExecutesWithoutException()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
-            int id = 1;
+            Guid id = Guid.NewGuid();
             var inventoryItem = new InventoryItem
             {
-                Id = Guid.Empty,
+                Id = id,
                 Name = string.Empty,
                 Description = string.Empty,
                 PurchaseDate = default(DateOnly),
@@ -487,28 +475,28 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Put(id, inventoryItem);
+            await controller.Put(id, inventoryItem);
 
             // Assert
             // Method completes without throwing an exception
             // Verify that the service was not called since the method body is empty
-            Assert.IsTrue(true);
+            Assert.True(true);
         }
 
         /// <summary>
         /// Tests that the Put method executes without throwing exceptions when provided
         /// with an InventoryItem that has special characters and extreme string values.
         /// </summary>
-        [TestMethod]
-        public void Put_ValidIdWithItemHavingSpecialCharacters_ExecutesWithoutException()
+        [Fact]
+        public async Task Put_ValidIdWithItemHavingSpecialCharacters_ExecutesWithoutException()
         {
             // Arrange
             var mockService = new InventoryServiceMock();
             var controller = new InventoryItemController(mockService);
-            int id = 42;
+            Guid id = Guid.NewGuid();
             var inventoryItem = new InventoryItem
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 Name = "Test\nItem\t<>&\"'",
                 Description = new string('x', 10000),
                 PurchaseDate = DateOnly.MaxValue,
@@ -516,23 +504,23 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             };
 
             // Act
-            controller.Put(id, inventoryItem);
+            await controller.Put(id, inventoryItem);
 
             // Assert
             // Method completes without throwing an exception
             // Verify that the service was not called since the method body is empty
-            Assert.IsTrue(true);
+            Assert.True(true);
         }
 
         /// <summary>
         /// Tests that the Get method returns the expected number of items when the service returns a list with various counts.
         /// </summary>
         /// <param name="itemCount">The number of items to be returned by the service.</param>
-        [TestMethod]
-        [DataRow(0)]
-        [DataRow(1)]
-        [DataRow(3)]
-        [DataRow(10)]
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(3)]
+        [InlineData(10)]
         public void Get_ServiceReturnsListWithVariousCounts_ReturnsExpectedCount(int itemCount)
         {
             // Arrange
@@ -556,14 +544,14 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Get();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(itemCount, result.Count());
+            Assert.NotNull(result);
+            Assert.Equal(itemCount, result.Count());
         }
 
         /// <summary>
         /// Tests that the Get method returns all items with correct properties when the service returns a populated list.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Get_ServiceReturnsMultipleItems_ReturnsAllItemsWithCorrectProperties()
         {
             // Arrange
@@ -592,18 +580,18 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Get().ToList();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.HasCount(2, result);
-            Assert.AreEqual(item1.Id, result[0].Id);
-            Assert.AreEqual(item1.Name, result[0].Name);
-            Assert.AreEqual(item2.Id, result[1].Id);
-            Assert.AreEqual(item2.Name, result[1].Name);
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal(item1.Id, result[0].Id);
+            Assert.Equal(item1.Name, result[0].Name);
+            Assert.Equal(item2.Id, result[1].Id);
+            Assert.Equal(item2.Name, result[1].Name);
         }
 
         /// <summary>
         /// Tests that the Get method returns an empty collection when the service returns an empty list.
         /// </summary>
-        [TestMethod]
+        [Fact]
         public void Get_ServiceReturnsEmptyList_ReturnsEmptyCollection()
         {
             // Arrange
@@ -614,8 +602,8 @@ namespace de.openelp.feuerwehr.Api.Controllers.UnitTests
             var result = controller.Get();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count());
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
     }

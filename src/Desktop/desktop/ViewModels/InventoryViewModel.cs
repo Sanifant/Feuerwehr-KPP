@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using de.openelp.feuerwehr.desktop.Interfaces;
 using de.openelp.feuerwehr.desktop.Service;
 using de.openelp.feuerwehr.domain;
 using System;
@@ -12,9 +13,9 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
 {
     public partial class InventoryViewModel : ViewModelBase
     {
-        private readonly ApiService _apiService;
+        private readonly IApiService _apiService;
 
-        public InventoryViewModel(ApiService apiService) 
+        public InventoryViewModel(IApiService apiService) 
         { 
             _apiService = apiService;
 
@@ -23,6 +24,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         }
 
         public ObservableCollection<InventoryItem> Items { get; set; } = new();
+           
 
         [ObservableProperty]
         private InventoryItem _selectedItem;
@@ -32,7 +34,7 @@ namespace de.openelp.feuerwehr.desktop.ViewModels
         {
             var items = _apiService.GetAll();
             Items.Clear();
-            foreach (var item in items)
+            foreach (var item in items.Result)
             {
                 Items.Add(item);
             }

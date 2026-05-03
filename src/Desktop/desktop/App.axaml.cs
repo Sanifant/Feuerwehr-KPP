@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using System.Net.Http;
 
 namespace de.openelp.feuerwehr.desktop
 {
@@ -26,13 +27,7 @@ namespace de.openelp.feuerwehr.desktop
         {
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-                DisableAvaloniaDataAnnotationValidation();
-
-                
-
+            {        
                 var services = new ServiceCollection();
                 ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
@@ -86,21 +81,22 @@ namespace de.openelp.feuerwehr.desktop
             //services.AddSingleton<INavigationService, NavigationService>();
 
             // HttpClient
+#if DEBUG
+            // Nur für Entwicklung: Selbstsignierte Zertifikate akzeptieren
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            services.AddHttpClient<ApiService>()
+                .ConfigurePrimaryHttpMessageHandler(() => handler);
+            services.AddHttpClient<AuthApiService>()
+                .ConfigurePrimaryHttpMessageHandler(() => handler);
+#else
             services.AddHttpClient<ApiService>();
             services.AddHttpClient<AuthApiService>();
+#endif
         }
 
-        private void DisableAvaloniaDataAnnotationValidation()
-        {
-            // Get an array of plugins to remove
-            var dataValidationPluginsToRemove =
-                BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-            // remove each entry found
-            foreach (var plugin in dataValidationPluginsToRemove)
-            {
-                BindingPlugins.DataValidators.Remove(plugin);
-            }
-        }
     }
 }

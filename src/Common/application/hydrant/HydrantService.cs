@@ -13,27 +13,27 @@ namespace de.openelp.feuerwehr.application.hydrant
             _repo = repo;
         }
 
-        public void CreateHydrant(Hydrant hydrant)
+        public virtual void CreateHydrant(Hydrant hydrant)
         {
             _repo.Add(hydrant);
         }
 
-        public Task<List<Hydrant>> GetAll()
+        public virtual Task<List<Hydrant>> GetAll()
         {
             return Task.FromResult(new List<Hydrant>(_repo.GetAll()));
         }
 
-        public Hydrant? GetById(Guid id)
+        public virtual Hydrant? GetById(Guid id)
         {
             return _repo.GetById(id);
         }
 
-        public void UpdateHydrant(Hydrant hydrant)
+        public virtual void UpdateHydrant(Hydrant hydrant)
         {
             _repo.Update(hydrant);
         }
 
-        public void DeleteHydrant(Guid id)
+        public virtual void DeleteHydrant(Guid id)
         {
             _repo.Delete(id);
         }

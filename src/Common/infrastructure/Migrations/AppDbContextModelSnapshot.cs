@@ -17,7 +17,7 @@ namespace de.openelp.feuerwehr.infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -55,15 +55,36 @@ namespace de.openelp.feuerwehr.infrastructure.Migrations
                     b.ToTable("Hydrants");
                 });
 
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("InventoryCategories");
+                });
+
             modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Condition")
                         .IsRequired()
@@ -92,7 +113,107 @@ namespace de.openelp.feuerwehr.infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("InventoryItems");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryItemRelationship", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChildItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ParentItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RelationshipLabelId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChildItemId");
+
+                    b.HasIndex("RelationshipLabelId");
+
+                    b.HasIndex("ParentItemId", "ChildItemId", "RelationshipLabelId")
+                        .IsUnique();
+
+                    b.ToTable("InventoryItemRelationships");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.ItemRelationshipLabel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItemRelationshipLabels");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryItem", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.domain.InventoryCategory", "Category")
+                        .WithMany("Items")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryItemRelationship", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.domain.InventoryItem", "ChildItem")
+                        .WithMany()
+                        .HasForeignKey("ChildItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("de.openelp.feuerwehr.domain.InventoryItem", "ParentItem")
+                        .WithMany("ChildRelationships")
+                        .HasForeignKey("ParentItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("de.openelp.feuerwehr.domain.ItemRelationshipLabel", "RelationshipLabel")
+                        .WithMany("Relationships")
+                        .HasForeignKey("RelationshipLabelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChildItem");
+
+                    b.Navigation("ParentItem");
+
+                    b.Navigation("RelationshipLabel");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryCategory", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.InventoryItem", b =>
+                {
+                    b.Navigation("ChildRelationships");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.domain.ItemRelationshipLabel", b =>
+                {
+                    b.Navigation("Relationships");
                 });
 #pragma warning restore 612, 618
         }
