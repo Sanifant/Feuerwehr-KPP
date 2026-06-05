@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/App/">
+    <Project Path="App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj">
+      <Deploy />
+    </Project>
+    <Project Path="App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj" />
+    <Project Path="App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj">
+      <Deploy />
+    </Project>
+    <Project Path="App/Feuerwehr.App/Feuerwehr.App/Feuerwehr.App.csproj" />
+  </Folder>
+  <Folder Name="/Backend/">
+    <Project Path="Feuerwehr.Server/Feuerwehr.Server.csproj" />
+  </Folder>
+  <Project Path="Feuerwehr.AppHost/Feuerwehr.AppHost.csproj" />
+  <Project Path="frontend/frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>

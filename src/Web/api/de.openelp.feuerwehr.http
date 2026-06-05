@@ -1,6 +1,0 @@
-@de.openelp.feuerwehr_HostAddress = http://localhost:5135
-
-GET {{de.openelp.feuerwehr_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
