@@ -13,6 +13,7 @@
     <Project Path="Feuerwehr.Server/Feuerwehr.Server.csproj" />
   </Folder>
   <Project Path="Feuerwehr.AppHost/Feuerwehr.AppHost.csproj" />
+  <Project Path="Feuerwehr.Common/Feuerwehr.Common.csproj" Id="e1f90ef1-d86c-4bdd-8e80-f1745049dc68" />
   <Project Path="frontend/frontend.esproj">
     <Build />
     <Deploy />

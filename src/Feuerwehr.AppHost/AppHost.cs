@@ -32,6 +32,7 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
         service.Name = "api";
         service.Ports.Add("5000");
     })
+    .WithUrl("/scalar/v1", "Scalar API Endpoint")
     .WithExternalHttpEndpoints();
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
