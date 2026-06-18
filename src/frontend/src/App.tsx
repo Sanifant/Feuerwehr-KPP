@@ -2,51 +2,14 @@ import { useState, useEffect } from 'react';
 import aspireLogo from '/Aspire.png';
 import './App.css';
 
-interface WeatherForecast {
-  date: string;
-  temperatureC: number;
-  temperatureF: number;
-  summary: string;
-}
 
 function App() {
-  const [weatherData, setWeatherData] = useState<WeatherForecast[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
   const [useCelsius, setUseCelsius] = useState(false);
 
-  const fetchWeatherForecast = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/weatherforecast');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data: WeatherForecast[] = await response.json();
-      setWeatherData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
-      console.error('Error fetching weather forecast:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchWeatherForecast();
   }, []);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(undefined, { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
 
   return (
     <div className="app-container">
@@ -93,7 +56,6 @@ function App() {
                 </fieldset>
                 <button 
                   className="refresh-button"
-                  onClick={fetchWeatherForecast} 
                   disabled={loading}
                   aria-label={loading ? 'Loading weather forecast' : 'Refresh weather forecast'}
                   type="button"
@@ -124,36 +86,6 @@ function App() {
                   <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
                 <span>{error}</span>
-              </div>
-            )}
-            
-            {loading && weatherData.length === 0 && (
-              <div className="loading-skeleton" role="status" aria-live="polite" aria-label="Loading weather data">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="skeleton-row" aria-hidden="true" />
-                ))}
-                <span className="visually-hidden">Loading weather forecast data...</span>
-              </div>
-            )}
-            
-            {weatherData.length > 0 && (
-              <div className="weather-grid">
-                {weatherData.map((forecast, index) => (
-                  <article key={index} className="weather-card" aria-label={`Weather for ${formatDate(forecast.date)}`}>
-                    <h3 className="weather-date">
-                      <time dateTime={forecast.date}>{formatDate(forecast.date)}</time>
-                    </h3>
-                    <p className="weather-summary">{forecast.summary}</p>
-                    <div className="weather-temps" aria-label={`Temperature: ${useCelsius ? forecast.temperatureC : forecast.temperatureF} degrees ${useCelsius ? 'Celsius' : 'Fahrenheit'}`}>
-                      <div className="temp-group">
-                        <span className="temp-value" aria-hidden="true">
-                          {useCelsius ? forecast.temperatureC : forecast.temperatureF}°
-                        </span>
-                        <span className="temp-unit" aria-hidden="true">{useCelsius ? 'Celsius' : 'Fahrenheit'}</span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
               </div>
             )}
           </div>
