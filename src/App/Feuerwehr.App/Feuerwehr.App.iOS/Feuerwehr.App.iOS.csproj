@@ -1,16 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0-ios</TargetFramework>
-    <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
+  
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Linux'))">
+    <TargetFramework>net10.0-ios</TargetFramework>
+    <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  
+  <ItemGroup Condition="!$([MSBuild]::IsOSPlatform('Linux'))">
     <PackageReference Include="Avalonia.iOS" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Feuerwehr.App\Feuerwehr.App.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <TargetFramework>net10.0</TargetFramework>
+    <Compile Remove="**\*.cs" />
+    <None Include="Main.cs" Visible="false" />
+  </ItemGroup>
+
+  <Target Name="ExplainNonMacIosProject" BeforeTargets="Build" Condition="!$([MSBuild]::IsOSPlatform('L'))">
+    <Message Importance="high" Text="iOS project build is disabled on non-macOS. Use macOS to build this project." />
+  </Target>
+  
 </Project>
