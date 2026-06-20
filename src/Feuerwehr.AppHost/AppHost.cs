@@ -43,6 +43,10 @@ var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     })
     .WaitFor(server);
 
+builder.AddProject<Projects.Feuerwehr_App_Desktop>("app")
+    .WithReference(server)
+    .WaitFor(server);
+
 server.PublishWithContainerFiles(webfrontend, "wwwroot");
 
 builder.Build().Run();

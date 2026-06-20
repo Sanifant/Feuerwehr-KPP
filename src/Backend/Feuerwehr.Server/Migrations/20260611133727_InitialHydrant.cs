@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class Hydrant : Migration
+    public partial class InitialHydrant : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,8 +22,8 @@ namespace Feuerwehr.Server.Migrations
                     PostalCode = table.Column<string>(type: "text", nullable: false),
                     City = table.Column<string>(type: "text", nullable: false),
                     AdditionalInfo = table.Column<string>(type: "text", nullable: true),
-                    Latitude = table.Column<int>(type: "integer", nullable: false),
-                    Longitude = table.Column<int>(type: "integer", nullable: false),
+                    Latitude = table.Column<double>(type: "double precision", nullable: false),
+                    Longitude = table.Column<double>(type: "double precision", nullable: false),
                     DN_Diameter = table.Column<int>(type: "integer", nullable: false),
                     Type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     WaterSource = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),

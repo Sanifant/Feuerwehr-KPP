@@ -28,10 +28,10 @@ namespace Feuerwehr.Common.Models
         public Address Address { get; set; } = new();
 
         [Required]
-        public int Latitude { get; set; }
+        public double Latitude { get; set; }
 
         [Required]
-        public int Longitude { get; set; }
+        public double Longitude { get; set; }
 
         [Required]
         public int NominalDiameter { get; set; }

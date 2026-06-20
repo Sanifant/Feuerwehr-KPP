@@ -1,0 +1,78 @@
+<ContentPage xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:geo="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
+			 xmlns:i="clr-namespace:Avalonia.Markup.Xaml.Interactivity;assembly=Avalonia.Markup.Xaml"
+			 xmlns:ia="clr-namespace:Avalonia.Markup.Xaml.Interaction.Core;assembly=Avalonia.Markup.Xaml"
+			 xmlns:vm="using:Feuerwehr.App.ViewModels"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="Feuerwehr.App.Pages.MapView"
+			 x:DataType="vm:MapViewModel"
+			Header="Hydranten Karte">
+
+<Grid RowDefinitions="Auto, *">
+
+		<Grid Grid.Row="1">
+			
+			<geo:MapControl Name="MainMap" Map="{Binding Map}">
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="Tapped">
+						<InvokeCommandAction Command="{Binding MapClickedCommand}" PassEventArgsToCommand="True" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+				<FlyoutBase.AttachedFlyout>
+					<Flyout Placement="Pointer" IsOpen="{Binding IsFlyoutOpen, Mode=TwoWay}">
+						<StackPanel Width="200" Spacing="5" DataContext="{Binding SelectedHydrant}">
+							<TextBlock Text="{Binding Title}" 
+									   FontSize="14" 
+									   Margin="10" 
+									   TextWrapping="Wrap"/>
+							<TextBlock Text="{Binding Diameter}"
+									   FontSize="14"
+									   Margin="10" />
+						</StackPanel>
+					</Flyout>
+				</FlyoutBase.AttachedFlyout>
+			</geo:MapControl>
+
+			<StackPanel VerticalAlignment="Center" 
+						HorizontalAlignment="Right" 
+						Margin="0,0,15,0" 
+						Spacing="12">
+				
+				<Button Command="{Binding ZoomInCommand}"
+						Width="50" Height="50" 
+						Background="White" 
+						CornerRadius="25">
+					<PathIcon Data="{StaticResource PlusIcon}" Width="20" Height="20" Foreground="#333"/>
+				</Button>
+
+				<Button Command="{Binding ZoomOutCommand}"
+						Width="50" Height="50" 
+						Background="White" 
+						CornerRadius="25">
+					<PathIcon Data="{StaticResource MinusIcon}" Width="20" Height="20" Foreground="#333"/>
+				</Button>
+				
+				<Button Command="{Binding CenterOnLocationCommand}"
+						Width="50" Height="50" 
+						Background="#58a6ff" 
+						CornerRadius="25"
+						Margin="0,20,0,0">
+					<PathIcon Data="{StaticResource TargetIcon}" Width="20" Height="20" Foreground="White"/>
+				</Button>
+
+				<Button Command="{Binding SettingsCommand}"
+						IsVisible="False"
+						Width="50" Height="50" 
+						Background="White" 
+						CornerRadius="25"
+						Margin="0,25,0,0">
+					<PathIcon Data="{StaticResource SettingsIcon}" Width="20" Height="20" Foreground="#333"/>
+				</Button>
+			</StackPanel>
+			
+		</Grid>
+	</Grid>
+</ContentPage>

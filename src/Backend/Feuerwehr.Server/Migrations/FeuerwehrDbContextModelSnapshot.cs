@@ -2,7 +2,6 @@
 using Feuerwehr.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,15 +10,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Feuerwehr.Server.Migrations
 {
     [DbContext(typeof(FeuerwehrDbContext))]
-    [Migration("20260610123200_Hydrant")]
-    partial class Hydrant
+    partial class FeuerwehrDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -32,11 +29,11 @@ namespace Feuerwehr.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Latitude")
-                        .HasColumnType("integer");
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
 
-                    b.Property<int>("Longitude")
-                        .HasColumnType("integer");
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("NominalDiameter")
                         .HasColumnType("integer")

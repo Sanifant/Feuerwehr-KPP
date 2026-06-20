@@ -1,16 +1,59 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:Feuerwehr.App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Feuerwehr.App.Views.MainView"
-             x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
+<DrawerPage xmlns="https://github.com/avaloniaui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			xmlns:pages="using:Feuerwehr.App.Pages"
+			xmlns:vm="using:Feuerwehr.App.ViewModels"
+			mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			x:Class="Feuerwehr.App.Views.MainView"
+			x:DataType="vm:MainViewModel"
+			DrawerLayoutBehavior="CompactInline"
+			IsOpen="{Binding IsDrawerOpened, Mode=TwoWay}"
+			DrawerLength="260"
+			CompactDrawerLength="40"
+			DrawerFooter="{Binding}"
+			Drawer="{Binding}"
+			DrawerHeader="{Binding}">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:MainViewModel />
+	</Design.DataContext>	<DrawerPage.DrawerTemplate>
+		<DataTemplate x:DataType="vm:MainViewModel">
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-</UserControl>
+		</DataTemplate>
+	</DrawerPage.DrawerTemplate>
+	<DrawerPage.DrawerHeaderTemplate>
+		<DataTemplate x:DataType="vm:MainViewModel">
+			<StackPanel MinHeight="40">
+				<Border HorizontalAlignment="Stretch" Padding="10" IsVisible="{Binding IsDrawerOpened}" >
+					<Image Source="/Assets/logoFeuerwehr.png" VerticalAlignment="Center"
+							HorizontalAlignment="Center"
+							MaxHeight="120"
+							Stretch="Uniform"/>
+				</Border>
+				<TextBlock Text="{Binding ProductTitle}" 
+						   FontSize="16"
+						   Width="260"
+						   TextAlignment="Center"
+						   FontWeight="Bold"
+						   IsVisible="{Binding IsDrawerOpened}" />
+			</StackPanel>
+		</DataTemplate>
+	</DrawerPage.DrawerHeaderTemplate>
+	<DrawerPage.DrawerFooterTemplate>
+		<DataTemplate x:DataType="vm:MainViewModel">
+			<StackPanel IsVisible="{Binding IsDrawerOpened}" >
+				<TextBlock Text="{Binding AppVersion, StringFormat='Version: {0}'}"	
+					HorizontalAlignment="Center"
+					Margin="0,10" />
+				<TextBlock Text="{Binding Copyright}" FontSize="12" Foreground="Gray"	
+					HorizontalAlignment="Center"
+					Margin="0,10" />
+				</StackPanel>
+			</DataTemplate>
+	</DrawerPage.DrawerFooterTemplate>
+	<NavigationPage Name="NavPage">
+		<pages:MapView />
+	</NavigationPage>
+</DrawerPage>
