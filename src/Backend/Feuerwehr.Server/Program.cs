@@ -16,6 +16,39 @@ public partial class Program
 
         builder.AddNpgsqlDbContext<FeuerwehrDbContext>(connectionName: "postgresdb");
 
+        // Configure CORS to allow frontend access
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                // In development, allow Aspire's dynamic URLs
+                if (builder.Environment.IsDevelopment())
+                {
+                    policy.SetIsOriginAllowed(origin =>
+                    {
+                        // Allow localhost and Aspire dev domains
+                        var uri = new Uri(origin);
+                        return uri.Host == "localhost" ||
+                               uri.Host.EndsWith(".dev.localhost") ||
+                               uri.Host.EndsWith(".localhost");
+                    })
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials(); // Wichtig für Cookies/Auth-Headers
+                }
+                else
+                {
+                    // In production: nur spezifische Origins erlauben
+                    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                                         ?? Array.Empty<string>();
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                }
+            });
+        });
+
         // Add services to the container.
         builder.Services.AddProblemDetails();
 
@@ -44,6 +77,8 @@ public partial class Program
 
             app.UseDeveloperExceptionPage();
         }
+
+        app.UseCors("AllowFrontend");
 
         app.UseOutputCache();
 

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -11,12 +10,14 @@ namespace Feuerwehr.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateSequence<int>(
+                name: "Hydrants_Id_seq");
+
             migrationBuilder.CreateTable(
                 name: "Hydrants",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<int>(type: "integer", nullable: false, defaultValueSql: "nextval('\"Hydrants_Id_seq\"')"),
                     Street = table.Column<string>(type: "text", nullable: false),
                     HouseNumber = table.Column<string>(type: "text", nullable: false),
                     PostalCode = table.Column<string>(type: "text", nullable: false),
@@ -41,6 +42,9 @@ namespace Feuerwehr.Server.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Hydrants");
+
+            migrationBuilder.DropSequence(
+                name: "Hydrants_Id_seq");
         }
     }
 }

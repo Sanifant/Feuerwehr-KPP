@@ -16,10 +16,16 @@ namespace Feuerwehr.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.HasSequence<int>("Hydrants_Id_seq")
+                .StartsAt(1)
+                .IncrementsBy(1);
+
+
             modelBuilder.Entity<Hydrant>(entity =>
             {
                 entity.ToTable("Hydrants");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Hydrants_Id_seq\"')");
 
                 entity.OwnsOne(e => e.Address, address =>
                 {

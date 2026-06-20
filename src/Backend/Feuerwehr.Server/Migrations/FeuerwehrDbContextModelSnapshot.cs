@@ -21,13 +21,14 @@ namespace Feuerwehr.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence<int>("Hydrants_Id_seq");
+
             modelBuilder.Entity("Feuerwehr.Common.Models.Hydrant", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("integer")
+                        .HasDefaultValueSql("nextval('\"Hydrants_Id_seq\"')");
 
                     b.Property<double>("Latitude")
                         .HasColumnType("double precision");
@@ -68,6 +69,7 @@ namespace Feuerwehr.Server.Migrations
                     b.OwnsOne("Feuerwehr.Common.Models.Address", "Address", b1 =>
                         {
                             b1.Property<int>("HydrantId")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("integer");
 
                             b1.Property<string>("AdditionalInfo")
