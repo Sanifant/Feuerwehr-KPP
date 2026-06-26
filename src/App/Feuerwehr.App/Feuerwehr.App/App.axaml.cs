@@ -68,6 +68,8 @@ namespace Feuerwehr.App
             collection.AddTransient<MainViewModel>();
             collection.AddTransient<MapViewModel>();
 
+            collection.AddScoped<IGpsService, GpsService>();
+
             // Für Blazor WebAssembly / Web-Clients
             collection.AddScoped<IHydrantService, HydrantService>();
 

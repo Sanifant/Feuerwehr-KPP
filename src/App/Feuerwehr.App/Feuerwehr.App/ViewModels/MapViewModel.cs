@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Feuerwehr.App.Models;
 using Feuerwehr.App.Services;
+using Feuerwehr.Common.Models;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
@@ -33,18 +34,30 @@ namespace Feuerwehr.App.ViewModels
         [ObservableProperty]
         private bool _isFlyoutOpen;
 
+        [ObservableProperty]
+        private bool _canZoomIn = true;
+        
+        [ObservableProperty]
+        private bool _canAddHydrant = true;
 
+        [ObservableProperty]
+        private bool _isAddVisible = false;
+
+        [ObservableProperty]
+        private Hydrant _newHydrant = new();
+
+        private double zoomFactor = 6;
         private readonly IHydrantService hydrantService;
+        private readonly IGpsService gpsService;
 
-        public MapViewModel(IHydrantService service)
+        public MapViewModel(IHydrantService service, IGpsService gpsService)
         {
-            InitializeMap();
 
             hydrantService = service;
+            this.gpsService = gpsService;
 
+            InitializeMap();
             DrawHydrants();
-
-            Map.PointerPressed += MapClicked;   
         }
 
         private void DrawHydrants()
@@ -67,30 +80,68 @@ namespace Feuerwehr.App.ViewModels
             });
         }
 
-        private void MapClicked(object? sender, MapEventArgs e)
-        {
-            //System.Diagnostics.Debugger.Break();
 
-            if(sender is Map map)
+        [RelayCommand]
+        public void ZoomIn()
+        {
+            if(zoomFactor == 1)
             {
+                CanZoomIn = false;
+                return;
+            }
+            zoomFactor--;
+            Map?.Navigator.ZoomTo(zoomFactor);
+        }
+
+        [RelayCommand]
+        public void ZoomOut()
+        {
+            CanZoomIn = true;
+            zoomFactor++;
+            Map?.Navigator.ZoomTo(zoomFactor);
+        }
+
+        [RelayCommand]
+        public void CenterOnLocation()
+        {
+            GpsLocation? location = gpsService.GetCurrentLocationAsync().Result;
+
+            if (location != null)
+            {
+
+                var startPoint = new MPoint(location.Longitude, location.Latitude);
+                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                Map?.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+                zoomFactor = 10;
+                Map?.Navigator.ZoomTo(zoomFactor);
             }
         }
 
         [RelayCommand]
-        public void ZoomIn()
-        { }
-
-        [RelayCommand]
-        public void ZoomOut()
-        { }
-
-        [RelayCommand]
-        public void CenterOnLocation()
-        { }
-
-        [RelayCommand]
         public void Settings()
-        { }
+        {
+            GpsLocation? location = gpsService.GetCurrentLocationAsync().Result;
+
+            if (location != null)
+            {
+                IsAddVisible = true;
+                var startPoint = new MPoint(location.Longitude, location.Latitude);
+
+                NewHydrant = new Hydrant
+                {
+                    Latitude = startPoint.Y,
+                    Longitude = startPoint.X,
+                    Id = 0
+                };
+            }
+        
+        }
+
+        [RelayCommand]
+        public void AddHydrant()
+        {
+            IsAddVisible = false;
+        }
 
         [RelayCommand]
         public void MapClicked(TappedEventArgs? mapEventArgs)
@@ -127,32 +178,40 @@ namespace Feuerwehr.App.ViewModels
             Map map = new Map();
             map.Layers.Add(OpenStreetMap.CreateTileLayer());
 
-            var startPoint = new MPoint(10.638436, 53.929134);
-            var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
-            map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
-            map.Navigator.ZoomTo(6);
+            map.Navigator.ZoomTo(zoomFactor);
 
-            // --- 2. Einen Pin (Marker) hinzufügen
-            var pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+            GpsLocation? location = gpsService.GetCurrentLocationAsync().Result;
 
-            // Stylen des Pins (z.B. ein roter Punkt)
-            pinFeature.Styles.Add(new SymbolStyle
+            if (location != null)
             {
-                SymbolScale = 1,
-                Fill = new Brush { Color = new Color { A = 255, R = 255, G = 0, B = 0 } } // Rot
-            });
 
-            // Layer für den Pin erstellen und der Karte hinzufügen
-            var memoryLayer = new MemoryLayer
-            {
-                Name = "Pins",
-                Features = new List<IFeature> { pinFeature }
-            };
-            map.Layers.Add(memoryLayer);
+                var startPoint = new MPoint(location.Longitude, location.Latitude);
+                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+
+                // --- 2. Einen Pin (Marker) hinzufügen
+                var pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+
+                // Stylen des Pins (z.B. ein roter Punkt)
+                pinFeature.Styles.Add(new SymbolStyle
+                {
+                    SymbolScale = 1,
+                    Fill = new Brush { Color = new Color { A = 255, R = 255, G = 0, B = 0 } } // Rot
+                });
+
+                // Layer für den Pin erstellen und der Karte hinzufügen
+                var memoryLayer = new MemoryLayer
+                {
+                    Name = "Pins",
+                    Features = new List<IFeature> { pinFeature }
+                };
+                map.Layers.Add(memoryLayer);
+            }
 
 
             Map = map;
         }
+
 
         private IEnumerable<ILayer> HydrantLayer(List<HydrantPin> hydrants)
         {
@@ -178,16 +237,10 @@ namespace Feuerwehr.App.ViewModels
             var hydrantLayer = new MemoryLayer
             {
                 Name = "Hydrants",
-                Features = hydrantFeatures,
-                Tag = new LayerInfo { IsMapInfoLayer = true }
+                Features = hydrantFeatures
             };
 
             return new List<ILayer> { hydrantLayer };
         }
-    }
-
-    internal class LayerInfo
-    {
-        public bool IsMapInfoLayer { get; set; }
     }
 }

@@ -26,6 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Feuerwehr.Common\Feuerwehr.Common.csproj" />
+	<ProjectReference Include="..\..\..\Feuerwehr.Common\Feuerwehr.Common.csproj" />
   </ItemGroup>
 </Project>
