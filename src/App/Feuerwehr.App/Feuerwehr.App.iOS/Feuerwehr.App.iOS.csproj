@@ -13,14 +13,14 @@
     <PackageReference Include="Avalonia.iOS" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <ProjectReference Include="..\Feuerwehr.App\Feuerwehr.App.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
     <TargetFramework>net10.0</TargetFramework>
     <Compile Remove="**\*.cs" />
-    <None Include="Main.cs" Visible="false" />
+    <None Include="Main.cs"/>
   </ItemGroup>
 
   <Target Name="ExplainNonMacIosProject" BeforeTargets="Build" Condition="!$([MSBuild]::IsOSPlatform('L'))">

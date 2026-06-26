@@ -44,6 +44,11 @@ const Navbar: React.FC = () => {
                             </NavLink>
                         </li>
                         <li>
+                            <NavLink to="/trainingdashboard" style={({ isActive }) => isActive ? styles.activeLink : styles.link}>
+                                Lehrgänge
+                            </NavLink>
+                        </li>
+                        <li>
                             <NavLink to="/login" style={({ isActive }) => isActive ? styles.activeLink : styles.link}>
                                 Login
                             </NavLink>

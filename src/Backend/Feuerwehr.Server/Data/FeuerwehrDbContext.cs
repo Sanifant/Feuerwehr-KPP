@@ -1,4 +1,5 @@
 ﻿using Feuerwehr.Common.Models;
+using Feuerwehr.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Feuerwehr.Server.Data
@@ -11,6 +12,10 @@ namespace Feuerwehr.Server.Data
         }
 
         public DbSet<Hydrant> Hydrants { get; set; }
+        
+        public DbSet<FireDepartment>  FireDepartments { get; set; }
+        
+        public DbSet<TrainingCourse> TrainingCourses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -19,8 +24,7 @@ namespace Feuerwehr.Server.Data
             modelBuilder.HasSequence<int>("Hydrants_Id_seq")
                 .StartsAt(1)
                 .IncrementsBy(1);
-
-
+            
             modelBuilder.Entity<Hydrant>(entity =>
             {
                 entity.ToTable("Hydrants");
@@ -67,6 +71,27 @@ namespace Feuerwehr.Server.Data
                     .HasMaxLength(1000);
 
             });
+/*
+            modelBuilder.Entity<FireDepartment>(entity =>
+                {
+                    entity.ToTable("FireDepartment");
+                    entity.HasKey(e => e.Id);
+                    entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                }
+            );
+            
+            modelBuilder.Entity<TrainingCourse>(entity =>
+                {
+                    entity.ToTable("TrainingCourse");
+                    entity.HasKey(e => e.Id);
+                    entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
+                    entity.HasOne(tc => tc.OrganizingFireDepartment)
+                        .WithMany(fd => fd.TrainingCourses)
+                        .HasForeignKey(tc => tc.OrganizingFireDepartmentId)
+                        .OnDelete(DeleteBehavior.SetNull);
+                }
+            );*/
         }
     }
 }

@@ -6,6 +6,7 @@ import ProtectedRoute from './PrtoectedRoute';
 import Navbar from './Navbar';
 import Home from './Components/Home';
 import { AuthProvider } from './AuthContext';
+import {TrainingDashboard} from "./Components/TrainingDashboard.tsx";
 
 
 const App: React.FC = () => {
@@ -20,6 +21,7 @@ const App: React.FC = () => {
                     {/* Protected Routes */}
                     <Route element={<ProtectedRoute />}>
                         <Route path="/hydrant" element={<HydrantManager />} />
+                        <Route path="/trainingdashboard" element={<TrainingDashboard />} />
                     </Route>
                 </Routes>
             </BrowserRouter>
