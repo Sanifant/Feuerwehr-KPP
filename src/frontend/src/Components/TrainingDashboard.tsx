@@ -2,37 +2,7 @@ import "./Dashboard.css";
 
 export function TrainingDashboard() {
     return (
-        <div className="dashboard-layout">
-            <aside className="sidebar">
-                <div className="brand">🔥 Feuerwehr<br />Trainingsverwaltung</div>
-
-                <nav>
-                    <a className="active">Dashboard</a>
-                    <h4>Lehrgänge</h4>
-                    <a>Gemeindeebene</a>
-                    <a>Kreisebene</a>
-                    <a>Landesebene</a>
-
-                    <h4>Anträge Landesebene</h4>
-                    <a>Lehrgangsplatz Anträge</a>
-
-                    <h4>Verwaltung</h4>
-                    <a>Feuerwehren</a>
-                    <a>Lehrgänge</a>
-                    <a>Benutzer</a>
-                    <a>Einstellungen</a>
-                </nav>
-
-                <div className="user-box">
-                    <div className="avatar">MM</div>
-                    <div>
-                        <strong>Max Mustermann</strong>
-                        <span>Administrator</span>
-                    </div>
-                </div>
-            </aside>
-
-            <main className="dashboard">
+        <>
                 <header>
                     <h1>Dashboard</h1>
                     <p>Willkommen zurück, Max Mustermann!</p>
@@ -98,8 +68,7 @@ export function TrainingDashboard() {
                         <LevelOverview title="Landesebene" courses="42" participants="312" />
                     </div>
                 </section>
-            </main>
-        </div>
+        </>
     );
 }
 

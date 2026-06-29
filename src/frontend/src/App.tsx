@@ -6,7 +6,10 @@ import ProtectedRoute from './PrtoectedRoute';
 import Navbar from './Navbar';
 import Home from './Components/Home';
 import { AuthProvider } from './AuthContext';
-import {TrainingDashboard} from "./Components/TrainingDashboard.tsx";
+import { TrainingDashboard } from './Components/TrainingDashboard.tsx';
+import Login from './Components/Login';
+import { SideBar } from './SideBar';
+import FireDepartmentController from './Components/FireDepartmentController';
 
 
 const App: React.FC = () => {
@@ -14,16 +17,24 @@ const App: React.FC = () => {
         <AuthProvider>
             <BrowserRouter>
                 <Navbar />
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<Home />} />
+                <div className="dashboard-layout">
+                    <SideBar />
+                    <main className="dashboard">
+                        <Routes>
+                            {/* Public Routes */}
+                            <Route path="/" element={<Home />} />
+                            <Route path="/login" element={<Login />} />
 
-                    {/* Protected Routes */}
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/hydrant" element={<HydrantManager />} />
-                        <Route path="/trainingdashboard" element={<TrainingDashboard />} />
-                    </Route>
-                </Routes>
+                            {/* Protected Routes */}
+                            <Route element={<ProtectedRoute />}>
+                                <Route path="/dashboard" element={<TrainingDashboard />} />
+                                <Route path="/firedepartments" element={<FireDepartmentController />} />
+                                <Route path="/hydrant" element={<HydrantManager />} />
+                                <Route path="/trainingdashboard" element={<TrainingDashboard />} />
+                            </Route>
+                        </Routes>
+                    </main>
+                </div>
             </BrowserRouter>
         </AuthProvider>
     );

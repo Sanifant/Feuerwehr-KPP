@@ -1,27 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-interface LoginRequest {
+export interface LoginRequest {
     username: string;
     password: string;
-    tenantKey: string;
-}
-
-interface TwoFactorVerifyRequest {
-    username: string;
-    code: string;
     tenantKey: string;
 }
 
 interface LoginResponse {
     accessToken: string;
     refreshToken: string;
-}
-
-interface TwoFactorRequiredResponse {
-    requiresTwoFactor: true;
-    tempToken: string;
-    message: string;
 }
 
 interface User {
@@ -34,15 +22,13 @@ interface AuthContextType {
     refreshToken: string | null;
     user: User | null;
     login: (credentials: LoginRequest) => Promise<LoginResult>;
-    verifyTwoFactor: (request: TwoFactorVerifyRequest) => Promise<boolean>;
     logout: () => void;
     error: string | null;
 }
 
 type LoginResult =
     | { success: true }
-    | { success: false; requiresTwoFactor: true; tempData: TwoFactorRequiredResponse }
-    | { success: false; requiresTwoFactor: false; error: string };
+    | { success: false; error: string };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -69,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const getApiUrl = () => {
         const serverUrl = import.meta.env.VITE_API_URL;
-        return serverUrl || '';
+        return serverUrl || 'https://auth.grinch-tech.de/';
     };
 
     const login = async (credentials: LoginRequest): Promise<LoginResult> => {
@@ -80,44 +66,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             console.log('Logging in to:', targetUrl);
 
+            /*
             const response = await fetch(targetUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials),
             });
-
+            */
+            
+            const response = {
+                ok: true,
+                status: 200,
+                json: async (): Promise<LoginResponse> => ({
+                    accessToken: '123', 
+                    refreshToken: '321'
+                })
+            };
+            
+            console.timeLog("Testing")
             // Account Lockout Handling
             if (response.status === 423) {
-                const errorText = await response.text();
+                const errorText = "Fehler"; //await response.text();
                 setError(errorText);
                 return {
                     success: false,
-                    requiresTwoFactor: false,
                     error: errorText
                 };
             }
 
             if (!response.ok) {
-                const errorText = await response.text();
+                const errorText = "Fehler"; //await response.text();
                 setError(`Login fehlgeschlagen: ${errorText}`);
                 return {
                     success: false,
-                    requiresTwoFactor: false,
                     error: errorText
                 };
             }
 
             const data = await response.json();
-
-            // 2FA Required
-            if ('requiresTwoFactor' in data && data.requiresTwoFactor) {
-                console.log('2FA required');
-                return {
-                    success: false,
-                    requiresTwoFactor: true,
-                    tempData: data as TwoFactorRequiredResponse
-                };
-            }
 
             // Successful login without 2FA
             const loginData = data as LoginResponse;
@@ -132,44 +118,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setError(errorMessage);
             return {
                 success: false,
-                requiresTwoFactor: false,
                 error: errorMessage
             };
-        }
-    };
-
-    const verifyTwoFactor = async (request: TwoFactorVerifyRequest): Promise<boolean> => {
-        try {
-            setError(null);
-            const baseUrl = getApiUrl();
-            const targetUrl = `${baseUrl.replace(/\/$/, '')}/api/auth/verify-2fa`;
-
-            console.log('Verifying 2FA code');
-
-            const response = await fetch(targetUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(request),
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('2FA Verification Failed:', errorText);
-                setError('Ungültiger 2FA-Code');
-                return false;
-            }
-
-            const data: LoginResponse = await response.json();
-
-            setAccessToken(data.accessToken);
-            setRefreshToken(data.refreshToken);
-            setUser({ id: '1', username: request.username });
-
-            return true;
-        } catch (error) {
-            console.error('2FA Verification Error:', error);
-            setError('Fehler bei 2FA-Verifizierung');
-            return false;
         }
     };
 
@@ -180,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ accessToken, refreshToken, user, login, verifyTwoFactor, logout, error }}>
+        <AuthContext.Provider value={{ accessToken, refreshToken, user, login, logout, error }}>
             {children}
         </AuthContext.Provider>
     );
