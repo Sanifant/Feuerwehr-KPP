@@ -23,7 +23,7 @@ jobs:
       - name: Install required workloads
         shell: powershell
         run: |
-          dotnet workload restore src/de.openelp.feuerwehr.slnx
+          dotnet workload restore src/Feuerwehr.slnx
       - name: Install Android workload
         shell: powershell
         run: |
