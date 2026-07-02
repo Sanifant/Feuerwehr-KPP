@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-
-const API_BASE_URL = 'https://server-feuerwehr.dev.localhost:7538/api/FireDepartment';
+import apiClient from '../api/apiClient';
 
 interface FireDepartmentDto {
     id: number;
     name: string;
-    municipality: string;
-    district: string;
-    state: string;
     contactPersonName?: string | null;
     contactPersonEmail?: string | null;
 }
@@ -16,9 +12,6 @@ interface FireDepartmentDto {
 const INITIAL_FORM_STATE: FireDepartmentDto = {
     id: 0,
     name: '',
-    municipality: '',
-    district: '',
-    state: '',
     contactPersonName: '',
     contactPersonEmail: ''
 };
@@ -36,14 +29,8 @@ export default function FireDepartmentController() {
         setError(null);
 
         try {
-            const response = await fetch(API_BASE_URL);
-
-            if (!response.ok) {
-                throw new Error('Feuerwehren konnten nicht geladen werden.');
-            }
-
-            const data: FireDepartmentDto[] = await response.json();
-            setFireDepartments(data);
+            const response = await apiClient.get<FireDepartmentDto[]>('/api/FireDepartment');
+            setFireDepartments(response.data);
         } catch (requestError) {
             setError(requestError instanceof Error ? requestError.message : 'Unbekannter Fehler beim Laden.');
         } finally {
@@ -69,15 +56,7 @@ export default function FireDepartmentController() {
         setError(null);
 
         try {
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Feuerwehr konnte nicht gespeichert werden.');
-            }
+            await apiClient.post('/api/FireDepartment', formData);
 
             setFireDepartments((current) => [
                 ...current.filter((fireDepartment) => fireDepartment.id !== formData.id),
@@ -101,14 +80,8 @@ export default function FireDepartmentController() {
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/${id}`);
-
-            if (!response.ok) {
-                throw new Error('Feuerwehr wurde nicht gefunden.');
-            }
-
-            const data: FireDepartmentDto | null = await response.json();
-            setSelectedFireDepartment(data);
+            const response = await apiClient.get<FireDepartmentDto>(`/api/FireDepartment/${id}`);
+            setSelectedFireDepartment(response.data);
         } catch (requestError) {
             setSelectedFireDepartment(null);
             setError(requestError instanceof Error ? requestError.message : 'Unbekannter Fehler beim Suchen.');
@@ -132,24 +105,8 @@ export default function FireDepartmentController() {
 
                     <form className="fire-department-form" onSubmit={handleSubmit}>
                         <label>
-                            ID
-                            <input type="number" name="id" value={formData.id || ''} onChange={handleInputChange} required />
-                        </label>
-                        <label>
                             Name
                             <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
-                        </label>
-                        <label>
-                            Gemeinde
-                            <input type="text" name="municipality" value={formData.municipality} onChange={handleInputChange} required />
-                        </label>
-                        <label>
-                            Kreis
-                            <input type="text" name="district" value={formData.district} onChange={handleInputChange} required />
-                        </label>
-                        <label>
-                            Bundesland
-                            <input type="text" name="state" value={formData.state} onChange={handleInputChange} required />
                         </label>
                         <label>
                             Kontaktperson
@@ -226,18 +183,6 @@ function FireDepartmentDetails({ fireDepartment }: { fireDepartment: FireDepartm
                 <span>ID {fireDepartment.id}</span>
             </div>
             <dl>
-                <div>
-                    <dt>Gemeinde</dt>
-                    <dd>{fireDepartment.municipality}</dd>
-                </div>
-                <div>
-                    <dt>Kreis</dt>
-                    <dd>{fireDepartment.district}</dd>
-                </div>
-                <div>
-                    <dt>Bundesland</dt>
-                    <dd>{fireDepartment.state}</dd>
-                </div>
                 <div>
                     <dt>Kontakt</dt>
                     <dd>{fireDepartment.contactPersonName || '-'}</dd>

@@ -4,6 +4,7 @@
 	<Nullable>enable</Nullable>
 	<LangVersion>latest</LangVersion>
 	<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+	<Configurations>Debug;Release;Frontend</Configurations>
   </PropertyGroup>
   
   <ItemGroup>
@@ -22,6 +23,7 @@
 	<PackageReference Include="Mapsui.Avalonia12" />
 	<PackageReference Include="Microsoft.Extensions.Configuration" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+	<PackageReference Include="System.IdentityModel.Tokens.Jwt" />
 	<PackageReference Include="Xaml.Behaviors.Avalonia" />
   </ItemGroup>
 

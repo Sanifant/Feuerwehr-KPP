@@ -2,7 +2,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var compose = builder.AddDockerComposeEnvironment("compose");
 
-var mailpit = builder.AddMailPit("mailpit");
+var mailpit = builder
+    .AddMailPit("mail");
 
 var postgres = builder.AddPostgres("postgres")
     .WithPgWeb()
@@ -36,12 +37,15 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
     .WithExternalHttpEndpoints();
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
+    .WithHttpEndpoint(port: 54321, env: "PORT")
+    .WithExternalHttpEndpoints()
     .WithReference(server)
     .PublishAsDockerComposeService((resource, service) =>
     {
         service.Name = "webfrontend";
     })
-    .WaitFor(server);
+    .WaitFor(server)
+    .WithNpm();
 
 builder.AddProject<Projects.Feuerwehr_App_Desktop>("app")
     .WithReference(server)

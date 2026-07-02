@@ -1,10 +1,11 @@
 ﻿using Feuerwehr.Common.Models;
 using Feuerwehr.Server.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Feuerwehr.Server.Data
 {
-    public class FeuerwehrDbContext : DbContext
+    public class FeuerwehrDbContext : IdentityDbContext<ApplicationUser>
     {
         public FeuerwehrDbContext(DbContextOptions<FeuerwehrDbContext> options)
             : base(options)
@@ -16,6 +17,8 @@ namespace Feuerwehr.Server.Data
         public DbSet<FireDepartment>  FireDepartments { get; set; }
         
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
+
+        public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -71,7 +74,6 @@ namespace Feuerwehr.Server.Data
                     .HasMaxLength(1000);
 
             });
-/*
             modelBuilder.Entity<FireDepartment>(entity =>
                 {
                     entity.ToTable("FireDepartment");
@@ -79,19 +81,42 @@ namespace Feuerwehr.Server.Data
                     entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 }
             );
-            
+
             modelBuilder.Entity<TrainingCourse>(entity =>
                 {
                     entity.ToTable("TrainingCourse");
                     entity.HasKey(e => e.Id);
                     entity.Property(e => e.Id).ValueGeneratedOnAdd();
-
-                    entity.HasOne(tc => tc.OrganizingFireDepartment)
-                        .WithMany(fd => fd.TrainingCourses)
-                        .HasForeignKey(tc => tc.OrganizingFireDepartmentId)
-                        .OnDelete(DeleteBehavior.SetNull);
                 }
-            );*/
+            );
+
+            modelBuilder.Entity<FireDepartmentTrainingCourse>(entity =>
+            {
+                entity.ToTable("FireDepartmentTrainingCourses");
+                entity.HasKey(e => new { e.FireDepartmentId, e.TrainingCourseId });
+
+                entity.Property(e => e.SeatsAssigned)
+                    .IsRequired();
+
+                entity.HasOne(e => e.FireDepartment)
+                    .WithMany(fd => fd.FireDepartmentTrainingCourses)
+                    .HasForeignKey(e => e.FireDepartmentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.TrainingCourse)
+                    .WithMany(tc => tc.FireDepartmentTrainingCourses)
+                    .HasForeignKey(e => e.TrainingCourseId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure ApplicationUser relationship with FireDepartment
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.HasOne(u => u.FireDepartment)
+                    .WithMany()
+                    .HasForeignKey(u => u.FireDepartmentId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
         }
     }
 }

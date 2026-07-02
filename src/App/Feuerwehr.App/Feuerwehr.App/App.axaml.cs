@@ -29,26 +29,52 @@ namespace Feuerwehr.App
             //var appConfiguration = AppConfiguration.Current;
             ReloadServices();
 
-
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainViewModel()
-                };
+                var authService = Services.GetRequiredService<IAuthService>();
+                var mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
+                var loginViewModelFactory = new Func<LoginViewModel>(() => Services.GetRequiredService<LoginViewModel>());
+
+                desktop.MainWindow = new MainWindow(authService, mainViewModelFactory, loginViewModelFactory);
             }
             else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
             {
-                singleViewFactoryApplicationLifetime.MainViewFactory = () => new MainView { DataContext = new MainViewModel() };
+                var authService = Services.GetRequiredService<IAuthService>();
+                // For mobile, check auth state and show appropriate view
+                if (authService.IsAuthenticated)
+                {
+                    singleViewFactoryApplicationLifetime.MainViewFactory = () => new MainView 
+                    { 
+                        DataContext = Services.GetRequiredService<MainViewModel>() 
+                    };
+                }
+                else
+                {
+                    singleViewFactoryApplicationLifetime.MainViewFactory = () => new LoginView 
+                    { 
+                        DataContext = Services.GetRequiredService<LoginViewModel>() 
+                    };
+                }
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
-                singleViewPlatform.MainView = new MainView
+                var authService = Services.GetRequiredService<IAuthService>();
+                // For single view platforms, check auth state
+                if (authService.IsAuthenticated)
                 {
-                    DataContext = new MainViewModel()
-                };
+                    singleViewPlatform.MainView = new MainView
+                    {
+                        DataContext = Services.GetRequiredService<MainViewModel>()
+                    };
+                }
+                else
+                {
+                    singleViewPlatform.MainView = new LoginView
+                    {
+                        DataContext = Services.GetRequiredService<LoginViewModel>()
+                    };
+                }
             }
-
 
             base.OnFrameworkInitializationCompleted();
         }
@@ -66,9 +92,15 @@ namespace Feuerwehr.App
             ServiceCollection collection = new ServiceCollection();
 
             collection.AddTransient<MainViewModel>();
+            collection.AddTransient<LoginViewModel>();
             collection.AddTransient<MapViewModel>();
 
             collection.AddScoped<IGpsService, GpsService>();
+
+            // Authentication services
+            collection.AddSingleton<ISecureStorage, InMemorySecureStorage>();
+            collection.AddSingleton<IAuthService, AuthService>();
+            collection.AddScoped<AuthenticatedHttpClient>();
 
             // Für Blazor WebAssembly / Web-Clients
             collection.AddScoped<IHydrantService, HydrantService>();

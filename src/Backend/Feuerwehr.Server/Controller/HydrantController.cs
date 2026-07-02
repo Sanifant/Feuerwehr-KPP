@@ -1,5 +1,7 @@
 ﻿using Feuerwehr.Common.Models;
+using Feuerwehr.Server.Authorization;
 using Feuerwehr.Server.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -8,6 +10,7 @@ namespace Feuerwehr.Server.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = PolicyNames.CanViewData)]
     public class HydrantController : ControllerBase
     {
 
@@ -40,6 +43,7 @@ namespace Feuerwehr.Server.Controller
 
         // POST api/<HydrantController>
         [HttpPost]
+        [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Post([FromBody] Hydrant value)
         {
 
@@ -50,6 +54,7 @@ namespace Feuerwehr.Server.Controller
 
         // PUT api/<HydrantController>/5
         [HttpPut("{id}")]
+        [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Put(int id, [FromBody] Hydrant value)
         {
 
@@ -68,6 +73,7 @@ namespace Feuerwehr.Server.Controller
 
         // DELETE api/<HydrantController>/5
         [HttpDelete("{id}")]
+        [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Delete(int id)
         {
             var hydrant = _context.Hydrants.Find(id);

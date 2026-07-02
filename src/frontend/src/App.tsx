@@ -10,6 +10,7 @@ import { TrainingDashboard } from './Components/TrainingDashboard.tsx';
 import Login from './Components/Login';
 import { SideBar } from './SideBar';
 import FireDepartmentController from './Components/FireDepartmentController';
+import UserManagement from './Components/UserManagement';
 
 
 const App: React.FC = () => {
@@ -31,6 +32,7 @@ const App: React.FC = () => {
                                 <Route path="/firedepartments" element={<FireDepartmentController />} />
                                 <Route path="/hydrant" element={<HydrantManager />} />
                                 <Route path="/trainingdashboard" element={<TrainingDashboard />} />
+                                <Route path="/users" element={<UserManagement />} />
                             </Route>
                         </Routes>
                     </main>

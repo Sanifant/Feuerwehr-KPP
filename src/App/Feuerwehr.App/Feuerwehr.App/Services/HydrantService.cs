@@ -10,10 +10,10 @@ namespace Feuerwehr.App.Services
 {
     public class HydrantService : IHydrantService
     {
-        private readonly HttpClient _httpClient;
+        private readonly AuthenticatedHttpClient _httpClient;
         private const string BaseUrl = "api/hydrant";
 
-        public HydrantService(HttpClient httpClient)
+        public HydrantService(AuthenticatedHttpClient httpClient)
         {
             _httpClient = httpClient;
         }
@@ -21,8 +21,15 @@ namespace Feuerwehr.App.Services
         // GET: api/hydrant
         public async Task<IEnumerable<Hydrant>> GetAllAsync()
         {
-            return await _httpClient.GetFromJsonAsync<IEnumerable<Hydrant>>(BaseUrl)
-                   ?? new List<Hydrant>();
+            var response = await _httpClient.GetAsync(BaseUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<IEnumerable<Hydrant>>() 
+                       ?? new List<Hydrant>();
+            }
+
+            return new List<Hydrant>();
         }
 
         // GET: api/hydrant/5
@@ -41,7 +48,7 @@ namespace Feuerwehr.App.Services
         // POST: api/hydrant
         public async Task<Hydrant> CreateAsync(Hydrant hydrant)
         {
-            var response = await _httpClient.PostAsJsonAsync(BaseUrl, hydrant);
+            var response = await _httpClient.PostAsync(BaseUrl, JsonContent.Create(hydrant));
 
             if (response.IsSuccessStatusCode)
             {
@@ -54,7 +61,7 @@ namespace Feuerwehr.App.Services
         // PUT: api/hydrant/5
         public async Task<bool> UpdateAsync(int id, Hydrant hydrant)
         {
-            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}/{id}", hydrant);
+            var response = await _httpClient.PutAsync($"{BaseUrl}/{id}", JsonContent.Create(hydrant));
             return response.IsSuccessStatusCode;
         }
 

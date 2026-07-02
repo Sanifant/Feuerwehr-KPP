@@ -3,22 +3,24 @@ import { useAuth } from './AuthContext';
 import { MessageIcon } from './MessageIcon';
 
 const Navbar: React.FC = () => {
-    const { accessToken, logout, user } = useAuth();
-    const username = user?.username || 'Max Mustermann';
+    const { isAuthenticated, logout, user } = useAuth();
+    const fullName = user?.fullName || 'Benutzer';
+    const roles = user?.roles || [];
+    const roleDisplay = roles.length > 0 ? roles.join(', ') : 'Keine Rolle';
 
     return (
         <header className="titlebar">
 
-            {accessToken && (
+            {isAuthenticated && user && (
                 <div className="titlebar__right">
                     <MessageIcon />
                     <div className="topbar-user">
                         <div className="avatar" aria-hidden="true">
-                            {getInitials(username)}
+                            {getInitials(fullName)}
                         </div>
                         <div>
-                            <strong>{username}</strong>
-                            <span>Administrator</span>
+                            <strong>{fullName}</strong>
+                            <span>{roleDisplay}</span>
                         </div>
                     </div>
                     <button className="chevron-button" type="button" onClick={logout} aria-label="Abmelden">

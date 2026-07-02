@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-
-const API_BASE_URL = 'https://server-feuerwehr.dev.localhost:7538/api/hydrant'; // Passe den Port deines Setups an
+import apiClient from '../api/apiClient';
 
 // --- TypeScript Werte (Exakt wie in C#) ---
 export const HydrantStatus = {
@@ -96,11 +95,8 @@ export default function HydrantManager() {
     const fetchHydrants = async () => {
         setLoading(true);
         try {
-            const response = await fetch(API_BASE_URL);
-            if (response.ok) {
-                const data: Hydrant[] = await response.json();
-                setHydrants(data);
-            }
+            const response = await apiClient.get<Hydrant[]>('/api/hydrant');
+            setHydrants(response.data);
         } catch (error) {
             console.error("Fehler beim Laden der Hydranten:", error);
         } finally {
@@ -136,24 +132,19 @@ export default function HydrantManager() {
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const isNew = formData.id === 0;
-        const url = isNew ? API_BASE_URL : `${API_BASE_URL}/${formData.id}`;
-        const method = isNew ? 'POST' : 'PUT';
 
         try {
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            if (response.ok) {
-                fetchHydrants();
-                resetForm();
+            if (isNew) {
+                await apiClient.post('/api/hydrant', formData);
             } else {
-                alert("Fehler beim Speichern des Hydranten.");
+                await apiClient.put(`/api/hydrant/${formData.id}`, formData);
             }
+
+            fetchHydrants();
+            resetForm();
         } catch (error) {
-            console.error("Netzwerkfehler:", error);
+            console.error("Fehler beim Speichern:", error);
+            alert("Fehler beim Speichern des Hydranten.");
         }
     };
 
@@ -162,10 +153,8 @@ export default function HydrantManager() {
         if (!window.confirm("Möchtest du diesen Hydranten wirklich löschen?")) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
-            if (response.ok) {
-                fetchHydrants();
-            }
+            await apiClient.delete(`/api/hydrant/${id}`);
+            fetchHydrants();
         } catch (error) {
             console.error("Fehler beim Löschen:", error);
         }

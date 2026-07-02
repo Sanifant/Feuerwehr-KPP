@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { useRole } from './hooks/useRole';
 
-type SidebarGroup = 'lehrgaenge' | 'verwaltung';
+type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung';
 
 export function SideBar() {
-    const { accessToken } = useAuth();
+    const { isAuthenticated } = useAuth();
+    const { canManageUsers, isFirefighter, canManageTraining } = useRole();
     const location = useLocation();
     const navigate = useNavigate();
     const currentPath = `${location.pathname}${location.search}`;
@@ -28,19 +30,23 @@ export function SideBar() {
             </div>
 
             <nav>
-                {accessToken ? (
+                {isAuthenticated ? (
                     <>
                         <SidebarLink to="/dashboard" currentPath={currentPath}>
                             <span className="nav-icon" aria-hidden="true">⌂</span>
                             Dashboard
                         </SidebarLink>
-                        
-                        <SidebarLink to="/hydrant" currentPath={currentPath}>
-                            <span className="nav-icon" aria-hidden="true"></span>
-                            Hydrant
-                        </SidebarLink>
 
-                        <SidebarGroupButton
+                        {isFirefighter && (
+                            <SidebarLink to="/hydrant" currentPath={currentPath}>
+                                <span className="nav-icon" aria-hidden="true"></span>
+                                Hydrant
+                            </SidebarLink>
+                        )}
+
+                        {canManageTraining && (
+                            <>
+                            <SidebarGroupButton
                             isActive={activeGroup === 'lehrgaenge'}
                             to="/trainingdashboard"
                             onClick={(to) => {
@@ -71,36 +77,7 @@ export function SideBar() {
                                 </SidebarLink>
                             </div>
                         )}
-
-                        <SidebarGroupButton
-                            isActive={activeGroup === 'inventory'}
-                            onClick={(to) => {
-                                setActiveGroup(activeGroup === 'inventory' ? null : 'inventory');
-
-                                if (to) {
-                                    navigate(to);
-                                }
-                            }}
-                        >
-                            <span className="nav-icon" aria-hidden="true">⚙</span>
-                            Inventar
-                        </SidebarGroupButton>
-
-                        {activeGroup === 'inventory' && (
-                            <div className="sidebar-subnav">
-                                <SidebarLink to="/firedepartments" currentPath={currentPath}>
-                                    <span className="nav-icon" aria-hidden="true">⌂</span>
-                                    Feuerwehren
-                                </SidebarLink>
-                                <SidebarLink to="/dashboard?view=benutzer" currentPath={currentPath}>
-                                    <span className="nav-icon" aria-hidden="true">♙</span>
-                                    Benutzer
-                                </SidebarLink>
-                                <SidebarLink to="/dashboard?view=einstellungen" currentPath={currentPath}>
-                                    <span className="nav-icon" aria-hidden="true">⚙</span>
-                                    Einstellungen
-                                </SidebarLink>
-                            </div>
+                            </>
                         )}
 
                         <SidebarGroupButton
@@ -123,14 +100,12 @@ export function SideBar() {
                                     <span className="nav-icon" aria-hidden="true">⌂</span>
                                     Feuerwehren
                                 </SidebarLink>
-                                <SidebarLink to="/dashboard?view=benutzer" currentPath={currentPath}>
-                                    <span className="nav-icon" aria-hidden="true">♙</span>
-                                    Benutzer
-                                </SidebarLink>
-                                <SidebarLink to="/dashboard?view=einstellungen" currentPath={currentPath}>
-                                    <span className="nav-icon" aria-hidden="true">⚙</span>
-                                    Einstellungen
-                                </SidebarLink>
+                                {canManageUsers && (
+                                    <SidebarLink to="/users" currentPath={currentPath}>
+                                        <span className="nav-icon" aria-hidden="true">♙</span>
+                                        Benutzer
+                                    </SidebarLink>
+                                )}
                             </div>
                         )}
                     </>
