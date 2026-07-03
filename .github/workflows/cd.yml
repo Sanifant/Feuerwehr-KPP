@@ -72,10 +72,10 @@ jobs:
       run: dotnet restore ${{ env.SOLUTION_FILE }}
       
     - name: Publish Desktop App (Windows x64)
-      run: dotnet publish src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/desktop-win-x64
+      run: dotnet publish src\App\Feuerwehr.App\Feuerwehr.App.Desktop\Feuerwehr.App.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/desktop-win-x64
       
     - name: Publish Desktop App (Windows ARM64)
-      run: dotnet publish src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/desktop-win-arm64
+      run: dotnet publish src\App\Feuerwehr.App\Feuerwehr.App.Desktop\Feuerwehr.App.Desktop.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/desktop-win-arm64
       
     - name: Upload Desktop App Artifacts (Windows x64)
       uses: actions/upload-artifact@v4
@@ -118,12 +118,12 @@ jobs:
       
     - name: Build Android App (Debug)
       if: github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/v')
-      run: dotnet build src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj -c Debug -f net10.0-android
+      run: dotnet build src\App\Feuerwehr.App\Feuerwehr.App.Android\Feuerwehr.App.Android.csproj -c Debug -f net10.0-android
       
     - name: Build Android App (Release - Signed)
       if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
       run: |
-        dotnet publish src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj `
+        dotnet publish src\App\Feuerwehr.App\Feuerwehr.App.Android\Feuerwehr.App.Android.csproj `
           -c Release `
           -f net10.0-android `
           -p:AndroidKeyStore=true `

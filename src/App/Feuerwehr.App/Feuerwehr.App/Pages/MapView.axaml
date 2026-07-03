@@ -1,0 +1,116 @@
+<ContentPage xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:geo="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
+			 xmlns:i="clr-namespace:Avalonia.Markup.Xaml.Interactivity;assembly=Avalonia.Markup.Xaml"
+			 xmlns:ia="clr-namespace:Avalonia.Markup.Xaml.Interaction.Core;assembly=Avalonia.Markup.Xaml"
+			 xmlns:vm="using:Feuerwehr.App.ViewModels"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="Feuerwehr.App.Pages.MapView"
+			 x:DataType="vm:MapViewModel"
+			Header="Hydranten Karte">
+
+<Grid RowDefinitions="Auto, *">
+
+		<Grid Grid.Row="1">
+			
+			<geo:MapControl Name="MainMap" Map="{Binding Map}">
+				<FlyoutBase.AttachedFlyout>
+					<Flyout Placement="Pointer" IsOpen="{Binding IsFlyoutOpen, Mode=TwoWay}">
+						<StackPanel Width="200" Spacing="5" DataContext="{Binding SelectedHydrant}">
+							<TextBlock Text="{Binding Title}" 
+									   FontSize="14" 
+									   Margin="10" 
+									   TextWrapping="Wrap"/>
+							<TextBlock Text="{Binding Diameter}"
+									   FontSize="14"
+									   Margin="10" />
+						</StackPanel>
+					</Flyout>
+				</FlyoutBase.AttachedFlyout>
+			</geo:MapControl>
+
+			<StackPanel VerticalAlignment="Center" 
+						HorizontalAlignment="Right" 
+						Margin="0,0,15,0" 
+						Spacing="12">
+				
+				<Button Command="{Binding ZoomInCommand}"
+						Width="50" Height="50" 
+						IsEnabled="{Binding CanZoomIn}"
+						Background="White" 
+						CornerRadius="25">
+					<PathIcon Data="{StaticResource PlusIcon}" Width="20" Height="20" Foreground="#333"/>
+				</Button>
+
+				<Button Command="{Binding ZoomOutCommand}"
+						Width="50" Height="50" 
+						Background="White" 
+						CornerRadius="25">
+					<PathIcon Data="{StaticResource MinusIcon}" Width="20" Height="20" Foreground="#333"/>
+				</Button>
+				
+				<Button Command="{Binding CenterOnLocationCommand}"
+						Width="50" Height="50" 
+						Background="#58a6ff" 
+						CornerRadius="25"
+						Margin="0,20,0,0">
+					<PathIcon Data="{StaticResource TargetIcon}" Width="20" Height="20" Foreground="White"/>
+				</Button>
+
+				<Button Command="{Binding SettingsCommand}"
+						IsVisible="{Binding CanAddHydrant}"
+						Width="50" Height="50" 
+						Background="White" 
+						CornerRadius="25"
+						Margin="0,25,0,0">
+					<PathIcon Data="{StaticResource SettingsIcon}" Width="20" Height="20" Foreground="#333"/>
+				</Button>
+			</StackPanel>
+			
+
+			<Grid VerticalAlignment="Center" 
+						HorizontalAlignment="Center" 
+						Margin="15"
+						Background="White"
+						IsVisible="{Binding IsAddVisible}">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="100" />
+					<ColumnDefinition Width="100" />
+					<ColumnDefinition Width="100" />
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
+				<TextBlock Grid.Column="0" Grid.Row="0" Text="Koordinaten" 
+						   VerticalAlignment="Center" 
+						   HorizontalAlignment="Right" 
+						   Margin="0,0,10,0" />
+				<TextBox Grid.Column="1" Grid.Row="0" Width="100" 
+						 Height="35" 
+						 Watermark="Suche nach Hydranten..." 
+						 Text="{Binding NewHydrant.Latitude}"/>
+				<TextBox Grid.Column="2" Grid.Row="0" Width="100" 
+						 Height="35" 
+						 Watermark="Suche nach Hydranten..." 
+						 Text="{Binding NewHydrant.Longitude}"/>
+				<TextBlock Grid.Column="0" Grid.Row="1" Text="Durchmesser" 
+						   VerticalAlignment="Center" 
+						   HorizontalAlignment="Right" 
+						   Margin="0,0,10,0" />
+				<TextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Width="200" 
+						 Height="35" 
+						 Watermark="Durchmesser..." 
+						 Text="{Binding NewHydrant.NominalDiameter}"/>
+				<TextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Width="200" 
+						 Height="35" 
+						 Watermark="Suche nach Hydranten..." />
+				<Button Width="100" Height="30" Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" Command="{Binding AddHydrantCommand}" Content="Hinzufügen..." VerticalAlignment="Center" HorizontalAlignment="Right" />
+			</Grid>
+		</Grid>
+	</Grid>
+</ContentPage>

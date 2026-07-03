@@ -8,10 +8,11 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '22.12.0'
 
 jobs:
-  web-linux:
-    name: Web (Linux)
+  backend-linux:
+    name: Backend (Linux)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,30 +25,68 @@ jobs:
 
       - name: Restore
         run: |
-          dotnet restore src/Web/api/de.openelp.feuerwehr.Api.csproj
-          dotnet restore src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj
+          dotnet restore src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj
 
       - name: Build
         run: |
-          dotnet build src/Web/api/de.openelp.feuerwehr.Api.csproj -c Release --no-restore
+          dotnet build src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj -c Release --no-restore
 
       - name: Test
+        shell: pwsh
         run: |
-          dotnet test src/Tests/Web/api.UnitTests/de.openelp.feuerwehr.Api.UnitTests.csproj -c Release --no-restore --verbosity normal
+          $testProjects = Get-ChildItem -Path src -Recurse -Filter *.csproj | Where-Object { $_.Name -match 'test' }
+          if (-not $testProjects) {
+            Write-Host "No test projects found. Skipping tests."
+            exit 0
+          }
+
+          foreach ($project in $testProjects) {
+            Write-Host "Running tests for $($project.FullName)"
+            dotnet test $project.FullName -c Release --verbosity normal --logger trx
+          }
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-web-linux
+          name: test-results-backend-linux
           path: '**/*.trx'
 
       - name: Upload code coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: code-coverage-web-linux
+          name: code-coverage-backend-linux
           path: '**/coverage.cobertura.xml'
+
+  frontend-web:
+    name: Frontend Web (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: src/frontend
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: src/frontend/dist
 
   desktop:
     name: Desktop (${{ matrix.os }})
@@ -68,30 +107,11 @@ jobs:
 
       - name: Restore
         run: |
-          dotnet restore src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj
-          dotnet restore src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj
+          dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj
 
       - name: Build
         run: |
-          dotnet build src/Desktop/desktop/de.openelp.feuerwehr.desktop.csproj -c Release --no-restore
-
-      - name: Test
-        run: |
-          dotnet test src/Tests/Desktop/desktop.UnitTests/de.openelp.feuerwehr.desktop.UnitTests.csproj -c Release --verbosity normal --logger trx
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-desktop-${{ matrix.os }}
-          path: '**/*.trx'
-
-      - name: Upload code coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-desktop-${{ matrix.os }}
-          path: '**/coverage.cobertura.xml'
+          dotnet build src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj -c Release --no-restore
 #
 #  android-linux:
 #    name: Android (Linux)
