@@ -9,7 +9,7 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  SOLUTION_FILE: 'src/de.openelp.feuerwehr.slnx'
+  SOLUTION_FILE: 'src/Feuerwehr.slnx'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/feuerwehr-api
 
