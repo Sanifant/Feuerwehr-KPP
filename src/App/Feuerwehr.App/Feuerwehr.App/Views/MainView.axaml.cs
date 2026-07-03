@@ -2,7 +2,7 @@ using Avalonia.Controls;
 
 namespace Feuerwehr.App.Views
 {
-    public partial class MainView : UserControl
+    public partial class MainView : DrawerPage
     {
         public MainView()
         {
