@@ -16,11 +16,6 @@
 		<Grid Grid.Row="1">
 			
 			<geo:MapControl Name="MainMap" Map="{Binding Map}">
-				<Interaction.Behaviors>
-					<EventTriggerBehavior EventName="">
-						<InvokeCommandAction Command="{Binding MapClickedCommand}" PassEventArgsToCommand="True" />
-					</EventTriggerBehavior>
-				</Interaction.Behaviors>
 				<FlyoutBase.AttachedFlyout>
 					<Flyout Placement="Pointer" IsOpen="{Binding IsFlyoutOpen, Mode=TwoWay}">
 						<StackPanel Width="200" Spacing="5" DataContext="{Binding SelectedHydrant}">

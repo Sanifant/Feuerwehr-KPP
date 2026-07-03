@@ -161,7 +161,8 @@ namespace Feuerwehr.Server.Controller
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            _smtpClient.Send(new MailMessage("noreply@localhost.de", user.Email, "Welcome to the system", $"Your account {user.Email} has been created."));
+            using var message = new MailMessage("noreply@localhost.de", user.Email, "Welcome to the system", $"Your account {user.Email} has been created.");
+            await _smtpClient.SendMailAsync(message);
 
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, new
             {

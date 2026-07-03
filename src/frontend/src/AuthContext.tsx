@@ -6,7 +6,6 @@ import { jwtDecode } from 'jwt-decode';
 export interface LoginRequest {
     username: string;
     password: string;
-    tenantKey: string;
 }
 
 interface LoginResponse {
@@ -71,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             try {
                 const decoded = jwtDecode<TokenPayload>(accessToken);
                 const roleValue = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-                const roles = Array.isArray(roleValue) ? roleValue : [roleValue];
+                const roles = roleValue ? (Array.isArray(roleValue) ? roleValue : [roleValue]) : [];
 
                 setUser({
                     id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],

@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 import HydrantManager from './Components/HydrantManager';
-import ProtectedRoute from './PrtoectedRoute';
+import ProtectedRoute from './ProtectedRoute';
 import Navbar from './Navbar';
 import Home from './Components/Home';
 import { AuthProvider } from './AuthContext';

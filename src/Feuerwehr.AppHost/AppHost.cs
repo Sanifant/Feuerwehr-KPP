@@ -27,6 +27,7 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
     .WithReference(postgresdb)
     .WaitFor(postgresdb)
     .WithReference(mailpit)
+    .WithEnvironment("JwtSettings__SecretKey", "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!")
     .WithHttpHealthCheck("/health")
     .PublishAsDockerComposeService((resource, service) =>
     {

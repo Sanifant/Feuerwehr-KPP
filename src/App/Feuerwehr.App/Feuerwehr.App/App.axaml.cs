@@ -115,7 +115,7 @@ namespace Feuerwehr.App
                 baseUrl = "https://localhost:7538/";
             }
 
-            collection.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
+            collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 
             Services = collection.BuildServiceProvider();
         }

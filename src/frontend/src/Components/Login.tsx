@@ -10,8 +10,7 @@ const Login = () => {
 
     const [formData, setFormData] = useState<LoginRequest>({
         username: '',
-        password: '',
-        tenantKey: ''
+        password: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [localError, setLocalError] = useState<string | null>(null);
@@ -24,8 +23,7 @@ const Login = () => {
 
     const isComplete =
         formData.username.trim().length > 0 &&
-        formData.password.trim().length > 0 &&
-        formData.tenantKey.trim().length > 0;
+        formData.password.trim().length > 0;
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -39,8 +37,7 @@ const Login = () => {
 
         const result = await login({
             username: formData.username.trim(),
-            password: formData.password,
-            tenantKey: formData.tenantKey.trim()
+            password: formData.password
         });
 
         if (result.success) {
@@ -74,16 +71,6 @@ const Login = () => {
                         value={formData.password}
                         onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
                         autoComplete="current-password"
-                        required
-                    />
-                </label>
-
-                <label>
-                    Tenant Key
-                    <input
-                        type="text"
-                        value={formData.tenantKey}
-                        onChange={(event) => setFormData((prev) => ({ ...prev, tenantKey: event.target.value }))}
                         required
                     />
                 </label>
