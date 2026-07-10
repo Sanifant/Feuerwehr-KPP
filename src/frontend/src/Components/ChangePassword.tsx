@@ -9,10 +9,6 @@ interface ResetRequest {
     newPassword: string;
 }
 
-interface ResetError {
-    password?: string;
-}
-
 export function ChangePassword() {
     let { token } = useParams<{ token: string }>();
 
@@ -21,7 +17,11 @@ export function ChangePassword() {
         username: "",
         newPassword: ""
     });
-    const [resetError, setResetError] = useState<ResetError>({});
+    const [resetError, setResetError] = useState<string | null>(null);
+
+    function handlePasswordRepeatChange(value: string): void {
+        setResetError(value);
+    }
 
     return (
         <div>
@@ -53,9 +53,9 @@ export function ChangePassword() {
                         type="password"
                         required
                         value={resetRequest.newPassword}
-                        onChange={(e) => setResetRequest({ ...resetRequest, newPassword: e.target.value })}
+                        onChange={(e) => handlePasswordRepeatChange(e.target.value)}
                     />
-                    {resetError.password && <span>{resetError.password}</span>}
+                    {resetError && <span>{resetError}</span>}
                 </div>
                 <button>
                     Ändern
