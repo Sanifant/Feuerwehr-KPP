@@ -1,5 +1,5 @@
 export function MessageIcon() {
-    const unreadCount = 5;
+    const unreadCount = 0;
     
     return (
         <button className="message-icon" type="button" aria-label={`${unreadCount} neue Nachrichten`}>

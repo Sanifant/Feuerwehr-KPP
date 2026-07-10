@@ -243,8 +243,8 @@ export function TrainingDashboard() {
     return (
         <>
             <header>
-                <h1>Dashboard</h1>
-                <p>Lehrgänge aus dem Trainings-Controller.</p>
+                <h1>Lehrgangs&uuml;bersicht</h1>
+                <p></p>
             </header>
 
             <section className="stats-grid">
