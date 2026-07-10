@@ -2,8 +2,12 @@ using Feuerwehr.Server.Models;
 using Feuerwehr.Server.Models.Auth;
 using Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using StackExchange.Redis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Feuerwehr.Server.Controller
 {
@@ -13,17 +17,20 @@ namespace Feuerwehr.Server.Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IConnectionMultiplexer _connectionMultiplex;
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
 
         public AuthController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            IConnectionMultiplexer connectionMux,
             ITokenService tokenService,
             IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _connectionMultiplex = connectionMux;
             _tokenService = tokenService;
             _configuration = configuration;
         }
@@ -149,6 +156,28 @@ namespace Feuerwehr.Server.Controller
                 RefreshToken = newRefreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes)
             });
+        }
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetRequest request)
+        {
+            var db = _connectionMultiplex.GetDatabase();
+
+            var resetRequest = await db.StringGetAsync(request.Token);
+            if (resetRequest.IsNullOrEmpty)
+            {
+                return NotFound(new { message = "Invalid or expired reset token" });
+            }
+
+            //var resetData = JsonSerializer.Deserialize<ApplicationUser>(resetRequest);
+
+            // var user = await _userManager.FindByNameAsync(resetData.Username);
+            // if (user == null) return NotFound(new { message = "User not found" });
+            // var result = await _userManager.ResetPasswordAsync(user, resetData.Token, resetData.NewPassword);
+            // if (!result.Succeeded) return BadRequest(new { message = "Password reset failed" });
+
+            return NotFound(new { message = "Reset password request not yet implemented" });
         }
 
         /// <summary>

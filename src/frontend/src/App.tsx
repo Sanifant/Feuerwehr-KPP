@@ -11,6 +11,8 @@ import Login from './Components/Login';
 import { SideBar } from './SideBar';
 import FireDepartmentController from './Components/FireDepartmentController';
 import UserManagement from './Components/UserManagement';
+import { Dashboard } from './Components/Dashboard.tsx';
+import { ChangePassword } from './Components/ChangePassword.tsx';
 
 
 const App: React.FC = () => {
@@ -25,10 +27,12 @@ const App: React.FC = () => {
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
                             <Route path="/login" element={<Login />} />
+                            <Route path="/password/:token" element={<ChangePassword />} />
+
 
                             {/* Protected Routes */}
                             <Route element={<ProtectedRoute />}>
-                                <Route path="/dashboard" element={<TrainingDashboard />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/firedepartments" element={<FireDepartmentController />} />
                                 <Route path="/hydrant" element={<HydrantManager />} />
                                 <Route path="/trainingdashboard" element={<TrainingDashboard />} />

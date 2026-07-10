@@ -1,16 +1,4 @@
 <Solution>
-  <Folder Name="/.github/" />
-  <Folder Name="/.github/workflows/">
-    <File Path="../.github/workflows/cd.yml" />
-    <File Path="../.github/workflows/changelog.yml" />
-    <File Path="../.github/workflows/ci.yml" />
-    <File Path="../.github/workflows/label.yml" />
-    <File Path="../.github/workflows/sonarqube.yml" />
-    <File Path="../.github/workflows/stale.yml" />
-    <File Path="../.github/workflows/summary.yml" />
-    <File Path="../.github/workflows/upstream-mirror.yml" />
-    <File Path="../.github/workflows/weekly-open-issues-email.yml" />
-  </Folder>
   <Folder Name="/App/">
     <File Path="App/Feuerwehr.App/Directory.Packages.props" />
     <Project Path="App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj">
