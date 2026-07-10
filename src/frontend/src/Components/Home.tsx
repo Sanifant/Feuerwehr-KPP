@@ -3,7 +3,9 @@ import React from 'react';
 
 const Home: React.FC = () => {
     return (
-        <div>Welcome to Sanifant Home</div>
+        <div>
+        <h1>Dashboard</h1>
+        </div>
     );
 };
 

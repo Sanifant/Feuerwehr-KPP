@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 
@@ -11,6 +12,17 @@ interface ResetRequest {
 export function ChangePassword() {
     let { token } = useParams<{ token: string }>();
 
+    const [resetRequest, setResetRequest] = useState<ResetRequest>({
+        token: token || "",
+        username: "",
+        newPassword: ""
+    });
+    const [resetError, setResetError] = useState<string | null>(null);
+
+    function handlePasswordRepeatChange(value: string): void {
+        setResetError(value);
+    }
+
     return (
         <div>
             <p>Hello world! Token: {token}</p>
@@ -18,17 +30,33 @@ export function ChangePassword() {
             <form>
                 <label>
                     User Name:
-                    <input type="email" required />
+                    <input
+                        type="email"
+                        required
+                        value={resetRequest.username}
+                        onChange={(e) => setResetRequest({ ...resetRequest, username: e.target.value })}
+                    />
                 </label>
                 <label>
                     Passwort:
-                    <input type="password" required />
+                    <input
+                        type="password"
+                        required
+                        value={resetRequest.newPassword}
+                        onChange={(e) => setResetRequest({ ...resetRequest, newPassword: e.target.value })}
+                    />
                 </label>
-                <label>
-                    Passwort wiederholen:
-                    <input type="password" required />
-                </label>
-
+                <div>
+                    <label htmlFor="passwordRepeat">Passwort wiederholen:</label>
+                    <input
+                        id="passwordRepeat"
+                        type="password"
+                        required
+                        value={resetRequest.newPassword}
+                        onChange={(e) => handlePasswordRepeatChange(e.target.value)}
+                    />
+                    {resetError && <span>{resetError}</span>}
+                </div>
                 <button>
                     Ändern
                 </button>
