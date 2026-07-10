@@ -205,7 +205,7 @@ jobs:
 
   deploy_integration:
     needs: [publish-container, publish-frontend]
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: integration
     steps:
