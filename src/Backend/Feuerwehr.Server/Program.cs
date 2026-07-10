@@ -158,8 +158,6 @@ public partial class Program
 
         app.MapDefaultEndpoints();
 
-        app.UseFileServer();
-
         app.Run();
     }
 
