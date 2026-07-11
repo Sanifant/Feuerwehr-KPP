@@ -227,7 +227,7 @@ jobs:
 
   deploy_integration:
     needs: [publish-container, publish-frontend]
-    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') || github.ref == 'refs/heads/main'
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     environment: integration
     steps:
