@@ -5,6 +5,8 @@ on:
     branches: [develop, main, master]
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 env:
@@ -45,6 +47,8 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=sha
+          type=raw,value=integration,enable=${{ github.ref == 'refs/heads/main' }}
+          type=raw,value=latest,enable=${{ github.event_name == 'release' }}
           
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -54,6 +58,8 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64
+        provenance: false
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -87,6 +93,8 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=sha
+          type=raw,value=integration,enable=${{ github.ref == 'refs/heads/main' }}
+          type=raw,value=latest,enable=${{ github.event_name == 'release' }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -96,6 +104,8 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        platforms: linux/amd64
+        provenance: false
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -205,7 +215,7 @@ jobs:
 
   deploy_integration:
     needs: [publish-container, publish-frontend]
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: integration
     steps:
