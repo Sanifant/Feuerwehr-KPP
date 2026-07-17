@@ -10,6 +10,7 @@ export const useRole = () => {
         isCommander: hasRole('Commander'),
         isFirefighter: hasRole('Firefighter'),
         isViewer: hasRole('Viewer'),
+        canViewHydrants: hasRole('Admin') || hasRole('Commander') || hasRole('Firefighter'),
         canManageHydrants: hasRole('Admin') || hasRole('Commander'),
         canManageTraining: hasRole('Admin') || hasRole('Commander'),
         canManageUsers: hasRole('Admin'),

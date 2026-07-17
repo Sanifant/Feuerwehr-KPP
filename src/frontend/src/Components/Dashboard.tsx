@@ -1,5 +1,5 @@
 export function Dashboard() {
   return (
-    <p>Hello world!</p>
+    <p>Dashboard Klein Parin Pohnsdorf</p>
   );
 }
