@@ -122,18 +122,23 @@ namespace Feuerwehr.Server.Controller
                 return BadRequest("Die ausgewählte Feuerwehr existiert nicht.");
             }
 
-            var trainingEntity = new TrainingCourse
-            {
-                Title = trimmedTitle,
-                Description = value.Description.Trim(),
-                Level = value.Level,
-                Status = value.Status,
-                StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                EndDate = DateOnly.FromDateTime(DateTime.UtcNow)
-            };
+            var trainingEntity = _db.TrainingCourses.FirstOrDefault(t => t.Title.Equals(trimmedTitle));
 
-            _db.TrainingCourses.Add(trainingEntity);
-            await _db.SaveChangesAsync();
+            if (trainingEntity == null)
+            {
+                trainingEntity = new TrainingCourse
+                {
+                    Title = trimmedTitle,
+                    Description = value.Description.Trim(),
+                    Level = value.Level,
+                    Status = value.Status,
+                    StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    EndDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                };
+
+                _db.TrainingCourses.Add(trainingEntity);
+                await _db.SaveChangesAsync();
+            }
 
             var relation = new FireDepartmentTrainingCourse
             {
