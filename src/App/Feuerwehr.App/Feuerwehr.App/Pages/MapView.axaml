@@ -92,11 +92,11 @@
 						   Margin="0,0,10,0" />
 				<TextBox Grid.Column="1" Grid.Row="0" Width="100" 
 						 Height="35" 
-						 Watermark="Suche nach Hydranten..." 
+						 PlaceholderText="Suche nach Hydranten..." 
 						 Text="{Binding NewHydrant.Latitude}"/>
 				<TextBox Grid.Column="2" Grid.Row="0" Width="100" 
 						 Height="35" 
-						 Watermark="Suche nach Hydranten..." 
+						 PlaceholderText="Suche nach Hydranten..." 
 						 Text="{Binding NewHydrant.Longitude}"/>
 				<TextBlock Grid.Column="0" Grid.Row="1" Text="Durchmesser" 
 						   VerticalAlignment="Center" 
@@ -104,11 +104,11 @@
 						   Margin="0,0,10,0" />
 				<TextBox Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Width="200" 
 						 Height="35" 
-						 Watermark="Durchmesser..." 
+						 PlaceholderText="Durchmesser..." 
 						 Text="{Binding NewHydrant.NominalDiameter}"/>
 				<TextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Width="200" 
 						 Height="35" 
-						 Watermark="Suche nach Hydranten..." />
+						 PlaceholderText="Suche nach Hydranten..." />
 				<Button Width="100" Height="30" Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" Command="{Binding AddHydrantCommand}" Content="Hinzufügen..." VerticalAlignment="Center" HorizontalAlignment="Right" />
 			</Grid>
 		</Grid>
