@@ -172,6 +172,12 @@ jobs:
         distribution: 'microsoft'
         java-version: '17'
         
+    - name: Install Android workload
+      run: |
+        dotnet workload install android --skip-manifest-update \
+          --source https://api.nuget.org/v3/index.json \
+          --source https://aka.ms/dotnet9/nuget/index.json
+        
     - name: Restore dependencies
       run: dotnet restore ${{ env.SOLUTION_FILE }}
       

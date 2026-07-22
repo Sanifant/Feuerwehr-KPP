@@ -112,7 +112,7 @@ namespace Feuerwehr.App
             if (string.IsNullOrEmpty(baseUrl))
             {
                 // Standard-Fallback für lokales Testen ohne Aspire
-                baseUrl = "https://localhost:7538/";
+                baseUrl = "https://integration.ff-kleinparin-pohnsdorf.de/";
             }
 
             collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
