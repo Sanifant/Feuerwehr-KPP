@@ -56,21 +56,16 @@ common:
           - "Common/**"
           - "src/Common/**"
 
-desktop:
+clients:
   - changed-files:
       - any-glob-to-any-file:
-          - "src/Desktop/**"
-
-mobile:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "src/Mobile/**"
+          - "src/App/Feuerwehr.App/**"
 
 web:
   - changed-files:
       - any-glob-to-any-file:
-          - "Web/**"
-          - "src/Web/**"
+          - "src/Backend/**"
+          - "src/frontend/**"
 
 tests:
   - changed-files:

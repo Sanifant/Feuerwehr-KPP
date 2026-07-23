@@ -41,6 +41,7 @@ var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithHttpEndpoint(port: 54321, env: "PORT")
     .WithExternalHttpEndpoints()
     .WithReference(server)
+    .WithEnvironment("VITE_API_URL", "https://localhost:7538")
     .PublishAsDockerComposeService((resource, service) =>
     {
         service.Name = "webfrontend";

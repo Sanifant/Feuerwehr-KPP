@@ -1,4 +1,4 @@
-# Feuerwehr
+# Feuerwehr-KPP (Klein Parin Pohnsdorf)
 
 Monorepo fuer die Feuerwehr-Anwendung auf Basis von .NET 10 und Avalonia.
 
@@ -8,8 +8,11 @@ Monorepo fuer die Feuerwehr-Anwendung auf Basis von .NET 10 und Avalonia.
 
 ## Einsatzkontext
 
-Die Software ist fuer den kommunalen Einsatz bei Feuerwehren vorgesehen.
-Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Behoerden- und Leitstellenumgebungen.
+Die Software ist fuer den Einsatz bei Feuerwehren vorgesehen.
+
+
+
+Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Einsatz.
 
 ## Nicht-funktionale Leitplanken
 
@@ -20,12 +23,14 @@ Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Behoerden- u
 
 ## Projektueberblick
 
-Die Solution liegt unter `src/de.openelp.feuerwehr.slnx` und umfasst:
+Die Solution liegt unter `src/Feuerwehr.slnx` und umfasst:
 
 - Common: Geteilte Modelle und Kernlogik (inkl. Inventory-Service und Repository-Interfaces)
-- Desktop: Avalonia Desktop-Anwendung
-- Mobile: Avalonia Shared UI plus Plattform-Hosts (Android, iOS, Browser, Desktop)
-- Web: ASP.NET Core Web API (inkl. Geraete-Verwaltung REST API)
+- App: Die Avalonia UI Applikationen für Windows, Linux, Android un IOS
+- Backend: ASP.NET Core Web API
+- Frontend: React Frontend für die Pflege der Daten innerhalb der Software
+- AppHost: .NET Aspire, um den Entwicklungsprozess zu vereinfachen
+
 
 ## Deployment Flow
 
@@ -41,6 +46,16 @@ flowchart LR
 ```
 
 ## Funktionsumfang
+
+### Hydranten Management
+
+- REST PI zur Verwaltung von Hydranten und deren Standort
+- CRUD-Operationen für Hydranten:
+  - `GET: api/Hydrant` - Alle Hydranten abrufen
+  - `GET api/Hydrant/{id]` - Einzelnen Hydrant abrufen
+  - `POST api/Hydrant` - Neuen Hydrant anlegen; Benutzer muss Recht `CanManageHydrant` haben.
+  - `PUT api/Hydrant/{Id}` - Hydrant aktualisieren;  Benutzer muss Recht `CanManageHydrant` haben.
+  - `DELETE api/Hydrant/{id}` - Hydrant entfernen;  Benutzer muss Recht `CanManageHydrant` haben.
 
 ### Geraete-Verwaltung (Inventory Management)
 - REST API zur Verwaltung von Feuerwehr-Inventar und Geraeten
