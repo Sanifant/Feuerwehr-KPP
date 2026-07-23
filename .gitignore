@@ -361,4 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/src/App/Feuerwehr.App/Feuerwehr.App.Android/FfwKppApp.keystore
+src/App/Feuerwehr.App/Feuerwehr.App.Android/FfwKppApp.keystore
