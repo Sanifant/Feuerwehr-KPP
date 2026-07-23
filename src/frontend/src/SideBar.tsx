@@ -8,7 +8,7 @@ type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung';
 
 export function SideBar() {
     const { isAuthenticated } = useAuth();
-    const { canManageUsers, isFirefighter, canManageTraining } = useRole();
+    const { canManageUsers, canViewHydrants, canManageTraining } = useRole();
     const location = useLocation();
     const navigate = useNavigate();
     const currentPath = `${location.pathname}${location.search}`;
@@ -37,7 +37,7 @@ export function SideBar() {
                             Dashboard
                         </SidebarLink>
 
-                        {isFirefighter && (
+                        {canViewHydrants && (
                             <SidebarLink to="/hydrant" currentPath={currentPath}>
                                 <span className="nav-icon" aria-hidden="true"></span>
                                 Hydrant

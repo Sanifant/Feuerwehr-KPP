@@ -1,7 +1,6 @@
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import apiClient from "../api/apiClient";
-import "./Dashboard.css";
 
 interface TrainingCourseDto {
     id: number;

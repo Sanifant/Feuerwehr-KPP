@@ -27,7 +27,12 @@ const Navbar: React.FC = () => {
                         v
                     </button>
                 </div>
-    )}
+            )}
+            {!isAuthenticated && (
+                <div className="titlebar__right">
+                    <a className="chevron-button" href="/login">Anmelden</a>
+                </div>
+            )}   
         </header>
     );
 };

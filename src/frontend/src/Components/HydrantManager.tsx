@@ -172,12 +172,12 @@ export default function HydrantManager() {
 
     return (
         <div className="p-6 max-w-6xl mx-auto font-sans">
-            <h1 className="text-3xl font-bold mb-6 text-red-700">🚒 Hydranten-Verwaltung (TSX)</h1>
+            <h1 className="text-3xl font-bold mb-6 text-red-700">🚒 Hydranten-Verwaltung</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* FORMULAR: Hinzufügen / Bearbeiten */}
-                <div className="bg-gray-50 p-4 rounded-xl shadow-md border border-gray-200 h-fit">
+                <div className="card">
                     <h2 className="text-xl font-semibold mb-4 text-gray-800">
                         {isEditing ? '📝 Hydrant bearbeiten' : '➕ Neuen Hydranten erfassen'}
                     </h2>
@@ -275,7 +275,7 @@ export default function HydrantManager() {
                     ) : (
                         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
                             {hydrants.map((hydrant) => (
-                                <div key={hydrant.id} className="p-4 border rounded-lg hover:bg-gray-50 flex justify-between items-start transition shadow-sm">
+                                <div key={hydrant.id} className="card">
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-gray-900">ID {hydrant.id}</span>
@@ -290,9 +290,11 @@ export default function HydrantManager() {
                                         </div>
                                         <p className="text-sm text-gray-700">
                                             📍 {hydrant.address?.street} {hydrant.address?.houseNumber}, {hydrant.address?.postalCode} {hydrant.address?.city}
+                                            <br />
+                                            Koordinaten: {hydrant.latitude.toFixed(5)},  {hydrant.longitude.toFixed(5)}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            Koordinaten: {hydrant.latitude.toFixed(5)}, {hydrant.longitude.toFixed(5)} | Typ: {HydrantTypeLabels[hydrant.type]} | Quelle: {WaterSourceLabels[hydrant.waterSource]}
+                                           Typ: {HydrantTypeLabels[hydrant.type]} | Quelle: {WaterSourceLabels[hydrant.waterSource]}
                                         </p>
                                         {hydrant.notes && (
                                             <p className="text-xs italic text-gray-600 bg-amber-50 p-1.5 rounded border border-amber-200 mt-1">

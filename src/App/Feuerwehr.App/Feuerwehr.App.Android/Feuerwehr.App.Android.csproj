@@ -1,29 +1,42 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0-android</TargetFramework>
-    <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
-    <Nullable>enable</Nullable>
-    <ApplicationId>com.CompanyName.Feuerwehr.App</ApplicationId>
-    <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <AndroidPackageFormat>apk</AndroidPackageFormat>
-    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-    <Configurations>Debug;Release;Frontend</Configurations>
+	<OutputType>Exe</OutputType>
+	<TargetFramework>net10.0-android</TargetFramework>
+	<SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
+	<Nullable>enable</Nullable>
+	<ApplicationId>de.openelp.feuerwehr</ApplicationId>
+	<ApplicationVersion>1</ApplicationVersion>
+	<ApplicationDisplayVersion>0.0.1</ApplicationDisplayVersion>
+	<AndroidPackageFormat>apk</AndroidPackageFormat>
+	<AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+	<Configurations>Debug;Release;Frontend</Configurations>
   </PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<AndroidKeyStore>true</AndroidKeyStore>
+		<AndroidSigningKeyStore>FfwKppApp.keystore</AndroidSigningKeyStore>
+		<AndroidSigningKeyAlias>FfwKppApp</AndroidSigningKeyAlias>
+
+		<!-- Explicitly instruct .NET to build an AAB file instead of an APK -->
+		<AndroidPackageFormat>aab</AndroidPackageFormat>
+
+		<!-- Google Play Requirements -->
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+	</PropertyGroup>
+
   <ItemGroup>
-    <AndroidResource Include="Icon.png">
-      <Link>Resources\drawable\Icon.png</Link>
-    </AndroidResource>
+	<AndroidResource Include="Icon.png">
+	  <Link>Resources\drawable\Icon.png</Link>
+	</AndroidResource>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Android" />
-    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+	<PackageReference Include="Avalonia.Android" />
+	<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Feuerwehr.App\Feuerwehr.App.csproj" />
+	<ProjectReference Include="..\Feuerwehr.App\Feuerwehr.App.csproj" />
   </ItemGroup>
 </Project>

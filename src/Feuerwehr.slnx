@@ -12,6 +12,7 @@
   </Folder>
   <Folder Name="/Backend/">
     <Project Path="Backend/Feuerwehr.Server/Feuerwehr.Server.csproj" />
+    <Project Path="Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj" Id="09412045-9811-4f5c-b389-da9251add526" />
   </Folder>
   <Project Path="Feuerwehr.AppHost/Feuerwehr.AppHost.csproj" />
   <Project Path="Feuerwehr.Common/Feuerwehr.Common.csproj" Id="e1f90ef1-d86c-4bdd-8e80-f1745049dc68" />

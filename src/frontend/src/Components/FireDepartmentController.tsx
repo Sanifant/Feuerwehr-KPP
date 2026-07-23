@@ -29,6 +29,7 @@ export default function FireDepartmentController() {
         setError(null);
 
         try {
+            
             const response = await apiClient.get<FireDepartmentDto[]>('/api/FireDepartment');
             setFireDepartments(response.data);
         } catch (requestError) {
