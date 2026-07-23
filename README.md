@@ -4,6 +4,8 @@ Monorepo fuer die Feuerwehr-Anwendung auf Basis von .NET 10 und Avalonia.
 
 [![CI - Build and Test](https://github.com/Sanifant/Feuerwehr-KPP/actions/workflows/ci.yml/badge.svg)](https://github.com/Sanifant/Feuerwehr-KPP/actions/workflows/ci.yml)
 
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=Sanifant_Feuerwehr-KPP&token=506c633882a8040e2255cfef3342754b10888a62)](https://sonarcloud.io/summary/new_code?id=Sanifant_Feuerwehr-KPP)
+
 ## Einsatzkontext
 
 Die Software ist fuer den kommunalen Einsatz bei Feuerwehren vorgesehen.
@@ -25,23 +27,18 @@ Die Solution liegt unter `src/de.openelp.feuerwehr.slnx` und umfasst:
 - Mobile: Avalonia Shared UI plus Plattform-Hosts (Android, iOS, Browser, Desktop)
 - Web: ASP.NET Core Web API (inkl. Geraete-Verwaltung REST API)
 
+## Deployment Flow
+
 ```mermaid
 flowchart LR
-
     F1[feature/*] -->|PR| D[develop]
     FX[fix/*] -->|PR| D
-
-    D -->|Deploy| INT[(Integration / Portainer Stack)]
-    D -->|Build tags: int-SHA + int-latest| R1[(Container Registry)]
-
-    D -->|PR[(Promotion)]| M[main]
-    M -->|Tag release: vX.Y.Z| T[(Git Tag)]
-    M -->|Build tags: vX.Y.Z (+ optional prod-latest)| R2[(Container Registry)]
-    M -->|Deploy pinned tag vX.Y.Z| PROD[(Production / Portainer Stack)]
-
-    H[hotfix/* (from main)] -->|PR| M
-    H -->|PR back-merge| D
-
+    D -->|Deploy| INT[Integration]
+    D -->|Build images| R1[Container Registry]
+    D -->|Promotion PR| M[main]
+    M -->|Release tag| T[Git Tag]
+    M -->|Deploy version| PROD[Production]
+```
 
 ## Funktionsumfang
 
