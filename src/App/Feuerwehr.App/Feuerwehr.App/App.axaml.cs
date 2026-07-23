@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
@@ -9,9 +10,9 @@ using Feuerwehr.App.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.IO;
 
 namespace Feuerwehr.App
 {
@@ -39,22 +40,7 @@ namespace Feuerwehr.App
             }
             else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
             {
-                var authService = Services.GetRequiredService<IAuthService>();
-                // For mobile, check auth state and show appropriate view
-                if (authService.IsAuthenticated)
-                {
-                    singleViewFactoryApplicationLifetime.MainViewFactory = () => new MainView 
-                    { 
-                        DataContext = Services.GetRequiredService<MainViewModel>() 
-                    };
-                }
-                else
-                {
-                    singleViewFactoryApplicationLifetime.MainViewFactory = () => new LoginView 
-                    { 
-                        DataContext = Services.GetRequiredService<LoginViewModel>() 
-                    };
-                }
+                singleViewFactoryApplicationLifetime.MainViewFactory = CreateActivityView;
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
@@ -77,6 +63,50 @@ namespace Feuerwehr.App
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+
+
+        private Control CreateActivityView()
+        {
+            var root = new ContentControl();
+            var authService = Services.GetRequiredService<IAuthService>();
+
+            void ShowMainView()
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    root.Content = new MainView
+                    {
+                        DataContext = Services.GetRequiredService<MainViewModel>()
+                    };
+                });
+            }
+
+            if (authService.IsAuthenticated)
+            {
+                ShowMainView();
+                return root;
+            }
+
+            var loginViewModel = Services.GetRequiredService<LoginViewModel>();
+
+            EventHandler? handler = null;
+
+            handler = (_, _) =>
+            {
+                loginViewModel.LoginSuccessful -= handler;
+                ShowMainView();
+            };
+
+            loginViewModel.LoginSuccessful += handler;
+
+            root.Content = new LoginView
+            {
+                DataContext = loginViewModel
+            };
+
+            return root;
         }
 
         /// <summary>
