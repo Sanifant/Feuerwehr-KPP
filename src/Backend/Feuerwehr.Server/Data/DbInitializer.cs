@@ -53,40 +53,40 @@ namespace Feuerwehr.Server.Data
                 {
                     logger.LogInformation($"Role '{roleName}' already exists");
                 }
+            }
+        }
 
-                private static async Task SeedDiaryCategoriesAsync(FeuerwehrDbContext dbContext, ILogger logger)
+        private static async Task SeedDiaryCategoriesAsync(FeuerwehrDbContext dbContext, ILogger logger)
+        {
+            var defaults = new[]
+            {
+                new { Code = "meldung", Name = "Meldung" },
+                new { Code = "auftrag", Name = "Auftrag" },
+                new { Code = "rueckmeldung", Name = "Rückmeldung" },
+                new { Code = "entscheidung", Name = "Entscheidung" },
+                new { Code = "massnahme", Name = "Maßnahme" },
+                new { Code = "sonstiges", Name = "Sonstiges" },
+            };
+
+            foreach (var cat in defaults)
+            {
+                var existing = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == cat.Code);
+                if (existing is null)
                 {
-                    var defaults = new[]
+                    dbContext.DiaryCategories.Add(new DiaryCategory
                     {
-                        new { Code = "meldung", Name = "Meldung" },
-                        new { Code = "auftrag", Name = "Auftrag" },
-                        new { Code = "rueckmeldung", Name = "Rückmeldung" },
-                        new { Code = "entscheidung", Name = "Entscheidung" },
-                        new { Code = "massnahme", Name = "Maßnahme" },
-                        new { Code = "sonstiges", Name = "Sonstiges" },
-                    };
-
-                    foreach (var cat in defaults)
-                    {
-                        var existing = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == cat.Code);
-                        if (existing is null)
-                        {
-                            dbContext.DiaryCategories.Add(new DiaryCategory
-                            {
-                                Id = Guid.NewGuid(),
-                                Code = cat.Code,
-                                Name = cat.Name,
-                                IsActive = true,
-                                CreatedAtUtc = DateTime.UtcNow,
-                                UpdatedAtUtc = DateTime.UtcNow,
-                            });
-                            logger.LogInformation("Diary category '{Code}' created.", cat.Code);
-                        }
-                    }
-
-                    await dbContext.SaveChangesAsync();
+                        Id = Guid.NewGuid(),
+                        Code = cat.Code,
+                        Name = cat.Name,
+                        IsActive = true,
+                        CreatedAtUtc = DateTime.UtcNow,
+                        UpdatedAtUtc = DateTime.UtcNow,
+                    });
+                    logger.LogInformation("Diary category '{Code}' created.", cat.Code);
                 }
             }
+
+            await dbContext.SaveChangesAsync();
         }
 
         private static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, ILogger logger)

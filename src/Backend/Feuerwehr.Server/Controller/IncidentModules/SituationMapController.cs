@@ -617,6 +617,28 @@ public class SituationMapController(
                     return false;
                 }
             }
+            else if (typeValue == "Polygon")
+            {
+                foreach (var ring in coordinates.EnumerateArray())
+                {
+                    foreach (var coordinate in ring.EnumerateArray())
+                    {
+                        if (coordinate.GetArrayLength() < 2)
+                        {
+                            error = "Polygon enthält ungültige Koordinaten.";
+                            return false;
+                        }
+
+                        var lon = coordinate[0].GetDouble();
+                        var lat = coordinate[1].GetDouble();
+                        if (lon is < -180 or > 180 || lat is < -90 or > 90)
+                        {
+                            error = "Polygon-Koordinaten sind außerhalb von WGS84.";
+                            return false;
+                        }
+                    }
+                }
+            }
 
             return true;
         }

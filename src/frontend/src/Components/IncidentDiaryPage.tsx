@@ -5,8 +5,6 @@ import {
     buildCommandId,
     cancelDiaryEntry,
     createDiaryEntry,
-    DiaryCategory,
-    DiaryEntry,
     getActiveIncident,
     getDiaryCategories,
     getDiaryEntries,
@@ -15,6 +13,7 @@ import {
     updateDiaryEntry,
 } from '../api/incidentApi';
 import { ensureIncidentConnection } from '../api/incidentLive';
+import type { DiaryCategory, DiaryEntry } from '../api/incidentApi';
 
 const displayTimezone = 'Europe/Berlin';
 
@@ -80,26 +79,28 @@ export function IncidentDiaryPage() {
 
         let disposed = false;
         let connection: any;
+        let diaryUpdatedHandler: (() => Promise<void>) | null = null;
 
         ensureIncidentConnection().then(async (conn) => {
             connection = conn;
             await conn.invoke('SubscribeIncident', incident.id);
             await conn.invoke('SubscribeDiary', incident.id);
 
-            conn.off('DiaryUpdated');
-            conn.on('DiaryUpdated', async () => {
+            diaryUpdatedHandler = async () => {
                 if (!disposed) {
                     await loadData();
                 }
-            });
+            };
+
+            conn.on('DiaryUpdated', diaryUpdatedHandler);
         }).catch(() => {
             setStatusText('Live-Verbindung getrennt. Stand kann veraltet sein.');
         });
 
         return () => {
             disposed = true;
-            if (connection) {
-                connection.off('DiaryUpdated');
+            if (connection && diaryUpdatedHandler) {
+                connection.off('DiaryUpdated', diaryUpdatedHandler);
             }
         };
     }, [incident?.id]);

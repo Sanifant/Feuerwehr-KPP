@@ -44,9 +44,14 @@ public class IncidentDiaryController(
         var response = entries.Select(e =>
         {
             var revs = grouped.GetValueOrDefault(e.Id, []);
-            var current = revs.OrderByDescending(x => x.RevisionNumber).First();
+            var current = revs.OrderByDescending(x => x.RevisionNumber).FirstOrDefault();
+            if (current is null)
+            {
+                return null;
+            }
+
             return new DiaryEntryDto(e.Id, e.IncidentId, e.EntryNumber, e.CurrentRevision, e.IsCanceled, e.CancellationReason, e.CreatedAtUtc, e.UpdatedAtUtc, current, revs);
-        }).ToList();
+        }).Where(x => x is not null).Cast<DiaryEntryDto>().ToList();
 
         return Ok(response);
     }
@@ -361,10 +366,14 @@ public class IncidentDiaryController(
             $"Exportiert UTC: {DateTime.UtcNow:O}",
             ""
         };
+        var entryMap = entries.ToDictionary(x => x.Id, x => x);
 
         foreach (var revision in revisions)
         {
-            var entry = entries.First(e => e.Id == revision.DiaryEntryId);
+            if (!entryMap.TryGetValue(revision.DiaryEntryId, out var entry))
+            {
+                continue;
+            }
             var marker = revision.RevisionType == DiaryRevisionType.Canceled ? " [STORNIERT]" : revision.RevisionType == DiaryRevisionType.Edited ? " [KORRIGIERT]" : string.Empty;
             lines.Add($"#{entry.EntryNumber}{marker} {revision.EventTimestampUtc:O} {revision.CategoryNameSnapshot}: {revision.Text}");
             if (!string.IsNullOrWhiteSpace(revision.CancellationReason))

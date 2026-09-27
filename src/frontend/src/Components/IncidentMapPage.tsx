@@ -4,7 +4,6 @@ import Feature from 'ol/Feature';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import Point from 'ol/geom/Point';
-import Polygon from 'ol/geom/Polygon';
 import Geometry from 'ol/geom/Geometry';
 import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
@@ -29,10 +28,10 @@ import {
     getMapPdfExportUrl,
     getMapState,
     heartbeatMapLease,
-    MapElementDto,
     releaseMapLease,
     upsertMapElement,
 } from '../api/incidentApi';
+import type { MapElementDto } from '../api/incidentApi';
 import { ensureIncidentConnection } from '../api/incidentLive';
 import 'ol/ol.css';
 
@@ -116,6 +115,7 @@ export function IncidentMapPage() {
     const mapRef = useRef<Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const vectorSourceRef = useRef(new VectorSource());
+    const hydrantSourceRef = useRef(new VectorSource());
     const drawRef = useRef<Draw | null>(null);
     const modifyRef = useRef<Modify | null>(null);
     const translateRef = useRef<Translate | null>(null);
@@ -175,9 +175,8 @@ export function IncidentMapPage() {
             }),
         });
 
-        const hydrantSource = new VectorSource();
         const hydrantLayer = new VectorLayer({
-            source: hydrantSource,
+            source: hydrantSourceRef.current,
             style: new Style({
                 image: new CircleStyle({ radius: 5, fill: new Fill({ color: '#00a8e8' }), stroke: new Stroke({ color: '#fff', width: 1 }) }),
             }),
@@ -346,12 +345,7 @@ export function IncidentMapPage() {
             return;
         }
 
-        const hydrants = vectorSourceRef.current.getFeatures();
-        hydrants.forEach((f) => {
-            if (f.get('isHydrant')) {
-                vectorSourceRef.current.removeFeature(f);
-            }
-        });
+        hydrantSourceRef.current.clear();
 
         if (!showHydrants) {
             return;
@@ -364,7 +358,7 @@ export function IncidentMapPage() {
                     isHydrant: true,
                 });
                 feature.setStyle(new Style({ image: new CircleStyle({ radius: 4, fill: new Fill({ color: '#00a8e8' }), stroke: new Stroke({ color: '#fff', width: 1 }) }) }));
-                vectorSourceRef.current.addFeature(feature);
+                hydrantSourceRef.current.addFeature(feature);
             });
         }).catch(() => {});
     }, [showHydrants, incident]);
@@ -384,6 +378,8 @@ export function IncidentMapPage() {
 
         let disposed = false;
         let localConnection: any;
+        let mapUpdatedHandler: (() => Promise<void>) | null = null;
+        let incidentUpdatedHandler: (() => Promise<void>) | null = null;
 
         const subscribe = async () => {
             const conn = await ensureIncidentConnection();
@@ -394,19 +390,19 @@ export function IncidentMapPage() {
                 await conn.invoke('SubscribeMap', incident.id);
             }
 
-            conn.off('MapUpdated');
-            conn.off('IncidentUpdated');
+            mapUpdatedHandler = async () => {
+                if (!disposed) {
+                    await loadActive();
+                }
+            };
+            incidentUpdatedHandler = async () => {
+                if (!disposed) {
+                    await loadActive();
+                }
+            };
 
-            conn.on('MapUpdated', async () => {
-                if (!disposed) {
-                    await loadActive();
-                }
-            });
-            conn.on('IncidentUpdated', async () => {
-                if (!disposed) {
-                    await loadActive();
-                }
-            });
+            conn.on('MapUpdated', mapUpdatedHandler);
+            conn.on('IncidentUpdated', incidentUpdatedHandler);
         };
 
         subscribe().catch(() => setStatusText('Live-Verbindung konnte nicht hergestellt werden.'));
@@ -414,8 +410,12 @@ export function IncidentMapPage() {
         return () => {
             disposed = true;
             if (localConnection) {
-                localConnection.off('MapUpdated');
-                localConnection.off('IncidentUpdated');
+                if (mapUpdatedHandler) {
+                    localConnection.off('MapUpdated', mapUpdatedHandler);
+                }
+                if (incidentUpdatedHandler) {
+                    localConnection.off('IncidentUpdated', incidentUpdatedHandler);
+                }
             }
         };
     }, [incident?.id, canView, hasRole, loadActive]);
