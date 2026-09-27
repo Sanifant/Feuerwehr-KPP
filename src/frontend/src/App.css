@@ -1464,3 +1464,148 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+/* Incident modules */
+.incident-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.incident-top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.incident-create-grid,
+.diary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.diary-grid-full {
+  grid-column: 1 / -1;
+}
+
+.incident-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 1rem;
+}
+
+.incident-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(90px, 1fr));
+  gap: 0.5rem;
+}
+
+.symbol-grid button {
+  border: 1px solid var(--weather-card-border);
+  background: var(--weather-card-bg);
+  border-radius: 0.5rem;
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.symbol-grid button.active {
+  border-color: var(--accent-gradient-end);
+}
+
+.incident-map-container {
+  min-height: 65vh;
+}
+
+.incident-map {
+  width: 100%;
+  min-height: 60vh;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.incident-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.incident-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.small-note {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.log-table-wrap {
+  overflow-x: auto;
+}
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.log-table th,
+.log-table td {
+  border-bottom: 1px solid var(--weather-card-border);
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.entry-editor {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.archive-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.archive-list li {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--weather-card-border);
+  padding: 0.35rem 0;
+}
+
+@media (max-width: 960px) {
+  .incident-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .incident-map-container {
+    min-height: 45vh;
+  }
+
+  .incident-map {
+    min-height: 40vh;
+  }
+}

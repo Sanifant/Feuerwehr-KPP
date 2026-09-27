@@ -1,4 +1,5 @@
 ﻿using Feuerwehr.Common.Models;
+using Feuerwehr.Server.Models.IncidentModules;
 using Feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,15 @@ namespace Feuerwehr.Server.Data
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 
         public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
+        public DbSet<Incident> Incidents { get; set; }
+        public DbSet<MapElement> MapElements { get; set; }
+        public DbSet<MapAuditEvent> MapAuditEvents { get; set; }
+        public DbSet<EditorLease> EditorLeases { get; set; }
+        public DbSet<DiaryCategory> DiaryCategories { get; set; }
+        public DbSet<DiaryEntry> DiaryEntries { get; set; }
+        public DbSet<DiaryEntryRevision> DiaryEntryRevisions { get; set; }
+        public DbSet<ProcessedCommand> ProcessedCommands { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -116,6 +126,95 @@ namespace Feuerwehr.Server.Data
                     .WithMany()
                     .HasForeignKey(u => u.FireDepartmentId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.HasSequence<long>("MapAuditSequence").StartsAt(1).IncrementsBy(1);
+            modelBuilder.HasSequence<long>("DiaryEntryNumberSeq").StartsAt(1).IncrementsBy(1);
+
+            modelBuilder.Entity<Incident>(entity =>
+            {
+                entity.ToTable("Incidents");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+                entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                entity.HasIndex(x => x.Status).HasDatabaseName("IX_Incidents_Status");
+                entity.HasIndex(x => x.Status).IsUnique().HasFilter("\"Status\" = 'Active'").HasDatabaseName("UX_Incidents_OnlyOneActive");
+            });
+
+            modelBuilder.Entity<MapElement>(entity =>
+            {
+                entity.ToTable("MapElements");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.ElementType).HasConversion<string>().HasMaxLength(20);
+                entity.Property(x => x.GeometryJson).IsRequired();
+                entity.HasIndex(x => new { x.IncidentId, x.UpdatedAtUtc });
+                entity.HasOne(x => x.Incident)
+                    .WithMany()
+                    .HasForeignKey(x => x.IncidentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MapAuditEvent>(entity =>
+            {
+                entity.ToTable("MapAuditEvents");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.SequenceNumber).HasDefaultValueSql("nextval('\"MapAuditSequence\"')");
+                entity.HasIndex(x => new { x.IncidentId, x.SequenceNumber }).IsUnique();
+            });
+
+            modelBuilder.Entity<EditorLease>(entity =>
+            {
+                entity.ToTable("EditorLeases");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => x.IncidentId).IsUnique();
+                entity.HasOne(x => x.Incident)
+                    .WithMany()
+                    .HasForeignKey(x => x.IncidentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<DiaryCategory>(entity =>
+            {
+                entity.ToTable("DiaryCategories");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => x.Code).IsUnique();
+                entity.Property(x => x.Code).HasMaxLength(120).IsRequired();
+                entity.Property(x => x.Name).HasMaxLength(120).IsRequired();
+            });
+
+            modelBuilder.Entity<DiaryEntry>(entity =>
+            {
+                entity.ToTable("DiaryEntries");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => new { x.IncidentId, x.EntryNumber }).IsUnique();
+                entity.Property(x => x.EntryNumber).HasDefaultValueSql("nextval('\"DiaryEntryNumberSeq\"')");
+            });
+
+            modelBuilder.Entity<DiaryEntryRevision>(entity =>
+            {
+                entity.ToTable("DiaryEntryRevisions");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => new { x.DiaryEntryId, x.RevisionNumber }).IsUnique();
+                entity.Property(x => x.RevisionType).HasConversion<string>().HasMaxLength(20);
+                entity.HasOne(x => x.DiaryEntry)
+                    .WithMany()
+                    .HasForeignKey(x => x.DiaryEntryId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ProcessedCommand>(entity =>
+            {
+                entity.ToTable("ProcessedCommands");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => x.CommandId).IsUnique();
+                entity.HasIndex(x => new { x.UserId, x.Scope, x.TargetId });
+            });
+
+            modelBuilder.Entity<OutboxMessage>(entity =>
+            {
+                entity.ToTable("OutboxMessages");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => new { x.ProcessedAtUtc, x.CreatedAtUtc });
             });
         }
     }

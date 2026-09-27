@@ -13,6 +13,9 @@ import FireDepartmentController from './Components/FireDepartmentController';
 import UserManagement from './Components/UserManagement';
 import { Dashboard } from './Components/Dashboard.tsx';
 import { ChangePassword } from './Components/ChangePassword.tsx';
+import IncidentMapPage from './Components/IncidentMapPage.tsx';
+import IncidentDiaryPage from './Components/IncidentDiaryPage.tsx';
+import DiaryCategoryAdmin from './Components/DiaryCategoryAdmin.tsx';
 
 
 const App: React.FC = () => {
@@ -37,6 +40,9 @@ const App: React.FC = () => {
                                 <Route path="/hydrant" element={<HydrantManager />} />
                                 <Route path="/trainingdashboard" element={<TrainingDashboard />} />
                                 <Route path="/users" element={<UserManagement />} />
+                                <Route path="/incident-map" element={<IncidentMapPage />} />
+                                <Route path="/incident-diary" element={<IncidentDiaryPage />} />
+                                <Route path="/diary-categories" element={<DiaryCategoryAdmin />} />
                             </Route>
                         </Routes>
                     </main>
