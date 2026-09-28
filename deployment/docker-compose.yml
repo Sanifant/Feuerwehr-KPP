@@ -1,0 +1,133 @@
+services:
+    # Frontend Service
+  ff-kpp-int-inventory-frontend:
+    image: ghcr.io/sanifant/feuerwehr-kpp/feuerwehr-frontend:integration
+    container_name: ff-kpp-int-inventory-frontend
+    environment:
+      VITE_API_URL: "https://integration.ff-kleinparin-pohnsdorf.de/api"
+      TZ : "Europe/Berlin"
+      UPSTREAM_HOST: "${UPSTREAM_HOST}"
+      UPSTREAM_PORT: "${UPSTREAM_PORT}"
+    depends_on:
+      - ff-kpp-int-inventory-api
+    networks:
+      - inventory-int-tier
+      - proxy-tier
+      - monitoring-network
+    restart: unless-stopped
+   # healthcheck:
+   #   test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+   #   interval: 30s
+   #   timeout: 5s
+   #   retries: 3
+   #   start_period: 10s
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=80"
+      - "prometheus.path=/nginx_status"
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy-tier"
+      - "traefik.http.routers.inventory-int.entrypoints=websecure"
+      - "traefik.http.routers.inventory-int.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.inventory-int.rule=Host(`integration.ff-kleinparin-pohnsdorf.de`)"
+
+  ff-kpp-int-nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.3.0
+    container_name: ff-kpp-int-nginx-exporter
+    command:
+      - -nginx.scrape-uri=http://ff-kpp-int-inventory-frontend/nginx_status
+    restart: unless-stopped
+    depends_on:
+      - ff-kpp-int-inventory-frontend
+    networks:
+      - monitoring-network
+      - inventory-int-tier
+      
+  ff-kpp-int-inventory-api:
+    #image: ghcr.io/sanifant/feuerwehr-kpp-api:int-latest
+    image: ghcr.io/sanifant/feuerwehr-kpp/feuerwehr-api:integration
+    container_name: ff-kpp-int-inventory-api
+    restart: unless-stopped
+    networks:
+      - inventory-int-tier
+      - monitoring-network
+    environment:
+      TZ: "Europe/Berlin"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__POSTGRESDB: "Host=ff-kpp-int-postgres;Port=5432;Database=feuerwehr_inventory_int;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Include Error Detail=true"
+      ConnectionStrings__cache: "ff-kpp-int-redis:6379"
+      JwtSettings__SecretKey: "${JwtSecretKey}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=8080"
+      - "prometheus.path=/metrics"
+    depends_on:
+      ff-kpp-int-postgres:
+        condition: service_healthy
+      ff-kpp-int-redis:
+        condition: service_started
+
+  ff-kpp-int-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: ff-kpp-int-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD}@ff-kpp-int-postgres:5432/feuerwehr_inventory_int?sslmode=disable"
+    depends_on:
+      ff-kpp-int-postgres:
+        condition: service_healthy
+    networks:
+      - inventory-int-tier
+      - monitoring-network
+
+  ff-kpp-int-redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: ff-kpp-int-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis://ff-kpp-int-redis:6379"
+    depends_on:
+      - ff-kpp-int-redis
+    networks:
+      - inventory-int-tier
+      - monitoring-network
+
+  ff-kpp-int-postgres:
+    image: postgres:17-alpine
+    container_name: ff-kpp-int-postgres
+    restart: unless-stopped
+    networks:
+      - inventory-int-tier
+    environment:
+      POSTGRES_DB: "feuerwehr_inventory_int"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - postgres_int_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d feuerwehr_inventory_int"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ff-kpp-int-redis:
+    image: redis:latest
+    container_name: ff-kpp-int-redis
+    restart: unless-stopped
+    networks:
+      - inventory-int-tier
+    volumes:
+      - redis_int_data:/data
+
+volumes:
+  postgres_int_data:
+  redis_int_data:
+
+networks:
+  inventory-int-tier:
+  proxy-tier:
+    external: true
+  monitoring-network:
+    external: true

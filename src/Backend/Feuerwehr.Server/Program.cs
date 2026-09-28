@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
 using System.Net.Mail;
 using System.Text;
@@ -158,6 +159,7 @@ public partial class Program
         app.MapControllers();
 
         app.MapDefaultEndpoints();
+        app.MapPrometheusScrapingEndpoint();
 
         app.Run();
     }
