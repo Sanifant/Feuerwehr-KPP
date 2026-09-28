@@ -1,7 +1,9 @@
 using Feuerwehr.Server.Authorization;
 using Feuerwehr.Server.Data;
+using Feuerwehr.Server.Hubs;
 using Feuerwehr.Server.Models;
 using Feuerwehr.Server.Services;
+using Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -73,6 +75,21 @@ public partial class Program
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                 ClockSkew = TimeSpan.Zero // Remove default 5 minute tolerance
             };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/incidents"))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         // Configure Authorization Policies
@@ -124,6 +141,13 @@ public partial class Program
         builder.Services.AddOpenApi();
 
         builder.Services.AddControllers();
+        builder.Services.AddSignalR();
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IUserContextAccessor, HttpUserContextAccessor>();
+        builder.Services.AddScoped<ICommandIdempotencyService, CommandIdempotencyService>();
+        builder.Services.AddScoped<IOutboxService, OutboxService>();
+        builder.Services.AddScoped<IMapLeaseService, MapLeaseService>();
+        builder.Services.AddHostedService<OutboxDispatcher>();
 
         var app = builder.Build();
 
@@ -155,6 +179,7 @@ public partial class Program
         app.UseOutputCache();
 
         app.MapControllers();
+        app.MapHub<IncidentHub>("/hubs/incidents");
 
         app.MapDefaultEndpoints();
 
@@ -174,4 +199,3 @@ public partial class Program
         await DbInitializer.SeedDataAsync(scope.ServiceProvider);
     }
 }
-

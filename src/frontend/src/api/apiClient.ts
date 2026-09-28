@@ -2,7 +2,6 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-// Create axios instance
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
@@ -11,24 +10,18 @@ const apiClient = axios.create({
     withCredentials: true,
 });
 
-// Request interceptor to add auth token
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         const token = localStorage.getItem('accessToken');
         if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers.Authorization = 'Bearer ' + token;
         }
-        console.log('Request config:', config);
-        console.log('API_BASE_URL:', API_BASE_URL);
-        
+
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error),
 );
 
-// Response interceptor to handle token refresh
 let isRefreshing = false;
 let failedQueue: Array<{
     resolve: (value?: unknown) => void;
@@ -50,25 +43,19 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 apiClient.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & {
-            _retry?: boolean;
-        };
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-        // Handle 401 Unauthorized - Token expired
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
-                // If already refreshing, queue this request
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
                     .then((token) => {
                         if (originalRequest.headers) {
-                            originalRequest.headers.Authorization = `Bearer ${token}`;
+                            originalRequest.headers.Authorization = 'Bearer ' + String(token ?? '');
                         }
+
                         return apiClient(originalRequest);
-                    })
-                    .catch((err) => {
-                        return Promise.reject(err);
                     });
             }
 
@@ -76,9 +63,7 @@ apiClient.interceptors.response.use(
             isRefreshing = true;
 
             const refreshToken = localStorage.getItem('refreshToken');
-
             if (!refreshToken) {
-                // No refresh token, redirect to login
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
                 window.location.href = '/login';
@@ -86,43 +71,34 @@ apiClient.interceptors.response.use(
             }
 
             try {
-                // Get the current access token for the refresh request
                 const accessToken = localStorage.getItem('accessToken');
-
                 const response = await axios.post(
                     `${API_BASE_URL}/api/Auth/refresh`,
                     { refreshToken },
                     {
                         headers: {
-                            Authorization: `Bearer ${accessToken}`,
+                            Authorization: accessToken ? 'Bearer ' + accessToken : undefined,
                             'Content-Type': 'application/json',
                         },
-                    }
+                    },
                 );
 
-                const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+                const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data as { accessToken: string; refreshToken: string };
 
-                // Store new tokens
                 localStorage.setItem('accessToken', newAccessToken);
                 localStorage.setItem('refreshToken', newRefreshToken);
 
-                // Update authorization header
                 if (originalRequest.headers) {
-                    originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                    originalRequest.headers.Authorization = 'Bearer ' + newAccessToken;
                 }
 
                 processQueue(null, newAccessToken);
-
-                // Retry the original request
                 return apiClient(originalRequest);
             } catch (refreshError) {
                 processQueue(refreshError as Error, null);
-
-                // Refresh failed, clear tokens and redirect to login
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
                 window.location.href = '/login';
-
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
@@ -130,7 +106,7 @@ apiClient.interceptors.response.use(
         }
 
         return Promise.reject(error);
-    }
+    },
 );
 
 export default apiClient;
