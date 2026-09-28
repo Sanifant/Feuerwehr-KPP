@@ -116,6 +116,8 @@ namespace Feuerwehr.Server.Data
                     // Assign Admin role
                     await userManager.AddToRoleAsync(adminUser, Roles.Admin);
                     logger.LogInformation($"Default admin user created: {adminEmail}");
+                    await userManager.AddToRoleAsync(adminUser, Roles.IncidentDiaryEditor);
+                    await userManager.AddToRoleAsync(existingAdmin, Roles.SituationMapEditor);
                     logger.LogWarning($"IMPORTANT: Change the default admin password '{adminPassword}' immediately!");
                 }
                 else
@@ -132,6 +134,20 @@ namespace Feuerwehr.Server.Data
                 {
                     await userManager.AddToRoleAsync(existingAdmin, Roles.Admin);
                     logger.LogInformation($"Added Admin role to existing user: {adminEmail}");
+                }
+
+                // Ensure admin has IncidentDiaryEditor role
+                if (!await userManager.IsInRoleAsync(existingAdmin, Roles.IncidentDiaryEditor))
+                {
+                    await userManager.AddToRoleAsync(existingAdmin, Roles.IncidentDiaryEditor);
+                    logger.LogInformation($"Added IncidentDiaryEditor role to existing user: {adminEmail}");
+                }
+
+                // Ensure admin has SituationMapEditor role
+                if (!await userManager.IsInRoleAsync(existingAdmin, Roles.SituationMapEditor))
+                {
+                    await userManager.AddToRoleAsync(existingAdmin, Roles.SituationMapEditor);
+                    logger.LogInformation($"Added SituationMapEditor role to existing user: {adminEmail}");
                 }
             }
         }

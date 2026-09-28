@@ -84,7 +84,6 @@ public class IncidentDiaryController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
         if (incident is null)
         {
@@ -157,7 +156,6 @@ public class IncidentDiaryController(
         outboxService.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), new { incidentId, entryId = entry.Id, entryNumber = entry.EntryNumber, action = "create", incidentRevision = incident.Revision, serverUtc = now });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
         return StatusCode(StatusCodes.Status201Created, response);
     }
 
@@ -177,7 +175,6 @@ public class IncidentDiaryController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
         if (incident is null)
         {
@@ -242,7 +239,6 @@ public class IncidentDiaryController(
         outboxService.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), new { incidentId, entryId = entry.Id, entryNumber = entry.EntryNumber, action = "update", incidentRevision = incident.Revision, serverUtc = now });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
         return Ok(response);
     }
 
@@ -267,7 +263,6 @@ public class IncidentDiaryController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         var incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
         if (incident is null)
         {
@@ -334,7 +329,6 @@ public class IncidentDiaryController(
         outboxService.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), new { incidentId, entryId = entry.Id, entryNumber = entry.EntryNumber, action = "cancel", incidentRevision = incident.Revision, serverUtc = now });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
         return Ok(response);
     }
 

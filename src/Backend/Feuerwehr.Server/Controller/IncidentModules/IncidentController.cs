@@ -83,73 +83,64 @@ public class IncidentController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        try
+
+        var hasActive = await dbContext.Incidents.AnyAsync(x => x.Status == IncidentStatus.Active, cancellationToken);
+        if (hasActive)
         {
-            var hasActive = await dbContext.Incidents.AnyAsync(x => x.Status == IncidentStatus.Active, cancellationToken);
-            if (hasActive)
-            {
-                return Problem(statusCode: StatusCodes.Status409Conflict, title: "Es existiert bereits ein aktiver Einsatz.");
-            }
-
-            var now = DateTime.UtcNow;
-            var incident = new Incident
-            {
-                Id = Guid.NewGuid(),
-                Name = request.Name.Trim(),
-                IncidentNumber = request.IncidentNumber?.Trim(),
-                Keyword = request.Keyword?.Trim(),
-                Description = request.Description?.Trim(),
-                OriginLatitude = request.OriginLatitude,
-                OriginLongitude = request.OriginLongitude,
-                Status = IncidentStatus.Active,
-                CreatedAtUtc = now,
-                Revision = 1,
-            };
-
-            var lease = new EditorLease
-            {
-                Id = Guid.NewGuid(),
-                IncidentId = incident.Id,
-                UserId = userContext.UserId,
-                UserDisplayName = userContext.DisplayName,
-                SessionId = request.SessionId,
-                LeaseToken = Guid.NewGuid().ToString("N"),
-                LastHeartbeatAtUtc = now,
-                ExpiresAtUtc = now.Add(IncidentModuleTime.LeaseDuration),
-            };
-
-            dbContext.Incidents.Add(incident);
-            dbContext.EditorLeases.Add(lease);
-
-            var response = new
-            {
-                incident = ToSummary(incident),
-                lease = ToLeaseDto(lease),
-                serverUtc = now,
-            };
-
-            dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
-                request.CommandId,
-                "incident.create",
-                "active",
-                payloadHash,
-                ResponseHelpers.BuildEnvelope(StatusCodes.Status201Created, response),
-                userContext.UserId));
-
-            outboxService.AddMessage("incident", "incident.created", incident.Id.ToString(), new { incidentId = incident.Id, revision = incident.Revision, serverUtc = now });
-            outboxService.AddMessage("map", "map.lease.changed", incident.Id.ToString(), new { incidentId = incident.Id, leaseOwner = userContext.DisplayName, expiresAtUtc = lease.ExpiresAtUtc, serverUtc = now });
-
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
-
-            return StatusCode(StatusCodes.Status201Created, response);
-        }
-        catch (DbUpdateException)
-        {
-            await tx.RollbackAsync(cancellationToken);
             return Problem(statusCode: StatusCodes.Status409Conflict, title: "Es existiert bereits ein aktiver Einsatz.");
         }
+
+        var now = DateTime.UtcNow;
+        var incident = new Incident
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name.Trim(),
+            IncidentNumber = request.IncidentNumber?.Trim(),
+            Keyword = request.Keyword?.Trim(),
+            Description = request.Description?.Trim(),
+            OriginLatitude = request.OriginLatitude,
+            OriginLongitude = request.OriginLongitude,
+            Status = IncidentStatus.Active,
+            CreatedAtUtc = now,
+            Revision = 1,
+        };
+
+        var lease = new EditorLease
+        {
+            Id = Guid.NewGuid(),
+            IncidentId = incident.Id,
+            UserId = userContext.UserId,
+            UserDisplayName = userContext.DisplayName,
+            SessionId = request.SessionId,
+            LeaseToken = Guid.NewGuid().ToString("N"),
+            LastHeartbeatAtUtc = now,
+            ExpiresAtUtc = now.Add(IncidentModuleTime.LeaseDuration),
+        };
+
+        dbContext.Incidents.Add(incident);
+        dbContext.EditorLeases.Add(lease);
+
+        var response = new
+        {
+            incident = ToSummary(incident),
+            lease = ToLeaseDto(lease),
+            serverUtc = now,
+        };
+
+        dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+            request.CommandId,
+            "incident.create",
+            "active",
+            payloadHash,
+            ResponseHelpers.BuildEnvelope(StatusCodes.Status201Created, response),
+            userContext.UserId));
+
+        outboxService.AddMessage("incident", "incident.created", incident.Id.ToString(), new { incidentId = incident.Id, revision = incident.Revision, serverUtc = now });
+        outboxService.AddMessage("map", "map.lease.changed", incident.Id.ToString(), new { incidentId = incident.Id, leaseOwner = userContext.DisplayName, expiresAtUtc = lease.ExpiresAtUtc, serverUtc = now });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return StatusCode(StatusCodes.Status201Created);
     }
 
     [HttpPost("{incidentId:guid}/close")]
@@ -168,7 +159,6 @@ public class IncidentController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -216,13 +206,11 @@ public class IncidentController(
             outboxService.AddMessage("incident", "incident.closed", incident.Id.ToString(), new { incidentId = incident.Id, revision = incident.Revision, serverUtc = now });
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
 
             return Ok(response);
         }
         catch
         {
-            await tx.RollbackAsync(cancellationToken);
             throw;
         }
     }

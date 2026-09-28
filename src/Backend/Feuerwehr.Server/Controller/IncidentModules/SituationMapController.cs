@@ -364,14 +364,14 @@ public class SituationMapController(
                 }
 
                 var changed = false;
-                changed |= SetValue(ref element.SymbolId, request.SymbolId);
-                changed |= SetValue(ref element.Category, request.Category);
-                changed |= SetValue(ref element.Label, request.Label);
-                changed |= SetValue(ref element.RadioCallName, request.RadioCallName);
-                changed |= SetValue(ref element.Strength, request.Strength);
-                changed |= SetValue(ref element.Note, request.Note);
-                changed |= SetValue(ref element.ColorHex, string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex);
-                changed |= SetValue(ref element.GeometryJson, request.GeometryJson);
+                changed |= SetValue(element.SymbolId, request.SymbolId);
+                changed |= SetValue(element.Category, request.Category);
+                changed |= SetValue(element.Label, request.Label);
+                changed |= SetValue(element.RadioCallName, request.RadioCallName);
+                changed |= SetValue(element.Strength, request.Strength);
+                changed |= SetValue(element.Note, request.Note);
+                changed |= SetValue(element.ColorHex, string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex);
+                changed |= SetValue(element.GeometryJson, request.GeometryJson);
 
                 if (!changed)
                 {
@@ -672,18 +672,7 @@ public class SituationMapController(
         };
     }
 
-    private static bool SetValue(ref string? current, string? next)
-    {
-        if (string.Equals(current, next, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        current = next;
-        return true;
-    }
-
-    private static bool SetValue(ref string current, string next)
+    private static bool SetValue(string? current, string? next)
     {
         if (string.Equals(current, next, StringComparison.Ordinal))
         {
