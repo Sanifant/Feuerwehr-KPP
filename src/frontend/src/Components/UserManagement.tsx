@@ -3,7 +3,7 @@ import apiClient from '../api/apiClient';
 import { useRole } from '../hooks/useRole';
 import { Navigate } from 'react-router-dom';
 
-const AVAILABLE_ROLES = ['Admin', 'Commander', 'Firefighter', 'Viewer'];
+const AVAILABLE_ROLES = ['Admin', 'Commander', 'Firefighter', 'Viewer', 'SituationMapViewer','SituationMapEditor', 'IncidentDiaryViewer', 'IncidentDiaryEditor'];
 
 interface User {
     id: string;
@@ -51,6 +51,7 @@ const UserManagement: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
     const [form, setForm] = useState<CreateUserForm>(EMPTY_FORM);
     const [formErrors, setFormErrors] = useState<CreateUserFormErrors>({});
     const [submitting, setSubmitting] = useState(false);
@@ -77,7 +78,23 @@ const UserManagement: React.FC = () => {
     };
 
     const openCreateModal = () => {
+        setEditingUser(null);
         setForm(EMPTY_FORM);
+        setFormErrors({});
+        setSubmitError(null);
+        setShowCreateModal(true);
+    };
+
+    const openEditModal = (user: User) => {
+        setEditingUser(user);
+        setForm({
+            email: user.email,
+            password: '',
+            confirmPassword: '',
+            firstName: user.firstName,
+            lastName: user.lastName,
+            roles: [...user.roles],
+        });
         setFormErrors({});
         setSubmitError(null);
         setShowCreateModal(true);
@@ -85,6 +102,7 @@ const UserManagement: React.FC = () => {
 
     const closeCreateModal = () => {
         setShowCreateModal(false);
+        setEditingUser(null);
     };
 
     const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,10 +131,10 @@ const UserManagement: React.FC = () => {
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
             errors.email = 'Ungültige E-Mail-Adresse.';
         }
-        if (!form.password) {
+        if (!editingUser && !form.password) {
             errors.password = 'Passwort ist erforderlich.';
-        } else if (form.password.length < 6) {
-            errors.password = 'Passwort muss mindestens 6 Zeichen lang sein.';
+        } else if (form.password && (form.password.length < 8 || !/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/\d/.test(form.password))) {
+            errors.password = 'Passwort muss mindestens 8 Zeichen sowie Groß- und Kleinbuchstaben und eine Zahl enthalten.';
         }
         if (form.password !== form.confirmPassword) {
             errors.confirmPassword = 'Passwörter stimmen nicht überein.';
@@ -137,13 +155,23 @@ const UserManagement: React.FC = () => {
         setSubmitError(null);
 
         try {
-            await apiClient.post('/api/Users', {
+            const userRequest = {
                 email: form.email,
-                password: form.password,
                 firstName: form.firstName,
                 lastName: form.lastName,
                 roles: form.roles,
-            });
+            };
+            if (editingUser) {
+                await apiClient.put(`/api/Users/${editingUser.id}`, {
+                    ...userRequest,
+                    newPassword: form.password || undefined,
+                });
+            } else {
+                await apiClient.post('/api/Users', {
+                    ...userRequest,
+                    password: form.password,
+                });
+            }
             closeCreateModal();
             await fetchUsers();
         } catch (err: any) {
@@ -152,7 +180,7 @@ const UserManagement: React.FC = () => {
             if (identityErrors && Array.isArray(identityErrors)) {
                 setSubmitError(identityErrors.map((e: any) => e.description).join(' '));
             } else {
-                setSubmitError(serverMessage || 'Fehler beim Erstellen des Benutzers.');
+                setSubmitError(serverMessage || `Fehler beim ${editingUser ? 'Bearbeiten' : 'Erstellen'} des Benutzers.`);
             }
         } finally {
             setSubmitting(false);
@@ -198,6 +226,7 @@ const UserManagement: React.FC = () => {
                             <th>Status</th>
                             <th>Erstellt am</th>
                             <th>Letzter Login</th>
+                            <th>Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -223,6 +252,20 @@ const UserManagement: React.FC = () => {
                                         ? new Date(user.lastLoginAt).toLocaleString('de-DE')
                                         : 'Nie'}
                                 </td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        className="user-edit-button"
+                                        onClick={() => openEditModal(user)}
+                                        aria-label={`${user.fullName} bearbeiten`}
+                                        title="Benutzer bearbeiten"
+                                    >
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M12 20h9" />
+                                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
+                                        </svg>
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -234,7 +277,7 @@ const UserManagement: React.FC = () => {
                 <div className="modal-backdrop" onClick={closeCreateModal}>
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2>Neuen Benutzer erstellen</h2>
+                            <h2>{editingUser ? 'Benutzer bearbeiten' : 'Neuen Benutzer erstellen'}</h2>
                             <button className="modal-close" onClick={closeCreateModal} aria-label="Schließen">
                                 ×
                             </button>
@@ -293,7 +336,7 @@ const UserManagement: React.FC = () => {
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label htmlFor="password">Passwort *</label>
+                                    <label htmlFor="password">Passwort {editingUser ? '(optional)' : '*'}</label>
                                     <input
                                         id="password"
                                         name="password"
@@ -307,7 +350,7 @@ const UserManagement: React.FC = () => {
                                     {formErrors.password && <span className="field-error">{formErrors.password}</span>}
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="confirmPassword">Passwort bestätigen *</label>
+                                    <label htmlFor="confirmPassword">Passwort bestätigen {editingUser ? '(optional)' : '*'}</label>
                                     <input
                                         id="confirmPassword"
                                         name="confirmPassword"
@@ -354,7 +397,9 @@ const UserManagement: React.FC = () => {
                                     className="btn btn-primary"
                                     disabled={submitting}
                                 >
-                                    {submitting ? 'Wird erstellt…' : 'Benutzer erstellen'}
+                                    {submitting
+                                        ? (editingUser ? 'Wird gespeichert…' : 'Wird erstellt…')
+                                        : (editingUser ? 'Änderungen speichern' : 'Benutzer erstellen')}
                                 </button>
                             </div>
                         </form>
@@ -403,6 +448,33 @@ const UserManagement: React.FC = () => {
                 th {
                     background-color: #f8f9fa;
                     font-weight: 600;
+                }
+
+                .user-edit-button {
+                    display: inline-grid;
+                    place-items: center;
+                    width: 2rem;
+                    height: 2rem;
+                    padding: 0.35rem;
+                    border: 1px solid #ced4da;
+                    border-radius: 0.375rem;
+                    background: white;
+                    color: #0d6efd;
+                    cursor: pointer;
+                }
+
+                .user-edit-button:hover {
+                    background: #e9f2ff;
+                }
+
+                .user-edit-button svg {
+                    width: 100%;
+                    height: 100%;
+                    fill: none;
+                    stroke: currentColor;
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
+                    stroke-width: 2;
                 }
 
                 .badge {

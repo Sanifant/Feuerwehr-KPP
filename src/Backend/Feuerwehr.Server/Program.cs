@@ -184,7 +184,6 @@ public partial class Program
         app.MapHub<IncidentHub>("/hubs/incidents");
 
         app.MapDefaultEndpoints();
-        app.MapPrometheusScrapingEndpoint();
 
         app.Run();
     }
