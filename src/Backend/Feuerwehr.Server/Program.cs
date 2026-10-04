@@ -182,6 +182,7 @@ public partial class Program
 
         app.MapControllers();
         app.MapHub<IncidentHub>("/hubs/incidents");
+        app.MapPrometheusScrapingEndpoint("/metrics");
 
         app.MapDefaultEndpoints();
 

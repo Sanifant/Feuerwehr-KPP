@@ -80,8 +80,6 @@ public class SituationMapController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
         var incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
         if (incident is null)
         {
@@ -108,7 +106,6 @@ public class SituationMapController(
                     ResponseHelpers.BuildEnvelope(StatusCodes.Status200OK, ownLeaseResponse),
                     userContext.UserId));
                 await dbContext.SaveChangesAsync(cancellationToken);
-                await tx.CommitAsync(cancellationToken);
                 return Ok(ownLeaseResponse);
             }
 
@@ -152,7 +149,6 @@ public class SituationMapController(
         });
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
 
         return Ok(response);
     }
@@ -173,7 +169,6 @@ public class SituationMapController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var lease = await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
@@ -200,12 +195,10 @@ public class SituationMapController(
             });
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
         {
-            await tx.RollbackAsync(cancellationToken);
             return Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
         }
     }
@@ -226,7 +219,6 @@ public class SituationMapController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var lease = await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
@@ -251,12 +243,10 @@ public class SituationMapController(
             });
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
             return Ok(response);
         }
         catch (InvalidOperationException ex)
         {
-            await tx.RollbackAsync(cancellationToken);
             return Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
         }
     }
@@ -440,8 +430,6 @@ public class SituationMapController(
             return StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-
         try
         {
             var incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -496,13 +484,11 @@ public class SituationMapController(
             outboxService.AddMessage("map", "map.element.changed", incidentId.ToString(), new { incidentId, incidentRevision = incident.Revision, elementId, action = "delete", serverUtc = now });
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
 
             return Ok(response);
         }
         catch (InvalidOperationException ex)
         {
-            await tx.RollbackAsync(cancellationToken);
             return Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
         }
     }

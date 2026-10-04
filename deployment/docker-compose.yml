@@ -35,7 +35,7 @@ services:
     image: nginx/nginx-prometheus-exporter:1.3.0
     container_name: ff-kpp-int-nginx-exporter
     command:
-      - -nginx.scrape-uri=http://ff-kpp-int-inventory-frontend/nginx_status
+      - -nginx.scrape-uri=http://ff-kpp-int-inventory-frontend:8081/nginx_status
     restart: unless-stopped
     depends_on:
       - ff-kpp-int-inventory-frontend
