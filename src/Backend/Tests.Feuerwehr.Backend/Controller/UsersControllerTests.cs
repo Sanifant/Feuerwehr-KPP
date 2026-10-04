@@ -109,6 +109,58 @@ namespace Tests.Feuerwehr.Backend.Controller
         }
 
         [Fact]
+        public async Task UpdateUser_UpdatesEmailAndUsername()
+        {
+            var user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
+            var request = new UpdateUserRequest { Email = "new@example.com" };
+            _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync((ApplicationUser)null!);
+            _mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(um => um.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+
+            var result = await _controller.UpdateUser(user.Id, request);
+
+            Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(request.Email, user.Email);
+            Assert.Equal(request.Email, user.UserName);
+        }
+
+        [Fact]
+        public async Task UpdateUser_ClearsRoles_WhenEmptyRoleListProvided()
+        {
+            var user = new ApplicationUser { Id = "user-1" };
+            var currentRoles = new List<string> { "Admin" };
+            var request = new UpdateUserRequest { Roles = new List<string>() };
+            _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            _mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.SetupSequence(um => um.GetRolesAsync(user))
+                .ReturnsAsync(currentRoles)
+                .ReturnsAsync(new List<string>());
+            _mockUserManager.Setup(um => um.RemoveFromRolesAsync(user, currentRoles)).ReturnsAsync(IdentityResult.Success);
+
+            var result = await _controller.UpdateUser(user.Id, request);
+
+            Assert.IsType<OkObjectResult>(result);
+            _mockUserManager.Verify(um => um.RemoveFromRolesAsync(user, currentRoles), Times.Once);
+            _mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateUser_ReturnsBadRequest_WhenEmailBelongsToAnotherUser()
+        {
+            var user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
+            var existingUser = new ApplicationUser { Id = "user-2", Email = "taken@example.com" };
+            var request = new UpdateUserRequest { Email = existingUser.Email };
+            _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync(existingUser);
+
+            var result = await _controller.UpdateUser(user.Id, request);
+
+            Assert.IsType<BadRequestObjectResult>(result);
+            _mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        }
+
+        [Fact]
         public async Task GetUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -417,7 +469,6 @@ namespace Tests.Feuerwehr.Backend.Controller
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
-        /*
         [Fact]
         public async Task UpdateUser_ReturnsBadRequest_WhenInvalidRoleProvided()
         {
@@ -435,8 +486,8 @@ namespace Tests.Feuerwehr.Backend.Controller
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
+            _mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
-        */
         #endregion
 
         #region DeleteUser Tests

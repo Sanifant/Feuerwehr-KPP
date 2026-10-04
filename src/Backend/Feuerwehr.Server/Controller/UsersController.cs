@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 
 namespace Feuerwehr.Server.Controller
@@ -201,7 +202,30 @@ namespace Feuerwehr.Server.Controller
                 return NotFound(new { message = "User not found" });
             }
 
-            // Update properties
+            if (request.Email != null)
+            {
+                var email = request.Email.Trim();
+                var existingUser = await _userManager.FindByEmailAsync(email);
+                if (existingUser != null && existingUser.Id != user.Id)
+                {
+                    return BadRequest(new { message = "User with this email already exists" });
+                }
+
+                user.Email = email;
+                user.UserName = email;
+            }
+
+            if (request.Roles != null)
+            {
+                foreach (var role in request.Roles)
+                {
+                    if (!await _roleManager.RoleExistsAsync(role))
+                    {
+                        return BadRequest(new { message = $"Role '{role}' does not exist" });
+                    }
+                }
+            }
+
             user.FirstName = request.FirstName ?? user.FirstName;
             user.LastName = request.LastName ?? user.LastName;
             user.FireDepartmentId = request.FireDepartmentId ?? user.FireDepartmentId;
@@ -213,21 +237,26 @@ namespace Feuerwehr.Server.Controller
                 return BadRequest(new { message = "Failed to update user", errors = result.Errors });
             }
 
-            // Update roles if provided
-            if (request.Roles != null && request.Roles.Any())
+            if (request.Roles != null)
             {
-                // Validate roles
-                foreach (var role in request.Roles)
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                if (currentRoles.Count > 0)
                 {
-                    if (!await _roleManager.RoleExistsAsync(role))
+                    var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                    if (!removeResult.Succeeded)
                     {
-                        return BadRequest(new { message = $"Role '{role}' does not exist" });
+                        return BadRequest(new { message = "Failed to update roles", errors = removeResult.Errors });
                     }
                 }
 
-                var currentRoles = await _userManager.GetRolesAsync(user);
-                await _userManager.RemoveFromRolesAsync(user, currentRoles);
-                await _userManager.AddToRolesAsync(user, request.Roles);
+                if (request.Roles.Count > 0)
+                {
+                    var addResult = await _userManager.AddToRolesAsync(user, request.Roles);
+                    if (!addResult.Succeeded)
+                    {
+                        return BadRequest(new { message = "Failed to update roles", errors = addResult.Errors });
+                    }
+                }
             }
 
             // Update password if provided
@@ -320,6 +349,8 @@ namespace Feuerwehr.Server.Controller
 
 public class UpdateUserRequest
     {
+        [EmailAddress]
+        public string? Email { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public int? FireDepartmentId { get; set; }

@@ -25,11 +25,12 @@ Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Einsatz.
 
 Die Solution liegt unter `src/Feuerwehr.slnx` und umfasst:
 
-- Common: Geteilte Modelle und Kernlogik (inkl. Inventory-Service und Repository-Interfaces)
-- App: Die Avalonia UI Applikationen für Windows, Linux, Android un IOS
-- Backend: ASP.NET Core Web API
-- Frontend: React Frontend für die Pflege der Daten innerhalb der Software
-- AppHost: .NET Aspire, um den Entwicklungsprozess zu vereinfachen
+- `src/Feuerwehr.Common`: Geteilte Modelle und DTOs
+- `src/App/Feuerwehr.App`: Avalonia-Client mit Projekten für Android, Desktop und iOS
+- `src/Backend/Feuerwehr.Server`: ASP.NET Core Web API mit Datenzugriff, Authentifizierung und Migrationen
+- `src/Backend/Tests.Feuerwehr.Backend`: Backend-Tests
+- `src/frontend`: React-/TypeScript-Frontend auf Basis von Vite
+- `src/Feuerwehr.AppHost`: .NET Aspire AppHost für API, Frontend, Datenbank, Cache und Mailpit
 
 
 ## Deployment Flow
@@ -81,8 +82,8 @@ flowchart LR
 Aus dem Repo-Root:
 
 ```bash
-dotnet restore src/de.openelp.feuerwehr.slnx
-dotnet build src/de.openelp.feuerwehr.slnx
+dotnet restore src/Feuerwehr.slnx
+dotnet build src/Feuerwehr.slnx
 ```
 
 ## Starten
@@ -93,30 +94,32 @@ Development Environment in VS Code:
 code .
 ```
 
-Anschliessend den Ordner im Devcontainer neu oeffnen. Dabei werden der Workspace-Container sowie `postgres`, `redis` und `pgadmin` automatisch ueber Docker Compose gestartet.
+Anschliessend kann der AppHost gestartet werden. Er orchestriert API, Frontend, PostgreSQL, Redis und Mailpit.
 
-Manueller Start der relevanten Services ohne Devcontainer:
+AppHost:
 
 ```bash
-docker compose -f src/docker/docker-compose.yml -f src/docker/docker-compose.override.yml up -d postgres redis pgadmin de.openelp.feuerwehr.api
+dotnet run --project src/Feuerwehr.AppHost/Feuerwehr.AppHost.csproj
 ```
 
 Web API:
 
 ```bash
-dotnet run --project src/Web/de.openelp.feuerwehr/de.openelp.feuerwehr.Api.csproj
+dotnet run --project src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj
 ```
 
 Desktop-App:
 
 ```bash
-dotnet run --project src/Desktop/de.openelp.feuerwehr.desktop/de.openelp.feuerwehr.desktop.csproj
+dotnet run --project src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj
 ```
 
-Mobile Browser Host:
+Frontend:
 
 ```bash
-dotnet run --project src/Mobile/de.openelp.feuerwehr.mobile.Browser/de.openelp.feuerwehr.mobile.Browser.csproj
+cd src/frontend
+npm install
+npm run dev
 ```
 
 ## Changelog
@@ -126,7 +129,6 @@ Historie und relevante Aenderungen findest du in `CHANGELOG.md`.
 ## Weitere Dokumente
 
 - Sicherheit: `Security.md`
-- Support: `Support.md`
 - Governance: `Governance.md`
 - Datenschutz und Compliance: `Datenschutz.md`
 
