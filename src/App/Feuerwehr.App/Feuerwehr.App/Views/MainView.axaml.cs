@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Feuerwehr.App.Views
+namespace de.openelp.feuerwehr.App.Views
 {
     public partial class MainView : DrawerPage
     {

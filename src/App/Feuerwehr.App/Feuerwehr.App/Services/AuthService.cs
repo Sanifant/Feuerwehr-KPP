@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Common.Models.Auth;
 
-namespace Feuerwehr.App.Services;
+namespace de.openelp.feuerwehr.App.Services;
 
 public class AuthService : IAuthService
 {

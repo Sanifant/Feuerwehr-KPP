@@ -1,4 +1,4 @@
-﻿namespace Tests.Feuerwehr.Backend
+namespace de.openelp.feuerwehr.Tests.Backend
 {
     public class UnitTest1
     {

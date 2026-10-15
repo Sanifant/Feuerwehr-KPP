@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Net;
 using System.Text;
 
-namespace Feuerwehr.Common.Models
+namespace de.openelp.feuerwehr.Common.Models
 {
 
     public class Address
@@ -22,7 +22,6 @@ namespace Feuerwehr.Common.Models
 
     public class Hydrant
     {
-        [Key]
         public int Id { get; set; }
 
         public Address Address { get; set; } = new();
@@ -43,7 +42,6 @@ namespace Feuerwehr.Common.Models
         public HydrantStatus Status { get; set; }
 
         public string? Notes { get; set; }
-
 
         // Computed Read-Only Properties (Excluded from Database Mapping)
         public bool IsUnderground => Type == HydrantType.Underground;

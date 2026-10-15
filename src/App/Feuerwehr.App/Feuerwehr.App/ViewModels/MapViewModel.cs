@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Feuerwehr.App.Models;
-using Feuerwehr.App.Services;
-using Feuerwehr.Common.Models;
+using de.openelp.feuerwehr.App.Models;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.Common.Models;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
@@ -20,7 +20,7 @@ using Mapsui.UI;
 using Mapsui.UI.Avalonia;
 using Mapsui.Widgets.InfoWidgets;
 
-namespace Feuerwehr.App.ViewModels
+namespace de.openelp.feuerwehr.App.ViewModels
 {
     public partial class MapViewModel : ViewModelBase
     {
@@ -36,7 +36,7 @@ namespace Feuerwehr.App.ViewModels
 
         [ObservableProperty]
         private bool _canZoomIn = true;
-        
+
         [ObservableProperty]
         private bool _canAddHydrant = true;
 
@@ -67,7 +67,7 @@ namespace Feuerwehr.App.ViewModels
                 if (task.IsCompletedSuccessfully)
                 {
                     var hydrants = task.Result.Select(h => new HydrantPin
-                    { 
+                    {
                         Diameter = h.DiameterDescription,
                         Latitude = h.Latitude,
                         Longitude = h.Longitude
@@ -79,7 +79,6 @@ namespace Feuerwehr.App.ViewModels
                 }
             });
         }
-
 
         [RelayCommand]
         public void ZoomIn()
@@ -134,7 +133,7 @@ namespace Feuerwehr.App.ViewModels
                     Id = 0
                 };
             }
-        
+
         }
 
         [RelayCommand]
@@ -208,10 +207,8 @@ namespace Feuerwehr.App.ViewModels
                 map.Layers.Add(memoryLayer);
             }
 
-
             Map = map;
         }
-
 
         private IEnumerable<ILayer> HydrantLayer(List<HydrantPin> hydrants)
         {

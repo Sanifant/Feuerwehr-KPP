@@ -1,16 +1,17 @@
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.Globalization;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Feuerwehr.Server.Data;
-using Feuerwehr.Server.Hubs;
-using Feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Hubs;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feuerwehr.Server.Services.IncidentModules;
+namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
 
 public static class IncidentModuleTime
 {

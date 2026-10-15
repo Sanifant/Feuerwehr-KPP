@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public class FeuerwehrDbContextFactory: IDesignTimeDbContextFactory<FeuerwehrDbContext>
     {

@@ -1,22 +1,23 @@
-﻿using global::Feuerwehr.Server.Controller;
-using global::Feuerwehr.Server.Models;
-using global::Feuerwehr.Server.Models.Auth;
+using de.openelp.feuerwehr.Server.Services;
+using global::de.openelp.feuerwehr.Server.Controller;
+using global::de.openelp.feuerwehr.Server.Models;
+using global::de.openelp.feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Tests.Feuerwehr.Backend.Controller
+namespace de.openelp.feuerwehr.Tests.Backend.Controller
 {
     public class UsersControllerTests
     {
         private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
         private readonly Mock<RoleManager<IdentityRole>> _mockRoleManager;
-        private readonly Mock<SmtpClient> _mockSmtpClient;
+        private readonly Mock<IUserInvitationService> _mockInvitations;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
@@ -25,9 +26,9 @@ namespace Tests.Feuerwehr.Backend.Controller
                 new Mock<IUserStore<ApplicationUser>>().Object, null, null, null, null, null, null, null, null);
             _mockRoleManager = new Mock<RoleManager<IdentityRole>>(
                 new Mock<IRoleStore<IdentityRole>>().Object, null, null, null, null);
-            _mockSmtpClient = new Mock<SmtpClient>();
+            _mockInvitations = new Mock<IUserInvitationService>();
 
-            _controller = new UsersController(_mockUserManager.Object, _mockRoleManager.Object, _mockSmtpClient.Object);
+            _controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockInvitations.Object, NullLogger<UsersService>.Instance));
         }
 
         #region GetAllUsers Tests
@@ -60,7 +61,7 @@ namespace Tests.Feuerwehr.Backend.Controller
             var returnedUsers = Assert.IsType<List<object>>(okResult.Value);
             Assert.Single(returnedUsers);
         }
-        
+
         [Fact]
         public async Task GetAllUsers_ReturnsEmptyList_WhenNoUsersExist()
         {
@@ -188,7 +189,7 @@ namespace Tests.Feuerwehr.Backend.Controller
                 Email = "newuser@example.com",
                 FirstName = "Jane",
                 LastName = "Smith",
-                Password = "SecurePassword123!",
+
                 FireDepartmentId = 1,
                 Roles = new List<string> { "User" }
             };
@@ -206,8 +207,8 @@ namespace Tests.Feuerwehr.Backend.Controller
 
             _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
             _mockRoleManager.Setup(rm => rm.RoleExistsAsync("User")).ReturnsAsync(true);
-            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
-                .Callback<ApplicationUser, string>((user, pwd) => user.Id = "new-user-1")
+            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
+                .Callback<ApplicationUser>(user => user.Id = "new-user-1")
                 .ReturnsAsync(IdentityResult.Success);
             _mockUserManager.Setup(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), request.Roles))
                 .ReturnsAsync(IdentityResult.Success);
@@ -219,7 +220,7 @@ namespace Tests.Feuerwehr.Backend.Controller
             // Assert
             var createdResult = Assert.IsType<CreatedAtActionResult>(result);
             Assert.Equal(nameof(_controller.GetUser), createdResult.ActionName);
-            _mockSmtpClient.Verify(sc => sc.SendMailAsync(It.IsAny<MailMessage>()), Times.Once);
+            _mockInvitations.Verify(service => service.SendAsync(It.IsAny<ApplicationUser>()), Times.Once);
         }
         */
         [Fact]
@@ -231,7 +232,7 @@ namespace Tests.Feuerwehr.Backend.Controller
                 Email = "existing@example.com",
                 FirstName = "Jane",
                 LastName = "Smith",
-                Password = "SecurePassword123!",
+
                 FireDepartmentId = 1,
                 Roles = new List<string> { "User" }
             };
@@ -256,7 +257,7 @@ namespace Tests.Feuerwehr.Backend.Controller
                 Email = "newuser@example.com",
                 FirstName = "Jane",
                 LastName = "Smith",
-                Password = "SecurePassword123!",
+
                 FireDepartmentId = 1,
                 Roles = new List<string> { "InvalidRole" }
             };
@@ -281,7 +282,7 @@ namespace Tests.Feuerwehr.Backend.Controller
                 Email = "newuser@example.com",
                 FirstName = "Jane",
                 LastName = "Smith",
-                Password = "SecurePassword123!",
+
                 FireDepartmentId = 1,
                 Roles = new List<string> { "User" }
             };
@@ -294,8 +295,8 @@ namespace Tests.Feuerwehr.Backend.Controller
 
             _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
             _mockRoleManager.Setup(rm => rm.RoleExistsAsync("User")).ReturnsAsync(true);
-            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
-                .Callback<ApplicationUser, string>((user, pwd) => user.Id = "new-user-1")
+            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
+                .Callback<ApplicationUser>(user => user.Id = "new-user-1")
                 .ReturnsAsync(IdentityResult.Success);
             _mockUserManager.Setup(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), request.Roles))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Role assignment failed" }));
@@ -319,13 +320,13 @@ namespace Tests.Feuerwehr.Backend.Controller
                 Email = "newuser@example.com",
                 FirstName = "Jane",
                 LastName = "Smith",
-                Password = "WeakPassword",
+
                 FireDepartmentId = 1,
                 Roles = new List<string>()
             };
 
             _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
-            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
+            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Password not strong enough" }));
 
             // Act
@@ -653,7 +654,7 @@ namespace Tests.Feuerwehr.Backend.Controller
 
         private UsersController SetupControllerWithClaims(string userId)
         {
-            var controller = new UsersController(_mockUserManager.Object, _mockRoleManager.Object, _mockSmtpClient.Object);
+            var controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockInvitations.Object, NullLogger<UsersService>.Instance));
 
             var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
             {

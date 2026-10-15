@@ -1,4 +1,4 @@
-﻿using Feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     public class HydrantService : IHydrantService
     {
@@ -25,7 +25,7 @@ namespace Feuerwehr.App.Services
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<IEnumerable<Hydrant>>() 
+                return await response.Content.ReadFromJsonAsync<IEnumerable<Hydrant>>()
                        ?? new List<Hydrant>();
             }
 

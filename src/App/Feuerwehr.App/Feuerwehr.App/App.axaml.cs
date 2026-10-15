@@ -4,9 +4,9 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Feuerwehr.App.Services;
-using Feuerwehr.App.ViewModels;
-using Feuerwehr.App.Views;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.App.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 
-namespace Feuerwehr.App
+namespace de.openelp.feuerwehr.App
 {
     public partial class App : Application
     {
@@ -64,8 +64,6 @@ namespace Feuerwehr.App
 
             base.OnFrameworkInitializationCompleted();
         }
-
-
 
         private Control CreateActivityView()
         {
@@ -135,9 +133,10 @@ namespace Feuerwehr.App
             // Für Blazor WebAssembly / Web-Clients
             collection.AddScoped<IHydrantService, HydrantService>();
 
-            var baseUrl = Environment.GetEnvironmentVariable("webapi");
-            // Aspire injiziert Verbindungen als ConnectionString ("webapi")
-            // Im Release nutzen wir die FallbackUrl aus der appsettings.json
+            var baseUrl = Environment.GetEnvironmentVariable("webapi")
+                ?? Environment.GetEnvironmentVariable("services__server__https__0")
+                ?? Environment.GetEnvironmentVariable("services__server__http__0");
+            // Explicit override takes precedence over Aspire's server endpoint references.
 
             if (string.IsNullOrEmpty(baseUrl))
             {

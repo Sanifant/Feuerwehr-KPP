@@ -915,6 +915,54 @@
   font-size: 16px;
 }
 
+.user-menu {
+  position: relative;
+}
+
+.user-menu .chevron-button {
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.user-menu .chevron-button[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.user-menu__items {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  min-width: 190px;
+  padding: 6px;
+  background: #ffffff;
+  color: #102b4d;
+  border: 1px solid #dbe2ec;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+}
+
+.user-menu__items [role="menuitem"] {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.user-menu__items [role="menuitem"]:hover,
+.user-menu__items [role="menuitem"]:focus-visible {
+  background: #edf3fa;
+}
+
 .dashboard-layout {
   display: flex;
   min-height: 100vh;

@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace Feuerwehr.App.Services;
+namespace de.openelp.feuerwehr.App.Services;
 
 /// <summary>
 /// Simple in-memory secure storage implementation for desktop/development.

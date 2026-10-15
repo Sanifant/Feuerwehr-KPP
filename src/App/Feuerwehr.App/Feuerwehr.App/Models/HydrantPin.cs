@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Feuerwehr.App.Models
+namespace de.openelp.feuerwehr.App.Models
 {
     public class HydrantPin
     {
