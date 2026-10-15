@@ -146,6 +146,25 @@ public sealed class AuthService : IAuthService
 
     public Task<ServiceResult> ResetPassword(ResetRequest request) => _invitations.CompleteAsync(request);
 
+    public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
+    {
+        if (string.IsNullOrWhiteSpace(currentUserId)) return ServiceResult.Unauthorized();
+        var user = await _userManager.FindByIdAsync(currentUserId);
+        if (user is null || !user.IsActive) return ServiceResult.Unauthorized();
+
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            if (result.Errors.Any(error => error.Code == "PasswordMismatch"))
+                return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort ist falsch."));
+            return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geändert werden.",
+                result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
+        }
+
+        await _tokenService.RevokeRefreshTokenAsync(user.Id);
+        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde geändert."));
+    }
+
     /// <summary>
     /// Logout and revoke refresh token
     /// </summary>
@@ -196,6 +215,7 @@ public interface IAuthService
     Task<ServiceResult> Login(LoginRequest request);
     Task<ServiceResult> RefreshToken(RefreshTokenRequest request, string bearerToken);
     Task<ServiceResult> ResetPassword(ResetRequest request);
+    Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId);
     Task<ServiceResult> Logout(string? currentUserId);
     Task<ServiceResult> GetCurrentUser(string? currentUserId);
 }

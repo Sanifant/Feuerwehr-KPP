@@ -41,6 +41,15 @@ public class AuthController(IAuthService service) : ControllerBase
         return this.ToActionResult(await service.ResetPassword(request));
     }
 
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        return this.ToActionResult(await service.ChangePassword(request,
+            User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+    }
+
     /// <summary>
     /// Logout and revoke refresh token
     /// </summary>

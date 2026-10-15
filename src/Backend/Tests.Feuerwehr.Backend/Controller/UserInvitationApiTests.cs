@@ -189,6 +189,45 @@ public sealed class UserInvitationApiTests : IDisposable
 
     public void Dispose() => _provider.Dispose();
 
+    private void SignInAs(string userId)
+    {
+        _authApi.ControllerContext = new ControllerContext
+        {
+            HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext
+            {
+                User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(
+                    [new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId)], "test")),
+            },
+        };
+    }
+
+    [Fact]
+    public async Task ChangePassword_UsesSignedInUserAndRequiresCurrentPassword()
+    {
+        var (user, id) = await CreateInvitedUser();
+        await _authApi.ResetPassword(Request(id));
+        SignInAs(user.Id);
+        var request = new ChangePasswordRequest { CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123" };
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ChangePassword(request));
+        Assert.True(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
+        request.CurrentPassword = "MyNewPassword123";
+        Assert.IsType<OkObjectResult>(await _authApi.ChangePassword(request));
+        Assert.True(await _users.CheckPasswordAsync(user, "ChangedPassword123"));
+        Assert.False(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
+        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task ChangePassword_RejectsMissingUserOrInvalidModel()
+    {
+        var request = new ChangePasswordRequest { CurrentPassword = "CurrentPassword123", NewPassword = "ChangedPassword123" };
+        Assert.IsType<UnauthorizedResult>(await _authApi.ChangePassword(request));
+        SignInAs("unknown");
+        Assert.IsType<UnauthorizedResult>(await _authApi.ChangePassword(request));
+        _authApi.ModelState.AddModelError("CurrentPassword", "Required");
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ChangePassword(request));
+    }
+
     private sealed class MutableClock : TimeProvider
     {
         public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;

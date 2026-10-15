@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChangePassword } from './ChangePassword';
 import { setInvitedUserPassword } from '../api/passwordApi';
 
-vi.mock('../api/passwordApi', () => ({ setInvitedUserPassword: vi.fn() }));
+vi.mock('../api/passwordApi', () => ({ setInvitedUserPassword: vi.fn(), changeOwnPassword: vi.fn() }));
 const token = '5aac0d66-a265-4f4a-90aa-fb32fb9641a4';
 
 function show(pathToken = token) {
