@@ -58,16 +58,19 @@
 - Nach erfolgreichem Build derselben Konfiguration: `dotnet test src/Feuerwehr.slnx --no-build --no-restore`.
 - Frontend separat: `cd src/frontend`, `npm ci`, `npm run build`, `npm run lint`; Entwicklungsserver: `npm run dev`.
 - `frontend.esproj` deaktiviert NPM-Installation und Build-Skript. Ein erfolgreicher Solution-Build validiert das Web-Frontend nicht.
-- Kein Frontend-Testskript/Test-Runner eingerichtet. Die CI prueft Backend-Build/Tests, Web-Build und Desktop auf Windows/Linux; Mobile-Jobs sind auskommentiert.
+- Frontend-Tests: `cd src/frontend`, `npm test` (Vitest, Testing Library, jsdom); interaktiv `npm run test:watch`. Die CI prueft Backend-Build/Tests, Web-Build/Tests und Desktop auf Windows/Linux; Mobile-Jobs sind auskommentiert.
 - Bestehender ESLint-Bestand ist noch nicht fehlerfrei (u. a. `no-explicit-any` und Hook-Abhaengigkeiten); neue Aenderungen sollen keine weiteren Befunde hinzufuegen.
 
 ## Konfiguration und Integrationen
 - API-Konfiguration: `src/Backend/Feuerwehr.Server/appsettings.json` und `appsettings.Development.json`.
 - Die API erhält Datenbank-, Cache- und Mailpit-Verbindungen im Entwicklungsbetrieb über Aspire.
-- API-Verbindungen heissen `ConnectionStrings:postgresdb` und `ConnectionStrings:cache`; SMTP liest `MAIL_HOST`/`MAIL_PORT` (Fallback localhost:1025). Ein separater API-Start benoetigt diese Infrastruktur und Konfiguration.
+- API-Verbindungen heissen `ConnectionStrings:postgresdb` und `ConnectionStrings:cache`; SMTP priorisiert `MAIL_HOST`/`MAIL_PORT`, danach Aspires `ConnectionStrings:mail` (SMTP-URI oder `endpoint=...`), sonst localhost:1025. SMTP-Clients sind pro Request scoped. Ein separater API-Start benoetigt diese Infrastruktur und Konfiguration.
 - Avalonia priorisiert `webapi`, danach Aspire `services__server__https__0`/`services__server__http__0`; ohne Konfiguration wird die Integrationsumgebung angesprochen.
 - Web-API-Basis: `VITE_API_URL`, sonst gleiche Origin. Vite leitet `/api` und `/hubs` (WebSockets) weiter; Ziel aus `API_HTTPS`/`API_HTTP`, danach Aspire-Servicevariablen, sonst `https://localhost:7538`. AppHost setzt derzeit `VITE_API_URL` explizit auf diese HTTPS-Adresse.
 - JWT-Konfiguration liegt im Abschnitt `JwtSettings` der API-Konfiguration.
+- Benutzeranlage: Administrator sendet Stammdaten/Rollen ohne Passwort an `POST /api/Users`. `UserInvitationService` speichert UUID-Zuordnung mit Identity-Reset-Token fuer 24 Stunden in Redis und versendet ueber `IMailService` den Link `/password/{uuid}`. Bei Versandfehlern wird die Anlage zurueckgenommen.
+- Einladungslinks benoetigen `Frontend:BaseUrl` (`Frontend__BaseUrl` als Umgebungsvariable); in Development `http://localhost:54321`, ausserhalb Development explizit konfigurieren. Optionaler Mail-Absender: `Mail:From`. Keine vom Request gelieferte Origin fuer Einladungslinks verwenden.
+- `POST /api/Auth/reset-password` ist anonym und erwartet `token` (UUID), `email` und `newPassword`. UUID identifiziert das Konto; E-Mail muss zur Einladung und zum aktuellen Konto passen. Identity prueft das Passwort und entwertet den Reset-Token nach Erfolg; UUID-Zuordnung wird geloescht. Keine UUIDs oder Identity-Token in API-Antworten/Logs ausgeben.
 - API-Doku im Development ueber OpenAPI + Scalar (`AddOpenApi`, `MapScalarApiReference`).
 - `/health` und `/alive` sind nur in Development gemappt; Prometheus unter `/metrics`.
 - EF-Design-Time-Einstieg: `Data/FeuerwehrDbContextFactory.cs`; dessen feste lokale Verbindung vor echten Datenbankoperationen pruefen. Namespaces und EF-Snapshots bei Modellverschiebungen konsistent halten; reine Umbenennungen sollen keine Schemaaenderungen erzeugen.
@@ -84,4 +87,4 @@
 - NuGet-Abhaengigkeitsgrenzen beachten: insbesondere `Microsoft.OpenApi` passend zu `Microsoft.AspNetCore.OpenApi` waehlen. NU1608 nicht bloss unterdruecken.
 - Test-Stack: xUnit + Moq, EF InMemory und SQLite; vorhandene Controller-Tests: `UsersControllerTests` und `IncidentDiaryControllerTests`. Service-Tests unter `Services/`, Architekturregeln in `ArchitectureTests.cs`.
 - Relevante Service-/Controller-Tests und bei Common-Aenderungen betroffene Clients pruefen. EF-InMemory/SQLite ersetzen keine PostgreSQL-Integrationstests, etwa fuer Sequenzen.
-- Bekannte Grenzen: Passwort-Reset im AuthService ist noch nicht implementiert; `UnitTest1` ist ein leerer Platzhalter, einige Tests sind auskommentiert. Ein gruener Testlauf bedeutet keine vollstaendige Funktionsabdeckung.
+- Bekannte Grenzen: `UnitTest1` ist ein leerer Platzhalter, einige Tests sind auskommentiert. Ein gruener Testlauf bedeutet keine vollstaendige Funktionsabdeckung. Einladungs-API-Tests nutzen echtes Identity/EF mit austauschbaren Mail-/Redis-Grenzen; sie ersetzen keinen externen SMTP-/Redis-Integrationstest.

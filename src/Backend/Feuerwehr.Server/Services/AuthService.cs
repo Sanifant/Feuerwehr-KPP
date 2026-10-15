@@ -4,9 +4,6 @@ using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Common.Models.Auth;
 using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Identity;
-using StackExchange.Redis;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace de.openelp.feuerwehr.Server.Services;
 
@@ -14,20 +11,20 @@ public sealed class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IConnectionMultiplexer _connectionMultiplex;
+    private readonly IUserInvitationService _invitations;
     private readonly ITokenService _tokenService;
     private readonly IConfiguration _configuration;
 
     public AuthService(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IConnectionMultiplexer connectionMux,
+            IUserInvitationService invitations,
             ITokenService tokenService,
             IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _connectionMultiplex = connectionMux;
+        _invitations = invitations;
         _tokenService = tokenService;
         _configuration = configuration;
     }
@@ -147,26 +144,7 @@ public sealed class AuthService : IAuthService
 
     }
 
-    public async Task<ServiceResult> ResetPassword(ResetRequest request)
-    {
-        var db = _connectionMultiplex.GetDatabase();
-
-        var resetRequest = await db.StringGetAsync(request.Token);
-        if (resetRequest.IsNullOrEmpty)
-        {
-            return ServiceResult.NotFound(new MessageResponse("Invalid or expired reset token"));
-        }
-
-        //var resetData = JsonSerializer.Deserialize<ApplicationUser>(resetRequest);
-
-        // var user = await _userManager.FindByNameAsync(resetData.Username);
-        // if (user == null) return ServiceResult.NotFound(new MessageResponse("User not found"));
-        // var result = await _userManager.ResetPasswordAsync(user, resetData.Token, resetData.NewPassword);
-        // if (!result.Succeeded) return ServiceResult.BadRequest(new MessageResponse("Password reset failed"));
-
-        return ServiceResult.NotFound(new MessageResponse("Reset password request not yet implemented"));
-
-    }
+    public Task<ServiceResult> ResetPassword(ResetRequest request) => _invitations.CompleteAsync(request);
 
     /// <summary>
     /// Logout and revoke refresh token

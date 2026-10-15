@@ -30,11 +30,13 @@ public partial class Program
 
         builder.AddNpgsqlDbContext<FeuerwehrDbContext>(connectionName: "postgresdb");
 
-        builder.Services.AddSingleton<SmtpClient>(_ =>
-        new SmtpClient(
-            host: Environment.GetEnvironmentVariable("MAIL_HOST") ?? "localhost",
-            port: int.TryParse(
-                Environment.GetEnvironmentVariable("MAIL_PORT"), out var p) ? p : 1025));
+        builder.Services.AddScoped<SmtpClient>(services => MailService.CreateClient(
+            services.GetRequiredService<IConfiguration>()));
+
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<IMailService, MailService>();
+        builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
+        builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
 
         // Configure ASP.NET Core Identity
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

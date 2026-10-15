@@ -15,15 +15,17 @@ public sealed class UsersService : IUsersService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly SmtpClient _smtpClient;
+    private readonly IUserInvitationService _invitations;
+    private readonly ILogger<UsersService> _logger;
 
     public UsersService(UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            SmtpClient smtpClient)
+            IUserInvitationService invitations, ILogger<UsersService> logger)
     {
         _userManager = userManager;
         _roleManager = roleManager;
-        _smtpClient = smtpClient;
+        _invitations = invitations;
+        _logger = logger;
     }
 
     /// <summary>
@@ -75,7 +77,8 @@ public sealed class UsersService : IUsersService
     {
 
         // Check if user already exists
-        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        var email = request.Email.Trim();
+        var existingUser = await _userManager.FindByEmailAsync(email);
         if (existingUser != null)
         {
             return ServiceResult.BadRequest(new MessageResponse("User with this email already exists"));
@@ -92,8 +95,8 @@ public sealed class UsersService : IUsersService
 
         var user = new ApplicationUser
         {
-            UserName = request.Email,
-            Email = request.Email,
+            UserName = email,
+            Email = email,
             FirstName = request.FirstName,
             LastName = request.LastName,
             FireDepartmentId = request.FireDepartmentId,
@@ -101,7 +104,7 @@ public sealed class UsersService : IUsersService
             CreatedAt = DateTime.UtcNow
         };
 
-        var result = await _userManager.CreateAsync(user, request.Password);
+        var result = await _userManager.CreateAsync(user);
 
         if (!result.Succeeded)
         {
@@ -122,14 +125,17 @@ public sealed class UsersService : IUsersService
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        using var message = new MailMessage("noreply@localhost.de", user.Email, "Welcome to the system", $"Your account {user.Email} has been created.");
         try
         {
-            await _smtpClient.SendMailAsync(message);
+            await _invitations.SendAsync(user);
         }
-        catch (SmtpException smtpEx)
+        catch (Exception exception)
         {
-            Console.WriteLine($"Failed to send email: {smtpEx.Message}");
+            _logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurückgenommen.");
+            var rollback = await _userManager.DeleteAsync(user);
+            if (!rollback.Succeeded)
+                _logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurückgenommen werden.");
+            return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
         }
 
         return ServiceResult.CreatedAtAction(nameof(GetUser), new { id = user.Id }, new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList()));

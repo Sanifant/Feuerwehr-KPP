@@ -37,6 +37,7 @@ public class AuthController(IAuthService service) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetRequest request)
     {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
         return this.ToActionResult(await service.ResetPassword(request));
     }
 
