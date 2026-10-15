@@ -1,4 +1,4 @@
-﻿namespace Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public class MailService
     {

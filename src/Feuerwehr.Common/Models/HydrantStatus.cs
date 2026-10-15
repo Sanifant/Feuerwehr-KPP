@@ -1,4 +1,4 @@
-﻿namespace Feuerwehr.Common.Models
+namespace de.openelp.feuerwehr.Common.Models
 {
     public enum HydrantStatus
     {

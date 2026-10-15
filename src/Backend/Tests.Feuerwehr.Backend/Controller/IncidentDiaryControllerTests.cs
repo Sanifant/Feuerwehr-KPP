@@ -1,16 +1,17 @@
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.Text;
 using System.Text.Json;
-using global::Feuerwehr.Server.Controller.IncidentModules;
-using global::Feuerwehr.Server.Data;
-using global::Feuerwehr.Server.Models.IncidentModules;
-using global::Feuerwehr.Server.Services.IncidentModules;
+using global::de.openelp.feuerwehr.Server.Controller.IncidentModules;
+using global::de.openelp.feuerwehr.Server.Data;
+using global::de.openelp.feuerwehr.Server.Models.IncidentModules;
+using global::de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-namespace Tests.Feuerwehr.Backend.Controller;
+namespace de.openelp.feuerwehr.Tests.Backend.Controller;
 
 public class IncidentDiaryControllerTests
 {
@@ -61,11 +62,11 @@ public class IncidentDiaryControllerTests
         Mock<ICommandIdempotencyService>? idempotencyMock = null,
         Mock<IOutboxService>? outboxMock = null)
     {
-        return new IncidentDiaryController(
+        return new IncidentDiaryController(new IncidentDiaryService(
             dbContext,
             (userContextMock ?? CreateUserContextMock()).Object,
             (idempotencyMock ?? CreateIdempotencyMock()).Object,
-            (outboxMock ?? new Mock<IOutboxService>()).Object);
+            (outboxMock ?? new Mock<IOutboxService>()).Object));
     }
 
     private static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
@@ -464,5 +465,5 @@ public class IncidentDiaryControllerTests
     */
 
     private static JsonElement ToJsonElement(object value)
-        => JsonSerializer.SerializeToElement(value);
+        => JsonSerializer.SerializeToElement(value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 }

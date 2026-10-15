@@ -1,4 +1,4 @@
-namespace Feuerwehr.Common.Models.Dto;
+namespace de.openelp.feuerwehr.Common.Models.Dto;
 
 public class FireDepartmentDto
 {

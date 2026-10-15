@@ -1,6 +1,7 @@
-﻿using global::Feuerwehr.Server.Controller;
-using global::Feuerwehr.Server.Models;
-using global::Feuerwehr.Server.Models.Auth;
+using de.openelp.feuerwehr.Server.Services;
+using global::de.openelp.feuerwehr.Server.Controller;
+using global::de.openelp.feuerwehr.Server.Models;
+using global::de.openelp.feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -10,7 +11,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Tests.Feuerwehr.Backend.Controller
+namespace de.openelp.feuerwehr.Tests.Backend.Controller
 {
     public class UsersControllerTests
     {
@@ -27,7 +28,7 @@ namespace Tests.Feuerwehr.Backend.Controller
                 new Mock<IRoleStore<IdentityRole>>().Object, null, null, null, null);
             _mockSmtpClient = new Mock<SmtpClient>();
 
-            _controller = new UsersController(_mockUserManager.Object, _mockRoleManager.Object, _mockSmtpClient.Object);
+            _controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockSmtpClient.Object));
         }
 
         #region GetAllUsers Tests
@@ -60,7 +61,7 @@ namespace Tests.Feuerwehr.Backend.Controller
             var returnedUsers = Assert.IsType<List<object>>(okResult.Value);
             Assert.Single(returnedUsers);
         }
-        
+
         [Fact]
         public async Task GetAllUsers_ReturnsEmptyList_WhenNoUsersExist()
         {
@@ -653,7 +654,7 @@ namespace Tests.Feuerwehr.Backend.Controller
 
         private UsersController SetupControllerWithClaims(string userId)
         {
-            var controller = new UsersController(_mockUserManager.Object, _mockRoleManager.Object, _mockSmtpClient.Object);
+            var controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockSmtpClient.Object));
 
             var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
             {

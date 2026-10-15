@@ -1,9 +1,9 @@
-﻿using Android.App;
+using Android.App;
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
 
-namespace Feuerwehr.App.Android
+namespace de.openelp.feuerwehr.App.Android
 {
     [Application]
     public class Application : AvaloniaAndroidApplication<App>

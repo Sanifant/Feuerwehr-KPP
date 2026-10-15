@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Services;
 using System;
 using System.Threading.Tasks;
 
-namespace Feuerwehr.App.ViewModels
+namespace de.openelp.feuerwehr.App.ViewModels
 {
     public partial class LoginViewModel : ViewModelBase
     {

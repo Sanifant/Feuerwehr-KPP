@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Feuerwehr.Common.Models.Dto
+namespace de.openelp.feuerwehr.Common.Models.Dto
 {
     public class TrainingCourseDto
     {

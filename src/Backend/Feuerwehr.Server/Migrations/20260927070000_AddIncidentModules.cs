@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Feuerwehr.Server.Migrations
+namespace de.openelp.feuerwehr.Server.Migrations
 {
     public partial class AddIncidentModules : Migration
     {

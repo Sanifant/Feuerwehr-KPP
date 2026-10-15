@@ -1,10 +1,11 @@
-﻿using Feuerwehr.Common.Models;
-using Feuerwehr.Server.Models.IncidentModules;
-using Feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
+
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public class FeuerwehrDbContext : IdentityDbContext<ApplicationUser>
     {
@@ -14,9 +15,9 @@ namespace Feuerwehr.Server.Data
         }
 
         public DbSet<Hydrant> Hydrants { get; set; }
-        
+
         public DbSet<FireDepartment>  FireDepartments { get; set; }
-        
+
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 
         public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
@@ -37,7 +38,7 @@ namespace Feuerwehr.Server.Data
             modelBuilder.HasSequence<int>("Hydrants_Id_seq")
                 .StartsAt(1)
                 .IncrementsBy(1);
-            
+
             modelBuilder.Entity<Hydrant>(entity =>
             {
                 entity.ToTable("Hydrants");

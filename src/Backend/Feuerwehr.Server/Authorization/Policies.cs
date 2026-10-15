@@ -1,4 +1,4 @@
-namespace Feuerwehr.Server.Authorization
+namespace de.openelp.feuerwehr.Server.Authorization
 {
     /// <summary>
     /// Constants for authorization policy names

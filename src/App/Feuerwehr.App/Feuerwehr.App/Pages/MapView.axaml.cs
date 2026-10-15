@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Feuerwehr.App.Pages;
+namespace de.openelp.feuerwehr.App.Pages;
 
 public partial class MapView : ContentPage
 {

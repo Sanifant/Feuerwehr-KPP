@@ -1,7 +1,7 @@
-﻿using Avalonia;
+using Avalonia;
 using System;
 
-namespace Feuerwehr.App.Desktop
+namespace de.openelp.feuerwehr.App.Desktop
 {
     internal sealed class Program
     {
