@@ -63,6 +63,9 @@ function toFeature(element: MapElementDto): Feature<Geometry> {
         dataProjection: 'EPSG:4326',
         featureProjection: 'EPSG:3857',
     });
+    if (!geometry) {
+        throw new Error('Das Kartenelement enthält keine Geometrie.');
+    }
 
     const feature = new Feature({
         geometry,
@@ -370,8 +373,10 @@ export function IncidentMapPage() {
                 const saved = response.element as MapElementDto;
                 // Eine HTTP-200-Antwort allein reicht nicht: Die API muss die neue
                 // Geometrie zurückliefern, sonst darf die UI keinen Erfolg anzeigen.
-                if (geometryFormat.writeGeometry(geometryFormat.readGeometry(saved.geometryJson)) !==
-                    geometryFormat.writeGeometry(geometryFormat.readGeometry(geometryJson))) {
+                const savedGeometry = geometryFormat.readGeometry(saved.geometryJson);
+                const requestedGeometry = geometryFormat.readGeometry(geometryJson);
+                if (!savedGeometry || !requestedGeometry ||
+                    geometryFormat.writeGeometry(savedGeometry) !== geometryFormat.writeGeometry(requestedGeometry)) {
                     throw new Error('Der Server hat die neue Geometrie nicht übernommen.');
                 }
                 feature.set('sourceElement', saved);
