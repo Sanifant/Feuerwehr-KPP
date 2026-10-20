@@ -17,9 +17,10 @@ public sealed class UserInvitationService(
     IMailService mail,
     ITokenService tokens,
     IConfiguration configuration,
-    TimeProvider clock) : IUserInvitationService
+    TimeProvider clock,
+    ILogger<UserInvitationService> logger) : IUserInvitationService
 {
-    public static readonly TimeSpan Lifetime = TimeSpan.FromHours(24);
+    public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(60);
 
     public async Task SendAsync(ApplicationUser user)
     {
@@ -39,7 +40,7 @@ public sealed class UserInvitationService(
             await mail.SendAsync(user.Email!, "Ihr Feuerwehr-Benutzerkonto – Passwort festlegen",
                 $"Hallo {user.FirstName},\n\nIhr Benutzerkonto wurde eingerichtet.\n" +
                 $"Öffnen Sie diesen Link und geben Sie Ihre E-Mail-Adresse ein, um Ihr Passwort festzulegen:\n\n{link.AbsoluteUri}\n\n" +
-                "Der Link ist 24 Stunden gültig und kann einmal verwendet werden.");
+                $"Der Link ist {Lifetime.TotalMinutes:0} Minuten gültig und kann einmal verwendet werden.");
         }
         catch
         {
@@ -77,8 +78,17 @@ public sealed class UserInvitationService(
                 result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
         }
 
-        await store.RemoveAsync(id);
         await tokens.RevokeRefreshTokenAsync(user.Id);
+        try
+        {
+            await store.RemoveAsync(id);
+        }
+        catch (Exception exception)
+        {
+            // The password is already saved and the Identity token invalidated. Cache
+            // cleanup must not turn this into a failed reset; the original TTL still applies.
+            logger.LogWarning(exception, "Einladung konnte nach erfolgreicher Passwortvergabe nicht aus dem Cache gelöscht werden; sie läuft über ihre TTL ab.");
+        }
         return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde gespeichert. Sie können sich jetzt anmelden."));
     }
 }

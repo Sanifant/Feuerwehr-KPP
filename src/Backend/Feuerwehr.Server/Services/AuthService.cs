@@ -152,6 +152,14 @@ public sealed class AuthService : IAuthService
         var user = await _userManager.FindByIdAsync(currentUserId);
         if (user is null || !user.IsActive) return ServiceResult.Unauthorized();
 
+        // Share the login attempt counter and honor existing account lockouts, including
+        // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.
+        var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
+        if (passwordCheck.IsLockedOut)
+            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorübergehend gesperrt."));
+        if (!passwordCheck.Succeeded)
+            return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestätigt werden."));
+
         var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
         {
