@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Build open issues summary
         id: issue-summary
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -67,7 +67,7 @@ jobs:
             core.setOutput('body', body);
 
       - name: Send summary email
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@4226df7daafa6fc901a43789c49bf7ab309066e7
         with:
           server_address: ${{ secrets.ISSUE_SUMMARY_SMTP_SERVER }}
           server_port: ${{ secrets.ISSUE_SUMMARY_SMTP_PORT }}
