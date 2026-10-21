@@ -22,5 +22,5 @@ ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdlin
 COPY license-accepter.sh /opt/
 RUN chmod +x /opt/license-accepter.sh && /opt/license-accepter.sh $ANDROID_HOME
 
-RUN dotnet workload install android
-RUN dotnet tool install --ignore-failed-sources --add-source https://api.nuget.org/v3/index.json --global dotnet-ef
+RUN dotnet workload install android \
+        && dotnet tool install --ignore-failed-sources --add-source https://api.nuget.org/v3/index.json --global dotnet-ef
