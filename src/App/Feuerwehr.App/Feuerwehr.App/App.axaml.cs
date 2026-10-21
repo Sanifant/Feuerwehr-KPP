@@ -20,6 +20,9 @@ namespace de.openelp.feuerwehr.App
     {
         public static IServiceProvider Services { get; private set; } = default!;
 
+        /// <summary>Set by the platform host before framework initialization.</summary>
+        public Action<IServiceCollection>? ConfigurePlatformServices { get; set; }
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -108,12 +111,8 @@ namespace de.openelp.feuerwehr.App
         }
 
         /// <summary>
-        /// Rebuilds the DI service container, optionally registering the given configuration persistence implementation.
+        /// Rebuilds the DI service container, including the platform registrations.
         /// </summary>
-        /// <param name="configurationPersistence">
-        /// The persistence service to register, or <c>null</c> if no persistence is needed
-        /// (e.g. on Android where <c>MainActivity</c> handles it).
-        /// </param>
         public void ReloadServices()
         {
 
@@ -123,7 +122,7 @@ namespace de.openelp.feuerwehr.App
             collection.AddTransient<LoginViewModel>();
             collection.AddTransient<MapViewModel>();
 
-            collection.AddScoped<IGpsService, GpsService>();
+            collection.AddSingleton<IGpsService, UnsupportedGpsService>();
 
             // Authentication services
             collection.AddSingleton<ISecureStorage, InMemorySecureStorage>();
@@ -146,6 +145,7 @@ namespace de.openelp.feuerwehr.App
 
             collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 
+            ConfigurePlatformServices?.Invoke(collection);
             Services = collection.BuildServiceProvider();
         }
     }

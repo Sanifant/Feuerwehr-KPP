@@ -1,0 +1,258 @@
+.hydrant-manager {
+    width: 100%;
+    max-width: 1152px;
+    margin: 0 auto;
+}
+
+.hydrant-manager > h1 {
+    margin-bottom: 20px;
+}
+
+.hydrant-manager-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.hydrant-import-modal {
+    width: min(850px, calc(100vw - 32px));
+}
+
+.hydrant-csv-example {
+    padding: 14px;
+    overflow-x: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    font-size: 13px;
+}
+
+.hydrant-csv-values dt {
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.hydrant-csv-values dd {
+    margin: 4px 0 0;
+}
+
+.hydrant-import-errors {
+    margin: 16px 0;
+    padding: 12px 16px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.hydrant-import-notice {
+    padding: 12px 16px;
+    border-radius: 6px;
+    background: #dcfce7;
+    color: #166534;
+}
+
+.hydrant-add-button,
+.hydrant-save-button,
+.hydrant-cancel-button {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.hydrant-add-button,
+.hydrant-save-button {
+    background: #b91c1c;
+    color: white;
+}
+
+.hydrant-add-button:hover,
+.hydrant-save-button:hover:not(:disabled) {
+    background: #991b1b;
+}
+
+.hydrant-cancel-button {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+.hydrant-modal {
+    width: min(1050px, calc(100vw - 32px));
+    max-width: none;
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    border: 1px solid #dce4ef;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f2937;
+    color-scheme: light;
+    box-shadow: 0 24px 80px #0f172a40;
+    overflow: auto;
+}
+
+.hydrant-modal::backdrop {
+    background: #0f172a99;
+}
+
+.hydrant-modal-content {
+    padding: 24px;
+}
+
+.hydrant-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.hydrant-modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.hydrant-close-button {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.hydrant-modal-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+}
+
+.hydrant-form fieldset {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.hydrant-form .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.hydrant-form #address {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.hydrant-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.hydrant-form input,
+.hydrant-form select,
+.hydrant-form textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    font-size: 14px;
+}
+
+.hydrant-form textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.hydrant-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.hydrant-modal button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.hydrant-modal :focus-visible,
+.hydrant-add-button:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.hydrant-location-preview {
+    min-width: 0;
+    isolation: isolate;
+}
+
+.hydrant-location-preview h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.hydrant-location-preview p {
+    margin: 0 0 12px;
+    min-height: 44px;
+    color: #475569;
+    font-size: 14px;
+}
+
+.hydrant-location-map {
+    width: 100%;
+    height: 380px;
+    overflow: hidden;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #eef2f6;
+}
+
+.hydrant-directory > h2 {
+    margin: 0 0 16px;
+}
+
+.hydrant-directory .card {
+    margin-bottom: 12px;
+}
+
+@media (max-width: 700px) {
+    .hydrant-manager-toolbar,
+    .hydrant-add-button {
+        width: 100%;
+    }
+
+    .hydrant-modal-body {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .hydrant-modal-content {
+        padding: 18px;
+    }
+
+    .hydrant-modal-header h2 {
+        font-size: 19px;
+    }
+
+    .hydrant-location-map {
+        height: 280px;
+    }
+}

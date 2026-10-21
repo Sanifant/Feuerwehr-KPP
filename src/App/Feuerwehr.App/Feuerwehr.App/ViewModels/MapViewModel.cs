@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -101,9 +103,9 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
-        public void CenterOnLocation()
+        public async Task CenterOnLocationAsync(CancellationToken cancellationToken)
         {
-            GpsLocation? location = gpsService.GetCurrentLocationAsync().Result;
+            GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
 
             if (location != null)
             {
@@ -117,9 +119,9 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
-        public void Settings()
+        public async Task SettingsAsync(CancellationToken cancellationToken)
         {
-            GpsLocation? location = gpsService.GetCurrentLocationAsync().Result;
+            GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
 
             if (location != null)
             {
@@ -134,6 +136,20 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 };
             }
 
+        }
+
+        private async Task<GpsLocation?> GetLocationForCommandAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var location = await gpsService.GetCurrentLocationAsync(cancellationToken);
+                return cancellationToken.IsCancellationRequested ? null : location;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                // Bound commands must complete normally when navigation cancels them.
+                return null;
+            }
         }
 
         [RelayCommand]
@@ -175,13 +191,19 @@ namespace de.openelp.feuerwehr.App.ViewModels
         private void InitializeMap()
         {
             Map map = new Map();
-            map.Layers.Add(OpenStreetMap.CreateTileLayer());
+            map.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
 
             map.Navigator.ZoomTo(zoomFactor);
+            Map = map;
+        }
 
-            GpsLocation? location = gpsService.GetCurrentLocationAsync().Result;
+        public async Task InitializeLocationAsync(CancellationToken cancellationToken = default)
+        {
+            GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            var map = Map;
 
-            if (location != null)
+            if (location != null && map != null)
             {
 
                 var startPoint = new MPoint(location.Longitude, location.Latitude);
@@ -204,10 +226,11 @@ namespace de.openelp.feuerwehr.App.ViewModels
                     Name = "Pins",
                     Features = new List<IFeature> { pinFeature }
                 };
+                var previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
+                if (previousPins != null)
+                    map.Layers.Remove(previousPins);
                 map.Layers.Add(memoryLayer);
             }
-
-            Map = map;
         }
 
         private IEnumerable<ILayer> HydrantLayer(List<HydrantPin> hydrants)
