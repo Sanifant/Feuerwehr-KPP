@@ -1,4 +1,4 @@
-using Feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public interface ITokenService
     {
@@ -141,7 +141,7 @@ namespace Feuerwehr.Server.Services
             {
                 var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
 
-                if (securityToken is not JwtSecurityToken jwtSecurityToken || 
+                if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return null;

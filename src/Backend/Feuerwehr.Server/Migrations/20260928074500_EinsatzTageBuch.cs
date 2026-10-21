@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Feuerwehr.Server.Migrations
+namespace de.openelp.feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class EinsatzTageBuch : Migration

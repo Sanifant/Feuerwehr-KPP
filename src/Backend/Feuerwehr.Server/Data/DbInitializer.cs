@@ -1,10 +1,11 @@
-using Feuerwehr.Server.Authorization;
-using Feuerwehr.Server.Models.IncidentModules;
-using Feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public static class DbInitializer
     {
@@ -14,6 +15,7 @@ namespace Feuerwehr.Server.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var dbContext = serviceProvider.GetRequiredService<FeuerwehrDbContext>();
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
             try
             {
@@ -21,7 +23,7 @@ namespace Feuerwehr.Server.Data
                 await SeedRolesAsync(roleManager, logger);
 
                 // Seed Default Admin User
-                await SeedAdminUserAsync(userManager, logger);
+                await SeedAdminUserAsync(userManager, configuration, logger);
                 await SeedDiaryCategoriesAsync(dbContext, logger);
             }
             catch (Exception ex)
@@ -89,17 +91,28 @@ namespace Feuerwehr.Server.Data
             await dbContext.SaveChangesAsync();
         }
 
-        private static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, ILogger logger)
+        private static async Task SeedAdminUserAsync(
+            UserManager<ApplicationUser> userManager, IConfiguration configuration, ILogger logger)
         {
             logger.LogInformation("Seeding default admin user...");
 
-            const string adminEmail = "admin@feuerwehr.local";
-            const string adminPassword = "Admin@123456"; // Change this in production!
-
-            var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
-            if (existingAdmin == null)
+            var adminEmail = configuration["SeedAdmin:Email"]?.Trim();
+            if (string.IsNullOrWhiteSpace(adminEmail))
             {
-                var adminUser = new ApplicationUser
+                adminEmail = "admin@feuerwehr.local";
+            }
+
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            if (adminUser == null)
+            {
+                var adminPassword = configuration["SeedAdmin:Password"];
+                if (string.IsNullOrWhiteSpace(adminPassword))
+                {
+                    throw new InvalidOperationException(
+                        "Set SeedAdmin__Password before the first startup to create the initial administrator.");
+                }
+
+                adminUser = new ApplicationUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
@@ -111,43 +124,31 @@ namespace Feuerwehr.Server.Data
                 };
 
                 var result = await userManager.CreateAsync(adminUser, adminPassword);
-                if (result.Succeeded)
+                if (!result.Succeeded)
                 {
-                    // Assign Admin role
-                    await userManager.AddToRoleAsync(adminUser, Roles.Admin);
-                    logger.LogInformation($"Default admin user created: {adminEmail}");
-                    await userManager.AddToRoleAsync(adminUser, Roles.IncidentDiaryEditor);
-                    await userManager.AddToRoleAsync(existingAdmin, Roles.SituationMapEditor);
-                    logger.LogWarning($"IMPORTANT: Change the default admin password '{adminPassword}' immediately!");
+                    throw new InvalidOperationException(
+                        $"Failed to create the initial administrator. Check SeedAdmin__Email and SeedAdmin__Password against the Identity validation rules. Error codes: {string.Join(", ", result.Errors.Select(e => e.Code))}");
                 }
-                else
-                {
-                    logger.LogError($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-                }
+
+                logger.LogInformation("Initial admin user created: {AdminEmail}", adminEmail);
             }
             else
             {
-                logger.LogInformation($"Admin user already exists: {adminEmail}");
+                logger.LogInformation("Admin user already exists: {AdminEmail}", adminEmail);
+            }
 
-                // Ensure admin has Admin role
-                if (!await userManager.IsInRoleAsync(existingAdmin, Roles.Admin))
+            foreach (var role in new[] { Roles.Admin, Roles.IncidentDiaryEditor, Roles.SituationMapEditor })
+            {
+                if (!await userManager.IsInRoleAsync(adminUser, role))
                 {
-                    await userManager.AddToRoleAsync(existingAdmin, Roles.Admin);
-                    logger.LogInformation($"Added Admin role to existing user: {adminEmail}");
-                }
+                    var result = await userManager.AddToRoleAsync(adminUser, role);
+                    if (!result.Succeeded)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed to assign initial administrator role '{role}'. Error codes: {string.Join(", ", result.Errors.Select(e => e.Code))}");
+                    }
 
-                // Ensure admin has IncidentDiaryEditor role
-                if (!await userManager.IsInRoleAsync(existingAdmin, Roles.IncidentDiaryEditor))
-                {
-                    await userManager.AddToRoleAsync(existingAdmin, Roles.IncidentDiaryEditor);
-                    logger.LogInformation($"Added IncidentDiaryEditor role to existing user: {adminEmail}");
-                }
-
-                // Ensure admin has SituationMapEditor role
-                if (!await userManager.IsInRoleAsync(existingAdmin, Roles.SituationMapEditor))
-                {
-                    await userManager.AddToRoleAsync(existingAdmin, Roles.SituationMapEditor);
-                    logger.LogInformation($"Added SituationMapEditor role to existing user: {adminEmail}");
+                    logger.LogInformation("Added {Role} role to admin user: {AdminEmail}", role, adminEmail);
                 }
             }
         }

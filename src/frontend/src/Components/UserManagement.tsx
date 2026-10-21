@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../api/apiClient';
+import { getApiErrorMessage } from '../api/errors';
 import { useRole } from '../hooks/useRole';
 import { Navigate } from 'react-router-dom';
 
@@ -49,6 +50,7 @@ const UserManagement: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [notice, setNotice] = useState<string | null>(null);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -69,8 +71,8 @@ const UserManagement: React.FC = () => {
             const response = await apiClient.get<User[]>('/api/Users');
             setUsers(response.data);
             setError(null);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Fehler beim Laden der Benutzer');
+        } catch (err: unknown) {
+            setError(getApiErrorMessage(err, 'Fehler beim Laden der Benutzer'));
             console.error('Error fetching users:', err);
         } finally {
             setLoading(false);
@@ -131,12 +133,10 @@ const UserManagement: React.FC = () => {
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
             errors.email = 'Ungültige E-Mail-Adresse.';
         }
-        if (!editingUser && !form.password) {
-            errors.password = 'Passwort ist erforderlich.';
-        } else if (form.password && (form.password.length < 8 || !/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/\d/.test(form.password))) {
+        if (editingUser && form.password && (form.password.length < 8 || !/[a-z]/.test(form.password) || !/[A-Z]/.test(form.password) || !/\d/.test(form.password))) {
             errors.password = 'Passwort muss mindestens 8 Zeichen sowie Groß- und Kleinbuchstaben und eine Zahl enthalten.';
         }
-        if (form.password !== form.confirmPassword) {
+        if (editingUser && form.password !== form.confirmPassword) {
             errors.confirmPassword = 'Passwörter stimmen nicht überein.';
         }
         if (form.roles.length === 0) {
@@ -156,7 +156,7 @@ const UserManagement: React.FC = () => {
 
         try {
             const userRequest = {
-                email: form.email,
+                email: form.email.trim(),
                 firstName: form.firstName,
                 lastName: form.lastName,
                 roles: form.roles,
@@ -167,21 +167,13 @@ const UserManagement: React.FC = () => {
                     newPassword: form.password || undefined,
                 });
             } else {
-                await apiClient.post('/api/Users', {
-                    ...userRequest,
-                    password: form.password,
-                });
+                await apiClient.post('/api/Users', userRequest);
+                setNotice('Benutzer erstellt. Die Einladung zur Passwortvergabe wurde per E-Mail versendet.');
             }
             closeCreateModal();
             await fetchUsers();
-        } catch (err: any) {
-            const serverMessage = err.response?.data?.message;
-            const identityErrors = err.response?.data?.errors;
-            if (identityErrors && Array.isArray(identityErrors)) {
-                setSubmitError(identityErrors.map((e: any) => e.description).join(' '));
-            } else {
-                setSubmitError(serverMessage || `Fehler beim ${editingUser ? 'Bearbeiten' : 'Erstellen'} des Benutzers.`);
-            }
+        } catch (err: unknown) {
+            setSubmitError(getApiErrorMessage(err, `Fehler beim ${editingUser ? 'Bearbeiten' : 'Erstellen'} des Benutzers.`));
         } finally {
             setSubmitting(false);
         }
@@ -216,6 +208,7 @@ const UserManagement: React.FC = () => {
                 </button>
             </div>
 
+            {notice && <p role="status">{notice}</p>}
             <div className="users-table">
                 <table>
                     <thead>
@@ -334,6 +327,8 @@ const UserManagement: React.FC = () => {
                                 {formErrors.email && <span className="field-error">{formErrors.email}</span>}
                             </div>
 
+                            {!editingUser && <p>Der Benutzer erhält eine Einladung per E-Mail und legt sein Passwort selbst fest.</p>}
+                            {editingUser && (
                             <div className="form-row">
                                 <div className="form-group">
                                     <label htmlFor="password">Passwort {editingUser ? '(optional)' : '*'}</label>
@@ -364,6 +359,8 @@ const UserManagement: React.FC = () => {
                                     {formErrors.confirmPassword && <span className="field-error">{formErrors.confirmPassword}</span>}
                                 </div>
                             </div>
+
+                            )}
 
                             <div className="form-group">
                                 <label>Rollen *</label>

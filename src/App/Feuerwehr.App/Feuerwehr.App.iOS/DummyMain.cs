@@ -1,4 +1,4 @@
-﻿internal static class DummyMain
+internal static class DummyMain
 {
     public static void Main()
     {

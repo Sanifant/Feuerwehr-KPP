@@ -1,26 +1,8 @@
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Feuerwehr.Server.Models.IncidentModules;
-
-public enum IncidentStatus
-{
-    Active = 1,
-    Closed = 2,
-}
-
-public enum MapElementType
-{
-    Symbol = 1,
-    Polygon = 2,
-}
-
-public enum DiaryRevisionType
-{
-    Created = 1,
-    Edited = 2,
-    Canceled = 3,
-}
+namespace de.openelp.feuerwehr.Server.Models.IncidentModules;
 
 public class Incident
 {

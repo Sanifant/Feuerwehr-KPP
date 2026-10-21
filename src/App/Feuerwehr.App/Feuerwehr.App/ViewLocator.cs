@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.App.ViewModels;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Feuerwehr.App
+namespace de.openelp.feuerwehr.App
 {
     /// <summary>
     /// Given a view model, returns the corresponding view if possible.

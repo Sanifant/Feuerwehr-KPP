@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace Feuerwehr.App.ViewModels
+namespace de.openelp.feuerwehr.App.ViewModels
 {
     public abstract class ViewModelBase : ObservableObject
     {

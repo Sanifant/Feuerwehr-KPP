@@ -1,12 +1,12 @@
-﻿using Android.App;
+using Android.App;
 using Android.Content.PM;
 using Avalonia;
 using Avalonia.Android;
 
-namespace Feuerwehr.App.Android
+namespace de.openelp.feuerwehr.App.Android
 {
     [Activity(
-        Label = "Feuerwehr.App.Android",
+        Label = "de.openelp.feuerwehr.App.Android",
         Theme = "@style/MyTheme.NoActionBar",
         Icon = "@drawable/icon",
         MainLauncher = true,

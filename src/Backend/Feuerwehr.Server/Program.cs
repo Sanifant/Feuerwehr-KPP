@@ -1,9 +1,9 @@
-using Feuerwehr.Server.Authorization;
-using Feuerwehr.Server.Data;
-using Feuerwehr.Server.Hubs;
-using Feuerwehr.Server.Models;
-using Feuerwehr.Server.Services;
-using Feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Hubs;
+using de.openelp.feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +13,8 @@ using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
 using System.Net.Mail;
 using System.Text;
+
+namespace de.openelp.feuerwehr.Server;
 
 public partial class Program
 {
@@ -28,11 +30,13 @@ public partial class Program
 
         builder.AddNpgsqlDbContext<FeuerwehrDbContext>(connectionName: "postgresdb");
 
-        builder.Services.AddSingleton<SmtpClient>(_ =>
-        new SmtpClient(
-            host: Environment.GetEnvironmentVariable("MAIL_HOST") ?? "localhost",
-            port: int.TryParse(
-                Environment.GetEnvironmentVariable("MAIL_PORT"), out var p) ? p : 1025));
+        builder.Services.AddScoped<SmtpClient>(services => MailService.CreateClient(
+            services.GetRequiredService<IConfiguration>()));
+
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<IMailService, MailService>();
+        builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
+        builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
 
         // Configure ASP.NET Core Identity
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -151,6 +155,16 @@ public partial class Program
         builder.Services.AddScoped<IMapLeaseService, MapLeaseService>();
         builder.Services.AddHostedService<OutboxDispatcher>();
 
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IFireDepartmentService, FireDepartmentService>();
+        builder.Services.AddScoped<IHydrantService, HydrantService>();
+        builder.Services.AddScoped<IDiaryCategoryAdminService, DiaryCategoryAdminService>();
+        builder.Services.AddScoped<IIncidentService, IncidentService>();
+        builder.Services.AddScoped<IIncidentDiaryService, IncidentDiaryService>();
+        builder.Services.AddScoped<ISituationMapService, SituationMapService>();
+        builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
+        builder.Services.AddScoped<IUsersService, UsersService>();
+
         var app = builder.Build();
 
         await ApplyMigrationsAsync(app.Services);
@@ -162,7 +176,7 @@ public partial class Program
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            
+
             app.MapScalarApiReference(options =>
             {
                 options.WithTitle("My Hydrant API")

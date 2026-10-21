@@ -1,5 +1,10 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
+var seedAdminEmail = builder.AddParameterFromConfiguration(
+    "seed-admin-email", "SeedAdmin:Email");
+var seedAdminPassword = builder.AddParameterFromConfiguration(
+    "seed-admin-password", "SeedAdmin:Password", secret: true);
+
 var compose = builder.AddDockerComposeEnvironment("compose");
 
 var mailpit = builder
@@ -27,6 +32,8 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
     .WithReference(postgresdb)
     .WaitFor(postgresdb)
     .WithReference(mailpit)
+    .WithEnvironment("SeedAdmin__Email", seedAdminEmail)
+    .WithEnvironment("SeedAdmin__Password", seedAdminPassword)
     .WithEnvironment("JwtSettings__SecretKey", "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!")
     .WithHttpHealthCheck("/health")
     .PublishAsDockerComposeService((resource, service) =>

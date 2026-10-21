@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Feuerwehr.Server.Migrations
+namespace de.openelp.feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class InitialHydrant : Migration

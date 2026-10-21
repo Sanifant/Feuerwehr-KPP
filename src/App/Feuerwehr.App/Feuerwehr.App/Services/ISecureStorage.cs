@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Feuerwehr.App.Services;
+namespace de.openelp.feuerwehr.App.Services;
 
 /// <summary>
 /// Platform-specific secure storage for sensitive data like tokens.

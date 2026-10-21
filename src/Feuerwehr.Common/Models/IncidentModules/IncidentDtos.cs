@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Feuerwehr.Server.Models.IncidentModules;
+namespace de.openelp.feuerwehr.Common.Models.IncidentModules;
 
 public record IncidentSummaryDto(
     Guid Id,
@@ -277,9 +277,3 @@ public record DiaryEntryDto(
     DiaryRevisionDto CurrentRevisionData,
     IReadOnlyCollection<DiaryRevisionDto> Revisions);
 
-public class CommandEnvelopeResponse
-{
-    public int StatusCode { get; set; }
-
-    public string JsonPayload { get; set; } = "{}";
-}

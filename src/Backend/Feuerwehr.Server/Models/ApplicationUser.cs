@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models
 {
     public class ApplicationUser : IdentityUser
     {

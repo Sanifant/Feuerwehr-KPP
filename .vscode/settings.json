@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "sanifant-1",
+        "projectKey": "Sanifant_Feuerwehr-KPP"
+    }
+}

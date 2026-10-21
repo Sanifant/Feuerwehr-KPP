@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Feuerwehr.App.Services;
+namespace de.openelp.feuerwehr.App.Services;
 
 /// <summary>
 /// HttpClient wrapper that automatically adds authentication headers.

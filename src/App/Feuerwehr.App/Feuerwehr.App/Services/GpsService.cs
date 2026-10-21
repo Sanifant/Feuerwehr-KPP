@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
-namespace Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
-    
 
     public interface IGpsService
     {
