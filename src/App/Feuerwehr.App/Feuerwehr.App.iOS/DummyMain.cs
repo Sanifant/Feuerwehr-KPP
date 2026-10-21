@@ -1,6 +1,10 @@
-internal static class DummyMain
+namespace de.openelp.feuerwehr.App.iOS
 {
-    public static void Main()
+    internal static class DummyMain
     {
+        public static void Main()
+        {
+            // Method intentionally left empty.
+        }
     }
 }
