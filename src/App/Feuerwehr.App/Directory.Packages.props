@@ -3,6 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <AvaloniaVersion>12.1.4</AvaloniaVersion>
+    <AndroidXLifecycleVersion>2.11.0.1</AndroidXLifecycleVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- Avalonia packages -->
@@ -20,9 +21,25 @@
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
     <PackageVersion Include="Xamarin.AndroidX.Core" Version="1.19.0.1" />
     <PackageVersion Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.19.0.1" />
+    <!-- Lifecycle packages require matching minor versions across their dependencies. -->
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common.Jvm" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.LiveData.Core" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Process" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Runtime.Android" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel.Android" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="$(AndroidXLifecycleVersion)" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState.Android" Version="$(AndroidXLifecycleVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="12.0.7" />
+    <!-- App test packages -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="Moq" Version="4.21.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
 </Project>

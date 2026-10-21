@@ -9,6 +9,7 @@
       <Deploy />
     </Project>
     <Project Path="App/Feuerwehr.App/Feuerwehr.App/Feuerwehr.App.csproj" />
+    <Project Path="App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj" />
   </Folder>
   <Folder Name="/Backend/">
     <Project Path="Backend/Feuerwehr.Server/Feuerwehr.Server.csproj" />

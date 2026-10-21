@@ -1,4 +1,9 @@
+
 using Avalonia;
+using de.openelp.feuerwehr.App.Desktop.Services;
+using de.openelp.feuerwehr.App.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
 namespace de.openelp.feuerwehr.App.Desktop
@@ -20,6 +25,11 @@ namespace de.openelp.feuerwehr.App.Desktop
                 .WithDeveloperTools()
 #endif
                 .WithInterFont()
+                .AfterSetup(appBuilder =>
+                {
+                    ((App)appBuilder.Instance!).ConfigurePlatformServices = services =>
+                        services.Replace(ServiceDescriptor.Singleton<IGpsService, DesktopGpsService>());
+                })
                 .LogToTrace();
     }
 }
