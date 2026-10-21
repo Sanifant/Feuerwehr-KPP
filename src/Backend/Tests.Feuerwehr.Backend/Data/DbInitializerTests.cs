@@ -2,11 +2,17 @@ using de.openelp.feuerwehr.Server;
 using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Server.Controller;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Data;
 
@@ -132,6 +138,51 @@ public sealed class DbInitializerTests : IDisposable
         Assert.Single(await _users.Users.ToListAsync());
         Assert.Equal(6, await _provider.GetRequiredService<FeuerwehrDbContext>().DiaryCategories.CountAsync());
         Assert.DoesNotContain(InitialPassword, string.Join("\n", _logger.Messages));
+    }
+
+    [Theory]
+    [InlineData(Roles.SituationMapViewer)]
+    [InlineData(Roles.SituationMapEditor)]
+    [InlineData(Roles.IncidentDiaryViewer)]
+    [InlineData(Roles.IncidentDiaryEditor)]
+    public async Task SeedData_ExistingDatabaseAddsModuleRolesAndAllowsUserRoleUpdates(string moduleRole)
+    {
+        var roles = _provider.GetRequiredService<RoleManager<IdentityRole>>();
+        var originalRoleIds = new Dictionary<string, string>();
+        foreach (var name in new[] { Roles.Admin, Roles.Commander, Roles.Firefighter, Roles.Viewer })
+        {
+            var role = new IdentityRole(name);
+            Assert.True((await roles.CreateAsync(role)).Succeeded);
+            originalRoleIds.Add(name, role.Id);
+        }
+
+        var admin = new ApplicationUser { UserName = AdminEmail, Email = AdminEmail };
+        Assert.True((await _users.CreateAsync(admin, InitialPassword)).Succeeded);
+        Assert.True((await _users.AddToRoleAsync(admin, Roles.Admin)).Succeeded);
+        var user = new ApplicationUser { UserName = "viewer@example.org", Email = "viewer@example.org" };
+        Assert.True((await _users.CreateAsync(user)).Succeeded);
+        Assert.True((await _users.AddToRoleAsync(user, Roles.Viewer)).Succeeded);
+        Assert.False(await roles.RoleExistsAsync(moduleRole));
+
+        await DbInitializer.SeedDataAsync(_provider);
+        await DbInitializer.SeedDataAsync(_provider);
+
+        Assert.Equal(Roles.AllRoles.Order(), (await roles.Roles.Select(role => role.Name!).ToListAsync()).Order());
+        foreach (var (name, id) in originalRoleIds)
+        {
+            Assert.Equal(id, (await roles.FindByNameAsync(name))!.Id);
+        }
+        Assert.Equal(new[] { Roles.Viewer }, await _users.GetRolesAsync(user));
+
+        var controller = new UsersController(new UsersService(_users, roles,
+            Mock.Of<IUserInvitationService>(), NullLogger<UsersService>.Instance));
+        var response = await controller.UpdateUser(user.Id, new UpdateUserRequest
+        {
+            Roles = [Roles.Viewer, moduleRole]
+        });
+
+        Assert.IsType<OkObjectResult>(response);
+        Assert.Equal(new[] { Roles.Viewer, moduleRole }.Order(), (await _users.GetRolesAsync(user)).Order());
     }
 
     [Fact]
