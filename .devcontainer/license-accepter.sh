@@ -1,8 +1,8 @@
 #!/bin/bash
 
 check_android_env_var() {
-  if [ "$#" -lt 1 ]; then
-    if [ -z "${ANDROID_HOME}" ]; then
+  if [[ "$#" -lt 1 ]]; then
+    if [[ -z "${ANDROID_HOME}" ]]; then
       echo "Please either set ANDROID_HOME environment variable, or pass ANDROID_HOME directory as a parameter"
       exit 1
     else
@@ -16,7 +16,7 @@ check_android_env_var() {
 
 accept_all_android_licenses() {
   ANDROID_LICENSES="$ANDROID_HOME/licenses"
-  if [ ! -d $ANDROID_LICENSES ]; then
+  if [[ ! -d $ANDROID_LICENSES ]]; then
     echo "Android licenses directory doesn't exist, creating one..."
     mkdir -p $ANDROID_LICENSES
   fi
@@ -36,7 +36,7 @@ accept_license_of() {
   local license=$1
   local content=$2
   local file=$ANDROID_LICENSES/$license
-  if [ -f $file ]; then
+  if [[ -f $file ]]; then
     if grep -q "^$content$" $file; then
       echo "$license: $content has been accepted already"
     else

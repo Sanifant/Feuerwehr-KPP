@@ -19,7 +19,7 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
     rm *tools*linux*.zip
 
 ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/cmdline-tools/tools/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
-ADD license-accepter.sh /opt/
+COPY license-accepter.sh /opt/
 RUN chmod +x /opt/license-accepter.sh && /opt/license-accepter.sh $ANDROID_HOME
 
 RUN dotnet workload install android
