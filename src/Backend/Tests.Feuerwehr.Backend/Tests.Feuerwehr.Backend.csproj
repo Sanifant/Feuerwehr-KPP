@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <None Include="..\..\frontend\src\assets\hydranten-import.csv" Link="Fixtures\hydranten-import.csv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -12,10 +12,28 @@ public interface IHydrantService
     ServiceResult Post(Hydrant value);
     ServiceResult Put(int id, Hydrant value);
     ServiceResult Delete(int id);
+    Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default);
 }
 
 public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
 {
+    public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
+    {
+        var (hydrants, errors) = HydrantCsvImport.Read(csv, cancellationToken);
+        if (errors.Count > 0) return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
+
+        var entities = hydrants.Select(dto =>
+        {
+            var entity = new HydrantEntity();
+            Apply(entity, dto);
+            return entity;
+        }).ToList();
+        context.Hydrants.AddRange(entities);
+        // One SaveChanges transaction persists the complete file, never individual rows.
+        await context.SaveChangesAsync(cancellationToken);
+        return ServiceResult.Ok(new HydrantImportResponse(entities.Count, []));
+    }
+
     public ServiceResult Get() => ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
 
     public ServiceResult Get(int id)

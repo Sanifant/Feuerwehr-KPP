@@ -11,6 +11,22 @@ namespace de.openelp.feuerwehr.Server.Controller;
 [Authorize(Policy = PolicyNames.CanViewData)]
 public class HydrantController(IHydrantService service) : ControllerBase
 {
+    public const long MaximumImportBytes = 5 * 1024 * 1024;
+
+    [HttpPost("import")]
+    [Authorize(Policy = PolicyNames.RequireAdmin)]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(MaximumImportBytes + 64 * 1024)]
+    public async Task<IActionResult> Import([FromForm] IFormFile? file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new HydrantImportResponse(0, [new(null, "Bitte eine CSV-Datei auswählen.")]));
+        if (file.Length > MaximumImportBytes)
+            return BadRequest(new HydrantImportResponse(0, [new(null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
+
+        await using var stream = file.OpenReadStream();
+        return this.ToActionResult(await service.ImportAsync(stream, cancellationToken));
+    }
 
     // GET: api/<HydrantController>
     [HttpGet]

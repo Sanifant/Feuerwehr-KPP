@@ -191,7 +191,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         private void InitializeMap()
         {
             Map map = new Map();
-            map.Layers.Add(OpenStreetMap.CreateTileLayer());
+            map.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
 
             map.Navigator.ZoomTo(zoomFactor);
             Map = map;
