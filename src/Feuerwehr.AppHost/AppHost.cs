@@ -7,9 +7,6 @@ var seedAdminPassword = builder.AddParameterFromConfiguration(
 
 var compose = builder.AddDockerComposeEnvironment("compose");
 
-var mailpit = builder
-    .AddMailPit("mail");
-
 var postgres = builder.AddPostgres("postgres")
     .WithPgWeb()
     .PublishAsDockerComposeService((resource, service) =>
@@ -31,7 +28,6 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
     .WaitFor(cache)
     .WithReference(postgresdb)
     .WaitFor(postgresdb)
-    .WithReference(mailpit)
     .WithEnvironment("SeedAdmin__Email", seedAdminEmail)
     .WithEnvironment("SeedAdmin__Password", seedAdminPassword)
     .WithEnvironment("JwtSettings__SecretKey", "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!")
@@ -43,6 +39,33 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
     })
     .WithUrl("/scalar/v1", "Scalar API Endpoint")
     .WithExternalHttpEndpoints();
+
+if (builder.ExecutionContext.IsRunMode)
+{
+    var mailpit = builder.AddMailPit("mail");
+    server.WithReference(mailpit)
+        .WaitFor(mailpit)
+        // Override inherited provider settings: local debugging always delivers to Mailpit.
+        .WithEnvironment("MAIL_HOST", "")
+        .WithEnvironment("MAIL_PORT", "")
+        .WithEnvironment("MAIL_USERNAME", "")
+        .WithEnvironment("MAIL_PASSWORD", "")
+        .WithEnvironment("MAIL_SECURITY", "None")
+        .WithEnvironment("MAIL_FROM", "noreply@localhost.de")
+        .WithEnvironment("MAIL_FROM_NAME", "Feuerwehr (lokal)")
+        .WithEnvironment("MAIL_TIMEOUT_SECONDS", "30");
+}
+else
+{
+    server.WithEnvironment("MAIL_HOST", builder.AddParameterFromConfiguration("mail-host", "MAIL_HOST"))
+        .WithEnvironment("MAIL_PORT", builder.AddParameterFromConfiguration("mail-port", "MAIL_PORT"))
+        .WithEnvironment("MAIL_USERNAME", builder.AddParameterFromConfiguration("mail-username", "MAIL_USERNAME"))
+        .WithEnvironment("MAIL_PASSWORD", builder.AddParameterFromConfiguration("mail-password", "MAIL_PASSWORD", secret: true))
+        .WithEnvironment("MAIL_FROM", builder.AddParameterFromConfiguration("mail-from", "MAIL_FROM"))
+        .WithEnvironment("MAIL_SECURITY", builder.AddParameter("mail-security", builder.Configuration["MAIL_SECURITY"] ?? "StartTls", publishValueAsDefault: true))
+        .WithEnvironment("MAIL_FROM_NAME", builder.AddParameter("mail-from-name", builder.Configuration["MAIL_FROM_NAME"] ?? "Feuerwehr", publishValueAsDefault: true))
+        .WithEnvironment("MAIL_TIMEOUT_SECONDS", builder.AddParameter("mail-timeout-seconds", builder.Configuration["MAIL_TIMEOUT_SECONDS"] ?? "30", publishValueAsDefault: true));
+}
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithHttpEndpoint(port: 54321, env: "PORT")

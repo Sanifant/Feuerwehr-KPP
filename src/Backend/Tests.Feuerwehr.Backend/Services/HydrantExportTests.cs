@@ -14,7 +14,7 @@ public class HydrantExportTests
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
     [Fact]
-    public async Task Export_PreservesAllFieldsAndCsvEscapingRegardlessOfCulture()
+    public async Task Export_MatchesImportExampleAndPreservesCsvEscapingRegardlessOfCulture()
     {
         using var db = CreateDatabase();
         var service = new HydrantService(db);
@@ -48,16 +48,62 @@ public class HydrantExportTests
         using var stream = new MemoryStream(bytes);
         using var parser = new TextFieldParser(stream, Encoding.UTF8) { HasFieldsEnclosedInQuotes = true };
         parser.SetDelimiters(";");
-        Assert.Equal(new[] { "id", "street", "houseNumber", "postalCode", "city", "additionalInfo", "latitude", "longitude",
-            "nominalDiameter", "type", "waterSource", "status", "notes" }, parser.ReadFields());
+        var example = await File.ReadAllLinesAsync(Path.Combine(AppContext.BaseDirectory, "Fixtures", "hydranten-import.csv"));
+        Assert.Equal(example[0].Split(';'), parser.ReadFields());
         var first = parser.ReadFields()!;
-        Assert.Equal("1", first[0]);
-        Assert.Equal("", first[5]);
-        Assert.Equal("'=1+1", first[12]);
-        Assert.Equal(new[] { "2", "Dorfstraße; Süd", "12a", "02361", "Lübeck", "Tor \"links\"", "53.929134", "-10.638436",
+        Assert.Equal(11, first.Length);
+        Assert.Equal("", first[0]);
+        Assert.Equal("'=1+1", first[10]);
+        Assert.Equal(new[] { "Dorfstraße; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
             "80", "1", "1", "1", "Erste Zeile\r\nZweite Zeile; \"frei\"" }, parser.ReadFields());
         Assert.True(parser.EndOfData);
         Assert.Equal(2, await db.Hydrants.CountAsync());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Beim Tor; Hinweis: \"frei\"\r\nZweite Zeile")]
+    public async Task Export_CanBeImportedWithoutChangingTheCsv(string? notes)
+    {
+        using var source = CreateDatabase();
+        var service = new HydrantService(source);
+        var original = new Hydrant
+        {
+            Id = 42,
+            Address = new Address
+            {
+                Street = "Dorfstraße; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                AdditionalInfo = "Nicht Bestandteil des Importformats",
+            },
+            Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 100,
+            Type = HydrantType.AbovegroundWithJack, WaterSource = WaterSource.Cistern, Status = HydrantStatus.UnderMaintenance,
+            Notes = notes,
+        };
+        service.Post(original);
+        using var csv = new MemoryStream(await service.ExportAsync());
+        using var target = CreateDatabase();
+
+        var result = await new HydrantService(target).ImportAsync(csv);
+
+        Assert.Equal(200, result.Code);
+        var response = Assert.IsType<HydrantImportResponse>(result.Value);
+        Assert.Equal(1, response.ImportedCount);
+        Assert.Empty(response.Errors);
+        var imported = Assert.Single(target.Hydrants);
+        Assert.Equal(original.Address.Street, imported.Address.Street);
+        Assert.Equal(original.Address.HouseNumber, imported.Address.HouseNumber);
+        Assert.Equal(original.Address.PostalCode, imported.Address.PostalCode);
+        Assert.Equal(original.Address.City, imported.Address.City);
+        Assert.Equal(original.Latitude, imported.Latitude);
+        Assert.Equal(original.Longitude, imported.Longitude);
+        Assert.Equal(original.NominalDiameter, imported.NominalDiameter);
+        Assert.Equal(original.Type, imported.Type);
+        Assert.Equal(original.WaterSource, imported.WaterSource);
+        Assert.Equal(original.Status, imported.Status);
+        Assert.Equal(original.Notes, imported.Notes);
+        Assert.NotEqual(original.Id, imported.Id);
+        Assert.Null(imported.Address.AdditionalInfo);
+        Assert.Equal(original.Id, Assert.Single(source.Hydrants).Id);
     }
 
     [Fact]
@@ -66,7 +112,7 @@ public class HydrantExportTests
         using var db = CreateDatabase();
         var service = new HydrantService(db);
         var csv = Encoding.UTF8.GetString(await service.ExportAsync());
-        Assert.StartsWith("\uFEFFid;street;", csv);
+        Assert.StartsWith("\uFEFFstreet;houseNumber;", csv);
         Assert.Equal(2, csv.Split("\r\n").Length);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(new CancellationToken(true)));
     }

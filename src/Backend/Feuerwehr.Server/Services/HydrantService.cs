@@ -24,15 +24,14 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
     public async Task<byte[]> ExportAsync(CancellationToken cancellationToken = default)
     {
         var hydrants = await context.Hydrants.AsNoTracking().OrderBy(h => h.Id).ToListAsync(cancellationToken);
-        var csv = new StringBuilder("id;street;houseNumber;postalCode;city;additionalInfo;latitude;longitude;nominalDiameter;type;waterSource;status;notes\r\n");
+        var csv = new StringBuilder("street;houseNumber;postalCode;city;latitude;longitude;nominalDiameter;type;waterSource;status;notes\r\n");
         foreach (var hydrant in hydrants)
         {
             cancellationToken.ThrowIfCancellationRequested();
             csv.AppendJoin(';', new[]
             {
-                hydrant.Id.ToString(CultureInfo.InvariantCulture),
                 CsvText(hydrant.Address.Street), CsvText(hydrant.Address.HouseNumber),
-                CsvText(hydrant.Address.PostalCode), CsvText(hydrant.Address.City), CsvText(hydrant.Address.AdditionalInfo),
+                CsvText(hydrant.Address.PostalCode), CsvText(hydrant.Address.City),
                 hydrant.Latitude.ToString("R", CultureInfo.InvariantCulture),
                 hydrant.Longitude.ToString("R", CultureInfo.InvariantCulture),
                 hydrant.NominalDiameter.ToString(CultureInfo.InvariantCulture),

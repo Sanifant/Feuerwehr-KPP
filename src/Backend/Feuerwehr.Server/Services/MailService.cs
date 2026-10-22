@@ -1,5 +1,5 @@
-using System.Net.Mail;
-using System.Data.Common;
+using MailKit.Net.Smtp;
+using MimeKit;
 
 namespace de.openelp.feuerwehr.Server.Services
 {
@@ -8,33 +8,35 @@ namespace de.openelp.feuerwehr.Server.Services
         Task SendAsync(string recipient, string subject, string body);
     }
 
-    public sealed class MailService(SmtpClient client, IConfiguration configuration) : IMailService
+    public sealed class MailService(ISmtpClient client, SmtpSettings settings, ILogger<MailService> logger) : IMailService
     {
-        public static SmtpClient CreateClient(IConfiguration configuration)
-        {
-            Uri? endpoint = null;
-            var connection = configuration.GetConnectionString("mail");
-            if (!string.IsNullOrWhiteSpace(connection))
-            {
-                // Support both Mailpit URI and endpoint=... connection-string formats.
-                if (!Uri.TryCreate(connection, UriKind.Absolute, out endpoint) || endpoint.Scheme != "smtp")
-                {
-                    var builder = new DbConnectionStringBuilder { ConnectionString = connection };
-                    endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
-                }
-                if (endpoint.Scheme != "smtp") throw new InvalidOperationException("Ungültiger SMTP-Endpunkt.");
-            }
-
-            var host = configuration["MAIL_HOST"] ?? endpoint?.Host ?? "localhost";
-            var port = int.TryParse(configuration["MAIL_PORT"], out var configuredPort)
-                ? configuredPort : endpoint is { Port: > 0 } ? endpoint.Port : 1025;
-            return new SmtpClient(host, port);
-        }
-
         public async Task SendAsync(string recipient, string subject, string body)
         {
-            using var message = new MailMessage(configuration["Mail:From"] ?? "noreply@localhost.de", recipient, subject, body);
-            await client.SendMailAsync(message);
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(settings.FromName, settings.From));
+            message.To.Add(MailboxAddress.Parse(recipient));
+            message.Subject = subject;
+            message.Body = new TextPart("plain") { Text = body };
+            client.Timeout = settings.TimeoutMilliseconds;
+            try
+            {
+                await client.ConnectAsync(settings.Host, settings.Port, settings.Security);
+                if (settings.Username is not null)
+                    await client.AuthenticateAsync(settings.Username, settings.Password!);
+                await client.SendAsync(message);
+            }
+            finally
+            {
+                if (client.IsConnected)
+                {
+                    try { await client.DisconnectAsync(true); }
+                    catch (Exception exception)
+                    {
+                        // A cleanup error must not roll back an invitation whose email was already accepted.
+                        logger.LogWarning(exception, "SMTP-Verbindung konnte nicht sauber geschlossen werden.");
+                    }
+                }
+            }
         }
     }
 }
