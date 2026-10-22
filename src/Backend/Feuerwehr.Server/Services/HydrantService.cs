@@ -1,5 +1,8 @@
+using System.Globalization;
+using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore;
 using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant;
 using AddressEntity = de.openelp.feuerwehr.Server.Models.Address;
 
@@ -12,11 +15,48 @@ public interface IHydrantService
     ServiceResult Post(Hydrant value);
     ServiceResult Put(int id, Hydrant value);
     ServiceResult Delete(int id);
+    Task<byte[]> ExportAsync(CancellationToken cancellationToken = default);
     Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default);
 }
 
 public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
 {
+    public async Task<byte[]> ExportAsync(CancellationToken cancellationToken = default)
+    {
+        var hydrants = await context.Hydrants.AsNoTracking().OrderBy(h => h.Id).ToListAsync(cancellationToken);
+        var csv = new StringBuilder("id;street;houseNumber;postalCode;city;additionalInfo;latitude;longitude;nominalDiameter;type;waterSource;status;notes\r\n");
+        foreach (var hydrant in hydrants)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            csv.AppendJoin(';', new[]
+            {
+                hydrant.Id.ToString(CultureInfo.InvariantCulture),
+                CsvText(hydrant.Address.Street), CsvText(hydrant.Address.HouseNumber),
+                CsvText(hydrant.Address.PostalCode), CsvText(hydrant.Address.City), CsvText(hydrant.Address.AdditionalInfo),
+                hydrant.Latitude.ToString("R", CultureInfo.InvariantCulture),
+                hydrant.Longitude.ToString("R", CultureInfo.InvariantCulture),
+                hydrant.NominalDiameter.ToString(CultureInfo.InvariantCulture),
+                ((int)hydrant.Type).ToString(CultureInfo.InvariantCulture),
+                ((int)hydrant.WaterSource).ToString(CultureInfo.InvariantCulture),
+                ((int)hydrant.Status).ToString(CultureInfo.InvariantCulture), CsvText(hydrant.Notes),
+            }).Append("\r\n");
+        }
+
+        // A UTF-8 BOM lets spreadsheet applications recognize German characters.
+        return Encoding.UTF8.GetBytes("\uFEFF" + csv);
+    }
+
+    private static string CsvText(string? value)
+    {
+        value ??= "";
+        // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
+        var trimmed = value.TrimStart();
+        if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
+            || value.Length > 0 && "\t\r\n".Contains(value[0]))
+            value = "'" + value;
+        return "\"" + value.Replace("\"", "\"\"") + "\"";
+    }
+
     public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
     {
         var (hydrants, errors) = HydrantCsvImport.Read(csv, cancellationToken);

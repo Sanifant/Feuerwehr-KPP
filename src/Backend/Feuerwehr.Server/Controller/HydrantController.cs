@@ -13,6 +13,13 @@ public class HydrantController(IHydrantService service) : ControllerBase
 {
     public const long MaximumImportBytes = 5 * 1024 * 1024;
 
+    [HttpGet("export")]
+    [Authorize(Policy = PolicyNames.RequireAdmin)]
+    public async Task<IActionResult> Export(CancellationToken cancellationToken)
+    {
+        return File(await service.ExportAsync(cancellationToken), "text/csv; charset=utf-8", "hydranten.csv");
+    }
+
     [HttpPost("import")]
     [Authorize(Policy = PolicyNames.RequireAdmin)]
     [Consumes("multipart/form-data")]

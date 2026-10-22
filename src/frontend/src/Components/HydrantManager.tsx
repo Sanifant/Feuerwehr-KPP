@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import apiClient from '../api/apiClient';
 import HydrantLocationMap from './HydrantLocationMap';
+import HydrantOverviewMap from './HydrantOverviewMap';
+import { hasMappableCoordinates } from './hydrantMapCoordinates';
 import HydrantImportModal from './HydrantImportModal';
 import { useRole } from '../hooks/useRole';
 import './HydrantManager.css';
@@ -95,8 +97,10 @@ const INITIAL_FORM_STATE: HydrantForm = {
 };
 
 export default function HydrantManager() {
-    const { isAdmin } = useRole();
+    const { isAdmin, canManageHydrants } = useRole();
     const [hydrants, setHydrants] = useState<Hydrant[]>([]);
+    const [selectedHydrantId, setSelectedHydrantId] = useState<number | null>(null);
+    const selectedRowRef = useRef<HTMLButtonElement>(null);
     const [formData, setFormData] = useState<HydrantForm>(INITIAL_FORM_STATE);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
@@ -105,6 +109,37 @@ export default function HydrantManager() {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [importNotice, setImportNotice] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportError, setExportError] = useState<string | null>(null);
+
+    useEffect(() => {
+        selectedRowRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }, [selectedHydrantId, hydrants]);
+
+    const handleExport = async () => {
+        if (!isAdmin || isExporting) return;
+        setIsExporting(true);
+        setExportError(null);
+        try {
+            const response = await apiClient.get<Blob>('/api/hydrant/export', { responseType: 'blob' });
+            const url = URL.createObjectURL(response.data);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'hydranten.csv';
+            document.body.appendChild(link);
+            try {
+                link.click();
+            } finally {
+                link.remove();
+                // Release the URL after the browser has started the download.
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        } catch {
+            setExportError('Der CSV-Export ist fehlgeschlagen. Bitte erneut versuchen.');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     useEffect(() => {
         const dialog = dialogRef.current;
@@ -127,6 +162,7 @@ export default function HydrantManager() {
         try {
             const response = await apiClient.get<Hydrant[]>('/api/hydrant');
             setHydrants(response.data);
+            setSelectedHydrantId(current => response.data.some(hydrant => hydrant.id === current) ? current : null);
         } catch (error) {
             console.error("Fehler beim Laden der Hydranten:", error);
         } finally {
@@ -232,13 +268,16 @@ export default function HydrantManager() {
             <h1 className="text-3xl font-bold mb-6 text-red-700">🚒 Hydranten-Verwaltung</h1>
 
             <div className="hydrant-manager-toolbar">
+                {isAdmin && <button type="button" className="hydrant-cancel-button" disabled={isExporting}
+                    onClick={() => void handleExport()}>{isExporting ? 'CSV wird exportiert…' : 'CSV-Export'}</button>}
                 {isAdmin && <button type="button" className="hydrant-cancel-button" aria-haspopup="dialog"
                     onClick={() => { setImportNotice(null); setIsImportOpen(true); }}>CSV-Import</button>}
-                <button id="Form-title" type="button" className="hydrant-add-button" onClick={openCreateForm}
+                {canManageHydrants && <button id="Form-title" type="button" className="hydrant-add-button" onClick={openCreateForm}
                     aria-haspopup="dialog" aria-controls="hydrant-form-dialog">
                     + Neuen Hydranten erfassen
-                </button>
+                </button>}
             </div>
+            {exportError && <p role="alert">{exportError}</p>}
             {importNotice && <p role="status" className="hydrant-import-notice">{importNotice}</p>}
             {isAdmin && isImportOpen && <HydrantImportModal
                 onClose={() => setIsImportOpen(false)}
@@ -348,57 +387,47 @@ export default function HydrantManager() {
                     </div>
                 </dialog>}
 
-                {/* LISTE: Verzeichnis */}
-                <div className="hydrant-directory">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-800">📋 Hydranten-Verzeichnis</h2>
-
-                    {loading ? (
-                        <p className="text-gray-500">Daten werden geladen...</p>
-                    ) : hydrants.length === 0 ? (
-                        <p className="text-gray-500 italic">Keine Hydranten in der Datenbank vorhanden.</p>
-                    ) : (
-                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                            {hydrants.map((hydrant) => (
-                                <div key={hydrant.id} className="card">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-gray-900">ID {hydrant.id}</span>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${hydrant.status === HydrantStatus.Operational ? 'bg-green-100 text-green-800' :
-                                                    hydrant.status === HydrantStatus.Defective ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                                                }`}>
-                                                {HydrantStatusLabels[hydrant.status]}
-                                            </span>
-                                            <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs font-mono">
-                                                DN {hydrant.nominalDiameter}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-gray-700">
-                                            📍 {hydrant.address?.street} {hydrant.address?.houseNumber}, {hydrant.address?.postalCode} {hydrant.address?.city}
-                                            <br />
-                                            Koordinaten: {hydrant.latitude.toFixed(5)},  {hydrant.longitude.toFixed(5)}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                           Typ: {HydrantTypeLabels[hydrant.type]} | Quelle: {WaterSourceLabels[hydrant.waterSource]}
-                                        </p>
-                                        {hydrant.notes && (
-                                            <p className="text-xs italic text-gray-600 bg-amber-50 p-1.5 rounded border border-amber-200 mt-1">
-                                                📝 {hydrant.notes}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="flex gap-2 ml-4">
-                                        <button onClick={() => handleEditClick(hydrant)} className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded text-xs font-medium transition">
-                                            Edit
-                                        </button>
-                                        <button onClick={() => handleDelete(hydrant.id)} className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded text-xs font-medium transition">
-                                            Löschen
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                <div className="hydrant-workspace">
+                    <section className="hydrant-directory" aria-labelledby="hydrant-directory-title" aria-busy={loading}>
+                        <h2 id="hydrant-directory-title">Hydranten-Verzeichnis</h2>
+                        {loading && <p>Daten werden geladen...</p>}
+                        {!loading && hydrants.length === 0 && <p>Keine Hydranten in der Datenbank vorhanden.</p>}
+                        <ul className="hydrant-list" aria-label="Hydranten">
+                            {hydrants.map(hydrant => {
+                                const selected = selectedHydrantId === hydrant.id;
+                                const address = `${hydrant.address.street} ${hydrant.address.houseNumber}, ${hydrant.address.postalCode} ${hydrant.address.city}`;
+                                return <li key={hydrant.id} className={`hydrant-row${selected ? ' is-selected' : ''}`}>
+                                    <button ref={selected ? selectedRowRef : undefined} type="button" className="hydrant-summary"
+                                        aria-expanded={selected} aria-controls={`hydrant-details-${hydrant.id}`}
+                                        onClick={() => setSelectedHydrantId(selected ? null : hydrant.id)}>
+                                        <span className="hydrant-summary-address">{address}</span>
+                                        <span className="hydrant-summary-diameter">DN {hydrant.nominalDiameter}</span>
+                                        <span className="hydrant-summary-type">{HydrantTypeLabels[hydrant.type]}</span>
+                                        <span className="hydrant-summary-chevron" aria-hidden="true">{selected ? '▴' : '▾'}</span>
+                                    </button>
+                                    {selected && <div id={`hydrant-details-${hydrant.id}`} className="hydrant-details"
+                                        role="region" aria-label={`Details zu ${address}`}>
+                                        <dl>
+                                            <dt>ID</dt><dd>{hydrant.id}</dd>
+                                            <dt>Adresszusatz</dt><dd>{hydrant.address.additionalInfo || '—'}</dd>
+                                            <dt>Breitengrad</dt><dd>{hydrant.latitude}</dd>
+                                            <dt>Längengrad</dt><dd>{hydrant.longitude}</dd>
+                                            <dt>Wasserquelle</dt><dd>{WaterSourceLabels[hydrant.waterSource]}</dd>
+                                            <dt>Status</dt><dd>{HydrantStatusLabels[hydrant.status]}</dd>
+                                            <dt>Notizen</dt><dd className="hydrant-notes">{hydrant.notes || '—'}</dd>
+                                        </dl>
+                                        {!hasMappableCoordinates(hydrant.latitude, hydrant.longitude) && <p className="hydrant-map-warning">
+                                            Dieser Hydrant kann wegen seiner Koordinaten nicht auf der Karte dargestellt werden.</p>}
+                                        {canManageHydrants && <div className="hydrant-detail-actions">
+                                            <button type="button" className="hydrant-edit-button" onClick={() => handleEditClick(hydrant)}>Bearbeiten</button>
+                                            <button type="button" className="hydrant-delete-button" onClick={() => void handleDelete(hydrant.id)}>Löschen</button>
+                                        </div>}
+                                    </div>}
+                                </li>;
+                            })}
+                        </ul>
+                    </section>
+                    <HydrantOverviewMap hydrants={hydrants} selectedHydrantId={selectedHydrantId} onSelectHydrant={setSelectedHydrantId} />
                 </div>
 
         </div>
