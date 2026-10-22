@@ -15,18 +15,23 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller;
 public class HydrantImportControllerTests
 {
     [Theory]
-    [InlineData("Admin", true)]
-    [InlineData("Commander", false)]
-    [InlineData("Firefighter", false)]
-    [InlineData("Viewer", false)]
-    [InlineData(null, false)]
-    public async Task ImportPolicy_OnlyAllowsAdmins(string? role, bool allowed)
+    [InlineData("Import", "Admin", true)]
+    [InlineData("Import", "Commander", false)]
+    [InlineData("Import", "Firefighter", false)]
+    [InlineData("Import", "Viewer", false)]
+    [InlineData("Import", null, false)]
+    [InlineData("Export", "Admin", true)]
+    [InlineData("Export", "Commander", false)]
+    [InlineData("Export", "Firefighter", false)]
+    [InlineData("Export", "Viewer", false)]
+    [InlineData("Export", null, false)]
+    public async Task CsvPolicy_OnlyAllowsAdmins(string methodName, string? role, bool allowed)
     {
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddAuthorization(options => options.AddFeuerwehrPolicies());
         using var provider = services.BuildServiceProvider();
-        var method = typeof(HydrantController).GetMethod(nameof(HydrantController.Import))!;
+        var method = typeof(HydrantController).GetMethod(methodName)!;
         var attributes = typeof(HydrantController).GetCustomAttributes<AuthorizeAttribute>()
             .Concat(method.GetCustomAttributes<AuthorizeAttribute>());
         var policy = await AuthorizationPolicy.CombineAsync(provider.GetRequiredService<IAuthorizationPolicyProvider>(), attributes);
@@ -38,6 +43,22 @@ public class HydrantImportControllerTests
         var result = await provider.GetRequiredService<IAuthorizationService>().AuthorizeAsync(principal, null, policy);
 
         Assert.Equal(allowed, result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Export_ReturnsCsvDownloadAndPassesCancellation()
+    {
+        var service = new Mock<IHydrantService>();
+        using var cancellation = new CancellationTokenSource();
+        byte[] content = [0xef, 0xbb, 0xbf];
+        service.Setup(s => s.ExportAsync(cancellation.Token)).ReturnsAsync(content);
+
+        var result = Assert.IsType<FileContentResult>(await new HydrantController(service.Object).Export(cancellation.Token));
+
+        Assert.Equal("hydranten.csv", result.FileDownloadName);
+        Assert.Equal("text/csv; charset=utf-8", result.ContentType);
+        Assert.Equal(content, result.FileContents);
+        service.Verify(s => s.ExportAsync(cancellation.Token), Times.Once);
     }
 
     [Fact]
