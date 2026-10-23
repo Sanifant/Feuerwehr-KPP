@@ -12,6 +12,7 @@
 		<PackageReference Include="Aspire.Npgsql" Version="13.6.1" />
 		<PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.6.1" />
 		<PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="13.6.1" />
+		<PackageReference Include="MailKit" Version="4.17.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.13" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
@@ -31,6 +32,8 @@
 		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.20.0" />
 		<PackageReference Include="Scalar.AspNetCore" Version="2.18.0" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
+		<!-- MimeKit's minimum PKCS dependency is vulnerable; use the patched .NET 10 release. -->
+		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
 	</ItemGroup>
 
 	<ItemGroup>

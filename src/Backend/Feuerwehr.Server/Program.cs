@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
 using System.Text;
 
 namespace de.openelp.feuerwehr.Server;
@@ -30,8 +30,8 @@ public partial class Program
 
         builder.AddNpgsqlDbContext<FeuerwehrDbContext>(connectionName: "postgresdb");
 
-        builder.Services.AddScoped<SmtpClient>(services => MailService.CreateClient(
-            services.GetRequiredService<IConfiguration>()));
+        builder.Services.AddScoped(services => SmtpSettings.FromConfiguration(services.GetRequiredService<IConfiguration>()));
+        builder.Services.AddScoped<ISmtpClient, SmtpClient>();
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<IMailService, MailService>();
