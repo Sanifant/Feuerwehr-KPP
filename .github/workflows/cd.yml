@@ -181,7 +181,15 @@ jobs:
         
     - name: Restore dependencies
       run: dotnet restore ${{ env.SOLUTION_FILE }}
-      
+
+    - name: Extract Version from Tag
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "GITHUB_REF_NAME=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+        echo "VERSION_NAME=$VERSION" >> $GITHUB_OUTPUT
+        echo "VERSION_CODE=${{ github.run_number }}" >> $GITHUB_OUTPUT
+              
     - name: Decode Keystore
       if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
       shell: pwsh
@@ -254,6 +262,20 @@ jobs:
           -p:AndroidSigningStorePass="$env:ANDROID_KEYSTORE_PASSWORD" `
           -o ./publish/android
         if ($LASTEXITCODE -ne 0) { throw "Android publish/signing failed (exit code $LASTEXITCODE)." }
+
+        # 2. Erzeuge die APK für manuelles Testen
+        dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj `
+          -c Release `
+          -f net10.0-android `
+          -p:AndroidPackageFormat=apk `
+          -p:AndroidKeyStore=true `
+          -p:AndroidSigningKeyStore="$env:ANDROID_KEYSTORE_PATH" `
+          -p:AndroidSigningKeyAlias="$env:ANDROID_SIGNING_KEY_ALIAS" `
+          -p:AndroidSigningKeyPass="$env:ANDROID_SIGNING_KEY_PASSWORD" `
+          -p:AndroidSigningStorePass="$env:ANDROID_KEYSTORE_PASSWORD" `
+          -p:ApplicationVersion=${{ steps.get_version.outputs.VERSION_CODE }} `
+          -p:ApplicationDisplayVersion="${{ steps.get_version.outputs.VERSION_NAME }}" `
+          -o ./publish/android/apk
       
     - name: Upload Android App Artifact
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -261,6 +283,14 @@ jobs:
         name: android-app
         path: ./publish/android/*.apk
         if-no-files-found: warn
+      
+    - name: Upload Android Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-app
+        path: ./publish/android/*.aab
+        if-no-files-found: warn
+        retention-days: 7
         
     - name: Upload to Google Play Store (Internal Testing)
       if: github.ref == 'refs/heads/main'
