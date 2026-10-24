@@ -15,11 +15,13 @@ namespace de.openelp.feuerwehr.Server.Services
         Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken);
         Task StoreRefreshTokenAsync(string userId, string refreshToken);
         Task RevokeRefreshTokenAsync(string userId);
+        Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal);
         ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
     }
 
     public class TokenService : ITokenService
     {
+        public const string SecurityStampClaim = "security_stamp";
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -44,6 +46,7 @@ namespace de.openelp.feuerwehr.Server.Services
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim("firstName", user.FirstName),
                 new Claim("lastName", user.LastName),
+                new Claim(SecurityStampClaim, await _userManager.GetSecurityStampAsync(user)),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -80,6 +83,16 @@ namespace de.openelp.feuerwehr.Server.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
+        }
+
+        public async Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal)
+        {
+            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var stamp = principal.FindFirstValue(SecurityStampClaim);
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp)) return false;
+            var user = await _userManager.FindByIdAsync(userId);
+            return user is { IsActive: true, PasswordResetRequired: false } &&
+                string.Equals(stamp, await _userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
         }
 
         public async Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken)

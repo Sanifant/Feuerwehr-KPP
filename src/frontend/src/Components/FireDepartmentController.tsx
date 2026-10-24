@@ -138,12 +138,15 @@ export default function FireDepartmentController() {
                     </div>
 
                     <div className="fire-department-search">
+                        <label>
+                            Feuerwehr-ID
                         <input
                             type="number"
                             value={searchId}
                             onChange={(event) => setSearchId(event.target.value)}
                             placeholder="ID eingeben"
                         />
+                        </label>
                         <button type="button" onClick={handleFindById}>Suchen</button>
                     </div>
 

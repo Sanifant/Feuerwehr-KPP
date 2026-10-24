@@ -94,6 +94,12 @@ public partial class Program
                     }
 
                     return Task.CompletedTask;
+                },
+                OnTokenValidated = async context =>
+                {
+                    var tokens = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
+                    if (context.Principal is null || !await tokens.IsAccessTokenValidAsync(context.Principal))
+                        context.Fail("Das Konto oder die Sitzung ist nicht mehr gültig.");
                 }
             };
         });

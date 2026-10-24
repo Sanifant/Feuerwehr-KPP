@@ -44,7 +44,7 @@ public sealed class UsersService : IUsersService
             var appUser = await _userManager.FindByIdAsync(user.Id);
             var roles = await _userManager.GetRolesAsync(appUser!);
 
-            usersWithRoles.Add(new UserDetailsDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, user.CreatedAt, user.LastLoginAt, roles.ToList()));
+            usersWithRoles.Add(new UserDetailsDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, user.CreatedAt, user.LastLoginAt, roles.ToList(), user.PasswordResetRequired));
         }
 
         return ServiceResult.Ok(usersWithRoles);
@@ -65,7 +65,7 @@ public sealed class UsersService : IUsersService
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        return ServiceResult.Ok(new UserDetailsDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, user.CreatedAt, user.LastLoginAt, roles.ToList()));
+        return ServiceResult.Ok(new UserDetailsDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, user.CreatedAt, user.LastLoginAt, roles.ToList(), user.PasswordResetRequired));
 
     }
 
@@ -138,8 +138,28 @@ public sealed class UsersService : IUsersService
             return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
         }
 
-        return ServiceResult.CreatedAtAction(nameof(GetUser), new { id = user.Id }, new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList()));
+        return ServiceResult.CreatedAtAction(nameof(GetUser), new { id = user.Id }, new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList(), user.PasswordResetRequired));
 
+    }
+
+    public async Task<ServiceResult> ResendInvitation(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user is null) return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
+        if (!user.IsActive)
+            return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
+
+        try
+        {
+            await _invitations.SendAsync(user);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Einladung konnte nicht erneut versendet werden.");
+            return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
+        }
+
+        return ServiceResult.Ok(new MessageResponse("Einladung erneut versendet. Das Konto ist bis zur Passwortvergabe gesperrt."));
     }
 
     /// <summary>
@@ -154,6 +174,9 @@ public sealed class UsersService : IUsersService
         {
             return ServiceResult.NotFound(new MessageResponse("User not found"));
         }
+
+        if (user.PasswordResetRequired && !string.IsNullOrEmpty(request.NewPassword))
+            return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss über den Einladungslink festgelegt werden."));
 
         if (request.Email != null)
         {
@@ -225,7 +248,7 @@ public sealed class UsersService : IUsersService
 
         var roles = await _userManager.GetRolesAsync(user);
 
-        return ServiceResult.Ok(new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList()));
+        return ServiceResult.Ok(new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList(), user.PasswordResetRequired));
 
     }
 
@@ -298,6 +321,7 @@ public interface IUsersService
     Task<ServiceResult> GetAllUsers();
     Task<ServiceResult> GetUser(string id);
     Task<ServiceResult> CreateUser(RegisterUserRequest request);
+    Task<ServiceResult> ResendInvitation(string id);
     Task<ServiceResult> UpdateUser(string id, UpdateUserRequest request);
     Task<ServiceResult> DeleteUser(string id, string? currentUserId);
     Task<ServiceResult> PermanentlyDeleteUser(string id, string? currentUserId);

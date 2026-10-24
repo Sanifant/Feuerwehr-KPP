@@ -8,9 +8,9 @@ public record IdentityErrorDto(string Code, string Description);
 
 public record IdentityErrorResponse(string Message, IReadOnlyCollection<IdentityErrorDto> Errors);
 
-public record UserDetailsDto(string Id, string? Email, string FirstName, string LastName, string FullName, int? FireDepartmentId, bool IsActive, DateTime CreatedAt, DateTime? LastLoginAt, IReadOnlyCollection<string> Roles);
+public record UserDetailsDto(string Id, string? Email, string FirstName, string LastName, string FullName, int? FireDepartmentId, bool IsActive, DateTime CreatedAt, DateTime? LastLoginAt, IReadOnlyCollection<string> Roles, bool PasswordResetRequired = false);
 
-public record UserSummaryDto(string Id, string? Email, string FirstName, string LastName, string FullName, int? FireDepartmentId, bool IsActive, IReadOnlyCollection<string> Roles);
+public record UserSummaryDto(string Id, string? Email, string FirstName, string LastName, string FullName, int? FireDepartmentId, bool IsActive, IReadOnlyCollection<string> Roles, bool PasswordResetRequired = false);
 
 public record IncidentCreatedResponse(IncidentSummaryDto Incident, EditorLeaseDto Lease, DateTime ServerUtc);
 

@@ -40,6 +40,12 @@ public class UsersController(IUsersService service) : ControllerBase
         return this.ToActionResult(await service.CreateUser(request));
     }
 
+    [HttpPost("{id}/resend-invitation")]
+    public async Task<IActionResult> ResendInvitation(string id)
+    {
+        return this.ToActionResult(await service.ResendInvitation(id));
+    }
+
     /// <summary>
     /// Update user (Admin only)
     /// </summary>

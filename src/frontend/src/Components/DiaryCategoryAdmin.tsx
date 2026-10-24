@@ -65,6 +65,7 @@ export function DiaryCategoryAdmin() {
 
             <section className="card">
                 <h3>Vorhandene Kategorien</h3>
+                <div className="table-scroll">
                 <table className="log-table">
                     <thead>
                         <tr>
@@ -83,6 +84,7 @@ export function DiaryCategoryAdmin() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             </section>
         </div>
     );

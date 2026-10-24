@@ -1,3 +1,4 @@
+import './UserManagement.css';
 import React, { useEffect, useState } from 'react';
 import apiClient from '../api/apiClient';
 import { getApiErrorMessage } from '../api/errors';
@@ -13,6 +14,7 @@ interface User {
     lastName: string;
     fullName: string;
     isActive: boolean;
+    passwordResetRequired: boolean;
     roles: string[];
     createdAt: string;
     lastLoginAt?: string;
@@ -51,6 +53,8 @@ const UserManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
+    const [invitationError, setInvitationError] = useState<string | null>(null);
+    const [sendingInvitations, setSendingInvitations] = useState<string[]>([]);
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -179,6 +183,23 @@ const UserManagement: React.FC = () => {
         }
     };
 
+    const resendInvitation = async (user: User) => {
+        setSendingInvitations(prev => [...prev, user.id]);
+        setNotice(null);
+        setInvitationError(null);
+        try {
+            await apiClient.post(`/api/Users/${user.id}/resend-invitation`);
+            setUsers(prev => prev.map(current => current.id === user.id
+                ? { ...current, passwordResetRequired: true }
+                : current));
+            setNotice(`Einladung an ${user.email} erneut versendet. Das Konto ist bis zur Passwortvergabe gesperrt.`);
+        } catch (err: unknown) {
+            setInvitationError(getApiErrorMessage(err, 'Die Einladung konnte nicht erneut versendet werden. Bitte versuchen Sie es erneut.'));
+        } finally {
+            setSendingInvitations(prev => prev.filter(id => id !== user.id));
+        }
+    };
+
     // Redirect non-admins
     if (!isAdmin) {
         return <Navigate to="/dashboard" replace />;
@@ -209,6 +230,7 @@ const UserManagement: React.FC = () => {
             </div>
 
             {notice && <p role="status">{notice}</p>}
+            {invitationError && <p className="alert alert-error" role="alert">{invitationError}</p>}
             <div className="users-table">
                 <table>
                     <thead>
@@ -235,8 +257,8 @@ const UserManagement: React.FC = () => {
                                     ))}
                                 </td>
                                 <td>
-                                    <span className={`badge ${user.isActive ? 'badge-success' : 'badge-inactive'}`}>
-                                        {user.isActive ? 'Aktiv' : 'Inaktiv'}
+                                    <span className={`badge ${user.isActive && !user.passwordResetRequired ? 'badge-success' : 'badge-inactive'}`}>
+                                        {!user.isActive ? 'Inaktiv' : user.passwordResetRequired ? 'Gesperrt – Passwortvergabe ausstehend' : 'Aktiv'}
                                     </span>
                                 </td>
                                 <td>{new Date(user.createdAt).toLocaleDateString('de-DE')}</td>
@@ -257,6 +279,16 @@ const UserManagement: React.FC = () => {
                                             <path d="M12 20h9" />
                                             <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
                                         </svg>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary user-invitation-button"
+                                        onClick={() => resendInvitation(user)}
+                                        disabled={!user.isActive || sendingInvitations.includes(user.id)}
+                                        aria-label={`Einladung für ${user.fullName} erneut senden`}
+                                        title="Sperrt das Konto bis zur Passwortvergabe über den neuen Einladungslink"
+                                    >
+                                        {sendingInvitations.includes(user.id) ? 'Wird versendet…' : 'Einladung erneut senden'}
                                     </button>
                                 </td>
                             </tr>
@@ -280,7 +312,7 @@ const UserManagement: React.FC = () => {
                             <div className="alert alert-error">{submitError}</div>
                         )}
 
-                        <form onSubmit={handleSubmit} noValidate>
+                        <form onSubmit={handleSubmit} className="form-stack" noValidate>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label htmlFor="firstName">Vorname *</label>
@@ -339,7 +371,7 @@ const UserManagement: React.FC = () => {
                                         value={form.password}
                                         onChange={handleFieldChange}
                                         className={formErrors.password ? 'input-error' : ''}
-                                        disabled={submitting}
+                                        disabled={submitting || editingUser.passwordResetRequired}
                                         autoComplete="new-password"
                                     />
                                     {formErrors.password && <span className="field-error">{formErrors.password}</span>}
@@ -353,7 +385,7 @@ const UserManagement: React.FC = () => {
                                         value={form.confirmPassword}
                                         onChange={handleFieldChange}
                                         className={formErrors.confirmPassword ? 'input-error' : ''}
-                                        disabled={submitting}
+                                        disabled={submitting || editingUser.passwordResetRequired}
                                         autoComplete="new-password"
                                     />
                                     {formErrors.confirmPassword && <span className="field-error">{formErrors.confirmPassword}</span>}
@@ -361,6 +393,7 @@ const UserManagement: React.FC = () => {
                             </div>
 
                             )}
+                            {editingUser?.passwordResetRequired && <p>Das Konto ist gesperrt, bis der Benutzer sein Passwort über den Einladungslink festgelegt hat.</p>}
 
                             <div className="form-group">
                                 <label>Rollen *</label>
@@ -404,256 +437,6 @@ const UserManagement: React.FC = () => {
                 </div>
             )}
 
-            <style>{`
-                .user-management {
-                    padding: 2rem;
-                }
-
-                .page-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 1.5rem;
-                }
-
-                .page-header h1 {
-                    margin: 0 0 0.25rem 0;
-                }
-
-                .text-muted {
-                    color: #6c757d;
-                    margin: 0;
-                }
-
-                .users-table {
-                    overflow-x: auto;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background: white;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-                }
-
-                th, td {
-                    padding: 0.75rem;
-                    text-align: left;
-                    border-bottom: 1px solid #dee2e6;
-                }
-
-                th {
-                    background-color: #f8f9fa;
-                    font-weight: 600;
-                }
-
-                .user-edit-button {
-                    display: inline-grid;
-                    place-items: center;
-                    width: 2rem;
-                    height: 2rem;
-                    padding: 0.35rem;
-                    border: 1px solid #ced4da;
-                    border-radius: 0.375rem;
-                    background: white;
-                    color: #0d6efd;
-                    cursor: pointer;
-                }
-
-                .user-edit-button:hover {
-                    background: #e9f2ff;
-                }
-
-                .user-edit-button svg {
-                    width: 100%;
-                    height: 100%;
-                    fill: none;
-                    stroke: currentColor;
-                    stroke-linecap: round;
-                    stroke-linejoin: round;
-                    stroke-width: 2;
-                }
-
-                .badge {
-                    display: inline-block;
-                    padding: 0.25rem 0.5rem;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    border-radius: 0.25rem;
-                    margin-right: 0.25rem;
-                }
-
-                .badge-role { background-color: #0d6efd; color: white; }
-                .badge-success { background-color: #198754; color: white; }
-                .badge-inactive { background-color: #6c757d; color: white; }
-
-                .alert {
-                    padding: 1rem;
-                    border-radius: 0.25rem;
-                    margin-bottom: 1rem;
-                }
-
-                .alert-error {
-                    background-color: #f8d7da;
-                    color: #842029;
-                    border: 1px solid #f5c2c7;
-                }
-
-                /* Buttons */
-                .btn {
-                    padding: 0.5rem 1.1rem;
-                    border: none;
-                    border-radius: 0.375rem;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: background-color 0.15s;
-                }
-
-                .btn:disabled { opacity: 0.65; cursor: not-allowed; }
-                .btn-primary { background-color: #0d6efd; color: white; }
-                .btn-primary:hover:not(:disabled) { background-color: #0b5ed7; }
-                .btn-secondary { background-color: #6c757d; color: white; }
-                .btn-secondary:hover:not(:disabled) { background-color: #5c636a; }
-
-                /* Modal */
-                .modal-backdrop {
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(0, 0, 0, 0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 1000;
-                }
-
-                .modal {
-                    background: white;
-                    border-radius: 0.5rem;
-                    width: 100%;
-                    max-width: 560px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    padding: 1.75rem;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-                }
-
-                .modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 1.5rem;
-                }
-
-                .modal-header h2 {
-                    margin: 0;
-                    font-size: 1.25rem;
-                }
-
-                .modal-close {
-                    background: none;
-                    border: none;
-                    font-size: 1.75rem;
-                    line-height: 1;
-                    cursor: pointer;
-                    color: #6c757d;
-                    padding: 0;
-                }
-
-                .modal-close:hover { color: #000; }
-
-                .modal-footer {
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 0.75rem;
-                    margin-top: 1.5rem;
-                    padding-top: 1rem;
-                    border-top: 1px solid #dee2e6;
-                }
-
-                /* Form */
-                .form-row {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 1rem;
-                }
-
-                .form-group {
-                    display: flex;
-                    flex-direction: column;
-                    margin-bottom: 1rem;
-                }
-
-                .form-group label {
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                    margin-bottom: 0.35rem;
-                    color: #333;
-                }
-
-                .form-group input[type="text"],
-                .form-group input[type="email"],
-                .form-group input[type="password"] {
-                    padding: 0.5rem 0.75rem;
-                    border: 1px solid #ced4da;
-                    border-radius: 0.375rem;
-                    font-size: 0.9rem;
-                    transition: border-color 0.15s;
-                }
-
-                .form-group input:focus {
-                    outline: none;
-                    border-color: #0d6efd;
-                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-                }
-
-                .input-error {
-                    border-color: #dc3545 !important;
-                }
-
-                .input-error-border {
-                    border-color: #dc3545;
-                }
-
-                .field-error {
-                    color: #dc3545;
-                    font-size: 0.8rem;
-                    margin-top: 0.25rem;
-                }
-
-                /* Role Checkboxes */
-                .role-checkboxes {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 0.5rem;
-                    padding: 0.5rem;
-                    border: 1px solid #ced4da;
-                    border-radius: 0.375rem;
-                }
-
-                .role-checkbox-label {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.375rem;
-                    font-weight: normal !important;
-                    font-size: 0.9rem;
-                    cursor: pointer;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 0.25rem;
-                    transition: background-color 0.1s;
-                }
-
-                .role-checkbox-label:hover {
-                    background-color: #f0f4ff;
-                }
-
-                .role-checkbox-label input[type="checkbox"] {
-                    cursor: pointer;
-                    width: 1rem;
-                    height: 1rem;
-                    accent-color: #0d6efd;
-                }
-            `}</style>
         </div>
     );
 };

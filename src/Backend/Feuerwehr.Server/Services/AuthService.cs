@@ -42,6 +42,9 @@ public sealed class AuthService : IAuthService
             return ServiceResult.Unauthorized(new MessageResponse("Invalid credentials"));
         }
 
+        if (user.PasswordResetRequired)
+            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe über den Einladungslink gesperrt."));
+
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
         if (result.IsLockedOut)
@@ -119,7 +122,7 @@ public sealed class AuthService : IAuthService
         }
 
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null || !user.IsActive)
+        if (user == null || !user.IsActive || user.PasswordResetRequired)
         {
             return ServiceResult.Unauthorized(new MessageResponse("User not found or inactive"));
         }
@@ -150,7 +153,7 @@ public sealed class AuthService : IAuthService
     {
         if (string.IsNullOrWhiteSpace(currentUserId)) return ServiceResult.Unauthorized();
         var user = await _userManager.FindByIdAsync(currentUserId);
-        if (user is null || !user.IsActive) return ServiceResult.Unauthorized();
+        if (user is null || !user.IsActive || user.PasswordResetRequired) return ServiceResult.Unauthorized();
 
         // Share the login attempt counter and honor existing account lockouts, including
         // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.

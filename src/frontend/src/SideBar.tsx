@@ -4,11 +4,11 @@ import type { ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useRole } from './hooks/useRole';
 
-type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung';
+type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung' | 'einsatz';
 
 export function SideBar() {
     const { isAuthenticated } = useAuth();
-    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, isAdmin } = useRole();
+    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, isAdmin, isCommander } = useRole();
     const location = useLocation();
     const navigate = useNavigate();
     const currentPath = `${location.pathname}${location.search}`;
@@ -44,18 +44,45 @@ export function SideBar() {
                             </SidebarLink>
                         )}
 
-                        {canViewSituationMap && (
-                            <SidebarLink to="/incident-map" currentPath={currentPath}>
-                                <span className="nav-icon" aria-hidden="true">🗺</span>
-                                Lagekarte
-                            </SidebarLink>
-                        )}
+                        {isCommander && (
+                            <>
+                            <SidebarGroupButton
+                                isActive={activeGroup === 'einsatz'}
+                                onClick={(to) => {
+                                    setActiveGroup(activeGroup === 'einsatz' ? null : 'einsatz');
 
-                        {canViewIncidentDiary && (
-                            <SidebarLink to="/incident-diary" currentPath={currentPath}>
-                                <span className="nav-icon" aria-hidden="true">📝</span>
-                                Einsatztagebuch
-                            </SidebarLink>
+                                    if (to) {
+                                        navigate(to);
+                                    }
+                                }}
+                            >
+                                <span className="nav-icon" aria-hidden="true">☷</span>
+                                Einsätze                            
+                            </SidebarGroupButton>
+
+                            {activeGroup === 'einsatz' && (
+                                <div className="sidebar-subnav">
+                                    <SidebarLink to="/incident-map" currentPath={currentPath}>
+                                        <span className="nav-icon" aria-hidden="true">🗺</span>
+                                        Einsatzübersicht
+                                    </SidebarLink>
+                                    {canViewSituationMap && (
+                                        <SidebarLink to="/incident-map" currentPath={currentPath}>
+                                            <span className="nav-icon" aria-hidden="true">🗺</span>
+                                            Lagekarte
+                                        </SidebarLink>
+                                    )}
+
+                                    {canViewIncidentDiary && (
+                                        <SidebarLink to="/incident-diary" currentPath={currentPath}>
+                                            <span className="nav-icon" aria-hidden="true">📝</span>
+                                            Einsatztagebuch
+                                        </SidebarLink>
+                                    )}
+                                </div>
+                            )}
+                            </>
+
                         )}
 
                         {canManageTraining && (
@@ -110,14 +137,16 @@ export function SideBar() {
 
                         {activeGroup === 'verwaltung' && (
                             <div className="sidebar-subnav">
-                                <SidebarLink to="/firedepartments" currentPath={currentPath}>
-                                    <span className="nav-icon" aria-hidden="true">⌂</span>
-                                    Feuerwehren
-                                </SidebarLink>
                                 {canManageUsers && (
                                     <SidebarLink to="/users" currentPath={currentPath}>
                                         <span className="nav-icon" aria-hidden="true">♙</span>
                                         Benutzer
+                                    </SidebarLink>
+                                )}
+                                {isAdmin && (
+                                    <SidebarLink to="/firedepartments" currentPath={currentPath}>
+                                        <span className="nav-icon" aria-hidden="true">⌂</span>
+                                        Feuerwehren
                                     </SidebarLink>
                                 )}
                                 {isAdmin && (

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,6 +16,11 @@ function show() {
     </Routes></MemoryRouter>);
     return userEvent.setup();
 }
+
+const existingUser = {
+    id: 'user-1', email: 'ada@example.com', firstName: 'Ada', lastName: 'Muster', fullName: 'Ada Muster',
+    isActive: true, passwordResetRequired: false, roles: ['Viewer'], createdAt: '2026-10-20T10:00:00Z',
+};
 
 async function fill() {
     const user = show();
@@ -69,5 +74,60 @@ describe('UserManagement invitations', () => {
         show();
         expect(await screen.findByText('Dashboard')).toBeInTheDocument();
         expect(apiClient.get).not.toHaveBeenCalled();
+    });
+
+    it('resends the selected invitation and shows the account lock', async () => {
+        vi.mocked(apiClient.get).mockResolvedValue({ data: [existingUser, {
+            ...existingUser, id: 'user-2', fullName: 'Bea Beispiel', email: 'bea@example.com',
+        }] });
+        const user = show();
+        await user.click(await screen.findByRole('button', { name: 'Einladung für Ada Muster erneut senden' }));
+        expect(apiClient.post).toHaveBeenCalledWith('/api/Users/user-1/resend-invitation');
+        expect(await screen.findByRole('status')).toHaveTextContent('Einladung an ada@example.com erneut versendet');
+        const adaRow = screen.getByText('Ada Muster').closest('tr')!;
+        const beaRow = screen.getByText('Bea Beispiel').closest('tr')!;
+        expect(within(adaRow).getByText('Gesperrt – Passwortvergabe ausstehend')).toBeInTheDocument();
+        expect(within(beaRow).getByText('Aktiv')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Ada Muster bearbeiten' }));
+        expect(screen.getByLabelText('Passwort (optional)')).toBeDisabled();
+    });
+
+    it('prevents duplicate sends while the request is pending and allows resending afterward', async () => {
+        vi.mocked(apiClient.get).mockResolvedValue({ data: [{ ...existingUser, passwordResetRequired: true }] });
+        let finish!: () => void;
+        vi.mocked(apiClient.post).mockImplementationOnce(() => new Promise(resolve => {
+            finish = () => resolve({ data: {} });
+        }));
+        const user = show();
+        const button = await screen.findByRole('button', { name: 'Einladung für Ada Muster erneut senden' });
+        await user.click(button);
+        expect(button).toBeDisabled();
+        expect(button).toHaveTextContent('Wird versendet');
+        await user.click(button);
+        expect(apiClient.post).toHaveBeenCalledTimes(1);
+        finish();
+        await waitFor(() => expect(button).toBeEnabled());
+    });
+
+    it('shows a resend failure and keeps the user list available for retry', async () => {
+        vi.mocked(apiClient.get).mockResolvedValue({ data: [existingUser] });
+        vi.mocked(apiClient.post).mockRejectedValueOnce({
+            isAxiosError: true, response: { data: { message: 'Die Einladung konnte nicht versendet werden.' } },
+        });
+        const user = show();
+        const button = await screen.findByRole('button', { name: 'Einladung für Ada Muster erneut senden' });
+        await user.click(button);
+        expect(await screen.findByRole('alert')).toHaveTextContent('Die Einladung konnte nicht versendet werden.');
+        expect(screen.getByText('Aktiv')).toBeInTheDocument();
+        expect(button).toBeEnabled();
+        await user.click(button);
+        expect(await screen.findByRole('status')).toHaveTextContent('erneut versendet');
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('disables invitations for inactive accounts', async () => {
+        vi.mocked(apiClient.get).mockResolvedValue({ data: [{ ...existingUser, isActive: false }] });
+        show();
+        expect(await screen.findByRole('button', { name: 'Einladung für Ada Muster erneut senden' })).toBeDisabled();
     });
 });

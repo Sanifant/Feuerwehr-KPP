@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using de.openelp.feuerwehr.Common.Models.Auth;
 using de.openelp.feuerwehr.Common.Models.Dto;
@@ -29,6 +30,7 @@ public sealed class UserInvitationApiTests : IDisposable
     private readonly Mock<ITokenService> _tokens = new();
     private readonly UsersController _usersApi;
     private readonly AuthController _authApi;
+    private readonly TokenService _realTokens;
 
     public UserInvitationApiTests()
     {
@@ -53,7 +55,14 @@ public sealed class UserInvitationApiTests : IDisposable
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Frontend:BaseUrl"] = "https://feuerwehr.example",
+            ["JwtSettings:SecretKey"] = "invitation-tests-signing-key-at-least-32-characters",
+            ["JwtSettings:Issuer"] = "invitation-tests",
+            ["JwtSettings:Audience"] = "invitation-tests",
         }).Build();
+        _realTokens = new TokenService(config, _users);
+        _tokens.Setup(tokens => tokens.GenerateAccessTokenAsync(It.IsAny<ApplicationUser>(), It.IsAny<IList<string>>()))
+            .ReturnsAsync("test-access-token");
+        _tokens.Setup(tokens => tokens.GenerateRefreshToken()).Returns("test-refresh-token");
         var invitations = new UserInvitationService(_users, _store, _mail, _tokens.Object, config, _clock,
             NullLogger<UserInvitationService>.Instance);
         _usersApi = new UsersController(new UsersService(_users, _roles, invitations, NullLogger<UsersService>.Instance));
@@ -83,6 +92,7 @@ public sealed class UserInvitationApiTests : IDisposable
     {
         var (user, id) = await CreateInvitedUser();
         Assert.False(await _users.HasPasswordAsync(user));
+        Assert.True(user.PasswordResetRequired);
         Assert.True(await _users.IsInRoleAsync(user, "Viewer"));
         var mail = Assert.Single(_mail.Messages);
         Assert.Equal(user.Email, mail.Recipient);
@@ -104,7 +114,7 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(id, " NEW.USER@EXAMPLE.COM ")));
         Assert.True(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
         Assert.Empty(_store.Entries);
-        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Once);
+        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
         Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(id)));
         // Even a stale cache copy cannot replay the underlying Identity token.
         _store.Entries[id] = staleInvitation;
@@ -156,7 +166,7 @@ public sealed class UserInvitationApiTests : IDisposable
 
         Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(id)));
         Assert.True(revokedBeforeCleanup);
-        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Once);
+        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
         Assert.True(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
 
         // Failed cleanup leaves the entry with its original expiry, but Identity prevents replay.
@@ -253,7 +263,7 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.IsType<OkObjectResult>(await _authApi.ChangePassword(request));
         Assert.True(await _users.CheckPasswordAsync(user, "ChangedPassword123"));
         Assert.False(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
-        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
+        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(3));
     }
 
     [Fact]
@@ -353,6 +363,167 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.Equal(0, await _users.GetAccessFailedCountAsync(user));
         Assert.False(await _users.IsLockedOutAsync(user));
         Assert.True(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
+    }
+
+    [Fact]
+    public async Task ResendInvitation_LocksExistingAccountUntilSuccessfulPasswordReset()
+    {
+        var (user, firstId) = await CreateInvitedUser();
+        Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(firstId)));
+        _tokens.Invocations.Clear();
+        Assert.IsType<OkObjectResult>(await _usersApi.ResendInvitation(user.Id));
+        var id = Assert.Single(_store.Entries).Key;
+        Assert.NotEqual(firstId, id);
+        Assert.Equal(2, _mail.Messages.Count);
+        _tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Once);
+
+        // Reload the persisted lock, including the status returned to the administration UI.
+        _provider.GetRequiredService<FeuerwehrDbContext>().ChangeTracker.Clear();
+        user = (await _users.FindByIdAsync(user.Id))!;
+        Assert.True(user.PasswordResetRequired);
+        Assert.True(user.IsActive);
+        var details = Assert.IsType<UserDetailsDto>(Assert.IsType<OkObjectResult>(await _usersApi.GetUser(user.Id)).Value);
+        Assert.True(details.PasswordResetRequired);
+        Assert.Equal(423, Assert.IsType<ObjectResult>((await _authApi.Login(new LoginRequest
+        {
+            Email = user.Email!, Password = "MyNewPassword123",
+        })).Result).StatusCode);
+        SignInAs(user.Id);
+        Assert.IsType<UnauthorizedResult>(await _authApi.ChangePassword(new ChangePasswordRequest
+        {
+            CurrentPassword = "MyNewPassword123", NewPassword = "ChangedPassword123",
+        }));
+        Assert.IsType<BadRequestObjectResult>(await _usersApi.UpdateUser(user.Id, new UpdateUserRequest
+        {
+            NewPassword = "ChangedPassword123",
+        }));
+        _authApi.Request.Headers.Authorization = "Bearer previous-access-token";
+        _tokens.Setup(tokens => tokens.GetPrincipalFromExpiredToken("previous-access-token")).Returns(_authApi.User);
+        _tokens.Setup(tokens => tokens.ValidateRefreshTokenAsync(user.Id, "previous-refresh-token")).ReturnsAsync(true);
+        Assert.IsType<UnauthorizedObjectResult>((await _authApi.RefreshToken(new RefreshTokenRequest
+        {
+            RefreshToken = "previous-refresh-token",
+        })).Result);
+
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(id, password: "weak")));
+        Assert.True(user.PasswordResetRequired);
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(id, "wrong@example.com")));
+        Assert.True(user.PasswordResetRequired);
+        Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(id, password: "ChangedPassword123")));
+        Assert.False(user.PasswordResetRequired);
+        Assert.IsType<OkObjectResult>((await _authApi.Login(new LoginRequest
+        {
+            Email = user.Email!, Password = "ChangedPassword123",
+        })).Result);
+        Assert.False(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
+    }
+
+    [Fact]
+    public async Task ResendInvitation_InvalidatesPreviousLinksAndKeepsLockAfterExpiry()
+    {
+        var (user, oldId) = await CreateInvitedUser();
+        Assert.IsType<OkObjectResult>(await _usersApi.ResendInvitation(user.Id));
+        var id = _store.Entries.Keys.Single(key => key != oldId);
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(oldId)));
+        Assert.True(user.PasswordResetRequired);
+        _clock.Now = _clock.Now.AddMinutes(60);
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(id)));
+        Assert.True(user.PasswordResetRequired);
+
+        Assert.IsType<OkObjectResult>(await _usersApi.ResendInvitation(user.Id));
+        var freshId = _store.Entries.Keys.Single(key => key != oldId && key != id);
+        Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(freshId)));
+        Assert.False(user.PasswordResetRequired);
+    }
+
+    [Fact]
+    public async Task ResendInvitation_RevokesExistingAccessTokensIncludingAfterUnlock()
+    {
+        var (user, id) = await CreateInvitedUser();
+        await _authApi.ResetPassword(Request(id));
+        var jwt = await _realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
+        var principal = Assert.IsType<ClaimsPrincipal>(_realTokens.GetPrincipalFromExpiredToken(jwt));
+        Assert.True(await _realTokens.IsAccessTokenValidAsync(principal));
+        Assert.False(await _realTokens.IsAccessTokenValidAsync(new ClaimsPrincipal(new ClaimsIdentity(
+            [new Claim(ClaimTypes.NameIdentifier, user.Id)]))));
+
+        await _usersApi.ResendInvitation(user.Id);
+        Assert.False(await _realTokens.IsAccessTokenValidAsync(principal));
+        // Even a token with the current stamp cannot bypass the persisted invitation lock.
+        var pendingJwt = await _realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
+        var pendingPrincipal = _realTokens.GetPrincipalFromExpiredToken(pendingJwt)!;
+        Assert.False(await _realTokens.IsAccessTokenValidAsync(pendingPrincipal));
+        var newId = Assert.Single(_store.Entries).Key;
+        await _authApi.ResetPassword(Request(newId));
+        Assert.False(await _realTokens.IsAccessTokenValidAsync(principal));
+        Assert.False(await _realTokens.IsAccessTokenValidAsync(pendingPrincipal));
+        var newJwt = await _realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
+        Assert.True(await _realTokens.IsAccessTokenValidAsync(_realTokens.GetPrincipalFromExpiredToken(newJwt)!));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ResendInvitation_MailFailureRestoresPreviousLockAndInvitation(bool alreadyInvited)
+    {
+        var (user, id) = await CreateInvitedUser();
+        if (!alreadyInvited) await _authApi.ResetPassword(Request(id));
+        var stamp = user.SecurityStamp;
+        _mail.Fail = true;
+        Assert.Equal(503, Assert.IsType<ObjectResult>(await _usersApi.ResendInvitation(user.Id)).StatusCode);
+        _provider.GetRequiredService<FeuerwehrDbContext>().ChangeTracker.Clear();
+        user = (await _users.FindByIdAsync(user.Id))!;
+        Assert.Equal(alreadyInvited, user.PasswordResetRequired);
+        Assert.Equal(stamp, user.SecurityStamp);
+        if (alreadyInvited)
+        {
+            Assert.Equal(id, Assert.Single(_store.Entries).Key);
+            Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(id)));
+        }
+        else
+        {
+            Assert.Empty(_store.Entries);
+            Assert.IsType<OkObjectResult>((await _authApi.Login(new LoginRequest
+            {
+                Email = user.Email!, Password = "MyNewPassword123",
+            })).Result);
+        }
+    }
+
+    [Fact]
+    public async Task ResendInvitation_PasswordResetAlsoClearsExistingFailedLoginLockout()
+    {
+        var (user, id) = await CreateInvitedUser();
+        await _authApi.ResetPassword(Request(id));
+        for (var attempt = 0; attempt < 5; attempt++)
+            await _authApi.Login(new LoginRequest { Email = user.Email!, Password = "WrongPassword123" });
+        Assert.True(await _users.IsLockedOutAsync(user));
+        await _usersApi.ResendInvitation(user.Id);
+        var newId = Assert.Single(_store.Entries).Key;
+        Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(newId, password: "weak")));
+        Assert.True(await _users.IsLockedOutAsync(user));
+        Assert.True(user.PasswordResetRequired);
+        Assert.IsType<OkObjectResult>(await _authApi.ResetPassword(Request(newId)));
+        _provider.GetRequiredService<FeuerwehrDbContext>().ChangeTracker.Clear();
+        user = (await _users.FindByIdAsync(user.Id))!;
+        Assert.False(user.PasswordResetRequired);
+        Assert.False(await _users.IsLockedOutAsync(user));
+        Assert.Equal(0, await _users.GetAccessFailedCountAsync(user));
+        Assert.IsType<OkObjectResult>((await _authApi.Login(new LoginRequest
+        {
+            Email = user.Email!, Password = "MyNewPassword123",
+        })).Result);
+    }
+
+    [Fact]
+    public async Task ResendInvitation_RejectsUnknownAndInactiveUsers()
+    {
+        Assert.IsType<NotFoundObjectResult>(await _usersApi.ResendInvitation("missing"));
+        var (user, _) = await CreateInvitedUser();
+        user.IsActive = false;
+        await _users.UpdateAsync(user);
+        Assert.IsType<BadRequestObjectResult>(await _usersApi.ResendInvitation(user.Id));
+        Assert.Single(_mail.Messages);
     }
 
     private sealed class MutableClock : TimeProvider
