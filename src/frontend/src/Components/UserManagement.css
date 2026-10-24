@@ -1,0 +1,54 @@
+.users-table {
+    overflow-x: auto;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--panel-radius);
+    background: var(--surface);
+}
+
+.user-edit-button {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+    border-color: var(--selection-border);
+    background: var(--selection-bg);
+    color: #1d4ed8;
+    vertical-align: middle;
+}
+
+.user-edit-button:hover:not(:disabled) {
+    background: var(--selection-border);
+    color: #1d4ed8;
+}
+
+.user-edit-button svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+}
+
+.user-invitation-button {
+    margin: 4px 0 4px 8px;
+}
+
+.role-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--field-radius);
+}
+
+.role-checkbox-label {
+    font-weight: 400;
+}
+
+.role-checkboxes.input-error-border {
+    border-color: var(--primary);
+}

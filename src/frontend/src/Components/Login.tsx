@@ -50,40 +50,42 @@ const Login = () => {
     };
 
     return (
-        <div style={{ maxWidth: 420, margin: '2rem auto', padding: '1rem' }}>
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.75rem' }}>
-                <label>
-                    Username
+        <section className="card auth-panel" aria-labelledby="login-title">
+            <h2 id="login-title">Login</h2>
+            <form onSubmit={handleSubmit} className="form-stack">
+                <div className="form-group">
+                    <label htmlFor="username">Username</label>
                     <input
                         type="text"
+                        id="username"
                         value={formData.username}
                         onChange={(event) => setFormData((prev) => ({ ...prev, username: event.target.value }))}
                         autoComplete="username"
                         required
                     />
-                </label>
-
-                <label>
-                    Password
+                </div>
+                <div className="form-group">
+                    <label htmlFor="password">Password</label>
                     <input
                         type="password"
+                        id="password"
                         value={formData.password}
                         onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
                         autoComplete="current-password"
                         required
                     />
-                </label>
-
+                </div>
                 {(localError || error) && (
-                    <p style={{ color: 'red', margin: 0 }}>{localError || error}</p>
+                    <p role="alert">{localError || error}</p>
                 )}
 
-                <button type="submit" disabled={!isComplete || isSubmitting}>
+                <button type="submit"
+                    className="btn btn-primary"
+                    disabled={!isComplete || isSubmitting}>
                     {isSubmitting ? 'Logging in...' : 'Login'}
                 </button>
             </form>
-        </div>
+        </section>
     );
 };
 

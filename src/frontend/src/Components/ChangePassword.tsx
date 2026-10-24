@@ -67,8 +67,8 @@ function PasswordForm({ token, accountEmail, onSignIn }: {
 
     if (!validToken) return <p role="alert">Der Einladungslink ist ungültig.</p>;
     if (complete) return (
-        <div>
-            <p role="status">Ihr Passwort wurde gespeichert. Sie können sich jetzt anmelden.</p>
+        <div className="card auth-panel">
+            <p role="status" className="alert alert-success">Ihr Passwort wurde gespeichert. Sie können sich jetzt anmelden.</p>
             {isAccountChange
                 ? <button type="button" onClick={() => { void onSignIn?.(); }}>Erneut anmelden</button>
                 : <Link to="/login">Zur Anmeldung</Link>}
@@ -76,12 +76,12 @@ function PasswordForm({ token, accountEmail, onSignIn }: {
     );
 
     return (
-        <section className="change-password">
+        <section className="card auth-panel change-password">
             <h1>{isAccountChange ? 'Passwort ändern' : 'Passwort festlegen'}</h1>
             <p>{isAccountChange ? 'Bestätigen Sie Ihr aktuelles Passwort und wählen Sie ein neues Passwort.'
                 : 'Geben Sie die E-Mail-Adresse Ihrer Einladung ein und wählen Sie Ihr Passwort.'}</p>
             {error && <p role="alert">{error}</p>}
-            <form onSubmit={handleSubmit} noValidate>
+            <form onSubmit={handleSubmit} className="form-stack" noValidate>
                 <div className="form-group">
                     <label htmlFor="invitation-email">E-Mail-Adresse</label>
                     <input id="invitation-email" type="email" autoComplete="username" required

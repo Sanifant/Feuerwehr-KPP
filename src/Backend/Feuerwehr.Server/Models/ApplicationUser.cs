@@ -10,6 +10,7 @@ namespace de.openelp.feuerwehr.Server.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool PasswordResetRequired { get; set; }
 
         // Navigation property
         public FireDepartment? FireDepartment { get; set; }

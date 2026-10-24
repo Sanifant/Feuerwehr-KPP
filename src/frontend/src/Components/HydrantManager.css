@@ -1,6 +1,6 @@
 .hydrant-manager {
     width: 100%;
-    max-width: 1400px;
+    max-width: var(--content-width);
     margin: 0 auto;
 }
 
@@ -16,16 +16,16 @@
     margin-bottom: 20px;
 }
 
-.hydrant-import-modal {
+.hydrant-modal.hydrant-import-modal {
     width: min(850px, calc(100vw - 32px));
 }
 
 .hydrant-csv-example {
     padding: 14px;
     overflow-x: auto;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--field-radius);
+    background: var(--surface-muted);
     font-size: 13px;
 }
 
@@ -38,94 +38,9 @@
     margin: 4px 0 0;
 }
 
-.hydrant-import-errors {
-    margin: 16px 0;
-    padding: 12px 16px;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    background: #fef2f2;
-    color: #991b1b;
-}
-
-.hydrant-import-notice {
-    padding: 12px 16px;
-    border-radius: 6px;
-    background: #dcfce7;
-    color: #166534;
-}
-
-.hydrant-add-button,
-.hydrant-save-button,
-.hydrant-cancel-button {
-    border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.hydrant-add-button,
-.hydrant-save-button {
-    background: #b91c1c;
-    color: white;
-}
-
-.hydrant-add-button:hover,
-.hydrant-save-button:hover:not(:disabled) {
-    background: #991b1b;
-}
-
-.hydrant-cancel-button {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #334155;
-}
-
 .hydrant-modal {
     width: min(1050px, calc(100vw - 32px));
-    max-width: none;
-    max-height: calc(100dvh - 32px);
     padding: 0;
-    border: 1px solid #dce4ef;
-    border-radius: 14px;
-    background: #fff;
-    color: #1f2937;
-    color-scheme: light;
-    box-shadow: 0 24px 80px #0f172a40;
-    overflow: auto;
-}
-
-.hydrant-modal::backdrop {
-    background: #0f172a99;
-}
-
-.hydrant-modal-content {
-    padding: 24px;
-}
-
-.hydrant-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 22px;
-}
-
-.hydrant-modal-header h2 {
-    margin: 0;
-    font-size: 22px;
-}
-
-.hydrant-close-button {
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    border: 0;
-    border-radius: 6px;
-    background: #f1f5f9;
-    color: #334155;
-    font-size: 26px;
-    line-height: 1;
 }
 
 .hydrant-modal-body {
@@ -133,15 +48,6 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
     gap: 28px;
-}
-
-.hydrant-form fieldset {
-    display: grid;
-    gap: 14px;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
 }
 
 .hydrant-form .grid {
@@ -154,49 +60,11 @@
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
 
-.hydrant-form label {
-    display: block;
-    margin-bottom: 5px;
-    color: #475569;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.hydrant-form input,
-.hydrant-form select,
-.hydrant-form textarea {
-    width: 100%;
-    min-width: 0;
-    padding: 9px 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    background: #fff;
-    color: #1f2937;
-    font: inherit;
-    font-size: 14px;
-}
-
-.hydrant-form textarea {
-    min-height: 70px;
-    resize: vertical;
-}
-
 .hydrant-form-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 20px;
-}
-
-.hydrant-modal button:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.hydrant-modal :focus-visible,
-.hydrant-add-button:focus-visible {
-    outline: 3px solid #2563eb;
-    outline-offset: 2px;
 }
 
 .hydrant-location-preview {
@@ -212,7 +80,7 @@
 .hydrant-location-preview p {
     margin: 0 0 12px;
     min-height: 44px;
-    color: #475569;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
@@ -220,7 +88,7 @@
     width: 100%;
     height: 380px;
     overflow: hidden;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     background: #eef2f6;
 }
@@ -257,15 +125,15 @@
 
 .hydrant-row {
     overflow: hidden;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    background: #fff;
-    color: #1f2937;
+    border: 1px solid var(--border-color);
+    border-radius: var(--panel-radius);
+    background: var(--surface);
+    color: var(--text-primary);
 }
 
 .hydrant-row.is-selected {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 1px #2563eb;
+    border-color: var(--focus-color);
+    box-shadow: 0 0 0 1px var(--focus-color);
 }
 
 .hydrant-summary {
@@ -286,7 +154,7 @@
 
 .hydrant-summary:hover,
 .is-selected > .hydrant-summary {
-    background: #eff6ff;
+    background: var(--selection-bg);
 }
 
 .hydrant-summary-address {
@@ -297,26 +165,26 @@
 .hydrant-summary-diameter {
     padding: 3px 6px;
     border-radius: 4px;
-    background: #f1f5f9;
+    background: var(--surface-secondary);
     font-size: 12px;
     white-space: nowrap;
 }
 
 .hydrant-summary-type {
     grid-column: 1 / 3;
-    color: #475569;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
 .hydrant-summary-chevron {
     grid-column: 3;
     grid-row: 1 / 3;
-    color: #2563eb;
+    color: var(--focus-color);
 }
 
 .hydrant-details {
     padding: 0 14px 14px;
-    border-top: 1px solid #dbeafe;
+    border-top: 1px solid var(--selection-border);
     font-size: 14px;
 }
 
@@ -328,7 +196,7 @@
 }
 
 .hydrant-details dt {
-    color: #475569;
+    color: var(--text-secondary);
 }
 
 .hydrant-details dd {
@@ -349,48 +217,38 @@
 .hydrant-detail-actions button {
     padding: 8px 12px;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--field-radius);
     font: inherit;
     font-weight: 600;
     cursor: pointer;
 }
 
-.hydrant-edit-button {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.hydrant-delete-button {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
 .hydrant-summary:focus-visible,
 .hydrant-detail-actions button:focus-visible,
 .hydrant-overview-map:focus-visible {
-    outline: 3px solid #2563eb;
+    outline: 3px solid var(--focus-color);
     outline-offset: -3px;
 }
 
 .hydrant-overview > p {
     margin: 0 0 12px;
-    color: #475569;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
 .hydrant-overview-map {
     height: clamp(380px, 65dvh, 700px);
     overflow: hidden;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--panel-radius);
     background: #eef2f6;
 }
 
 .hydrant-map-warning {
     padding: 10px;
-    border-radius: 6px;
-    background: #fffbeb;
-    color: #92400e;
+    border-radius: var(--field-radius);
+    background: var(--warning-bg);
+    color: var(--warning-text);
 }
 
 @media (max-width: 960px) {
@@ -416,14 +274,6 @@
     .hydrant-modal-body {
         grid-template-columns: minmax(0, 1fr);
         gap: 24px;
-    }
-
-    .hydrant-modal-content {
-        padding: 18px;
-    }
-
-    .hydrant-modal-header h2 {
-        font-size: 19px;
     }
 
     .hydrant-location-map {

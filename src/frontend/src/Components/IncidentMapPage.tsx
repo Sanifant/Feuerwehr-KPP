@@ -727,10 +727,18 @@ export function IncidentMapPage() {
                 <p role="status">{isSaving ? 'Änderung wird gespeichert …' : statusText}</p>
                 {!incident && canEdit && (
                     <div className="incident-create-grid">
-                        <input value={newIncidentName} onChange={(e) => setNewIncidentName(e.target.value)} placeholder="Einsatzname*" />
-                        <input value={newIncidentNumber} onChange={(e) => setNewIncidentNumber(e.target.value)} placeholder="Einsatznummer" />
-                        <input value={newIncidentKeyword} onChange={(e) => setNewIncidentKeyword(e.target.value)} placeholder="Stichwort" />
-                        <input value={newIncidentDescription} onChange={(e) => setNewIncidentDescription(e.target.value)} placeholder="Beschreibung" />
+                        <label>Einsatzname *
+                            <input value={newIncidentName} onChange={(e) => setNewIncidentName(e.target.value)} placeholder="Einsatzname*" />
+                        </label>
+                        <label>Einsatznummer
+                            <input value={newIncidentNumber} onChange={(e) => setNewIncidentNumber(e.target.value)} placeholder="Einsatznummer" />
+                        </label>
+                        <label>Stichwort
+                            <input value={newIncidentKeyword} onChange={(e) => setNewIncidentKeyword(e.target.value)} placeholder="Stichwort" />
+                        </label>
+                        <label>Beschreibung
+                            <input value={newIncidentDescription} onChange={(e) => setNewIncidentDescription(e.target.value)} placeholder="Beschreibung" />
+                        </label>
                         <div className="small-note">Position auf Karte klicken: {selectedCreationPosition ? `${selectedCreationPosition[1].toFixed(5)}, ${selectedCreationPosition[0].toFixed(5)}` : 'noch nicht gewählt'}</div>
                         <button type="button" onClick={createNewIncident}>Einsatz anlegen</button>
                     </div>
@@ -763,10 +771,14 @@ export function IncidentMapPage() {
             <section className="incident-layout">
                 <aside className="card incident-sidebar">
                     <h3>Symbolkatalog</h3>
-                    <input placeholder="Suche" value={searchSymbol} onChange={(e) => setSearchSymbol(e.target.value)} />
-                    <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <label>Symbole suchen
+                        <input placeholder="Suche" value={searchSymbol} onChange={(e) => setSearchSymbol(e.target.value)} />
+                    </label>
+                    <label>Symbolkategorie
+                        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </label>
                     <div className="symbol-grid">
                         {filteredSymbols.map((symbol) => (
                             <button key={symbol.id} type="button" className={editMode === 'symbol' && selectedSymbol === symbol.id ? 'active' : ''} aria-pressed={editMode === 'symbol' && selectedSymbol === symbol.id} disabled={!canWrite || isBusy} onClick={() => { setSelectedSymbol(symbol.id); setEditMode('symbol'); }}>
@@ -782,16 +794,26 @@ export function IncidentMapPage() {
                     </label>
 
                     {selectedElement && (
-                        <fieldset className="selected-editor" disabled={!canWrite || isBusy} style={{ border: 0, margin: 0, padding: 0 }}>
+                        <fieldset className="selected-editor" disabled={!canWrite || isBusy}>
                             <h4>Elementeigenschaften</h4>
-                            <input value={selectedElement.label ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, label: e.target.value } : x))} placeholder="Beschriftung" />
-                            <input value={selectedElement.radioCallName ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, radioCallName: e.target.value } : x))} placeholder="Funkrufname" />
-                            <input value={selectedElement.strength ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, strength: e.target.value } : x))} placeholder="Stärke" />
-                            <textarea value={selectedElement.note ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, note: e.target.value } : x))} placeholder="Bemerkung" />
-                            <input type="color" value={selectedElement.colorHex ?? '#d62828'} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, colorHex: e.target.value } : x))} />
+                            <label>Beschriftung
+                                <input value={selectedElement.label ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, label: e.target.value } : x))} placeholder="Beschriftung" />
+                            </label>
+                            <label>Funkrufname
+                                <input value={selectedElement.radioCallName ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, radioCallName: e.target.value } : x))} placeholder="Funkrufname" />
+                            </label>
+                            <label>Stärke
+                                <input value={selectedElement.strength ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, strength: e.target.value } : x))} placeholder="Stärke" />
+                            </label>
+                            <label>Bemerkung
+                                <textarea value={selectedElement.note ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, note: e.target.value } : x))} placeholder="Bemerkung" />
+                            </label>
+                            <label>Farbe
+                                <input type="color" value={selectedElement.colorHex ?? '#d62828'} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, colorHex: e.target.value } : x))} />
+                            </label>
                             <div className="incident-actions">
                                 <button type="button" onClick={saveSelectedProperties} disabled={!canWrite || isBusy}>Speichern</button>
-                                <button type="button" onClick={removeSelectedElement} disabled={!canWrite || isBusy}>Löschen</button>
+                                <button type="button" className="btn-danger" onClick={removeSelectedElement} disabled={!canWrite || isBusy}>Löschen</button>
                             </div>
                         </fieldset>
                     )}

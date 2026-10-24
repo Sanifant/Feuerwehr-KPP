@@ -267,6 +267,7 @@ export function TrainingDashboard() {
                             </select>
                         </label>
                     </div>
+                    <div className="table-scroll">
                     <table>
                         <thead>
                         <tr>
@@ -297,6 +298,7 @@ export function TrainingDashboard() {
                         })}
                         </tbody>
                     </table>
+                    </div>
 
                     {error && <p className="fire-department-error">{error}</p>}
                     {loading && <p className="fire-department-muted">Daten werden geladen...</p>}

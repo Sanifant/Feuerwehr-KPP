@@ -106,7 +106,7 @@ export default function HydrantImportModal({ onClose, onImported }: HydrantImpor
                         <button type="submit" className="hydrant-save-button" disabled={isImporting || !file}>
                             {isImporting ? 'Wird importiert…' : 'CSV importieren'}
                         </button>
-                        <button type="button" className="hydrant-cancel-button" disabled={isImporting} onClick={onClose}>Abbrechen</button>
+                        <button type="button" className="btn-secondary hydrant-cancel-button" disabled={isImporting} onClick={onClose}>Abbrechen</button>
                     </div>
                 </form>
             </div>

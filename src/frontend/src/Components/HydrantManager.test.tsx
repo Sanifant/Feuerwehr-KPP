@@ -469,7 +469,7 @@ async function openForm() {
 
 async function fillForm() {
     const { user } = await openForm();
-    await user.type(screen.getByLabelText('Straße & Hausnummer'), hydrant.address.street);
+    await user.type(screen.getByLabelText('Straße'), hydrant.address.street);
     await user.type(screen.getByLabelText('Hausnummer'), hydrant.address.houseNumber);
     await user.type(screen.getByLabelText('PLZ'), hydrant.address.postalCode);
     await user.type(screen.getByLabelText('Ort'), hydrant.address.city);

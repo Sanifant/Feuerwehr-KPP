@@ -268,9 +268,9 @@ export default function HydrantManager() {
             <h1 className="text-3xl font-bold mb-6 text-red-700">🚒 Hydranten-Verwaltung</h1>
 
             <div className="hydrant-manager-toolbar">
-                {isAdmin && <button type="button" className="hydrant-cancel-button" disabled={isExporting}
+                {isAdmin && <button type="button" className="btn-secondary hydrant-cancel-button" disabled={isExporting}
                     onClick={() => void handleExport()}>{isExporting ? 'CSV wird exportiert…' : 'CSV-Export'}</button>}
-                {isAdmin && <button type="button" className="hydrant-cancel-button" aria-haspopup="dialog"
+                {isAdmin && <button type="button" className="btn-secondary hydrant-cancel-button" aria-haspopup="dialog"
                     onClick={() => { setImportNotice(null); setIsImportOpen(true); }}>CSV-Import</button>}
                 {canManageHydrants && <button id="Form-title" type="button" className="hydrant-add-button" onClick={openCreateForm}
                     aria-haspopup="dialog" aria-controls="hydrant-form-dialog">
@@ -304,10 +304,15 @@ export default function HydrantManager() {
                     <form onSubmit={handleSubmit} className="hydrant-form" aria-label="Hydrantendaten">
                         <fieldset disabled={isSaving}>
                         <div>
-                            <label htmlFor="address.street" className="block text-xs font-bold text-gray-600 uppercase">Straße & Hausnummer</label>
                             <div id="address" className="grid grid-cols-3 gap-2 mt-1">
+                                <div>
+                                <label htmlFor="address.street">Straße</label>
                                 <input type="text" id="address.street" name="address.street" value={formData.address.street} onChange={handleInputChange} placeholder="Str." className="col-span-2 p-2 border rounded text-sm" required />
-                                <input type="text" name="address.houseNumber" aria-label="Hausnummer" value={formData.address.houseNumber} onChange={handleInputChange} placeholder="Nr." className="p-2 border rounded text-sm" required />
+                                </div>
+                                <div>
+                                <label htmlFor="address.houseNumber">Hausnummer</label>
+                                <input type="text" id="address.houseNumber" name="address.houseNumber" value={formData.address.houseNumber} onChange={handleInputChange} placeholder="Nr." className="p-2 border rounded text-sm" required />
+                                </div>
                             </div>
                         </div>
 
@@ -377,7 +382,7 @@ export default function HydrantManager() {
                             <button type="submit" disabled={isSaving} className="hydrant-save-button">
                                 {isSaving ? 'Wird gespeichert…' : isEditing ? 'Aktualisieren' : 'Speichern'}
                             </button>
-                                <button type="button" disabled={isSaving} onClick={resetForm} className="hydrant-cancel-button">
+                                <button type="button" disabled={isSaving} onClick={resetForm} className="btn-secondary hydrant-cancel-button">
                                     Abbrechen
                                 </button>
                         </div>
@@ -419,8 +424,8 @@ export default function HydrantManager() {
                                         {!hasMappableCoordinates(hydrant.latitude, hydrant.longitude) && <p className="hydrant-map-warning">
                                             Dieser Hydrant kann wegen seiner Koordinaten nicht auf der Karte dargestellt werden.</p>}
                                         {canManageHydrants && <div className="hydrant-detail-actions">
-                                            <button type="button" className="hydrant-edit-button" onClick={() => handleEditClick(hydrant)}>Bearbeiten</button>
-                                            <button type="button" className="hydrant-delete-button" onClick={() => void handleDelete(hydrant.id)}>Löschen</button>
+                                            <button type="button" className="btn-edit hydrant-edit-button" onClick={() => handleEditClick(hydrant)}>Bearbeiten</button>
+                                            <button type="button" className="btn-danger hydrant-delete-button" onClick={() => void handleDelete(hydrant.id)}>Löschen</button>
                                         </div>}
                                     </div>}
                                 </li>;
