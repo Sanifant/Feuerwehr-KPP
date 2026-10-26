@@ -16,6 +16,7 @@ namespace de.openelp.feuerwehr.Server.Authorization
         public const string CanViewIncidentDiary = "CanViewIncidentDiary";
         public const string CanEditIncidentDiary = "CanEditIncidentDiary";
         public const string CanAccessIncidentModule = "CanAccessIncidentModule";
+        public const string CanViewMapSymbols = "CanViewMapSymbols";
     }
 
     /// <summary>
@@ -69,6 +70,9 @@ namespace de.openelp.feuerwehr.Server.Authorization
 
             options.AddPolicy(PolicyNames.CanViewSituationMap, policy =>
                 policy.RequireRole(Roles.SituationMapViewer, Roles.SituationMapEditor));
+
+            options.AddPolicy(PolicyNames.CanViewMapSymbols, policy =>
+                policy.RequireRole(Roles.Admin, Roles.SituationMapViewer, Roles.SituationMapEditor));
 
             options.AddPolicy(PolicyNames.CanEditSituationMap, policy =>
                 policy.RequireRole(Roles.SituationMapEditor));

@@ -178,7 +178,8 @@ public record MapElementDto(
     string GeometryJson,
     int Version,
     DateTime UpdatedAtUtc,
-    string UpdatedByDisplayName);
+    string UpdatedByDisplayName,
+    string? SymbolSvg = null);
 
 public record MapAuditEventDto(
     Guid Id,

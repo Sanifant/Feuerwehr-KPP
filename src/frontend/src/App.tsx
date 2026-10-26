@@ -20,6 +20,7 @@ import IncidentOverviewPage from './Components/IncidentOverviewPage.tsx';
 import ActiveIncidentProvider from './ActiveIncidentProvider.tsx';
 import ActiveIncidentRoute from './Components/ActiveIncidentRoute.tsx';
 import IncidentArchivePage from './Components/IncidentArchivePage.tsx';
+import MapSymbolAdmin from './Components/MapSymbolAdmin.tsx';
 
 
 const App: React.FC = () => {
@@ -53,6 +54,7 @@ const App: React.FC = () => {
                                         <Route path="/incident-diary" element={<IncidentDiaryPage />} />
                                     </Route>
                                     <Route path="/diary-categories" element={<DiaryCategoryAdmin />} />
+                                    <Route path="/map-symbols" element={<MapSymbolAdmin />} />
                                 </Route>
                             </Routes>
                         </main>

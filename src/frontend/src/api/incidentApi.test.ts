@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import apiClient from './apiClient';
-import { createIncident, downloadArchivedIncidentPdf, getActiveIncident, getArchivedDiaryEntries, getIncidentArchive, getMapState } from './incidentApi';
+import { createIncident, downloadArchivedIncidentPdf, getActiveIncident, getArchivedDiaryEntries, getIncidentArchive, getMapState, upsertMapElement } from './incidentApi';
 
 vi.mock('./apiClient', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 
@@ -29,10 +29,22 @@ it('returns the created incident from the actual numeric-status API response', a
 });
 
 it('normalizes numeric states for the map and archived incidents too', async () => {
-    vi.mocked(apiClient.get).mockResolvedValueOnce({ data: { incidentStatus: 1, incidentId: wireIncident.id } });
+    vi.mocked(apiClient.get).mockResolvedValueOnce({ data: { incidentStatus: 1, incidentId: wireIncident.id, elements: [] } });
     expect((await getMapState(wireIncident.id)).incidentStatus).toBe('Active');
     vi.mocked(apiClient.get).mockResolvedValueOnce({ data: [{ ...wireIncident, status: 2 }] });
     expect((await getIncidentArchive())[0].status).toBe('Closed');
+});
+
+it('uses numeric map element types on the wire and preserves SVGs when reading responses', async () => {
+    const element = { id: 'element-1', elementType: 1, symbolSvg: '<svg/>', geometryJson: '{"type":"Point","coordinates":[10,51]}' };
+    vi.mocked(apiClient.post).mockResolvedValueOnce({ data: { element } });
+    const request = { commandId: 'command-1', sessionId: 'session-1', leaseToken: 'lease-1', elementType: 'Symbol' as const, symbolId: 'symbol-1', geometryJson: element.geometryJson };
+    expect((await upsertMapElement('incident-1', request)).element).toEqual({ ...element, elementType: 'Symbol' });
+    expect(apiClient.post).toHaveBeenLastCalledWith('/api/incidents/incident-1/map/elements', { ...request, elementType: 1 });
+    vi.mocked(apiClient.get).mockResolvedValueOnce({ data: { incidentStatus: 1, elements: [element, { ...element, elementType: 2 }] } });
+    const snapshot = await getMapState('incident-1');
+    expect(snapshot.elements.map(item => item.elementType)).toEqual(['Symbol', 'Polygon']);
+    expect(snapshot.elements[0].symbolSvg).toBe('<svg/>');
 });
 
 it('uses creation time for older saved command responses without an alarm time', async () => {

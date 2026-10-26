@@ -58,6 +58,8 @@ public class MapElement
     [MaxLength(120)]
     public string? SymbolId { get; set; }
 
+    public string? SymbolSvg { get; set; }
+
     [MaxLength(120)]
     public string? Category { get; set; }
 

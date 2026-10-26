@@ -162,6 +162,10 @@ export function SideBar() {
                                         Tagebuchkategorien
                                     </SidebarLink>
                                 )}
+                                {isAdmin && <SidebarLink to="/map-symbols" currentPath={currentPath}>
+                                    <span className="nav-icon" aria-hidden="true">◇</span>
+                                    Lagekartensymbole
+                                </SidebarLink>}
                             </div>
                         )}
                     </>
@@ -185,6 +189,7 @@ function getActiveGroup(currentPath: string): SidebarGroup | null {
     if (
         currentPath === '/hydrant' ||
         currentPath === '/diary-categories' ||
+        currentPath === '/map-symbols' ||
         currentPath === '/firedepartments' ||
         currentPath.startsWith('/trainingdashboard?view=') ||
         currentPath.startsWith('/dashboard?view=')

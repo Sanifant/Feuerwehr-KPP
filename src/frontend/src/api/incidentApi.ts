@@ -52,6 +52,7 @@ export interface MapElementDto {
     incidentId: string;
     elementType: 'Symbol' | 'Polygon';
     symbolId?: string;
+    symbolSvg?: string;
     category?: string;
     label?: string;
     radioCallName?: string;
@@ -63,6 +64,8 @@ export interface MapElementDto {
     updatedAtUtc: string;
     updatedByDisplayName: string;
 }
+
+type MapElementWire = Omit<MapElementDto, 'elementType'> & { elementType: MapElementDto['elementType'] | 1 | 2 };
 
 export interface DiaryCategory {
     id: string;
@@ -178,8 +181,8 @@ export async function closeIncident(incidentId: string, payload: { leaseToken: s
 }
 
 export async function getMapState(incidentId: string) {
-    const response = await apiClient.get<Omit<ActiveIncidentSnapshot, 'incidentStatus'> & { incidentStatus: IncidentStatus | 1 | 2 }>(`/api/incidents/${incidentId}/map/state`);
-    return { ...response.data, incidentStatus: normalizeIncidentStatus(response.data.incidentStatus) };
+    const response = await apiClient.get<Omit<ActiveIncidentSnapshot, 'incidentStatus' | 'elements'> & { incidentStatus: IncidentStatus | 1 | 2; elements: MapElementWire[] }>(`/api/incidents/${incidentId}/map/state`);
+    return { ...response.data, incidentStatus: normalizeIncidentStatus(response.data.incidentStatus), elements: response.data.elements.map(normalizeMapElement) };
 }
 
 export async function acquireMapLease(incidentId: string, payload: { sessionId: string; commandId: string }) {
@@ -197,12 +200,36 @@ export async function releaseMapLease(incidentId: string, payload: { sessionId: 
     return response.data;
 }
 
-export async function upsertMapElement(incidentId: string, payload: any) {
-    const response = await apiClient.post(`/api/incidents/${incidentId}/map/elements`, payload);
-    return response.data;
+export interface MapElementWrite {
+    commandId: string;
+    sessionId: string;
+    leaseToken: string;
+    elementId?: string;
+    elementType: 'Symbol' | 'Polygon';
+    symbolId?: string;
+    category?: string;
+    label?: string;
+    radioCallName?: string;
+    strength?: string;
+    note?: string;
+    colorHex?: string;
+    geometryJson: string;
+    expectedVersion?: number;
 }
 
-export async function deleteMapElement(incidentId: string, elementId: string, payload: any) {
+function normalizeMapElement(element: MapElementWire): MapElementDto {
+    const type = element.elementType;
+    return { ...element, elementType: type === 1 ? 'Symbol' : type === 2 ? 'Polygon' : type };
+}
+
+export async function upsertMapElement(incidentId: string, payload: MapElementWrite) {
+    const response = await apiClient.post<{ element: MapElementWire }>(`/api/incidents/${incidentId}/map/elements`, {
+        ...payload, elementType: payload.elementType === 'Symbol' ? 1 : 2,
+    });
+    return { ...response.data, element: normalizeMapElement(response.data.element) };
+}
+
+export async function deleteMapElement(incidentId: string, elementId: string, payload: { commandId: string; sessionId: string; leaseToken: string; expectedVersion: number }) {
     const response = await apiClient.delete(`/api/incidents/${incidentId}/map/elements/${elementId}`, { data: payload });
     return response.data;
 }

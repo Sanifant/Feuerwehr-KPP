@@ -957,12 +957,88 @@ th {
 }
 
 /* Incident modules */
+.map-symbol-diagnostics summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.map-symbol-diagnostics pre {
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  background: var(--surface-muted);
+  padding: 12px;
+}
+
+.symbol-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.symbol-admin-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  overflow-wrap: anywhere;
+}
+
+.symbol-grid img, .symbol-admin-item img {
+  object-fit: contain;
+}
+
+.map-delete-hint {
+  padding: 10px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--field-radius);
+  font-size: 13px;
+}
+
+.map-delete-hint--active {
+  border-color: var(--primary);
+  background: var(--error-bg);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.incident-map--deleting {
+  outline: 3px solid var(--primary);
+}
+
 .archive-diary-modal {
   width: min(1100px, calc(100vw - 32px));
 }
 
 .archive-diary-modal::backdrop {
   background: #0f172a99;
+}
+
+.map-symbol-placement-modal {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.map-symbol-placement-modal::backdrop {
+  background: #0f172a99;
+}
+
+.map-symbol-placement-fields {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  margin: 18px 0;
+  border: 0;
+}
+
+.map-symbol-placement-fields label {
+  display: grid;
+  gap: 6px;
 }
 
 .archive-table tbody tr {

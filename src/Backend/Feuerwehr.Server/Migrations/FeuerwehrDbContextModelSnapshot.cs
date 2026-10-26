@@ -555,6 +555,9 @@ namespace de.openelp.feuerwehr.Server.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("SymbolSvg")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -576,6 +579,42 @@ namespace de.openelp.feuerwehr.Server.Migrations
                     b.HasIndex("IncidentId", "UpdatedAtUtc");
 
                     b.ToTable("MapElements", (string)null);
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.IncidentModules.MapSymbol", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("SvgContent")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category", "IsActive");
+
+                    b.ToTable("MapSymbols", (string)null);
                 });
 
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.IncidentModules.OutboxMessage", b =>

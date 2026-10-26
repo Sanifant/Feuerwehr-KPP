@@ -206,6 +206,19 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
     {
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        var attempt = 0;
+        return await strategy.ExecuteAsync(async token =>
+        {
+            // A rolled-back attempt may have accepted tracked changes already. Reload
+            // entities and recheck CommandId so retries cannot duplicate committed work.
+            if (attempt++ > 0) dbContext.ChangeTracker.Clear();
+            return await UpsertElementAttempt(incidentId, request, token);
+        }, cancellationToken);
+    }
+
+    private async Task<ServiceResult> UpsertElementAttempt(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
+    {
 
         if (!TryValidateGeometry(request.GeometryJson, request.ElementType, out var geoError))
         {
@@ -236,6 +249,9 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         {
             return ServiceResult.StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
+
+        if (request.ElementType == MapElementType.Symbol && string.IsNullOrWhiteSpace(request.RadioCallName))
+            return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Symbol angeben.");
 
         await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
@@ -275,7 +291,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     SymbolId = request.SymbolId,
                     Category = request.Category,
                     Label = request.Label,
-                    RadioCallName = request.RadioCallName,
+                    RadioCallName = request.RadioCallName?.Trim(),
                     Strength = request.Strength,
                     Note = request.Note,
                     ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex,
@@ -286,6 +302,16 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     UpdatedByUserId = userContext.UserId,
                     UpdatedByDisplayName = userContext.DisplayName,
                 };
+                if (request.ElementType == MapElementType.Symbol)
+                {
+                    if (!Guid.TryParse(request.SymbolId, out var symbolId))
+                        return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
+                    var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
+                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                    element.SymbolSvg = symbol.SvgContent;
+                    element.Category = symbol.Category;
+                    element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
+                }
                 dbContext.MapElements.Add(element);
                 action = "create";
             }
@@ -300,15 +326,20 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Konflikt: veraltete Elementversion.");
                 }
 
-                var changed = false;
-                changed |= SetValue(element.SymbolId, request.SymbolId);
-                changed |= SetValue(element.Category, request.Category);
-                changed |= SetValue(element.Label, request.Label);
-                changed |= SetValue(element.RadioCallName, request.RadioCallName);
-                changed |= SetValue(element.Strength, request.Strength);
-                changed |= SetValue(element.Note, request.Note);
-                changed |= SetValue(element.ColorHex, string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex);
-                changed |= SetValue(element.GeometryJson, request.GeometryJson);
+                if (element.ElementType != request.ElementType)
+                    return ServiceResult.Problem(400, "Der Elementtyp kann nicht geändert werden.");
+                if (!string.Equals(element.SymbolId, request.SymbolId, StringComparison.Ordinal))
+                    return ServiceResult.Problem(400, "Das Symbol eines platzierten Elements kann nicht ausgetauscht werden.");
+                element.Label = request.Label;
+                element.RadioCallName = request.RadioCallName?.Trim();
+                element.Strength = request.Strength;
+                element.Note = request.Note;
+                element.ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex;
+                element.GeometryJson = request.GeometryJson;
+
+                var changed = beforeSnapshot.Label != element.Label || beforeSnapshot.RadioCallName != element.RadioCallName
+                    || beforeSnapshot.Strength != element.Strength || beforeSnapshot.Note != element.Note
+                    || beforeSnapshot.ColorHex != element.ColorHex || beforeSnapshot.GeometryJson != element.GeometryJson;
 
                 if (!changed)
                 {
@@ -342,7 +373,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "map.element.upsert",
-                element.Id.ToString(),
+                targetId,
                 payloadHash,
                 ResponseHelpers.BuildEnvelope(StatusCodes.Status200OK, response),
                 userContext.UserId));
@@ -583,6 +614,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             IncidentId = source.IncidentId,
             ElementType = source.ElementType,
             SymbolId = source.SymbolId,
+            SymbolSvg = source.SymbolSvg,
             Category = source.Category,
             Label = source.Label,
             RadioCallName = source.RadioCallName,
@@ -598,25 +630,14 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         };
     }
 
-    private static bool SetValue(string? current, string? next)
-    {
-        if (string.Equals(current, next, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        current = next;
-        return true;
-    }
-
     private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now) =>
         new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
 
     private static MapElementDto ToMapElementDto(MapElement x)
-        => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName);
+        => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg);
 
     private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =
-        x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName);
+        x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg);
 
 }
 
