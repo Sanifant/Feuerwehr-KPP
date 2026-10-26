@@ -139,16 +139,32 @@ jobs:
     - name: Publish Desktop App (Windows ARM64)
       run: dotnet publish src\App\Feuerwehr.App\Feuerwehr.App.Desktop\Feuerwehr.App.Desktop.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/desktop-win-arm64
       
+    - name: Generate SHA-256 checksums (Desktop Windows x64)
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path './publish/desktop-win-x64' -File -Filter '*' -ErrorAction SilentlyContinue | Where-Object { $_.Extension -ne '.sha256' } | ForEach-Object {
+          $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+        }
+
     - name: Upload Desktop App Artifacts (Windows x64)
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: desktop-app-win-x64
+        name: desktop-app-win-x64-${{ github.run_id }}-${{ github.run_attempt }}
         path: ./publish/desktop-win-x64/
         
+    - name: Generate SHA-256 checksums (Desktop Windows ARM64)
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path './publish/desktop-win-arm64' -File -Filter '*' -ErrorAction SilentlyContinue | Where-Object { $_.Extension -ne '.sha256' } | ForEach-Object {
+          $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+        }
+
     - name: Upload Desktop App Artifacts (Windows ARM64)
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: desktop-app-win-arm64
+        name: desktop-app-win-arm64-${{ github.run_id }}-${{ github.run_attempt }}
         path: ./publish/desktop-win-arm64/
 
   publish-android:
@@ -278,18 +294,38 @@ jobs:
           -p:ApplicationDisplayVersion="${{ steps.get_version.outputs.VERSION_NAME }}" `
           -o ./publish/android/apk
       
+    - name: Generate SHA-256 checksums (Android APK)
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path './publish/android' -File -Filter '*.apk' -ErrorAction SilentlyContinue | Where-Object { $_.Extension -ne '.sha256' } | ForEach-Object {
+          $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+        }
+
+    - name: Generate SHA-256 checksums (Android AAB)
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path './publish/android' -File -Filter '*.aab' -ErrorAction SilentlyContinue | Where-Object { $_.Extension -ne '.sha256' } | ForEach-Object {
+          $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+        }
+
     - name: Upload Android App Artifact
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: android-app
-        path: ./publish/android/*.apk
+        name: android-apk-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |
+          ./publish/android/*.apk
+          ./publish/android/*.apk.sha256
         if-no-files-found: warn
       
     - name: Upload Android Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: android-app
-        path: ./publish/android/*.aab
+        name: android-aab-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |
+          ./publish/android/*.aab
+          ./publish/android/*.aab.sha256
         if-no-files-found: warn
         retention-days: 7
         
