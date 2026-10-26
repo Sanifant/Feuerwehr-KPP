@@ -139,6 +139,14 @@ jobs:
     - name: Publish Desktop App (Windows ARM64)
       run: dotnet publish src\App\Feuerwehr.App\Feuerwehr.App.Desktop\Feuerwehr.App.Desktop.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/desktop-win-arm64
       
+    - name: Generate SHA-256 checksums (Desktop Windows x64)
+      shell: pwsh
+      run: |
+        Get-ChildItem -Path './publish/desktop-win-x64' -File -Filter '*' -ErrorAction SilentlyContinue | Where-Object { $_.Extension -ne '.sha256' } | ForEach-Object {
+          $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($_.Name)" | Out-File -FilePath "$($_.FullName).sha256" -Encoding ascii
+        }
+
     - name: Upload Desktop App Artifacts (Windows x64)
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
