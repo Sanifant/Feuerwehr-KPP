@@ -48,7 +48,8 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
             return ServiceResult.Problem(400, "Bitte Name und eine gültige Symbolkategorie angeben.");
         }
         var content = request.SvgContent ?? string.Empty;
-        logger.LogInformation("Map symbol save started. SymbolId: {SymbolId}, Category: {Category}, SvgCharacters: {Length}", id, request.Category, content.Length);
+        var categoryForLog = (request.Category ?? string.Empty).Replace("\r", string.Empty).Replace("\n", string.Empty);
+        logger.LogInformation("Map symbol save started. SymbolId: {SymbolId}, Category: {Category}, SvgCharacters: {Length}", id, categoryForLog, content.Length);
         string svg;
         try { svg = SvgSymbolValidator.Validate(content); }
         catch (Exception error) when (error is XmlException or ArgumentException)
