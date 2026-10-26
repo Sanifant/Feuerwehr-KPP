@@ -535,6 +535,9 @@ namespace de.openelp.feuerwehr.Server.Migrations
                     b.Property<Guid>("IncidentId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsVehicle")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Label")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
@@ -598,6 +601,9 @@ namespace de.openelp.feuerwehr.Server.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsVehicle")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -615,6 +621,35 @@ namespace de.openelp.feuerwehr.Server.Migrations
                     b.HasIndex("Category", "IsActive");
 
                     b.ToTable("MapSymbols", (string)null);
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.IncidentModules.MapSymbolCategory", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("MapSymbolCategories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Name = "Feuerwehr"
+                        },
+                        new
+                        {
+                            Name = "Rettungsdienst"
+                        },
+                        new
+                        {
+                            Name = "Personen"
+                        },
+                        new
+                        {
+                            Name = "Objekte"
+                        });
                 });
 
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.IncidentModules.OutboxMessage", b =>

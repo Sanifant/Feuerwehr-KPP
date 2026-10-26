@@ -194,7 +194,7 @@ export function IncidentMapPage() {
     const [selectedSymbol, setSelectedSymbol] = useState('');
     const [dragOutside, setDragOutside] = useState(false);
     const [searchSymbol, setSearchSymbol] = useState('');
-    const [filterCategory, setFilterCategory] = useState('Alle');
+    const [filterCategory, setFilterCategory] = useState('');
     const [showHydrants, setShowHydrants] = useState(true);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
     const [editMode, setEditMode] = useState<EditMode>('move');
@@ -422,7 +422,7 @@ export function IncidentMapPage() {
     const persistNewElement = useCallback(async (geometry: Geometry, elementType: 'Symbol' | 'Polygon', symbolId?: string, details?: MapSymbolPlacementDetails) => {
         const symbol = catalogRef.current.find(x => x.id === (symbolId ?? stateRef.current.selectedSymbol));
         if (elementType === 'Symbol' && !symbol) { setMutationError('Bitte ein verfügbares Symbol aus dem Katalog wählen.'); return false; }
-        if (elementType === 'Symbol' && !details) {
+        if (elementType === 'Symbol' && symbol!.isVehicle && !details) {
             const current = stateRef.current;
             if (!canWriteNow() || !current.incident || savingRef.current || symbolPlacementRef.current) return false;
             const placement = { incidentId: current.incident.id, geometry: geometry.clone(), symbolId: symbol!.id, symbolName: symbol!.name };
@@ -725,11 +725,10 @@ export function IncidentMapPage() {
     }, [lease?.expiresAtUtc, isLeaseOwner, pauseWriting]);
 
     const filteredSymbols = useMemo(() => symbolCatalog.filter(symbol => {
-        const matchesCategory = filterCategory === 'Alle' || symbol.category === filterCategory;
+        const matchesCategory = filterCategory === '' || symbol.category === filterCategory;
         const q = searchSymbol.trim().toLowerCase();
         return matchesCategory && (!q || symbol.name.toLowerCase().includes(q));
     }), [symbolCatalog, filterCategory, searchSymbol]);
-    const categories = ['Alle', ...symbolCategories];
 
     if (!canView) return <div className="card"><h2>Lagekarte</h2><p>Keine Berechtigung.</p></div>;
 
@@ -758,7 +757,7 @@ export function IncidentMapPage() {
     };
     const saveSelectedProperties = async () => {
         if (!selectedElement || isBusy) return;
-        if (selectedElement.elementType === 'Symbol' && !selectedElement.radioCallName?.trim()) {
+        if (selectedElement.isVehicle && !selectedElement.radioCallName?.trim()) {
             setMutationError('Bitte einen Funkrufnamen angeben.');
             return;
         }
@@ -835,7 +834,8 @@ export function IncidentMapPage() {
                     </label>
                     <label>Symbolkategorie
                         <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            <option value="">Alle</option>
+                            {symbolCategories.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </label>
                     <div className="symbol-grid">
@@ -863,23 +863,25 @@ export function IncidentMapPage() {
                     {selectedElement && (
                         <fieldset className="selected-editor" disabled={!canWrite || isBusy}>
                             <h4>Elementeigenschaften</h4>
-                            <label>Beschriftung
-                                <input value={selectedElement.label ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, label: e.target.value } : x))} placeholder="Beschriftung" />
-                            </label>
-                            <label>Funkrufname{selectedElement.elementType === 'Symbol' ? ' *' : ''}
-                                <input required={selectedElement.elementType === 'Symbol'} maxLength={120} value={selectedElement.radioCallName ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, radioCallName: e.target.value } : x))} placeholder="Funkrufname" />
-                            </label>
-                            <label>Stärke
-                                <input value={selectedElement.strength ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, strength: e.target.value } : x))} placeholder="Stärke" />
-                            </label>
-                            <label>Bemerkung
-                                <textarea value={selectedElement.note ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, note: e.target.value } : x))} placeholder="Bemerkung" />
-                            </label>
-                            <label>Farbe
-                                <input type="color" value={selectedElement.colorHex ?? '#d62828'} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, colorHex: e.target.value } : x))} />
-                            </label>
+                            {(selectedElement.elementType !== 'Symbol' || selectedElement.isVehicle) && <>
+                                <label>Beschriftung
+                                    <input value={selectedElement.label ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, label: e.target.value } : x))} placeholder="Beschriftung" />
+                                </label>
+                                <label>Funkrufname{selectedElement.isVehicle ? ' *' : ''}
+                                    <input required={selectedElement.isVehicle} maxLength={120} value={selectedElement.radioCallName ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, radioCallName: e.target.value } : x))} placeholder="Funkrufname" />
+                                </label>
+                                <label>Stärke
+                                    <input value={selectedElement.strength ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, strength: e.target.value } : x))} placeholder="Stärke" />
+                                </label>
+                                <label>Bemerkung
+                                    <textarea value={selectedElement.note ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, note: e.target.value } : x))} placeholder="Bemerkung" />
+                                </label>
+                                <label>Farbe
+                                    <input type="color" value={selectedElement.colorHex ?? '#d62828'} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, colorHex: e.target.value } : x))} />
+                                </label>
+                            </>}
                             <div className="incident-actions">
-                                <button type="button" onClick={saveSelectedProperties} disabled={!canWrite || isBusy}>Speichern</button>
+                                {(selectedElement.elementType !== 'Symbol' || selectedElement.isVehicle) && <button type="button" onClick={saveSelectedProperties} disabled={!canWrite || isBusy}>Speichern</button>}
                                 <button type="button" className="btn-danger" onClick={removeSelectedElement} disabled={!canWrite || isBusy}>Löschen</button>
                             </div>
                         </fieldset>

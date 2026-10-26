@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useRole } from '../hooks/useRole';
-import { getMapSymbolCategories, getMapSymbols, saveMapSymbol, svgImageUrl } from '../api/mapSymbolApi';
+import { createMapSymbolCategory, getMapSymbolCategories, getMapSymbols, saveMapSymbol, svgImageUrl } from '../api/mapSymbolApi';
 import type { MapSymbol } from '../api/mapSymbolApi';
 import { getApiErrorMessage } from '../api/errors';
 import { logMapSymbol, mapSymbolErrorDetails } from '../api/mapSymbolDiagnostics';
@@ -22,6 +22,8 @@ function MapSymbolAdminContent() {
     const [name, setName] = useState('');
     const [category, setCategory] = useState('Feuerwehr');
     const [active, setActive] = useState(true);
+    const [isVehicle, setIsVehicle] = useState(false);
+    const [newCategory, setNewCategory] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
@@ -103,7 +105,7 @@ function MapSymbolAdminContent() {
     };
 
     const reset = () => {
-        setEditing(null); setName(''); setCategory(categories[0] ?? 'Feuerwehr'); setActive(true); setFile(null);
+        setEditing(null); setName(''); setCategory(categories[0] ?? 'Feuerwehr'); setActive(true); setIsVehicle(false); setFile(null);
         if (fileRef.current) fileRef.current.value = '';
     };
 
@@ -124,7 +126,7 @@ function MapSymbolAdminContent() {
             logMapSymbol('file.read.success', { characters: svgContent.length });
             phase = 'upload';
             logMapSymbol('upload.start', { symbolId: editing?.id ?? null, category });
-            const saved = await saveMapSymbol(editing?.id ?? null, { name: name.trim(), category, svgContent, isActive: active });
+            const saved = await saveMapSymbol(editing?.id ?? null, { name: name.trim(), category, svgContent, isActive: active, isVehicle });
             logMapSymbol('upload.success', { symbolId: saved.id });
             reset();
             setMessage('Symbol gespeichert.');
@@ -138,6 +140,25 @@ function MapSymbolAdminContent() {
         finally { busyRef.current = false; setBusy(false); }
     };
 
+    const addCategory = async (event: FormEvent) => {
+        event.preventDefault();
+        if (busyRef.current || !isAdmin) return;
+        setError(''); setMessage('');
+        const categoryName = newCategory.trim();
+        if (!categoryName || categoryName.length > 40) {
+            setError('Bitte einen Kategorienamen mit höchstens 40 Zeichen angeben.'); return;
+        }
+        busyRef.current = true; setBusy(true);
+        try {
+            const created = await createMapSymbolCategory(categoryName);
+            setCategories(previous => [...new Set([...previous, created])].sort((a, b) => a.localeCompare(b, 'de')));
+            setCategory(created); setNewCategory('');
+            setMessage('Kategorie hinzugefügt.');
+        } catch (failure: unknown) {
+            setError(getApiErrorMessage(failure, 'Die Kategorie konnte nicht hinzugefügt werden.'));
+        } finally { busyRef.current = false; setBusy(false); }
+    };
+
     if (!isAdmin) return <section className="card"><h2>Lagekartensymbole</h2><p role="alert">Nur für Administratoren.</p></section>;
     return <div className="incident-page">
         <section className="card incident-top">
@@ -147,6 +168,13 @@ function MapSymbolAdminContent() {
             {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
             {connectionError && <p role="alert">{connectionError}</p>}
             <button type="button" disabled={busy} onClick={() => { setError(''); void load().catch(() => setError('Der Symbolkatalog konnte nicht geladen werden.')); }}>Aktualisieren</button>
+            <form onSubmit={addCategory} noValidate>
+                <fieldset className="incident-create-fields" disabled={busy}>
+                    <legend>Neue Kategorie</legend>
+                    <label>Kategoriename *<input required maxLength={40} value={newCategory} onChange={event => setNewCategory(event.target.value)} /></label>
+                    <button type="submit">Kategorie hinzufügen</button>
+                </fieldset>
+            </form>
             <form onSubmit={save} ref={formRef} noValidate>
                 <fieldset className="incident-create-fields" disabled={busy}>
                     <legend>{editing ? 'Symbol bearbeiten' : 'Neues Symbol hochladen'}</legend>
@@ -156,6 +184,7 @@ function MapSymbolAdminContent() {
                         <label>SVG-Datei{editing ? ' (optional ersetzen)' : ' *'}<input ref={fileRef} type="file" accept=".svg,image/svg+xml" required={!editing}
                             onClick={() => logMapSymbol('file.picker.open')} onChange={selectFile} /></label>
                         <label className="checkbox-row"><input type="checkbox" checked={active} onChange={event => setActive(event.target.checked)} />Aktiv</label>
+                        <label className="checkbox-row"><input type="checkbox" checked={isVehicle} onChange={event => setIsVehicle(event.target.checked)} />Fahrzeug (Funkrufname erforderlich)</label>
                     </div>
                     <div className="incident-actions"><button type="submit">{busy ? 'Wird gespeichert …' : 'Symbol speichern'}</button>{editing && <button type="button" className="btn-secondary" onClick={reset}>Abbrechen</button>}</div>
                 </fieldset>
@@ -168,9 +197,9 @@ function MapSymbolAdminContent() {
                     logMapSymbol('preview.failed', { symbolId: symbol.id }, 'error');
                     setError('Eine SVG-Vorschau konnte nicht geladen werden. Details stehen in der Debug-Diagnose.');
                 }} />
-                <strong>{symbol.name}</strong><span>{symbol.isActive ? 'Aktiv' : 'Deaktiviert'}</span>
+                <strong>{symbol.name}</strong><span>{symbol.isActive ? 'Aktiv' : 'Deaktiviert'}</span><span>{symbol.isVehicle ? 'Fahrzeug' : 'Symbol'}</span>
                 <button type="button" disabled={busy} onClick={() => {
-                    setEditing(symbol); setName(symbol.name); setCategory(symbol.category); setActive(symbol.isActive); setFile(null);
+                    setEditing(symbol); setName(symbol.name); setCategory(symbol.category); setActive(symbol.isActive); setIsVehicle(symbol.isVehicle); setFile(null);
                     if (fileRef.current) fileRef.current.value = '';
                     setError(''); setMessage(''); formRef.current?.scrollIntoView({ block: 'start' });
                 }} aria-label={`${symbol.name} bearbeiten`}>Bearbeiten</button>

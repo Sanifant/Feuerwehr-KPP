@@ -67,7 +67,7 @@ vi.mock('ol/Map', async importOriginal => {
 });
 
 const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" fill="red"/></svg>';
-const symbol = { id: 'symbol-1', name: 'Löschfahrzeug', category: 'Feuerwehr', svgContent: svg, isActive: true };
+const symbol = { id: 'symbol-1', name: 'Löschfahrzeug', category: 'Feuerwehr', svgContent: svg, isActive: true, isVehicle: true };
 const active: IncidentSummary = { id: 'incident-1', name: 'Brand', status: 'Active', originLongitude: 10.25, originLatitude: 51.5, revision: 1, createdAtUtc: new Date().toISOString(), alarmedAtUtc: new Date().toISOString() };
 let lease: EditorLease;
 let stored: MapElementDto[];
@@ -92,7 +92,7 @@ beforeEach(() => {
         login: vi.fn(), logout: vi.fn(), error: null, isAuthenticated: true, hasRole: () => true,
     });
     vi.mocked(useRole).mockReturnValue({ canEditSituationMap: true, canViewSituationMap: true } as ReturnType<typeof useRole>);
-    vi.mocked(getMapSymbols).mockResolvedValue([symbol, { ...symbol, id: 'symbol-2', name: 'Patient', category: 'Personen' }]);
+    vi.mocked(getMapSymbols).mockResolvedValue([symbol, { ...symbol, id: 'symbol-2', name: 'Patient', category: 'Personen', isVehicle: false }]);
     vi.mocked(getMapSymbolCategories).mockResolvedValue(['Feuerwehr', 'Rettungsdienst', 'Personen', 'Objekte']);
     vi.mocked(getActiveIncident).mockResolvedValue(active);
     vi.mocked(getMapAudit).mockImplementation(async () => stored.map((element, index) => ({
@@ -105,6 +105,7 @@ beforeEach(() => {
             id: payload.elementId ?? 'element-1', incidentId: active.id, elementType: payload.elementType, symbolId: payload.symbolId,
             symbolSvg: svg, category: payload.category, label: payload.label, geometryJson: payload.geometryJson,
             radioCallName: payload.radioCallName, strength: payload.strength, note: payload.note,
+            isVehicle: payload.elementType === 'Symbol' && payload.symbolId === symbol.id,
             version: payload.expectedVersion ? payload.expectedVersion + 1 : 1, colorHex: payload.colorHex ?? '#d62828',
             updatedAtUtc: new Date().toISOString(), updatedByDisplayName: 'Ada',
         };
@@ -168,6 +169,25 @@ it('places the SVG at the drop position in WGS84 and keeps the map instance afte
     expect(screen.queryByRole('button', { name: 'Löschfahrzeug' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Patient' })).toBeVisible();
     expect(Map).toHaveBeenCalledTimes(1);
+});
+
+it('places a non-vehicle without a dialog or any detail inputs and can move it', async () => {
+    render(<IncidentMapPage />);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Löschfahrzeug' })).toBeEnabled());
+    drop('symbol-2');
+    await waitFor(() => expect(source().getFeatures()).toHaveLength(1));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    const payload = vi.mocked(upsertMapElement).mock.calls[0][1];
+    expect(payload.symbolId).toBe('symbol-2');
+    expect(payload.radioCallName).toBeUndefined();
+    expect(payload.strength).toBeUndefined(); expect(payload.note).toBeUndefined();
+    await waitFor(() => expect(translate().getActive()).toBe(true));
+    move(source().getFeatures()[0], fromLonLat([10.26, 51.51]));
+    await waitFor(() => expect(upsertMapElement).toHaveBeenCalledTimes(2));
+    expect(screen.getByRole('heading', { name: 'Elementeigenschaften' })).toBeVisible();
+    expect(screen.queryByLabelText(/Funkrufname/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Stärke')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Bemerkung')).not.toBeInTheDocument();
 });
 
 it('accounts for viewport offsets and CSS scaling when dropping a catalog symbol', async () => {

@@ -19,6 +19,13 @@ public sealed class SaveMapSymbolRequest
     public string SvgContent { get; set; } = string.Empty;
 
     public bool IsActive { get; set; } = true;
+    public bool IsVehicle { get; set; }
 }
 
-public sealed record MapSymbolDto(Guid Id, string Name, string Category, string SvgContent, bool IsActive);
+public sealed record MapSymbolDto(Guid Id, string Name, string Category, string SvgContent, bool IsActive, bool IsVehicle = false);
+
+public sealed class CreateMapSymbolCategoryRequest
+{
+    [Required, MaxLength(40)]
+    public string Name { get; set; } = string.Empty;
+}

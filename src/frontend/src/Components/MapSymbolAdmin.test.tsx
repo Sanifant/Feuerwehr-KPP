@@ -3,14 +3,14 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import MapSymbolAdmin from './MapSymbolAdmin';
 import { useRole } from '../hooks/useRole';
-import { getMapSymbolCategories, getMapSymbols, saveMapSymbol } from '../api/mapSymbolApi';
+import { createMapSymbolCategory, getMapSymbolCategories, getMapSymbols, saveMapSymbol } from '../api/mapSymbolApi';
 import type { MapSymbol } from '../api/mapSymbolApi';
 import { clearMapSymbolDiagnostics, getMapSymbolDiagnostics } from '../api/mapSymbolDiagnostics';
 import MapSymbolErrorBoundary from './MapSymbolErrorBoundary';
 import MapSymbolDiagnostics from './MapSymbolDiagnostics';
 
 vi.mock('../hooks/useRole', () => ({ useRole: vi.fn() }));
-vi.mock('../api/mapSymbolApi', async importOriginal => ({ ...await importOriginal<typeof import('../api/mapSymbolApi')>(), getMapSymbolCategories: vi.fn(), getMapSymbols: vi.fn(), saveMapSymbol: vi.fn() }));
+vi.mock('../api/mapSymbolApi', async importOriginal => ({ ...await importOriginal<typeof import('../api/mapSymbolApi')>(), createMapSymbolCategory: vi.fn(), getMapSymbolCategories: vi.fn(), getMapSymbols: vi.fn(), saveMapSymbol: vi.fn() }));
 const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M0 0L64 64"/></svg>';
 let symbols: MapSymbol[];
 
@@ -49,22 +49,52 @@ it('uploads an SVG into the selected category and displays the saved image', asy
     await user.selectOptions(screen.getByLabelText('Kategorie *'), 'Rettungsdienst');
     await user.click(screen.getByRole('button', { name: 'Symbol speichern' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Symbol gespeichert');
-    expect(saveMapSymbol).toHaveBeenCalledExactlyOnceWith(null, { name: 'lf10', category: 'Rettungsdienst', svgContent: svg, isActive: true });
+    expect(saveMapSymbol).toHaveBeenCalledExactlyOnceWith(null, { name: 'lf10', category: 'Rettungsdienst', svgContent: svg, isActive: true, isVehicle: false });
     await waitFor(() => expect(screen.getByRole('button', { name: 'lf10 bearbeiten' })).toBeVisible());
     expect(document.querySelector('img')?.src).toMatch(/^data:image\/svg\+xml/);
 });
 
 it('lets an admin rename, recategorize and deactivate a symbol without uploading a replacement', async () => {
-    symbols = [{ id: 'symbol-1', name: 'LF 10', category: 'Feuerwehr', svgContent: svg, isActive: true }];
+    symbols = [{ id: 'symbol-1', name: 'LF 10', category: 'Feuerwehr', svgContent: svg, isActive: true, isVehicle: true }];
     const user = userEvent.setup(); render(<MapSymbolAdmin />);
     await user.click(await screen.findByRole('button', { name: 'LF 10 bearbeiten' }));
+    expect(screen.getByRole('checkbox', { name: 'Fahrzeug (Funkrufname erforderlich)' })).toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: 'Fahrzeug (Funkrufname erforderlich)' }));
     await user.clear(screen.getByLabelText('Name *')); await user.type(screen.getByLabelText('Name *'), 'Objekt');
     await user.selectOptions(screen.getByLabelText('Kategorie *'), 'Objekte');
     await user.click(screen.getByRole('checkbox', { name: 'Aktiv' }));
     await user.click(screen.getByRole('button', { name: 'Symbol speichern' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Symbol gespeichert');
-    expect(saveMapSymbol).toHaveBeenCalledWith('symbol-1', { name: 'Objekt', category: 'Objekte', svgContent: svg, isActive: false });
+    expect(saveMapSymbol).toHaveBeenCalledWith('symbol-1', { name: 'Objekt', category: 'Objekte', svgContent: svg, isActive: false, isVehicle: false });
     expect(await screen.findByText('Deaktiviert')).toBeVisible();
+});
+
+it('creates a category and immediately uses it for a vehicle symbol', async () => {
+    vi.mocked(createMapSymbolCategory).mockResolvedValue('Technische Hilfe');
+    const user = userEvent.setup(); render(<MapSymbolAdmin />);
+    await screen.findByRole('heading', { name: 'Feuerwehr' });
+    await user.type(screen.getByLabelText('Kategoriename *'), ' Technische Hilfe ');
+    await user.click(screen.getByRole('button', { name: 'Kategorie hinzufügen' }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Kategorie hinzugefügt');
+    expect(createMapSymbolCategory).toHaveBeenCalledExactlyOnceWith('Technische Hilfe');
+    expect(screen.getByLabelText('Kategorie *')).toHaveValue('Technische Hilfe');
+    await user.upload(screen.getByLabelText('SVG-Datei *'), svgFile());
+    await user.click(screen.getByRole('checkbox', { name: 'Fahrzeug (Funkrufname erforderlich)' }));
+    await user.click(screen.getByRole('button', { name: 'Symbol speichern' }));
+    await waitFor(() => expect(saveMapSymbol).toHaveBeenCalledWith(null, expect.objectContaining({ category: 'Technische Hilfe', isVehicle: true })));
+});
+
+it('validates category names and keeps input after a duplicate-category error', async () => {
+    const user = userEvent.setup(); render(<MapSymbolAdmin />);
+    await screen.findByRole('heading', { name: 'Feuerwehr' });
+    await user.click(screen.getByRole('button', { name: 'Kategorie hinzufügen' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Kategorienamen');
+    expect(createMapSymbolCategory).not.toHaveBeenCalled();
+    vi.mocked(createMapSymbolCategory).mockRejectedValueOnce({ isAxiosError: true, response: { data: { title: 'Diese Symbolkategorie existiert bereits.' } } });
+    await user.type(screen.getByLabelText('Kategoriename *'), 'Feuerwehr');
+    await user.click(screen.getByRole('button', { name: 'Kategorie hinzufügen' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('existiert bereits');
+    expect(screen.getByLabelText('Kategoriename *')).toHaveValue('Feuerwehr');
 });
 
 it('rejects oversized files before uploading and retains input when the server rejects an SVG', async () => {

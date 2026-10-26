@@ -58,7 +58,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     private static SaveMapSymbolRequest SymbolRequest(string svg = Svg, string category = "Feuerwehr")
-        => new() { Name = "Löschfahrzeug", Category = category, SvgContent = svg };
+        => new() { Name = "Löschfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
 
     private UpsertMapElementRequest Write(string symbolId, Guid? elementId = null, int? version = null, string geometry = "{\"type\":\"Point\",\"coordinates\":[10.25,51.5]}")
         => new()
@@ -71,7 +71,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [Fact]
     public async Task CatalogHasFourCategoriesAndStoresValidatedSvgWithConsistentDimensions()
     {
-        Assert.Equal(new[] { "Feuerwehr", "Rettungsdienst", "Personen", "Objekte" }, Assert.IsAssignableFrom<IEnumerable<string>>(_symbols.GetCategories().Value));
+        Assert.Equal(MapSymbolCategories.All.OrderBy(x => x), Assert.IsAssignableFrom<IEnumerable<string>>((await _symbols.GetCategories(default)).Value));
         foreach (var category in MapSymbolCategories.All)
         {
             var result = await _symbols.Save(null, SymbolRequest(category: category), default);
@@ -246,7 +246,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
         var policies = provider.GetRequiredService<IAuthorizationPolicyProvider>();
         var auth = provider.GetRequiredService<IAuthorizationService>();
         var user = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "Test"));
-        foreach (var method in typeof(MapSymbolController).GetMethods().Where(x => new[] { "GetSymbols", "GetCategories", "Create", "Update" }.Contains(x.Name)))
+        foreach (var method in typeof(MapSymbolController).GetMethods().Where(x => new[] { "GetSymbols", "GetCategories", "CreateCategory", "Create", "Update" }.Contains(x.Name)))
         {
             var policy = await AuthorizationPolicy.CombineAsync(policies, typeof(MapSymbolController).GetCustomAttributes<AuthorizeAttribute>().Concat(method.GetCustomAttributes<AuthorizeAttribute>()));
             Assert.NotNull(policy);
@@ -355,6 +355,67 @@ public sealed class MapSymbolTests : IAsyncLifetime
         Assert.Equal(400, (await _map.UpsertElement(_incidentId, update, default)).Code);
         Assert.Equal("Florian 40/1", (await _db.MapElements.SingleAsync()).RadioCallName);
         Assert.Single(await _db.MapAuditEvents.ToListAsync());
+    }
+
+    [Fact]
+    public async Task CustomCategoriesPersistAndCanBeUsedForSymbols()
+    {
+        var created = await _symbols.CreateCategory(new() { Name = "  Technische Hilfe  " }, default);
+        Assert.Equal(201, created.Code);
+        Assert.Equal("Technische Hilfe", created.Value);
+        _db.ChangeTracker.Clear();
+        Assert.Contains("Technische Hilfe", Assert.IsAssignableFrom<IEnumerable<string>>((await _symbols.GetCategories(default)).Value));
+        var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(category: "Technische Hilfe"), default)).Value);
+        Assert.Equal("Technische Hilfe", symbol.Category);
+        Assert.True(symbol.IsVehicle);
+        Assert.True(Assert.Single(Assert.IsAssignableFrom<IEnumerable<MapSymbolDto>>((await _symbols.GetSymbols(default)).Value)).IsVehicle);
+        Assert.Equal(409, (await _symbols.CreateCategory(new() { Name = " technische hilfe " }, default)).Code);
+        Assert.Equal(400, (await _symbols.CreateCategory(new() { Name = " " }, default)).Code);
+        Assert.Equal(400, (await _symbols.CreateCategory(new() { Name = new string('a', 41) }, default)).Code);
+        _user.SetupGet(x => x.IsAdmin).Returns(false);
+        Assert.Equal(403, (await _symbols.CreateCategory(new() { Name = "Nicht erlaubt" }, default)).Code);
+        Assert.Equal(5, await _db.MapSymbolCategories.CountAsync());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Unnötiger Funkrufname")]
+    public async Task NonVehicleSymbolsCanBePlacedAndMovedWithoutDetails(string? callName)
+    {
+        var request = SymbolRequest(); request.IsVehicle = false;
+        var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, request, default)).Value);
+        var command = Write(symbol.Id.ToString());
+        command.RadioCallName = callName; command.Strength = "1/8/9"; command.Note = "Keine Eingabe";
+        var created = Assert.IsType<MapElementResponse>((await _map.UpsertElement(_incidentId, command, default)).Value).Element;
+        Assert.False(created.IsVehicle);
+        Assert.Null(created.RadioCallName); Assert.Null(created.Strength); Assert.Null(created.Note);
+        var move = Write(symbol.Id.ToString(), created.Id, 1, "{\"type\":\"Point\",\"coordinates\":[10.26,51.51]}");
+        move.RadioCallName = null;
+        var moved = Assert.IsType<MapElementResponse>((await _map.UpsertElement(_incidentId, move, default)).Value).Element;
+        Assert.Equal(2, moved.Version);
+        Assert.Null(moved.RadioCallName);
+        _db.ChangeTracker.Clear();
+        Assert.False((await _db.MapElements.SingleAsync()).IsVehicle);
+        Assert.Equal(2, await _db.MapAuditEvents.CountAsync());
+    }
+
+    [Fact]
+    public async Task VehicleFlagIsEditableAndPlacedElementsKeepTheirVehicleRules()
+    {
+        var request = SymbolRequest();
+        var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, request, default)).Value);
+        var created = Assert.IsType<MapElementResponse>((await _map.UpsertElement(_incidentId, Write(symbol.Id.ToString()), default)).Value).Element;
+        Assert.True(created.IsVehicle);
+        request.IsVehicle = false;
+        Assert.False(Assert.IsType<MapSymbolDto>((await _symbols.Save(symbol.Id, request, default)).Value).IsVehicle);
+        _db.ChangeTracker.Clear();
+        var reloaded = Assert.Single(Assert.IsType<MapStateResponse>((await _map.GetState(_incidentId, default)).Value).Elements);
+        Assert.True(reloaded.IsVehicle);
+        var update = Write(symbol.Id.ToString(), reloaded.Id, reloaded.Version); update.RadioCallName = null;
+        Assert.Equal(400, (await _map.UpsertElement(_incidentId, update, default)).Code);
+        Assert.Single(await _db.MapAuditEvents.ToListAsync());
+        var newPlacement = Write(symbol.Id.ToString()); newPlacement.RadioCallName = null;
+        Assert.False(Assert.IsType<MapElementResponse>((await _map.UpsertElement(_incidentId, newPlacement, default)).Value).Element.IsVehicle);
     }
 
     public async Task DisposeAsync() { await _db.DisposeAsync(); await _connection.DisposeAsync(); }
