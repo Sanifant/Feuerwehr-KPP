@@ -30,6 +30,8 @@ public class Incident
 
     public DateTime CreatedAtUtc { get; set; }
 
+    public DateTime AlarmedAtUtc { get; set; }
+
     public DateTime? ClosedAtUtc { get; set; }
 
     [MaxLength(450)]
@@ -55,6 +57,8 @@ public class MapElement
 
     [MaxLength(120)]
     public string? SymbolId { get; set; }
+
+    public string? SymbolSvg { get; set; }
 
     [MaxLength(120)]
     public string? Category { get; set; }

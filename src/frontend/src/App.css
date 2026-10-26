@@ -190,6 +190,47 @@
   color: var(--text-primary);
   border-bottom: 1px solid var(--panel-border);
   box-shadow: var(--panel-shadow);
+  gap: 24px;
+}
+
+.titlebar-incident {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+.titlebar-incident__name {
+  min-width: 0;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.titlebar-incident__name strong,
+.titlebar-incident__name span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.titlebar-incident__name span,
+.titlebar-incident__time span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.titlebar-incident__time {
+  display: flex;
+  flex-direction: column;
+}
+
+.titlebar-incident time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .titlebar__left,
@@ -405,7 +446,8 @@ a.chevron-button {
 }
 
 .sidebar a,
-.sidebar-group-button {
+.sidebar-group-button,
+.sidebar .sidebar-link-disabled {
   min-height: 50px;
   padding: 0 14px;
   display: flex;
@@ -454,7 +496,8 @@ a.chevron-button {
   border-left: 1px solid var(--panel-border);
 }
 
-.sidebar-subnav a {
+.sidebar-subnav a,
+.sidebar-subnav .sidebar-link-disabled {
   min-height: 42px;
   font-size: 14px;
 }
@@ -813,6 +856,10 @@ th {
 }
 
 @media (max-width: 1100px) {
+  .titlebar-incident ~ .titlebar__right .topbar-user div:not(.avatar) {
+    display: none;
+  }
+
   .content-grid,
   .stats-grid,
   .level-grid,
@@ -833,6 +880,18 @@ th {
     min-height: 68px;
     padding: 12px 16px;
     gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .titlebar-incident {
+    flex-basis: 100%;
+    order: 2;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+  }
+
+  .titlebar-incident__name {
+    grid-column: 1 / -1;
   }
 
   .titlebar__right {
@@ -898,6 +957,184 @@ th {
 }
 
 /* Incident modules */
+.map-symbol-diagnostics summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.map-symbol-diagnostics pre {
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  background: var(--surface-muted);
+  padding: 12px;
+}
+
+.symbol-admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.symbol-admin-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--panel-radius);
+  overflow-wrap: anywhere;
+}
+
+.symbol-grid img, .symbol-admin-item img {
+  object-fit: contain;
+}
+
+.map-delete-hint {
+  padding: 10px;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--field-radius);
+  font-size: 13px;
+}
+
+.map-delete-hint--active {
+  border-color: var(--primary);
+  background: var(--error-bg);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.incident-map--deleting {
+  outline: 3px solid var(--primary);
+}
+
+.archive-diary-modal {
+  width: min(1100px, calc(100vw - 32px));
+}
+
+.archive-diary-modal::backdrop {
+  background: #0f172a99;
+}
+
+.map-symbol-placement-modal {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.map-symbol-placement-modal::backdrop {
+  background: #0f172a99;
+}
+
+.map-symbol-placement-fields {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  margin: 18px 0;
+  border: 0;
+}
+
+.map-symbol-placement-fields label {
+  display: grid;
+  gap: 6px;
+}
+
+.archive-table tbody tr {
+  cursor: pointer;
+}
+
+.archive-table tbody tr:hover {
+  background: var(--surface-muted);
+}
+
+.archive-open-button {
+  background: transparent;
+  color: var(--primary);
+  padding: 6px 0;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.archive-open-button:hover:not(:disabled) {
+  background: transparent;
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+
+.archive-diary-entry {
+  padding: 18px 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.archive-revision {
+  display: grid;
+  gap: 12px;
+  margin-block: 12px;
+}
+
+.archive-revisions {
+  padding-left: 24px;
+}
+
+.archive-diary-modal .modal-header h2 {
+  overflow-wrap: anywhere;
+}
+
+.sidebar .sidebar-link-disabled {
+  color: var(--text-tertiary);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.incident-position-map {
+  width: 100%;
+  height: 350px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.incident-create-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.incident-create-fields legend {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.incident-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.incident-details dt {
+  color: var(--text-tertiary);
+}
+
+.incident-details dd {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.incident-description {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.incident-close-confirmation {
+  border: 1px solid var(--panel-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
 .incident-page {
   display: flex;
   flex-direction: column;

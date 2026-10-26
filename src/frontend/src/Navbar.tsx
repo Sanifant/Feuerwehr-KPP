@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { MessageIcon } from './MessageIcon';
+import IncidentTitlebar from './Components/IncidentTitlebar';
 
 const Navbar: React.FC = () => {
     const { isAuthenticated, logout, user } = useAuth();
@@ -42,6 +43,7 @@ const Navbar: React.FC = () => {
 
     return (
         <header className="titlebar">
+            {isAuthenticated && user && <IncidentTitlebar />}
 
             {isAuthenticated && user && (
                 <div className="titlebar__right">

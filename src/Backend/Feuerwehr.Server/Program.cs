@@ -13,12 +13,24 @@ using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
 using MailKit.Net.Smtp;
 using System.Text;
+using de.openelp.feuerwehr.Diagnostics;
 
 namespace de.openelp.feuerwehr.Server;
 
 public partial class Program
 {
     private static async Task Main(string[] args)
+    {
+        using var diagnostics = ProcessDiagnostics.Start("Server");
+        try { await RunAsync(args, diagnostics); }
+        catch (Exception error)
+        {
+            diagnostics.Record("Server.FatalException", exception: error);
+            throw;
+        }
+    }
+
+    private static async Task RunAsync(string[] args, ProcessDiagnostics diagnostics)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -167,14 +179,23 @@ public partial class Program
         builder.Services.AddScoped<IDiaryCategoryAdminService, DiaryCategoryAdminService>();
         builder.Services.AddScoped<IIncidentService, IncidentService>();
         builder.Services.AddScoped<IIncidentDiaryService, IncidentDiaryService>();
+        builder.Services.AddScoped<IIncidentArchiveService, IncidentArchiveService>();
         builder.Services.AddScoped<ISituationMapService, SituationMapService>();
+        builder.Services.AddScoped<IMapSymbolService, MapSymbolService>();
         builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
         builder.Services.AddScoped<IUsersService, UsersService>();
 
         var app = builder.Build();
 
+        app.Lifetime.ApplicationStarted.Register(() => diagnostics.Record("Server.ApplicationStarted"));
+        app.Lifetime.ApplicationStopping.Register(() => diagnostics.Record("Server.ApplicationStopping"));
+        app.Lifetime.ApplicationStopped.Register(() => diagnostics.Record("Server.ApplicationStopped"));
+
+        diagnostics.Record("Server.Migrations.Start");
         await ApplyMigrationsAsync(app.Services);
+        diagnostics.Record("Server.Migrations.Complete");
         await SeedDatabaseAsync(app.Services);
+        diagnostics.Record("Server.Seeding.Complete");
 
         // Configure the HTTP request pipeline.
         app.UseExceptionHandler();
@@ -206,6 +227,7 @@ public partial class Program
 
         app.MapDefaultEndpoints();
 
+        diagnostics.Record("Server.Run.Start");
         app.Run();
     }
 

@@ -19,6 +19,10 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
     public async Task<ServiceResult> GetEntries(Guid incidentId, CancellationToken cancellationToken)
     {
+        var incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
+        if (incident is null) return ServiceResult.NotFound();
+        if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin) return ServiceResult.Forbid();
+
         var entries = await dbContext.DiaryEntries.AsNoTracking()
             .Where(x => x.IncidentId == incidentId)
             .OrderBy(x => x.EntryNumber)
@@ -93,7 +97,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         }
 
         var now = DateTime.UtcNow;
-        var nextNumber = await dbContext.Database.SqlQuery<long>($"SELECT nextval('\"DiaryEntryNumberSeq\"')").SingleAsync(cancellationToken);
+        var nextNumber = await dbContext.Database.SqlQuery<long>($"SELECT nextval('\"DiaryEntryNumberSeq\"') AS \"Value\"").SingleAsync(cancellationToken);
 
         var entry = new DiaryEntry
         {
@@ -315,43 +319,54 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
             return ServiceResult.NotFound();
         }
 
-        var entries = await dbContext.DiaryEntries.AsNoTracking()
-            .Where(x => x.IncidentId == incidentId)
-            .OrderBy(x => x.EntryNumber)
-            .ToListAsync(cancellationToken);
+        if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin) return ServiceResult.Forbid();
 
-        var revisions = await dbContext.DiaryEntryRevisions.AsNoTracking()
-            .Where(x => entries.Select(e => e.Id).Contains(x.DiaryEntryId))
-            .GroupBy(x => x.DiaryEntryId)
-            .Select(g => g.OrderByDescending(x => x.RevisionNumber).First())
-            .OrderBy(x => x.DiaryEntry.EntryNumber)
-            .ToListAsync(cancellationToken);
+        var diary = await GetEntries(incidentId, cancellationToken);
+        if (diary.Code != StatusCodes.Status200OK) return diary;
+        var entries = (IReadOnlyCollection<DiaryEntryDto>)diary.Value!;
 
         var lines = new List<string>
         {
             $"Einsatz: {incident.Name}",
+            $"Einsatznummer: {incident.IncidentNumber ?? "-"}",
+            $"Stichwort: {incident.Keyword ?? "-"}",
+            $"Alarmierung UTC: {incident.AlarmedAtUtc:dd.MM.yyyy HH:mm:ss}",
+            $"Angelegt UTC: {incident.CreatedAtUtc:dd.MM.yyyy HH:mm:ss}",
+            $"Beendet UTC: {incident.ClosedAtUtc:dd.MM.yyyy HH:mm:ss}",
+            $"Beendet durch: {incident.ClosedByDisplayName ?? "-"}",
+            $"Beschreibung: {incident.Description ?? "-"}",
             $"Exportiert UTC: {DateTime.UtcNow:O}",
             ""
         };
-        var entryMap = entries.ToDictionary(x => x.Id, x => x);
-
-        foreach (var revision in revisions)
+        foreach (var entry in entries)
         {
-            if (!entryMap.TryGetValue(revision.DiaryEntryId, out var entry))
-            {
-                continue;
-            }
+            var revision = entry.CurrentRevisionData;
             var marker = revision.RevisionType == DiaryRevisionType.Canceled ? " [STORNIERT]" : revision.RevisionType == DiaryRevisionType.Edited ? " [KORRIGIERT]" : string.Empty;
-            lines.Add($"#{entry.EntryNumber}{marker} {revision.EventTimestampUtc:O} {revision.CategoryNameSnapshot}: {revision.Text}");
-            if (!string.IsNullOrWhiteSpace(revision.CancellationReason))
+            lines.Add($"Eintrag #{entry.EntryNumber}{marker}");
+            AddRevisionLines(lines, revision);
+            if (entry.Revisions.Count > 1)
             {
-                lines.Add($"  Grund: {revision.CancellationReason}");
+                lines.Add("Versionshistorie:");
+                foreach (var previous in entry.Revisions.Where(x => x.RevisionNumber != entry.CurrentRevision))
+                    AddRevisionLines(lines, previous);
             }
+            lines.Add("");
         }
+        if (entries.Count == 0) lines.Add("Keine Tagebucheinträge vorhanden.");
 
         var pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Einsatztagebuch", lines);
         return ServiceResult.File(pdfBytes, "application/pdf", $"einsatztagebuch-{incidentId:N}.pdf");
 
+    }
+
+    private static void AddRevisionLines(List<string> lines, DiaryRevisionDto revision)
+    {
+        lines.Add($"Version {revision.RevisionNumber} | Ereignis UTC: {revision.EventTimestampUtc:dd.MM.yyyy HH:mm:ss}");
+        lines.Add($"Kategorie: {revision.CategoryNameSnapshot} | Übermittlung: {revision.TransmissionType ?? "-"}");
+        lines.Add($"Absender: {revision.Sender ?? "-"} | Empfänger: {revision.Recipient ?? "-"}");
+        lines.Add(revision.Text);
+        if (!string.IsNullOrWhiteSpace(revision.CancellationReason)) lines.Add($"Grund: {revision.CancellationReason}");
+        lines.Add($"Erfasst UTC: {revision.CreatedAtUtc:dd.MM.yyyy HH:mm:ss} durch {revision.CreatedByDisplayName}");
     }
 
     private static DiaryRevisionDto ToRevisionDto(DiaryEntryRevision x)

@@ -38,6 +38,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Feuerwehr.Common\Feuerwehr.Common.csproj" />
+		<Compile Include="..\..\Diagnostics\ProcessDiagnostics.cs" Link="Diagnostics\ProcessDiagnostics.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

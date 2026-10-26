@@ -23,6 +23,7 @@ namespace de.openelp.feuerwehr.Server.Data
         public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
         public DbSet<Incident> Incidents { get; set; }
         public DbSet<MapElement> MapElements { get; set; }
+        public DbSet<MapSymbol> MapSymbols { get; set; }
         public DbSet<MapAuditEvent> MapAuditEvents { get; set; }
         public DbSet<EditorLease> EditorLeases { get; set; }
         public DbSet<DiaryCategory> DiaryCategories { get; set; }
@@ -153,6 +154,13 @@ namespace de.openelp.feuerwehr.Server.Data
                     .WithMany()
                     .HasForeignKey(x => x.IncidentId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MapSymbol>(entity =>
+            {
+                entity.ToTable("MapSymbols");
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => new { x.Category, x.IsActive });
             });
 
             modelBuilder.Entity<MapAuditEvent>(entity =>

@@ -12,6 +12,7 @@ public record IncidentSummaryDto(
     double OriginLatitude,
     IncidentStatus Status,
     DateTime CreatedAtUtc,
+    DateTime AlarmedAtUtc,
     DateTime? ClosedAtUtc,
     long Revision);
 
@@ -29,6 +30,9 @@ public class CreateIncidentRequest
 
     [MaxLength(4000)]
     public string? Description { get; set; }
+
+    [Required]
+    public DateTimeOffset? AlarmedAtUtc { get; set; }
 
     public double OriginLongitude { get; set; }
 
@@ -174,7 +178,8 @@ public record MapElementDto(
     string GeometryJson,
     int Version,
     DateTime UpdatedAtUtc,
-    string UpdatedByDisplayName);
+    string UpdatedByDisplayName,
+    string? SymbolSvg = null);
 
 public record MapAuditEventDto(
     Guid Id,

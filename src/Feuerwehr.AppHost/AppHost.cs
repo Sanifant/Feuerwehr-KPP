@@ -1,3 +1,6 @@
+using de.openelp.feuerwehr.Diagnostics;
+
+using var diagnostics = ProcessDiagnostics.Start("AppHost");
 var builder = DistributedApplication.CreateBuilder(args);
 
 var seedAdminEmail = builder.AddParameterFromConfiguration(
@@ -85,4 +88,15 @@ builder.AddProject<Projects.Feuerwehr_App_Desktop>("app")
 
 server.PublishWithContainerFiles(webfrontend, "wwwroot");
 
-builder.Build().Run();
+diagnostics.Record("AppHost.Build.Start");
+try
+{
+    var app = builder.Build();
+    diagnostics.Record("AppHost.Run.Start");
+    app.Run();
+}
+catch (Exception error)
+{
+    diagnostics.Record("AppHost.FatalException", exception: error);
+    throw;
+}

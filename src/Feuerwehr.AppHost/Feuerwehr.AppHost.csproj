@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\App\Feuerwehr.App\Feuerwehr.App.Desktop\Feuerwehr.App.Desktop.csproj" />
     <ProjectReference Include="..\Backend\Feuerwehr.Server\Feuerwehr.Server.csproj" />
+    <Compile Include="..\Diagnostics\ProcessDiagnostics.cs" Link="Diagnostics\ProcessDiagnostics.cs" />
   </ItemGroup>
 
   <ItemGroup>

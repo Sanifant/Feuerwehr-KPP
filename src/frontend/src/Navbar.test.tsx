@@ -5,6 +5,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import Navbar from './Navbar';
 import { useAuth } from './AuthContext';
 import { ChangePassword } from './Components/ChangePassword';
+import { ActiveIncidentContext } from './hooks/useActiveIncident';
 
 vi.mock('./AuthContext', () => ({ useAuth: vi.fn() }));
 vi.mock('./api/passwordApi', () => ({ changeOwnPassword: vi.fn(), setInvitedUserPassword: vi.fn() }));
@@ -18,9 +19,9 @@ beforeEach(() => {
 });
 
 function show() {
-    render(<MemoryRouter><Navbar /><button>Außerhalb</button><Routes>
+    render(<MemoryRouter><ActiveIncidentContext.Provider value={{ incident: null, loading: false, error: null, refresh: vi.fn(), setActiveIncident: vi.fn() }}><Navbar /><button>Außerhalb</button><Routes>
         <Route path="/password" element={<ChangePassword />} />
-    </Routes></MemoryRouter>);
+    </Routes></ActiveIncidentContext.Provider></MemoryRouter>);
     return userEvent.setup();
 }
 

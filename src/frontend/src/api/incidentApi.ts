@@ -12,6 +12,7 @@ export interface IncidentSummary {
     originLatitude: number;
     status: IncidentStatus;
     createdAtUtc: string;
+    alarmedAtUtc: string;
     closedAtUtc?: string;
     revision: number;
 }
@@ -28,11 +29,30 @@ export interface EditorLease {
     isExpired: boolean;
 }
 
+export interface IncidentCreatedResponse {
+    incident: IncidentSummary;
+    lease: EditorLease;
+    serverUtc: string;
+}
+
+type IncidentWire = Omit<IncidentSummary, 'status'> & { status: IncidentStatus | 1 | 2 };
+
+function normalizeIncidentStatus(status: IncidentStatus | 1 | 2): IncidentStatus {
+    if (status === 1 || status === 'Active') return 'Active';
+    if (status === 2 || status === 'Closed') return 'Closed';
+    throw new Error('Unbekannter Einsatzstatus.');
+}
+
+function normalizeIncident(incident: IncidentWire): IncidentSummary {
+    return { ...incident, status: normalizeIncidentStatus(incident.status), alarmedAtUtc: incident.alarmedAtUtc ?? incident.createdAtUtc };
+}
+
 export interface MapElementDto {
     id: string;
     incidentId: string;
     elementType: 'Symbol' | 'Polygon';
     symbolId?: string;
+    symbolSvg?: string;
     category?: string;
     label?: string;
     radioCallName?: string;
@@ -44,6 +64,8 @@ export interface MapElementDto {
     updatedAtUtc: string;
     updatedByDisplayName: string;
 }
+
+type MapElementWire = Omit<MapElementDto, 'elementType'> & { elementType: MapElementDto['elementType'] | 1 | 2 };
 
 export interface DiaryCategory {
     id: string;
@@ -96,13 +118,46 @@ export function buildCommandId() {
 }
 
 export async function getActiveIncident() {
-    const response = await apiClient.get<IncidentSummary>('/api/incidents/active');
-    return response.data;
+    const response = await apiClient.get<IncidentWire>('/api/incidents/active');
+    return normalizeIncident(response.data);
 }
 
-export async function getIncidentArchive() {
-    const response = await apiClient.get<IncidentSummary[]>('/api/incidents/archive');
-    return response.data;
+export async function getIncidentArchive(page = 1, pageSize = 25) {
+    const response = await apiClient.get<IncidentWire[]>('/api/incidents/archive', { params: { page, pageSize } });
+    return response.data.map(normalizeIncident);
+}
+
+type DiaryRevisionWire = Omit<DiaryRevision, 'revisionType'> & { revisionType: DiaryRevision['revisionType'] | 1 | 2 | 3 };
+type DiaryEntryWire = Omit<DiaryEntry, 'currentRevisionData' | 'revisions'> & { currentRevisionData: DiaryRevisionWire; revisions: DiaryRevisionWire[] };
+
+function normalizeRevision(revision: DiaryRevisionWire): DiaryRevision {
+    const revisionType = revision.revisionType === 1 ? 'Created' : revision.revisionType === 2 ? 'Edited'
+        : revision.revisionType === 3 ? 'Canceled' : revision.revisionType;
+    return { ...revision, revisionType };
+}
+
+function normalizeDiaryEntry(entry: DiaryEntryWire): DiaryEntry {
+    return { ...entry, currentRevisionData: normalizeRevision(entry.currentRevisionData), revisions: entry.revisions.map(normalizeRevision) };
+}
+
+export async function getArchivedDiaryEntries(incidentId: string) {
+    const response = await apiClient.get<DiaryEntryWire[]>(`/api/incidents/archive/${incidentId}/diary`);
+    return response.data.map(normalizeDiaryEntry);
+}
+
+export async function downloadArchivedIncidentPdf(incidentId: string) {
+    const response = await apiClient.get<Blob>(`/api/incidents/archive/${incidentId}/export.pdf`, { responseType: 'blob' });
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement('a');
+    try {
+        link.href = url;
+        link.download = `einsatztagebuch-${incidentId.replace(/-/g, '')}.pdf`;
+        document.body.append(link);
+        link.click();
+    } finally {
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
 }
 
 export async function createIncident(payload: {
@@ -110,13 +165,14 @@ export async function createIncident(payload: {
     incidentNumber?: string;
     keyword?: string;
     description?: string;
+    alarmedAtUtc: string;
     originLongitude: number;
     originLatitude: number;
     sessionId: string;
     commandId: string;
 }) {
-    const response = await apiClient.post('/api/incidents', payload);
-    return response.data;
+    const response = await apiClient.post<Omit<IncidentCreatedResponse, 'incident'> & { incident: IncidentWire }>('/api/incidents', payload);
+    return { ...response.data, incident: normalizeIncident(response.data.incident) };
 }
 
 export async function closeIncident(incidentId: string, payload: { leaseToken: string; sessionId: string; commandId: string }) {
@@ -125,8 +181,8 @@ export async function closeIncident(incidentId: string, payload: { leaseToken: s
 }
 
 export async function getMapState(incidentId: string) {
-    const response = await apiClient.get<ActiveIncidentSnapshot>(`/api/incidents/${incidentId}/map/state`);
-    return response.data;
+    const response = await apiClient.get<Omit<ActiveIncidentSnapshot, 'incidentStatus' | 'elements'> & { incidentStatus: IncidentStatus | 1 | 2; elements: MapElementWire[] }>(`/api/incidents/${incidentId}/map/state`);
+    return { ...response.data, incidentStatus: normalizeIncidentStatus(response.data.incidentStatus), elements: response.data.elements.map(normalizeMapElement) };
 }
 
 export async function acquireMapLease(incidentId: string, payload: { sessionId: string; commandId: string }) {
@@ -144,12 +200,36 @@ export async function releaseMapLease(incidentId: string, payload: { sessionId: 
     return response.data;
 }
 
-export async function upsertMapElement(incidentId: string, payload: any) {
-    const response = await apiClient.post(`/api/incidents/${incidentId}/map/elements`, payload);
-    return response.data;
+export interface MapElementWrite {
+    commandId: string;
+    sessionId: string;
+    leaseToken: string;
+    elementId?: string;
+    elementType: 'Symbol' | 'Polygon';
+    symbolId?: string;
+    category?: string;
+    label?: string;
+    radioCallName?: string;
+    strength?: string;
+    note?: string;
+    colorHex?: string;
+    geometryJson: string;
+    expectedVersion?: number;
 }
 
-export async function deleteMapElement(incidentId: string, elementId: string, payload: any) {
+function normalizeMapElement(element: MapElementWire): MapElementDto {
+    const type = element.elementType;
+    return { ...element, elementType: type === 1 ? 'Symbol' : type === 2 ? 'Polygon' : type };
+}
+
+export async function upsertMapElement(incidentId: string, payload: MapElementWrite) {
+    const response = await apiClient.post<{ element: MapElementWire }>(`/api/incidents/${incidentId}/map/elements`, {
+        ...payload, elementType: payload.elementType === 'Symbol' ? 1 : 2,
+    });
+    return { ...response.data, element: normalizeMapElement(response.data.element) };
+}
+
+export async function deleteMapElement(incidentId: string, elementId: string, payload: { commandId: string; sessionId: string; leaseToken: string; expectedVersion: number }) {
     const response = await apiClient.delete(`/api/incidents/${incidentId}/map/elements/${elementId}`, { data: payload });
     return response.data;
 }
@@ -160,8 +240,8 @@ export async function getMapAudit(incidentId: string) {
 }
 
 export async function getDiaryEntries(incidentId: string) {
-    const response = await apiClient.get<DiaryEntry[]>(`/api/incidents/${incidentId}/diary/entries`);
-    return response.data;
+    const response = await apiClient.get<DiaryEntryWire[]>(`/api/incidents/${incidentId}/diary/entries`);
+    return response.data.map(normalizeDiaryEntry);
 }
 
 export async function getDiaryCategories(incidentId: string) {

@@ -35,12 +35,15 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
     {
+        if (!userContext.IsAdmin) return ServiceResult.Forbid();
+
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var list = await dbContext.Incidents
+        var list = await dbContext.Incidents.AsNoTracking()
             .Where(x => x.Status == IncidentStatus.Closed)
             .OrderByDescending(x => x.ClosedAtUtc)
+            .ThenByDescending(x => x.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => ToSummary(x))
@@ -52,6 +55,10 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     public async Task<ServiceResult> CreateIncident(CreateIncidentRequest request, CancellationToken cancellationToken)
     {
+        if (request.AlarmedAtUtc is null || request.AlarmedAtUtc == DateTimeOffset.MinValue)
+        {
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Bitte einen gültigen Alarmierungszeitpunkt angeben.");
+        }
 
         if (request.OriginLatitude is < -90 or > 90 || request.OriginLongitude is < -180 or > 180)
         {
@@ -64,6 +71,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
             request.IncidentNumber,
             request.Keyword,
             request.Description,
+            AlarmedAtUtc = request.AlarmedAtUtc.Value.UtcDateTime,
             request.OriginLatitude,
             request.OriginLongitude,
             request.SessionId,
@@ -92,6 +100,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
             OriginLongitude = request.OriginLongitude,
             Status = IncidentStatus.Active,
             CreatedAtUtc = now,
+            AlarmedAtUtc = request.AlarmedAtUtc.Value.UtcDateTime,
             Revision = 1,
         };
 
@@ -125,7 +134,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return ServiceResult.StatusCode(StatusCodes.Status201Created);
+        return ServiceResult.StatusCode(StatusCodes.Status201Created, response);
 
     }
 
@@ -206,6 +215,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
         incident.OriginLatitude,
         incident.Status,
         incident.CreatedAtUtc,
+        incident.AlarmedAtUtc,
         incident.ClosedAtUtc,
         incident.Revision);
 

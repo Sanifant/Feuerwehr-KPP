@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { DragEvent } from 'react';
 import type { FeatureLike } from 'ol/Feature';
 import Feature from 'ol/Feature';
 import Map from 'ol/Map';
@@ -12,7 +13,7 @@ import VectorLayer from 'ol/layer/Vector';
 import { Draw, Modify, Select, Translate } from 'ol/interaction';
 import GeoJSON from 'ol/format/GeoJSON';
 import { fromLonLat, toLonLat } from 'ol/proj';
-import { Fill, Stroke, Style, Text, Circle as CircleStyle } from 'ol/style';
+import { Fill, Stroke, Style, Text, Circle as CircleStyle, Icon } from 'ol/style';
 import { click, never, primaryAction } from 'ol/events/condition';
 import { unByKey } from 'ol/Observable';
 import { useAuth } from '../AuthContext';
@@ -20,8 +21,6 @@ import { useRole } from '../hooks/useRole';
 import {
     acquireMapLease,
     buildCommandId,
-    closeIncident,
-    createIncident,
     deleteMapElement,
     getActiveIncident,
     getMapAudit,
@@ -34,28 +33,14 @@ import {
 } from '../api/incidentApi';
 import type { ActiveIncidentSnapshot, EditorLease, IncidentSummary, MapElementDto } from '../api/incidentApi';
 import { ensureIncidentConnection } from '../api/incidentLive';
+import { getIncidentSessionId } from '../api/incidentSession';
+import { getMapSymbolCategories, getMapSymbols, svgImageUrl } from '../api/mapSymbolApi';
+import type { MapSymbol } from '../api/mapSymbolApi';
+import { isInsideMap, mapSymbolDragType } from './incidentMapDrag';
+import { getApiErrorMessage } from '../api/errors';
+import MapSymbolPlacementModal from './MapSymbolPlacementModal';
+import type { MapSymbolPlacementDetails } from './MapSymbolPlacementModal';
 import 'ol/ol.css';
-
-const symbolCatalog = [
-    { id: 'vehicle-engine', category: 'Fahrzeuge', label: 'Löschfahrzeug', icon: '🚒' },
-    { id: 'vehicle-ladder', category: 'Fahrzeuge', label: 'Drehleiter', icon: '🪜' },
-    { id: 'unit-command', category: 'Führung', label: 'Einsatzleitung', icon: '⭐' },
-    { id: 'hazard-smoke', category: 'Gefahrenstellen', label: 'Rauch', icon: '💨' },
-    { id: 'water-source', category: 'Wasserentnahme', label: 'Wasserentnahme', icon: '💧' },
-    { id: 'staging-area', category: 'Bereitstellungsräume', label: 'Bereitstellungsraum', icon: '📍' },
-    { id: 'unit-team', category: 'Einheiten', label: 'Trupp', icon: '👥' },
-];
-
-function getSessionId() {
-    const existing = sessionStorage.getItem('incident-session-id');
-    if (existing) {
-        return existing;
-    }
-
-    const id = crypto.randomUUID();
-    sessionStorage.setItem('incident-session-id', id);
-    return id;
-}
 
 function toFeature(element: MapElementDto): Feature<Geometry> {
     const geoJson = new GeoJSON();
@@ -72,6 +57,8 @@ function toFeature(element: MapElementDto): Feature<Geometry> {
         elementId: element.id,
         elementType: element.elementType,
         symbolId: element.symbolId,
+        symbolSvg: element.symbolSvg,
+        radioCallName: element.radioCallName,
         label: element.label,
         colorHex: element.colorHex,
         version: element.version,
@@ -84,10 +71,17 @@ function toFeature(element: MapElementDto): Feature<Geometry> {
 }
 
 function createFeatureStyle(feature: FeatureLike, selected = false) {
-    const label = `${feature.get('symbolId') ? `${feature.get('symbolId')} ` : ''}${feature.get('label') ?? ''}`.trim();
+    const label = feature.get('label') ?? '';
     const color = feature.get('colorHex') || '#d62828';
 
     if (feature.getGeometry() instanceof Point) {
+        if (feature.get('symbolSvg')) {
+            const iconStyle = new Style({
+                image: new Icon({ src: svgImageUrl(feature.get('symbolSvg')), width: 48, height: 48, anchor: [0.5, 0.5] }),
+                text: new Text({ text: feature.get('radioCallName') || label, offsetX: -24, offsetY: 28, textAlign: 'left', textBaseline: 'top', font: 'bold 13px sans-serif', fill: new Fill({ color: '#111' }), stroke: new Stroke({ color: '#fff', width: 3 }) }),
+            });
+            return selected ? [new Style({ image: new CircleStyle({ radius: 31, fill: new Fill({ color: '#1677ff22' }), stroke: new Stroke({ color: '#1677ff', width: 2 }) }) }), iconStyle] : iconStyle;
+        }
         return new Style({
             image: new CircleStyle({
                 radius: selected ? 10 : 8,
@@ -95,8 +89,11 @@ function createFeatureStyle(feature: FeatureLike, selected = false) {
                 stroke: new Stroke({ color: selected ? '#1677ff' : '#fff', width: selected ? 4 : 2 }),
             }),
             text: new Text({
-                text: label,
-                offsetY: -16,
+                text: feature.get('radioCallName') || label,
+                offsetX: -10,
+                offsetY: 14,
+                textAlign: 'left',
+                textBaseline: 'top',
                 fill: new Fill({ color: '#111' }),
                 stroke: new Stroke({ color: '#fff', width: 2 }),
             }),
@@ -116,6 +113,13 @@ function createFeatureStyle(feature: FeatureLike, selected = false) {
 
 type EditMode = 'move' | 'symbol' | 'polygon' | 'vertices';
 
+interface SymbolPlacement {
+    incidentId: string;
+    geometry: Geometry;
+    symbolId: string;
+    symbolName: string;
+}
+
 interface MapAuditRow {
     id: string;
     sequenceNumber: number;
@@ -129,6 +133,7 @@ const geometryFormat = new GeoJSON();
 
 /** Persistenz in WGS84; OpenLayers-Geometrien bleiben in Web Mercator. */
 function writeGeometry(geometry: Geometry) {
+    if (geometry instanceof Point) return JSON.stringify({ type: 'Point', coordinates: toLonLat(geometry.getCoordinates()) });
     return geometryFormat.writeGeometry(geometry, {
         dataProjection: 'EPSG:4326',
         featureProjection: 'EPSG:3857',
@@ -162,7 +167,7 @@ function getErrorTitle(error: unknown, fallback: string): string {
 export function IncidentMapPage() {
     const { hasRole } = useAuth();
     const { canEditSituationMap: canEdit, canViewSituationMap: canView } = useRole();
-    const sessionId = useMemo(() => getSessionId(), []);
+    const sessionId = useMemo(getIncidentSessionId, []);
     const mapRef = useRef<Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const vectorSourceRef = useRef(new VectorSource<Feature<Geometry>>());
@@ -178,16 +183,20 @@ export function IncidentMapPage() {
     const [lease, setLease] = useState<EditorLease | null>(null);
     const [hydrants, setHydrants] = useState<ActiveIncidentSnapshot['hydrants']>([]);
     const [statusText, setStatusText] = useState('Initialisiere...');
-    const [selectedSymbol, setSelectedSymbol] = useState(symbolCatalog[0].id);
+    const [mutationError, setMutationError] = useState('');
+    const [symbolPlacement, setSymbolPlacement] = useState<SymbolPlacement | null>(null);
+    const symbolPlacementRef = useRef<SymbolPlacement | null>(null);
+    const [symbolCatalog, setSymbolCatalog] = useState<MapSymbol[]>([]);
+    const catalogRef = useRef<MapSymbol[]>([]);
+    const [symbolCategories, setSymbolCategories] = useState<string[]>([]);
+    const [catalogError, setCatalogError] = useState('');
+    const [catalogRevision, setCatalogRevision] = useState(0);
+    const [selectedSymbol, setSelectedSymbol] = useState('');
+    const [dragOutside, setDragOutside] = useState(false);
     const [searchSymbol, setSearchSymbol] = useState('');
     const [filterCategory, setFilterCategory] = useState('Alle');
     const [showHydrants, setShowHydrants] = useState(true);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-    const [newIncidentName, setNewIncidentName] = useState('');
-    const [newIncidentNumber, setNewIncidentNumber] = useState('');
-    const [newIncidentKeyword, setNewIncidentKeyword] = useState('');
-    const [newIncidentDescription, setNewIncidentDescription] = useState('');
-    const [selectedCreationPosition, setSelectedCreationPosition] = useState<[number, number] | null>(null);
     const [editMode, setEditMode] = useState<EditMode>('move');
     const [isSaving, setIsSaving] = useState(false);
     const [isInteracting, setIsInteracting] = useState(false);
@@ -204,6 +213,25 @@ export function IncidentMapPage() {
     const loadRequestRef = useRef(0);
     const centeredIncidentRef = useRef<string | null>(null);
     const serverClockOffsetRef = useRef(0);
+
+    useEffect(() => {
+        if (!canView) return;
+        let disposed = false;
+        const load = async () => {
+            try {
+                const [symbols, categories] = await Promise.all([getMapSymbols(), getMapSymbolCategories()]);
+                if (disposed) return;
+                catalogRef.current = symbols.filter(symbol => symbol.isActive);
+                setSymbolCatalog(catalogRef.current);
+                setSymbolCategories(categories);
+                setCatalogError('');
+            } catch { if (!disposed) setCatalogError('Symbolkatalog konnte nicht geladen werden. Bitte erneut aktualisieren.'); }
+        };
+        void load();
+        const refresh = () => { void load(); };
+        window.addEventListener('focus', refresh);
+        return () => { disposed = true; window.removeEventListener('focus', refresh); };
+    }, [canView, catalogRevision]);
 
     useEffect(() => {
         stateRef.current = { incident, lease, canEdit, selectedSymbol, editMode, writePaused };
@@ -228,7 +256,7 @@ export function IncidentMapPage() {
     const canWrite = canEdit && incident?.status === 'Active' && isLeaseOwner &&
         Boolean(lease && !lease.isExpired && Date.parse(lease.expiresAtUtc) > Date.now() + serverClockOffsetRef.current) &&
         !writePaused;
-    const isBusy = isSaving || isInteracting;
+    const isBusy = isSaving || isInteracting || symbolPlacement !== null;
     const selectedElement = elements.find(x => x.id === selectedElementId) ?? null;
 
     const loadActive = useCallback(async (afterSave = false): Promise<boolean> => {
@@ -306,10 +334,12 @@ export function IncidentMapPage() {
     ) => {
         const current = stateRef.current;
         if (savingRef.current) return false;
+        setMutationError('');
         if (!canWriteNow() || !current.incident || !current.lease) {
             rollback?.();
             restoreGeometry();
             setStatusText('Keine gültige Bearbeitungssperre. Änderung wurde zurückgesetzt.');
+            setMutationError('Keine gültige Bearbeitungssperre. Bitte Bearbeitung erneut übernehmen.');
             return false;
         }
         savingRef.current = true;
@@ -319,7 +349,10 @@ export function IncidentMapPage() {
         try {
             await operation({ incident: current.incident, lease: current.lease });
             saved = true;
-        } catch {
+        } catch (error: unknown) {
+            const message = getApiErrorMessage(error, error instanceof Error ? error.message : failureMessage);
+            setMutationError(message === failureMessage ? failureMessage : `${failureMessage} ${message}`);
+            console.error('[IncidentMap] mutation.failed', { status: getHttpStatus(error), message });
             rollback?.();
             restoreGeometry();
         } finally {
@@ -386,23 +419,61 @@ export function IncidentMapPage() {
         }, 'Position/Form gespeichert.', 'Änderung wurde nicht bestätigt und zurückgesetzt.', restoreGeometry);
     }, [loadActive, restoreGeometry, runMutation, sessionId]);
 
-    const persistNewElement = useCallback(async (geometry: Geometry, elementType: 'Symbol' | 'Polygon') => {
-        const symbol = symbolCatalog.find(x => x.id === stateRef.current.selectedSymbol)!;
-        await runMutation(async (context) => {
+    const persistNewElement = useCallback(async (geometry: Geometry, elementType: 'Symbol' | 'Polygon', symbolId?: string, details?: MapSymbolPlacementDetails) => {
+        const symbol = catalogRef.current.find(x => x.id === (symbolId ?? stateRef.current.selectedSymbol));
+        if (elementType === 'Symbol' && !symbol) { setMutationError('Bitte ein verfügbares Symbol aus dem Katalog wählen.'); return false; }
+        if (elementType === 'Symbol' && !details) {
+            const current = stateRef.current;
+            if (!canWriteNow() || !current.incident || savingRef.current || symbolPlacementRef.current) return false;
+            const placement = { incidentId: current.incident.id, geometry: geometry.clone(), symbolId: symbol!.id, symbolName: symbol!.name };
+            symbolPlacementRef.current = placement;
+            setSymbolPlacement(placement);
+            setMutationError('');
+            setEditMode('move');
+            return false;
+        }
+        const saved = await runMutation(async (context) => {
             await upsertMapElement(context.incident.id, {
                 commandId: buildCommandId(),
                 sessionId,
                 leaseToken: context.lease.leaseToken,
                 elementType,
-                symbolId: elementType === 'Symbol' ? symbol.id : undefined,
-                category: elementType === 'Symbol' ? symbol.category : 'Fläche',
-                label: elementType === 'Symbol' ? symbol.label : 'Fläche',
+                symbolId: elementType === 'Symbol' ? symbol!.id : undefined,
+                category: elementType === 'Symbol' ? symbol!.category : 'Fläche',
+                label: elementType === 'Symbol' ? symbol!.name : 'Fläche',
+                radioCallName: details?.radioCallName.trim(),
+                strength: details?.strength.trim() || undefined,
+                note: details?.note.trim() || undefined,
                 colorHex: elementType === 'Symbol' ? '#d62828' : '#f77f00',
                 geometryJson: writeGeometry(geometry),
             });
         }, 'Element gespeichert.', 'Element konnte nicht gespeichert werden.');
         setEditMode('move');
-    }, [runMutation, sessionId]);
+        return saved;
+    }, [canWriteNow, runMutation, sessionId]);
+
+    const persistRemoval = useCallback(async (features: Feature<Geometry>[]) => {
+        await runMutation(async context => {
+            for (const feature of features) {
+                const element = feature.get('sourceElement') as MapElementDto;
+                await deleteMapElement(context.incident.id, element.id, {
+                    commandId: buildCommandId(), sessionId, leaseToken: context.lease.leaseToken, expectedVersion: element.version,
+                });
+            }
+            setSelectedElementId(null);
+        }, 'Element durch Herausziehen gelöscht.', 'Element konnte nicht gelöscht werden und wurde zurückgesetzt.', restoreGeometry);
+    }, [runMutation, sessionId, restoreGeometry]);
+
+    const dropSymbol = (event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const map = mapRef.current;
+        const container = mapContainerRef.current;
+        if (!map || !container || !canWriteNow() || savingRef.current || interactingRef.current || !isInsideMap(event, container.getBoundingClientRect())) return;
+        const id = event.dataTransfer.getData(mapSymbolDragType);
+        if (!catalogRef.current.some(symbol => symbol.id === id)) return;
+        const coordinate = map.getEventCoordinate(event.nativeEvent);
+        if (coordinate?.every(Number.isFinite)) void persistNewElement(new Point(coordinate), 'Symbol', id);
+    };
 
     useEffect(() => {
         if (!canView || !mapContainerRef.current) return;
@@ -457,7 +528,18 @@ export function IncidentMapPage() {
             setSelectedElementId(feature.get('elementId'));
             rememberGeometry(event.features.getArray());
         });
-        translate.on('translateend', event => { void persistGeometry(event.features.getArray()); });
+        translate.on('translating', event => {
+            const bounds = mapContainerRef.current?.getBoundingClientRect();
+            if (bounds) setDragOutside(!isInsideMap(event.mapBrowserEvent.originalEvent, bounds));
+        });
+        translate.on('translateend', event => {
+            setDragOutside(false);
+            const pointer = event.mapBrowserEvent.originalEvent;
+            if (pointer.type === 'pointercancel' || !('clientX' in pointer) || !('clientY' in pointer)) { restoreGeometry(); return; }
+            const bounds = mapContainerRef.current?.getBoundingClientRect();
+            if (bounds && !isInsideMap(event.mapBrowserEvent.originalEvent, bounds)) void persistRemoval(event.features.getArray());
+            else void persistGeometry(event.features.getArray());
+        });
 
         // Ohne source: Eine neue Fläche wird erst nach erfolgreichem Speichern als
         // reguläres Feature übernommen. Abgelehnte Entwürfe bleiben nicht in der Karte.
@@ -493,10 +575,7 @@ export function IncidentMapPage() {
 
         const clickListener = map.on('singleclick', event => {
             const current = stateRef.current;
-            if (!current.incident) {
-                if (current.canEdit) setSelectedCreationPosition(toLonLat(event.coordinate) as [number, number]);
-                return;
-            }
+            if (!current.incident) return;
             if (current.editMode !== 'symbol' || !canWriteNow() || savingRef.current) return;
             // Bestehende Elemente anklicken darf niemals nebenbei ein Symbol erzeugen.
             if (map.hasFeatureAtPixel(event.pixel, { layerFilter: layer => layer === mapElementLayer, hitTolerance: 8 })) return;
@@ -524,17 +603,17 @@ export function IncidentMapPage() {
             geometryBeforeRef.current.clear();
             interactingRef.current = false;
         };
-    }, [canView, canWriteNow, loadActive, persistGeometry, persistNewElement, rememberGeometry]);
+    }, [canView, canWriteNow, loadActive, persistGeometry, persistNewElement, rememberGeometry, persistRemoval, restoreGeometry]);
 
     useEffect(() => {
-        const enabled = canWrite && !isSaving;
+        const enabled = canWrite && !isSaving && !symbolPlacement;
         translateRef.current?.setActive(enabled && editMode === 'move');
         modifyRef.current?.setActive(enabled && editMode === 'vertices' && selectedElement?.elementType === 'Polygon');
-        selectRef.current?.setActive(!isSaving && (editMode === 'move' || editMode === 'vertices' || !canWrite));
+        selectRef.current?.setActive(!isSaving && !symbolPlacement && (editMode === 'move' || editMode === 'vertices' || !canWrite));
         if (!enabled || editMode !== 'polygon') drawRef.current?.abortDrawing();
         drawRef.current?.setActive(enabled && editMode === 'polygon');
         if (!canWrite && !savingRef.current) restoreGeometry();
-    }, [canView, canWrite, editMode, isSaving, selectedElement?.elementType, restoreGeometry]);
+    }, [canView, canWrite, editMode, isSaving, selectedElement?.elementType, symbolPlacement, restoreGeometry]);
 
     useEffect(() => {
         // Features nach ID abgleichen statt die Quelle zu leeren: Auswahl und
@@ -565,7 +644,7 @@ export function IncidentMapPage() {
         if (selectedElementId && !incoming.has(selectedElementId)) setSelectedElementId(null);
     }, [canView, elements, incident?.id, selectedElementId, isBusy]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!mapRef.current || !incident || centeredIncidentRef.current === incident.id) return;
         mapRef.current.getView().setCenter(fromLonLat([incident.originLongitude, incident.originLatitude]));
         mapRef.current.getView().setZoom(16);
@@ -648,29 +727,11 @@ export function IncidentMapPage() {
     const filteredSymbols = useMemo(() => symbolCatalog.filter(symbol => {
         const matchesCategory = filterCategory === 'Alle' || symbol.category === filterCategory;
         const q = searchSymbol.trim().toLowerCase();
-        return matchesCategory && (!q || symbol.label.toLowerCase().includes(q) || symbol.id.toLowerCase().includes(q));
-    }), [filterCategory, searchSymbol]);
-    const categories = useMemo(() => ['Alle', ...Array.from(new Set(symbolCatalog.map(x => x.category)))], []);
+        return matchesCategory && (!q || symbol.name.toLowerCase().includes(q));
+    }), [symbolCatalog, filterCategory, searchSymbol]);
+    const categories = ['Alle', ...symbolCategories];
 
     if (!canView) return <div className="card"><h2>Lagekarte</h2><p>Keine Berechtigung.</p></div>;
-
-    const createNewIncident = async () => {
-        if (!canEdit || !selectedCreationPosition || !newIncidentName.trim()) {
-            setStatusText('Bitte Einsatzname und Einsatzposition auf der Karte wählen.');
-            return;
-        }
-        try {
-            await createIncident({
-                name: newIncidentName.trim(), incidentNumber: newIncidentNumber || undefined,
-                keyword: newIncidentKeyword || undefined, description: newIncidentDescription || undefined,
-                originLongitude: selectedCreationPosition[0], originLatitude: selectedCreationPosition[1],
-                sessionId, commandId: buildCommandId(),
-            });
-            await loadActive();
-        } catch (error: unknown) {
-            setStatusText(getErrorTitle(error, 'Einsatz konnte nicht angelegt werden.'));
-        }
-    };
 
     const acquireLease = async () => {
         if (!incident || isBusy) return;
@@ -692,17 +753,15 @@ export function IncidentMapPage() {
             await loadActive();
         } catch { setStatusText('Sperre konnte nicht freigegeben werden. Bitte aktualisieren.'); }
     };
-    const closeActiveIncident = async () => {
-        if (isBusy || !canWriteNow() || !confirm('Einsatz wirklich abschließen? Dieser Schritt ist endgültig.')) return;
-        await runMutation(async context => {
-            await closeIncident(context.incident.id, { sessionId, leaseToken: context.lease.leaseToken, commandId: buildCommandId() });
-        }, 'Einsatz abgeschlossen.', 'Einsatz konnte nicht abgeschlossen werden.');
-    };
     const createPolygonInteraction = () => {
         if (canWriteNow() && !isBusy) setEditMode('polygon');
     };
     const saveSelectedProperties = async () => {
         if (!selectedElement || isBusy) return;
+        if (selectedElement.elementType === 'Symbol' && !selectedElement.radioCallName?.trim()) {
+            setMutationError('Bitte einen Funkrufnamen angeben.');
+            return;
+        }
         await runMutation(async context => {
             await upsertMapElement(context.incident.id, {
                 ...elementPayload(selectedElement), geometryJson: selectedElement.geometryJson,
@@ -720,30 +779,26 @@ export function IncidentMapPage() {
             setSelectedElementId(null);
         }, 'Element gelöscht.', 'Element konnte nicht gelöscht werden.');
     };
+    const closeSymbolPlacement = () => {
+        if (savingRef.current) return;
+        symbolPlacementRef.current = null;
+        setSymbolPlacement(null);
+    };
+    const saveSymbolPlacement = async (details: MapSymbolPlacementDetails) => {
+        const placement = symbolPlacementRef.current;
+        if (!placement || savingRef.current) return;
+        if (placement.incidentId !== stateRef.current.incident?.id) {
+            setMutationError('Der aktive Einsatz hat sich geändert. Bitte den Dialog schließen und das Symbol erneut platzieren.');
+            return;
+        }
+        if (await persistNewElement(placement.geometry, 'Symbol', placement.symbolId, details)) closeSymbolPlacement();
+    };
     return (
         <div className="incident-page">
             <section className="card incident-top">
                 <h2>Lagekarte</h2>
                 <p role="status">{isSaving ? 'Änderung wird gespeichert …' : statusText}</p>
-                {!incident && canEdit && (
-                    <div className="incident-create-grid">
-                        <label>Einsatzname *
-                            <input value={newIncidentName} onChange={(e) => setNewIncidentName(e.target.value)} placeholder="Einsatzname*" />
-                        </label>
-                        <label>Einsatznummer
-                            <input value={newIncidentNumber} onChange={(e) => setNewIncidentNumber(e.target.value)} placeholder="Einsatznummer" />
-                        </label>
-                        <label>Stichwort
-                            <input value={newIncidentKeyword} onChange={(e) => setNewIncidentKeyword(e.target.value)} placeholder="Stichwort" />
-                        </label>
-                        <label>Beschreibung
-                            <input value={newIncidentDescription} onChange={(e) => setNewIncidentDescription(e.target.value)} placeholder="Beschreibung" />
-                        </label>
-                        <div className="small-note">Position auf Karte klicken: {selectedCreationPosition ? `${selectedCreationPosition[1].toFixed(5)}, ${selectedCreationPosition[0].toFixed(5)}` : 'noch nicht gewählt'}</div>
-                        <button type="button" onClick={createNewIncident}>Einsatz anlegen</button>
-                    </div>
-                )}
-
+                {mutationError && !symbolPlacement && <p role="alert">{mutationError}</p>}
                 {incident && (
                     <div className="incident-meta-line">
                         <strong>{incident.name}</strong>
@@ -759,8 +814,7 @@ export function IncidentMapPage() {
                         <button type="button" aria-pressed={editMode === 'move'} onClick={() => setEditMode('move')} disabled={!canWrite || isBusy}>Verschieben / Auswählen</button>
                         <button type="button" aria-pressed={editMode === 'vertices'} onClick={() => setEditMode('vertices')} disabled={!canWrite || isBusy || selectedElement?.elementType !== 'Polygon'}>Eckpunkte bearbeiten</button>
                         <button type="button" aria-pressed={editMode === 'polygon'} onClick={createPolygonInteraction} disabled={!canWrite || isBusy}>Fläche zeichnen</button>
-                        <button type="button" onClick={closeActiveIncident} disabled={!canWrite || isBusy}>Einsatz abschließen</button>
-                        <button type="button" onClick={() => { void loadActive(); }} disabled={isBusy}>Aktualisieren</button>
+                        <button type="button" onClick={() => { void loadActive(); setCatalogRevision(value => value + 1); }} disabled={isBusy}>Aktualisieren</button>
                         {editMode !== 'move' && <button type="button" onClick={() => { drawRef.current?.abortDrawing(); setEditMode('move'); }} disabled={isSaving}>Abbrechen (Esc)</button>}
                         <a href={incident ? getMapAuditExportUrl(incident.id) : '#'} target="_blank" rel="noreferrer">CSV-Export</a>
                         <a href={incident ? getMapPdfExportUrl(incident.id) : '#'} target="_blank" rel="noreferrer">PDF-Export</a>
@@ -771,6 +825,11 @@ export function IncidentMapPage() {
             <section className="incident-layout">
                 <aside className="card incident-sidebar">
                     <h3>Symbolkatalog</h3>
+                    {catalogError && <div role="alert"><p>{catalogError}</p><button type="button" onClick={() => setCatalogRevision(value => value + 1)}>Katalog erneut laden</button></div>}
+                    <p className="small-note">Symbol auf die Karte ziehen oder auswählen und auf der Karte platzieren.</p>
+                    <p className={`map-delete-hint${dragOutside ? ' map-delete-hint--active' : ''}`} role="status">
+                        {dragOutside ? 'Loslassen löscht das Element.' : 'Zum Löschen ein Kartenelement aus der Karte herausziehen.'}
+                    </p>
                     <label>Symbole suchen
                         <input placeholder="Suche" value={searchSymbol} onChange={(e) => setSearchSymbol(e.target.value)} />
                     </label>
@@ -781,12 +840,20 @@ export function IncidentMapPage() {
                     </label>
                     <div className="symbol-grid">
                         {filteredSymbols.map((symbol) => (
-                            <button key={symbol.id} type="button" className={editMode === 'symbol' && selectedSymbol === symbol.id ? 'active' : ''} aria-pressed={editMode === 'symbol' && selectedSymbol === symbol.id} disabled={!canWrite || isBusy} onClick={() => { setSelectedSymbol(symbol.id); setEditMode('symbol'); }}>
-                                <span>{symbol.icon}</span>
-                                <small>{symbol.label}</small>
+                            <button key={symbol.id} type="button" draggable={canWrite && !isBusy} className={editMode === 'symbol' && selectedSymbol === symbol.id ? 'active' : ''} aria-pressed={editMode === 'symbol' && selectedSymbol === symbol.id} disabled={!canWrite || isBusy}
+                                onDragStart={event => {
+                                    if (!canWriteNow() || savingRef.current || interactingRef.current) { event.preventDefault(); return; }
+                                    event.dataTransfer.setData(mapSymbolDragType, symbol.id);
+                                    event.dataTransfer.effectAllowed = 'copy';
+                                    const preview = event.currentTarget.querySelector('img');
+                                    if (preview) event.dataTransfer.setDragImage(preview, 24, 24);
+                                }} onClick={() => { setSelectedSymbol(symbol.id); setEditMode('symbol'); }}>
+                                <img src={svgImageUrl(symbol.svgContent)} alt="" width="48" height="48" draggable={false} />
+                                <small>{symbol.name}</small>
                             </button>
                         ))}
                     </div>
+                    {filteredSymbols.length === 0 && !catalogError && <p>Keine Symbole in dieser Auswahl vorhanden.</p>}
 
                     <label className="checkbox-row">
                         <input type="checkbox" checked={showHydrants} onChange={(e) => setShowHydrants(e.target.checked)} />
@@ -799,8 +866,8 @@ export function IncidentMapPage() {
                             <label>Beschriftung
                                 <input value={selectedElement.label ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, label: e.target.value } : x))} placeholder="Beschriftung" />
                             </label>
-                            <label>Funkrufname
-                                <input value={selectedElement.radioCallName ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, radioCallName: e.target.value } : x))} placeholder="Funkrufname" />
+                            <label>Funkrufname{selectedElement.elementType === 'Symbol' ? ' *' : ''}
+                                <input required={selectedElement.elementType === 'Symbol'} maxLength={120} value={selectedElement.radioCallName ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, radioCallName: e.target.value } : x))} placeholder="Funkrufname" />
                             </label>
                             <label>Stärke
                                 <input value={selectedElement.strength ?? ''} onChange={(e) => setElements(prev => prev.map(x => x.id === selectedElement.id ? { ...x, strength: e.target.value } : x))} placeholder="Stärke" />
@@ -825,12 +892,17 @@ export function IncidentMapPage() {
                             : editMode === 'symbol' ? 'Symbol platzieren: auf eine freie Kartenposition klicken. Danach ist Verschieben wieder aktiv.'
                             : editMode === 'polygon' ? 'Fläche zeichnen: Eckpunkte anklicken, mit Doppelklick abschließen; Esc bricht ab.'
                             : editMode === 'vertices' ? 'Eckpunkte der ausgewählten Fläche ziehen. Zum Bewegen der ganzen Fläche auf Verschieben wechseln.'
-                            : 'Symbole oder Flächen direkt mit der Maus ziehen. Die Änderung wird beim Loslassen gespeichert.'}
+                            : 'Symbole aus dem Katalog hereinziehen. Kartenelemente greifen und verschieben; Herausziehen aus der Karte löscht sie.'}
                     </p>
-                    <div ref={mapContainerRef} className="incident-map" tabIndex={0} aria-label="Lagekarte: Symbole und Flächen auswählen und verschieben" />
+                    <div ref={mapContainerRef} className={`incident-map${dragOutside ? ' incident-map--deleting' : ''}`} tabIndex={0} aria-label="Lagekarte: Symbole und Flächen auswählen und verschieben"
+                        onDragOver={event => { if (canWriteNow() && !isBusy && event.dataTransfer.types.includes(mapSymbolDragType)) { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; } }}
+                        onDrop={dropSymbol} />
                     <p className="small-note">Hintergrundkarte: © OpenStreetMap contributors</p>
                 </div>
             </section>
+
+            {symbolPlacement && <MapSymbolPlacementModal symbolName={symbolPlacement.symbolName} busy={isSaving} canSave={canWrite}
+                error={mutationError} onClose={closeSymbolPlacement} onSave={saveSymbolPlacement} />}
 
             <section className="card">
                 <h3>Lagekarten-Änderungslog</h3>
