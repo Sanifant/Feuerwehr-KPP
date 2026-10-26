@@ -12,6 +12,7 @@ public record IncidentSummaryDto(
     double OriginLatitude,
     IncidentStatus Status,
     DateTime CreatedAtUtc,
+    DateTime AlarmedAtUtc,
     DateTime? ClosedAtUtc,
     long Revision);
 
@@ -29,6 +30,9 @@ public class CreateIncidentRequest
 
     [MaxLength(4000)]
     public string? Description { get; set; }
+
+    [Required]
+    public DateTimeOffset? AlarmedAtUtc { get; set; }
 
     public double OriginLongitude { get; set; }
 

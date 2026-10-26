@@ -30,6 +30,8 @@ public class Incident
 
     public DateTime CreatedAtUtc { get; set; }
 
+    public DateTime AlarmedAtUtc { get; set; }
+
     public DateTime? ClosedAtUtc { get; set; }
 
     [MaxLength(450)]

@@ -20,7 +20,7 @@ public class IncidentController(IIncidentService service) : ControllerBase
     }
 
     [HttpGet("archive")]
-    [Authorize(Policy = PolicyNames.CanAccessIncidentModule)]
+    [Authorize(Policy = PolicyNames.RequireAdmin)]
     public async Task<ActionResult<IReadOnlyCollection<IncidentSummaryDto>>> GetArchive([FromQuery] int page = 1, [FromQuery] int pageSize = 25, CancellationToken cancellationToken = default)
     {
         return this.ToActionResult(await service.GetArchive(page, pageSize, cancellationToken));

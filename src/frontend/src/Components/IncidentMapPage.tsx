@@ -11,7 +11,7 @@ import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import { Draw, Modify, Select, Translate } from 'ol/interaction';
 import GeoJSON from 'ol/format/GeoJSON';
-import { fromLonLat, toLonLat } from 'ol/proj';
+import { fromLonLat } from 'ol/proj';
 import { Fill, Stroke, Style, Text, Circle as CircleStyle } from 'ol/style';
 import { click, never, primaryAction } from 'ol/events/condition';
 import { unByKey } from 'ol/Observable';
@@ -20,8 +20,6 @@ import { useRole } from '../hooks/useRole';
 import {
     acquireMapLease,
     buildCommandId,
-    closeIncident,
-    createIncident,
     deleteMapElement,
     getActiveIncident,
     getMapAudit,
@@ -34,6 +32,7 @@ import {
 } from '../api/incidentApi';
 import type { ActiveIncidentSnapshot, EditorLease, IncidentSummary, MapElementDto } from '../api/incidentApi';
 import { ensureIncidentConnection } from '../api/incidentLive';
+import { getIncidentSessionId } from '../api/incidentSession';
 import 'ol/ol.css';
 
 const symbolCatalog = [
@@ -45,17 +44,6 @@ const symbolCatalog = [
     { id: 'staging-area', category: 'Bereitstellungsräume', label: 'Bereitstellungsraum', icon: '📍' },
     { id: 'unit-team', category: 'Einheiten', label: 'Trupp', icon: '👥' },
 ];
-
-function getSessionId() {
-    const existing = sessionStorage.getItem('incident-session-id');
-    if (existing) {
-        return existing;
-    }
-
-    const id = crypto.randomUUID();
-    sessionStorage.setItem('incident-session-id', id);
-    return id;
-}
 
 function toFeature(element: MapElementDto): Feature<Geometry> {
     const geoJson = new GeoJSON();
@@ -162,7 +150,7 @@ function getErrorTitle(error: unknown, fallback: string): string {
 export function IncidentMapPage() {
     const { hasRole } = useAuth();
     const { canEditSituationMap: canEdit, canViewSituationMap: canView } = useRole();
-    const sessionId = useMemo(() => getSessionId(), []);
+    const sessionId = useMemo(getIncidentSessionId, []);
     const mapRef = useRef<Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const vectorSourceRef = useRef(new VectorSource<Feature<Geometry>>());
@@ -183,11 +171,6 @@ export function IncidentMapPage() {
     const [filterCategory, setFilterCategory] = useState('Alle');
     const [showHydrants, setShowHydrants] = useState(true);
     const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-    const [newIncidentName, setNewIncidentName] = useState('');
-    const [newIncidentNumber, setNewIncidentNumber] = useState('');
-    const [newIncidentKeyword, setNewIncidentKeyword] = useState('');
-    const [newIncidentDescription, setNewIncidentDescription] = useState('');
-    const [selectedCreationPosition, setSelectedCreationPosition] = useState<[number, number] | null>(null);
     const [editMode, setEditMode] = useState<EditMode>('move');
     const [isSaving, setIsSaving] = useState(false);
     const [isInteracting, setIsInteracting] = useState(false);
@@ -493,10 +476,7 @@ export function IncidentMapPage() {
 
         const clickListener = map.on('singleclick', event => {
             const current = stateRef.current;
-            if (!current.incident) {
-                if (current.canEdit) setSelectedCreationPosition(toLonLat(event.coordinate) as [number, number]);
-                return;
-            }
+            if (!current.incident) return;
             if (current.editMode !== 'symbol' || !canWriteNow() || savingRef.current) return;
             // Bestehende Elemente anklicken darf niemals nebenbei ein Symbol erzeugen.
             if (map.hasFeatureAtPixel(event.pixel, { layerFilter: layer => layer === mapElementLayer, hitTolerance: 8 })) return;
@@ -654,24 +634,6 @@ export function IncidentMapPage() {
 
     if (!canView) return <div className="card"><h2>Lagekarte</h2><p>Keine Berechtigung.</p></div>;
 
-    const createNewIncident = async () => {
-        if (!canEdit || !selectedCreationPosition || !newIncidentName.trim()) {
-            setStatusText('Bitte Einsatzname und Einsatzposition auf der Karte wählen.');
-            return;
-        }
-        try {
-            await createIncident({
-                name: newIncidentName.trim(), incidentNumber: newIncidentNumber || undefined,
-                keyword: newIncidentKeyword || undefined, description: newIncidentDescription || undefined,
-                originLongitude: selectedCreationPosition[0], originLatitude: selectedCreationPosition[1],
-                sessionId, commandId: buildCommandId(),
-            });
-            await loadActive();
-        } catch (error: unknown) {
-            setStatusText(getErrorTitle(error, 'Einsatz konnte nicht angelegt werden.'));
-        }
-    };
-
     const acquireLease = async () => {
         if (!incident || isBusy) return;
         try {
@@ -691,12 +653,6 @@ export function IncidentMapPage() {
             setEditMode('move');
             await loadActive();
         } catch { setStatusText('Sperre konnte nicht freigegeben werden. Bitte aktualisieren.'); }
-    };
-    const closeActiveIncident = async () => {
-        if (isBusy || !canWriteNow() || !confirm('Einsatz wirklich abschließen? Dieser Schritt ist endgültig.')) return;
-        await runMutation(async context => {
-            await closeIncident(context.incident.id, { sessionId, leaseToken: context.lease.leaseToken, commandId: buildCommandId() });
-        }, 'Einsatz abgeschlossen.', 'Einsatz konnte nicht abgeschlossen werden.');
     };
     const createPolygonInteraction = () => {
         if (canWriteNow() && !isBusy) setEditMode('polygon');
@@ -725,25 +681,6 @@ export function IncidentMapPage() {
             <section className="card incident-top">
                 <h2>Lagekarte</h2>
                 <p role="status">{isSaving ? 'Änderung wird gespeichert …' : statusText}</p>
-                {!incident && canEdit && (
-                    <div className="incident-create-grid">
-                        <label>Einsatzname *
-                            <input value={newIncidentName} onChange={(e) => setNewIncidentName(e.target.value)} placeholder="Einsatzname*" />
-                        </label>
-                        <label>Einsatznummer
-                            <input value={newIncidentNumber} onChange={(e) => setNewIncidentNumber(e.target.value)} placeholder="Einsatznummer" />
-                        </label>
-                        <label>Stichwort
-                            <input value={newIncidentKeyword} onChange={(e) => setNewIncidentKeyword(e.target.value)} placeholder="Stichwort" />
-                        </label>
-                        <label>Beschreibung
-                            <input value={newIncidentDescription} onChange={(e) => setNewIncidentDescription(e.target.value)} placeholder="Beschreibung" />
-                        </label>
-                        <div className="small-note">Position auf Karte klicken: {selectedCreationPosition ? `${selectedCreationPosition[1].toFixed(5)}, ${selectedCreationPosition[0].toFixed(5)}` : 'noch nicht gewählt'}</div>
-                        <button type="button" onClick={createNewIncident}>Einsatz anlegen</button>
-                    </div>
-                )}
-
                 {incident && (
                     <div className="incident-meta-line">
                         <strong>{incident.name}</strong>
@@ -759,7 +696,6 @@ export function IncidentMapPage() {
                         <button type="button" aria-pressed={editMode === 'move'} onClick={() => setEditMode('move')} disabled={!canWrite || isBusy}>Verschieben / Auswählen</button>
                         <button type="button" aria-pressed={editMode === 'vertices'} onClick={() => setEditMode('vertices')} disabled={!canWrite || isBusy || selectedElement?.elementType !== 'Polygon'}>Eckpunkte bearbeiten</button>
                         <button type="button" aria-pressed={editMode === 'polygon'} onClick={createPolygonInteraction} disabled={!canWrite || isBusy}>Fläche zeichnen</button>
-                        <button type="button" onClick={closeActiveIncident} disabled={!canWrite || isBusy}>Einsatz abschließen</button>
                         <button type="button" onClick={() => { void loadActive(); }} disabled={isBusy}>Aktualisieren</button>
                         {editMode !== 'move' && <button type="button" onClick={() => { drawRef.current?.abortDrawing(); setEditMode('move'); }} disabled={isSaving}>Abbrechen (Esc)</button>}
                         <a href={incident ? getMapAuditExportUrl(incident.id) : '#'} target="_blank" rel="noreferrer">CSV-Export</a>

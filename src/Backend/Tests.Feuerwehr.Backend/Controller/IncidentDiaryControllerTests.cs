@@ -137,6 +137,7 @@ public class IncidentDiaryControllerTests
         await using var dbContext = CreateDbContext();
         var incidentId = Guid.NewGuid();
         var firstEntry = CreateEntry(incidentId, entryNumber: 2, currentRevision: 2);
+        dbContext.Incidents.Add(CreateIncident(incidentId));
         var secondEntry = CreateEntry(incidentId, entryNumber: 1, currentRevision: 1);
         var entryWithoutRevision = CreateEntry(incidentId, entryNumber: 3, currentRevision: 1);
 

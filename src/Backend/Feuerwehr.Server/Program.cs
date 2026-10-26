@@ -167,6 +167,7 @@ public partial class Program
         builder.Services.AddScoped<IDiaryCategoryAdminService, DiaryCategoryAdminService>();
         builder.Services.AddScoped<IIncidentService, IncidentService>();
         builder.Services.AddScoped<IIncidentDiaryService, IncidentDiaryService>();
+        builder.Services.AddScoped<IIncidentArchiveService, IncidentArchiveService>();
         builder.Services.AddScoped<ISituationMapService, SituationMapService>();
         builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
         builder.Services.AddScoped<IUsersService, UsersService>();

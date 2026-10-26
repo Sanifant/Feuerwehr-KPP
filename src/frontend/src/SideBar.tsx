@@ -3,12 +3,15 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useRole } from './hooks/useRole';
+import { useActiveIncident } from './hooks/useActiveIncident';
 
 type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung' | 'einsatz';
 
 export function SideBar() {
     const { isAuthenticated } = useAuth();
-    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, isAdmin, isCommander } = useRole();
+    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, isAdmin } = useRole();
+    const { incident, loading, error } = useActiveIncident();
+    const incidentToolsDisabled = loading || !!error || !incident;
     const location = useLocation();
     const navigate = useNavigate();
     const currentPath = `${location.pathname}${location.search}`;
@@ -44,7 +47,7 @@ export function SideBar() {
                             </SidebarLink>
                         )}
 
-                        {isCommander && (
+                        {(isAdmin || canViewSituationMap || canViewIncidentDiary) && (
                             <>
                             <SidebarGroupButton
                                 isActive={activeGroup === 'einsatz'}
@@ -62,23 +65,27 @@ export function SideBar() {
 
                             {activeGroup === 'einsatz' && (
                                 <div className="sidebar-subnav">
-                                    <SidebarLink to="/incident-map" currentPath={currentPath}>
+                                    {(canViewSituationMap || canViewIncidentDiary) && <SidebarLink to="/incidents" currentPath={currentPath}>
                                         <span className="nav-icon" aria-hidden="true">🗺</span>
                                         Einsatzübersicht
-                                    </SidebarLink>
+                                    </SidebarLink>}
                                     {canViewSituationMap && (
-                                        <SidebarLink to="/incident-map" currentPath={currentPath}>
+                                        <SidebarLink to="/incident-map" currentPath={currentPath} disabled={incidentToolsDisabled}>
                                             <span className="nav-icon" aria-hidden="true">🗺</span>
                                             Lagekarte
                                         </SidebarLink>
                                     )}
 
                                     {canViewIncidentDiary && (
-                                        <SidebarLink to="/incident-diary" currentPath={currentPath}>
+                                        <SidebarLink to="/incident-diary" currentPath={currentPath} disabled={incidentToolsDisabled}>
                                             <span className="nav-icon" aria-hidden="true">📝</span>
                                             Einsatztagebuch
                                         </SidebarLink>
                                     )}
+                                    {isAdmin && <SidebarLink to="/incident-archive" currentPath={currentPath}>
+                                        <span className="nav-icon" aria-hidden="true">▤</span>
+                                        Einsatzarchiv
+                                    </SidebarLink>}
                                 </div>
                             )}
                             </>
@@ -171,10 +178,12 @@ function getActiveGroup(currentPath: string): SidebarGroup | null {
         return 'lehrgaenge';
     }
 
+    if (['/incidents', '/incident-map', '/incident-diary', '/incident-archive'].includes(currentPath.split('?')[0])) {
+        return 'einsatz';
+    }
+
     if (
         currentPath === '/hydrant' ||
-        currentPath === '/incident-map' ||
-        currentPath === '/incident-diary' ||
         currentPath === '/diary-categories' ||
         currentPath === '/firedepartments' ||
         currentPath.startsWith('/trainingdashboard?view=') ||
@@ -210,8 +219,11 @@ function SidebarGroupButton(props: {
 function SidebarLink(props: {
     to: string;
     currentPath: string;
+    disabled?: boolean;
     children: ReactNode;
 }) {
+    if (props.disabled) return <span className="sidebar-link-disabled" role="link" aria-disabled="true"
+        title="Erst mit einem aktiven Einsatz verfügbar.">{props.children}</span>;
     return (
         <NavLink
             to={props.to}

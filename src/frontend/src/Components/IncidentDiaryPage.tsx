@@ -9,7 +9,6 @@ import {
     getDiaryCategories,
     getDiaryEntries,
     getDiaryPdfExportUrl,
-    getIncidentArchive,
     updateDiaryEntry,
 } from '../api/incidentApi';
 import { ensureIncidentConnection } from '../api/incidentLive';
@@ -26,7 +25,6 @@ export function IncidentDiaryPage() {
     const [incident, setIncident] = useState<any | null>(null);
     const [entries, setEntries] = useState<DiaryEntry[]>([]);
     const [categories, setCategories] = useState<DiaryCategory[]>([]);
-    const [archive, setArchive] = useState<any[]>([]);
     const [statusText, setStatusText] = useState('Lade...');
     const [draft, setDraft] = useState({
         eventTimestampUtc: toInputUtc(new Date()),
@@ -44,23 +42,19 @@ export function IncidentDiaryPage() {
             const active = await getActiveIncident();
             setIncident(active);
 
-            const [entryData, categoryData, archives] = await Promise.all([
+            const [entryData, categoryData] = await Promise.all([
                 getDiaryEntries(active.id),
                 getDiaryCategories(active.id),
-                getIncidentArchive(),
             ]);
 
             setEntries(entryData);
             setCategories(categoryData);
-            setArchive(archives);
             setStatusText(`Aktiver Einsatz: ${active.name}`);
         } catch {
             setIncident(null);
             setEntries([]);
             setCategories([]);
             setStatusText('Kein aktiver Einsatz verfügbar.');
-            const archives = await getIncidentArchive().catch(() => []);
-            setArchive(archives);
         }
     };
 
@@ -226,7 +220,7 @@ export function IncidentDiaryPage() {
                         )}
                     </div>
                 ) : (
-                    <span>Archiv ist weiterhin verfügbar.</span>
+                    <span>Kein aktiver Einsatz verfügbar.</span>
                 )}
             </section>
 
@@ -350,18 +344,6 @@ export function IncidentDiaryPage() {
                 </div>
             </section>
 
-            <section className="card">
-                <h3>Archiv (nur Lesen)</h3>
-                <ul className="archive-list">
-                    {archive.map((item: any) => (
-                        <li key={item.id}>
-                            <strong>{item.name}</strong>
-                            <span>{item.closedAtUtc ? new Date(item.closedAtUtc).toLocaleString('de-DE') : '-'}</span>
-                        </li>
-                    ))}
-                    {archive.length === 0 && <li>Keine abgeschlossenen Einsätze.</li>}
-                </ul>
-            </section>
         </div>
     );
 }
