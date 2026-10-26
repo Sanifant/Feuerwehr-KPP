@@ -16,7 +16,13 @@ public sealed class MapSymbolController(IMapSymbolService service) : ControllerB
         => this.ToActionResult(await service.GetSymbols(cancellationToken));
 
     [HttpGet("categories")]
-    public IActionResult GetCategories() => this.ToActionResult(service.GetCategories());
+    public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
+        => this.ToActionResult(await service.GetCategories(cancellationToken));
+
+    [HttpPost("categories")]
+    [Authorize(Policy = PolicyNames.RequireAdmin)]
+    public async Task<IActionResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken)
+        => this.ToActionResult(await service.CreateCategory(request, cancellationToken));
 
     [HttpPost]
     [Authorize(Policy = PolicyNames.RequireAdmin)]

@@ -179,7 +179,8 @@ public record MapElementDto(
     int Version,
     DateTime UpdatedAtUtc,
     string UpdatedByDisplayName,
-    string? SymbolSvg = null);
+    string? SymbolSvg = null,
+    bool IsVehicle = false);
 
 public record MapAuditEventDto(
     Guid Id,

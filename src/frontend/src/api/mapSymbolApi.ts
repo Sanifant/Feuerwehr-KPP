@@ -6,6 +6,7 @@ export interface MapSymbol {
     category: string;
     svgContent: string;
     isActive: boolean;
+    isVehicle: boolean;
 }
 
 export type SaveMapSymbol = Omit<MapSymbol, 'id'>;
@@ -16,6 +17,10 @@ export async function getMapSymbols() {
 
 export async function getMapSymbolCategories() {
     return (await apiClient.get<string[]>('/api/map-symbols/categories')).data;
+}
+
+export async function createMapSymbolCategory(name: string) {
+    return (await apiClient.post<string>('/api/map-symbols/categories', { name })).data;
 }
 
 export async function saveMapSymbol(id: string | null, payload: SaveMapSymbol) {

@@ -24,6 +24,7 @@ namespace de.openelp.feuerwehr.Server.Data
         public DbSet<Incident> Incidents { get; set; }
         public DbSet<MapElement> MapElements { get; set; }
         public DbSet<MapSymbol> MapSymbols { get; set; }
+        public DbSet<MapSymbolCategory> MapSymbolCategories { get; set; }
         public DbSet<MapAuditEvent> MapAuditEvents { get; set; }
         public DbSet<EditorLease> EditorLeases { get; set; }
         public DbSet<DiaryCategory> DiaryCategories { get; set; }
@@ -161,6 +162,13 @@ namespace de.openelp.feuerwehr.Server.Data
                 entity.ToTable("MapSymbols");
                 entity.HasKey(x => x.Id);
                 entity.HasIndex(x => new { x.Category, x.IsActive });
+            });
+
+            modelBuilder.Entity<MapSymbolCategory>(entity =>
+            {
+                entity.ToTable("MapSymbolCategories");
+                entity.HasKey(x => x.Name);
+                entity.HasData(Common.Models.IncidentModules.MapSymbolCategories.All.Select(name => new MapSymbolCategory { Name = name }));
             });
 
             modelBuilder.Entity<MapAuditEvent>(entity =>

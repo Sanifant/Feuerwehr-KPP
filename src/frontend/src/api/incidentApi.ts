@@ -53,6 +53,7 @@ export interface MapElementDto {
     elementType: 'Symbol' | 'Polygon';
     symbolId?: string;
     symbolSvg?: string;
+    isVehicle?: boolean;
     category?: string;
     label?: string;
     radioCallName?: string;

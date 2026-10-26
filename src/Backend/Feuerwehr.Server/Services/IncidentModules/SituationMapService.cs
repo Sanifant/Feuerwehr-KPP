@@ -250,9 +250,6 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             return ServiceResult.StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
         }
 
-        if (request.ElementType == MapElementType.Symbol && string.IsNullOrWhiteSpace(request.RadioCallName))
-            return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Symbol angeben.");
-
         await using var tx = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -308,6 +305,15 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                         return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
                     var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
                     if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                    if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                        return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                    element.IsVehicle = symbol.IsVehicle;
+                    if (!symbol.IsVehicle)
+                    {
+                        element.RadioCallName = null;
+                        element.Strength = null;
+                        element.Note = null;
+                    }
                     element.SymbolSvg = symbol.SvgContent;
                     element.Category = symbol.Category;
                     element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
@@ -330,10 +336,16 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     return ServiceResult.Problem(400, "Der Elementtyp kann nicht geändert werden.");
                 if (!string.Equals(element.SymbolId, request.SymbolId, StringComparison.Ordinal))
                     return ServiceResult.Problem(400, "Das Symbol eines platzierten Elements kann nicht ausgetauscht werden.");
+                if (element.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                    return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
                 element.Label = request.Label;
-                element.RadioCallName = request.RadioCallName?.Trim();
-                element.Strength = request.Strength;
-                element.Note = request.Note;
+                var allowsDetails = element.ElementType != MapElementType.Symbol || element.IsVehicle;
+                if (allowsDetails)
+                {
+                    element.RadioCallName = request.RadioCallName?.Trim();
+                    element.Strength = request.Strength;
+                    element.Note = request.Note;
+                }
                 element.ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex;
                 element.GeometryJson = request.GeometryJson;
 
@@ -615,6 +627,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             ElementType = source.ElementType,
             SymbolId = source.SymbolId,
             SymbolSvg = source.SymbolSvg,
+            IsVehicle = source.IsVehicle,
             Category = source.Category,
             Label = source.Label,
             RadioCallName = source.RadioCallName,
@@ -634,10 +647,10 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
 
     private static MapElementDto ToMapElementDto(MapElement x)
-        => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg);
+        => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
 
     private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =
-        x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg);
+        x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
 
 }
 
