@@ -3,7 +3,8 @@
 	<RootNamespace>de.openelp.feuerwehr.App.Android</RootNamespace>
 	<OutputType>Exe</OutputType>
 	<TargetFramework>net10.0-android</TargetFramework>
-	<SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
+	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+	<AndroidMinSdkVersion>24</AndroidMinSdkVersion>
 	<Nullable>enable</Nullable>
 	<ApplicationId>de.openelp.feuerwehr</ApplicationId>
 	<ApplicationVersion>1</ApplicationVersion>
