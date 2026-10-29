@@ -1,184 +1,366 @@
-name: CI - Build and Test
+name: Pipeline - CI/CD
 
 on:
   push:
     branches: ['**']
     paths:
       - 'src/**'
+      - '.github/workflows/ci.yml'
   pull_request:
-    branches: [main, master, develop]
+    branches: ['**']
+    paths:
+
+permissions:
+  contents: read
+      - 'src/**'
+      - '.github/workflows/ci.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   DOTNET_VERSION: '10.0.x'
   NODE_VERSION: '22.12.0'
+  REGISTRY: ghcr.io
+  IMAGE_NAME_API: ${{ github.repository }}/feuerwehr-api
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/feuerwehr-frontend
 
 jobs:
-  backend-linux:
-    name: Backend (Linux)
+  backend-build-and-test:
+    name: Backend build + tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
+        uses: actions/checkout@v4
       - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Restore
-        run: |
-          dotnet restore src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj
-
-      - name: Build
-        run: |
-          dotnet build src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj -c Release --no-restore
-
-      - name: Test
-        shell: pwsh
-        run: |
-          $testProjects = Get-ChildItem -Path src -Recurse -Filter *.csproj | Where-Object { $_.Name -match 'test' }
-          if (-not $testProjects) {
-            Write-Host "No test projects found. Skipping tests."
-            exit 0
-          }
-
-          foreach ($project in $testProjects) {
-            Write-Host "Running tests for $($project.FullName)"
-            dotnet test $project.FullName -c Release --verbosity normal --logger trx
-          }
-
-      - name: Upload test results
+      - name: Restore solution
+        run: dotnet restore src/Feuerwehr.slnx
+      - name: Build backend server
+        run: dotnet build src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj -c Release --no-restore
+      - name: Run backend tests
+        run: dotnet test src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj -c Release --no-build --logger "trx;LogFileName=backend-tests.trx"
+      - name: Run app tests
+        run: dotnet test src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj -c Release --no-build --logger "trx;LogFileName=app-tests.trx"
+      - name: Upload .NET test results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@v4
         with:
-          name: test-results-backend-linux
+          name: dotnet-test-results
           path: '**/*.trx'
 
-      - name: Upload code coverage
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: code-coverage-backend-linux
-          path: '**/coverage.cobertura.xml'
-
-  frontend-web:
-    name: Frontend Web (Linux)
+  frontend-build-and-test:
+    name: Frontend build + tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
+        uses: actions/checkout@v4
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
-
       - name: Install dependencies
         working-directory: src/frontend
         run: npm ci --ignore-scripts
-
       - name: Build frontend
         working-directory: src/frontend
         run: npm run build
-
-      - name: Test frontend
+      - name: Run frontend tests
         working-directory: src/frontend
         run: npm test
 
-      - name: Upload frontend build artifact
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: frontend-dist
-          path: src/frontend/dist
-
-  desktop:
-    name: Desktop (${{ matrix.os }})
+  desktop-build:
+    name: Desktop build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
+        uses: actions/checkout@v4
       - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore desktop project
+        run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj
+      - name: Build desktop project
+        run: dotnet build src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj -c Release --no-restore
 
-      - name: Restore
-        run: |
-          dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj
+  integration-tests:
+    name: API integration tests (Testcontainers)
+    needs: [backend-build-and-test]
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'release' ||
+      (github.event_name == 'push' && (github.ref_name == 'master' || github.ref_name == 'main'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore integration tests
+        run: dotnet restore src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj
+      - name: Build integration tests
+        run: dotnet build src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj -c Release --no-restore
+      - name: Run integration tests
+        run: dotnet test src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj -c Release --no-build --logger "trx;LogFileName=integration-tests.trx"
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: '**/integration-tests.trx'
 
-      - name: Build
+  publish-api-image:
+    name: Publish API image
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'push' && (github.ref_name == 'master' || github.ref_name == 'main'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}
+          tags: |
+            type=sha
+            type=raw,value=integration,enable=${{ github.event_name != 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src
+          file: ./src/Backend/Feuerwehr.Server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          provenance: false
+
+  publish-frontend-image:
+    name: Publish frontend image
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'push' && (github.ref_name == 'master' || github.ref_name == 'main'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=sha
+            type=raw,value=integration,enable=${{ github.event_name != 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/frontend
+          file: ./src/frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          provenance: false
+
+  deploy-integration:
+    name: Deploy integration environment
+    needs: [publish-api-image, publish-frontend-image]
+    if: github.event_name == 'push' && (github.ref_name == 'master' || github.ref_name == 'main')
+    runs-on: ubuntu-latest
+    permissions: {}
+    environment: integration
+    steps:
+      - name: Trigger integration deployment
+        shell: bash
+        env:
+          PORTAINER_WEBHOOK_URL_INTEGRATION: ${{ secrets.PORTAINER_WEBHOOK_URL_INTEGRATION }}
+          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
         run: |
-          dotnet build src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj -c Release --no-restore
-#
-#  android-linux:
-#    name: Android (Linux)
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-#
-#      - name: Setup .NET
-#        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
-#        with:
-#          dotnet-version: ${{ env.DOTNET_VERSION }}
-#
-#      # Install only what Android needs, and only in the Android job
-#      - name: Install Android workload
-#        run: |
-#          dotnet workload install android --skip-manifest-update \
-#            --source https://api.nuget.org/v3/index.json \
-#            --source https://aka.ms/dotnet9/nuget/index.json
-#
-#      - name: Restore Android
-#        run: |
-#          dotnet restore src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj
-#
-#      - name: Build Android
-#        run: |
-#          dotnet build src/Mobile/mobile.Android/de.openelp.feuerwehr.mobile.Android.csproj -c Release --no-restore
-#
-#      - name: Test Android
-#        run: |
-#          dotnet test src/Tests/Mobile/mobile.Android.UnitTests/de.openelp.feuerwehr.mobile.Android.UnitTests.csproj -c Release --verbosity normal --logger trx
-#
-#      - name: Upload test results
-#        if: always()
-#        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-#        with:
-#          name: test-results-android-linux
-#          path: '**/*.trx'
-#
-#  ios-macos:
-#    name: iOS (macOS)
-#    runs-on: macos-latest
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-#
-#      - name: Setup .NET
-#        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9
-#        with:
-#          dotnet-version: ${{ env.DOTNET_VERSION }}
-#
-#      - name: Install iOS workload
-#        run: |
-#          dotnet workload install ios --version 10.0.200 \
-#            --source https://api.nuget.org/v3/index.json \
-#            --source https://aka.ms/dotnet9/nuget/index.json
-#
-#      - name: Restore iOS
-#        run: |
-#          dotnet restore src/Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj
-#
-#      - name: Build iOS
-#        run: |
-#          dotnet build src/Mobile/mobile.iOS/de.openelp.feuerwehr.mobile.iOS.csproj -c Release --no-restore
+          URL="${PORTAINER_WEBHOOK_URL_INTEGRATION:-$PORTAINER_WEBHOOK_URL}"
+          if [ -z "$URL" ]; then
+            echo "No integration webhook secret configured." >&2
+            exit 1
+          fi
+          curl -fsSL -X POST "$URL"
+
+  build-desktop-bundles:
+    name: Build desktop bundle (${{ matrix.runtime }})
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: github.event_name == 'release'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            runtime: win-x64
+          - os: ubuntu-latest
+            runtime: linux-x64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore desktop project
+        run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj
+      - name: Publish desktop bundle
+        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Desktop/Feuerwehr.App.Desktop.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -o ./artifacts/desktop-${{ matrix.runtime }}
+      - name: Upload desktop artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-desktop-${{ matrix.runtime }}
+          path: ./artifacts/desktop-${{ matrix.runtime }}/**
+
+  build-android-bundle:
+    name: Build Android bundles
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: github.event_name == 'release'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: '17'
+      - name: Install Android workload
+        shell: pwsh
+        run: |
+          dotnet workload install android --skip-manifest-update `
+            --source https://api.nuget.org/v3/index.json `
+            --source https://aka.ms/dotnet9/nuget/index.json
+      - name: Restore Android project
+        run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj
+      - name: Publish Android AAB
+        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=aab -o ./artifacts/android/aab
+      - name: Publish Android APK
+        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -o ./artifacts/android/apk
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: |
+            ./artifacts/android/aab/**/*.aab
+            ./artifacts/android/apk/**/*.apk
+          if-no-files-found: error
+
+  build-ios-bundle:
+    name: Build iOS bundle
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: github.event_name == 'release'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Install iOS workload
+        run: dotnet workload install ios --skip-manifest-update
+      - name: Restore iOS project
+        run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj
+      - name: Publish iOS simulator app bundle
+        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj -c Release -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -o ./artifacts/ios
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-ios
+          path: ./artifacts/ios/**
+
+  upload-release-assets:
+    name: Upload release assets
+    needs:
+      - publish-api-image
+      - publish-frontend-image
+      - build-desktop-bundles
+      - build-android-bundle
+      - build-ios-bundle
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release-assets
+          pattern: release-*
+          merge-multiple: true
+      - name: Upload bundles to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release-assets/**
+          fail_on_unmatched_files: false
+
+  deploy-production:
+    name: Deploy production environment
+    needs: [publish-api-image, publish-frontend-image, upload-release-assets]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger production deployment
+        shell: bash
+        env:
+          PORTAINER_WEBHOOK_URL_PRODUCTION: ${{ secrets.PORTAINER_WEBHOOK_URL_PRODUCTION }}
+          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
+        run: |
+          URL="${PORTAINER_WEBHOOK_URL_PRODUCTION:-$PORTAINER_WEBHOOK_URL}"
+          if [ -z "$URL" ]; then
+            echo "No production webhook secret configured." >&2
+            exit 1
+          fi
+          curl -fsSL -X POST "$URL"
