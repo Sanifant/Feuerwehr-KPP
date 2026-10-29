@@ -364,3 +364,21 @@ jobs:
             exit 1
           fi
           curl -fsSL -X POST "$URL"
+
+  publish-gitbook-docs:
+    name: Publish documentation to GitBook
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Publish documentation
+        env:
+          GITBOOK_TOKEN: ${{ secrets.GITBOOK_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.event.release.tag_name }}
+        run: python3 scripts/publish_gitbook_docs.py

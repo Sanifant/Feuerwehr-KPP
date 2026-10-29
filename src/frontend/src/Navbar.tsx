@@ -7,6 +7,7 @@ import IncidentTitlebar from './Components/IncidentTitlebar';
 const Navbar: React.FC = () => {
     const { isAuthenticated, logout, user } = useAuth();
     const fullName = user?.fullName || 'Benutzer';
+    const email = user?.email || 'Keine E-Mail';
     const roles = user?.roles || [];
     const roleDisplay = roles.length > 0 ? roles.join(', ') : 'Keine Rolle';
     const [menuOpen, setMenuOpen] = useState(false);
@@ -54,7 +55,7 @@ const Navbar: React.FC = () => {
                         </div>
                         <div>
                             <strong>{fullName}</strong>
-                            <span>{roleDisplay}</span>
+                            <span>{email}</span>
                         </div>
                     </div>
                     <div className="user-menu" ref={menuContainer} onKeyDown={handleMenuKeys}
@@ -74,6 +75,15 @@ const Navbar: React.FC = () => {
                                 strokeWidth="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
                         </button>
                         {menuOpen && <div className="user-menu__items" id={menuId} role="menu" aria-label="Benutzerkonto">
+                            
+                            <div>
+                                <span>{roleDisplay}</span>
+                            </div>
+                            <hr />
+                            <a href="https://openelp.gitbook.io/feuerwehr-kpp-documentation" role="menuitem">
+                                Dokumentation
+                            </a>
+                            <hr />
                             <Link to="/password" role="menuitem" ref={passwordLink} onClick={() => setMenuOpen(false)}>
                                 Passwort ändern
                             </Link>
