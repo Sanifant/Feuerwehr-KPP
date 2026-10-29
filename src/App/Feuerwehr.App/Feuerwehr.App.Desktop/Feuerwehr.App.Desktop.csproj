@@ -11,6 +11,7 @@
 
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Copyright>openelp.de 2026</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
