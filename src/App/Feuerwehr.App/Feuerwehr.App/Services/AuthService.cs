@@ -14,6 +14,12 @@ public class AuthService : IAuthService
     private const string AccessTokenKey = "access_token";
     private const string RefreshTokenKey = "refresh_token";
 
+    private const string emailClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
+
+    private const string nameClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
+
+    private const string roleClaim = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
     private readonly HttpClient _httpClient;
     private readonly ISecureStorage _secureStorage;
     private readonly JwtSecurityTokenHandler _jwtHandler = new();
@@ -24,9 +30,9 @@ public class AuthService : IAuthService
 
     public bool IsAuthenticated => _decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow;
 
-    public string? UserEmail => _decodedToken?.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+    public string? UserEmail => _decodedToken?.Claims.FirstOrDefault(c => c.Type == emailClaim)?.Value;
 
-    public string? UserFullName => _decodedToken?.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+    public string? UserFullName => _decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
 
     public IReadOnlyList<string> UserRoles
     {
@@ -34,7 +40,7 @@ public class AuthService : IAuthService
         {
             if (_decodedToken == null) return Array.Empty<string>();
             return _decodedToken.Claims
-                .Where(c => c.Type == "role")
+                .Where(c => c.Type == roleClaim)
                 .Select(c => c.Value)
                 .ToList();
         }

@@ -1,0 +1,43 @@
+<ContentPage xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:geo="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
+             xmlns:vm="using:de.openelp.feuerwehr.App.ViewModels"
+             x:Class="de.openelp.feuerwehr.App.Pages.SituationMapView"
+             x:DataType="vm:SituationMapViewModel"
+             Header="Lagekarte">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <Grid ColumnDefinitions="*,Auto" Margin="12" ColumnSpacing="12">
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding IncidentTitle}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="Nur Anzeige" FontSize="12" />
+                <TextBlock Text="{Binding LastUpdated}" FontSize="12" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1" Content="Aktualisieren" Command="{Binding RefreshCommand}" VerticalAlignment="Center" />
+        </Grid>
+        <StackPanel Grid.Row="1" Margin="12,0,12,8" Spacing="4">
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding RefreshCommand.IsRunning}" Height="3" />
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+        </StackPanel>
+        <geo:MapControl Grid.Row="2" Map="{Binding Map}" IsVisible="{Binding CanView}" />
+        <StackPanel VerticalAlignment="Center" 
+			HorizontalAlignment="Right" 
+			Margin="0,0,15,0" 
+			Spacing="12">
+				
+			<Button Command="{Binding ZoomInCommand}"
+					Width="50" Height="50" 
+					IsEnabled="{Binding CanZoomIn}"
+					Background="White" 
+					CornerRadius="25">
+				<PathIcon Data="{StaticResource PlusIcon}" Width="20" Height="20" Foreground="#333"/>
+			</Button>
+
+			<Button Command="{Binding ZoomOutCommand}"
+					Width="50" Height="50" 
+					Background="White" 
+					CornerRadius="25">
+				<PathIcon Data="{StaticResource MinusIcon}" Width="20" Height="20" Foreground="#333"/>
+			</Button>
+        </StackPanel>
+    </Grid>
+</ContentPage>

@@ -200,7 +200,7 @@ public sealed class OutboxDispatcher(
                 logger.LogError(ex, "Outbox dispatcher loop failed");
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
         }
     }
 
