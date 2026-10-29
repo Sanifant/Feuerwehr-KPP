@@ -47,6 +47,7 @@ public class SituationMapTests
         service.Setup(s => s.GetStateAsync(incident.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(State(incident.Id, Element("[10.6,53.9]")));
         var viewModel = new SituationMapViewModel(service.Object, CreateAuth().Object);
+        viewModel.Activate();
 
         await viewModel.RefreshCommand.ExecuteAsync(null);
         var map = Assert.IsType<Mapsui.Map>(viewModel.Map);

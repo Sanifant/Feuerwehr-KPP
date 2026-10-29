@@ -95,7 +95,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
             var elements = SituationMapLayers.CreateElements(state.Elements);
             var hydrants = SituationMapLayers.CreateHydrants(state.Hydrants);
             var currentMap = Map;
-            if (currentMap != null || displayedIncidentId != incident.Id)
+            if (currentMap != null && displayedIncidentId != incident.Id)
             {
                 var startPoint = new MPoint(incident.OriginLongitude, incident.OriginLatitude);
                 var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
@@ -105,7 +105,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
 
                 displayedIncidentId = incident.Id;
             }
-            /*
+            
             foreach (var layer in currentMap.Layers.Where(layer => layer.Name is "Lage" or "Hydranten").ToArray())
             {
                 currentMap.Layers.Remove(layer);
@@ -117,7 +117,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
             IncidentTitle = incident.Name;
             LastUpdated = $"Stand: {state.ServerUtc.ToLocalTime():dd.MM.yyyy HH:mm:ss}";
             StatusMessage = string.Empty;
-            */
+            
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception exception)
