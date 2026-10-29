@@ -27,7 +27,7 @@ jobs:
 
       - name: Restore
         run: |
-          dotnet restore src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj
+          dotnet restore src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj
 
       - name: Build
         run: |
