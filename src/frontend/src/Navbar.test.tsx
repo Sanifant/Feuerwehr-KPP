@@ -74,7 +74,7 @@ it('supports keyboard opening and arrow navigation', async () => {
     await user.keyboard('{ArrowDown}');
     expect(screen.getByRole('menuitem', { name: 'Abmelden' })).toHaveFocus();
     await user.keyboard('{Home}');
-    expect(screen.getByRole('menuitem', { name: 'Passwort ändern' })).toHaveFocus();
+    expect(screen.getByRole('menuitem', { name: 'Dokumentation' })).toHaveFocus();
 });
 
 it('shows login instead of the menu when signed out', () => {
