@@ -5,10 +5,12 @@ on:
     branches: ['**']
     paths:
       - 'src/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: ['**']
     paths:
       - 'src/**'
+      - '.github/workflows/ci.yml'
   release:
     types: [published]
   workflow_dispatch:
@@ -36,21 +38,23 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Restore backend and app tests
+        id: restore-tests
         run: |
           dotnet restore src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj
           dotnet restore src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj
       - name: Build backend server
         run: dotnet build src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj -c Release --no-restore
       - name: Run backend tests
-        run: dotnet test src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj -c Release --no-restore --logger "trx;LogFileName=backend-tests.trx"
+        run: dotnet test src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj -c Release --no-restore --logger "trx;LogFileName=backend-tests.trx" --results-directory ./TestResults/backend
       - name: Run app tests
-        run: dotnet test src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj -c Release --no-restore --logger "trx;LogFileName=app-tests.trx"
+        if: ${{ !cancelled() && steps.restore-tests.outcome == 'success' }}
+        run: dotnet test src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj -c Release --no-restore --logger "trx;LogFileName=app-tests.trx" --results-directory ./TestResults/app
       - name: Upload .NET test results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dotnet-test-results
-          path: '**/*.trx'
+          path: TestResults/**/*.trx
 
   frontend-build-and-test:
     name: Frontend build + tests
@@ -65,14 +69,22 @@ jobs:
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
       - name: Install dependencies
+        id: install-frontend
         working-directory: src/frontend
         run: npm ci --ignore-scripts
       - name: Build frontend
         working-directory: src/frontend
         run: npm run build
       - name: Run frontend tests
+        if: ${{ !cancelled() && steps.install-frontend.outcome == 'success' }}
         working-directory: src/frontend
-        run: npm test
+        run: npm run test:ci
+      - name: Upload frontend test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-test-results
+          path: src/frontend/TestResults/vitest-junit.xml
 
   desktop-build:
     name: Desktop build (${{ matrix.os }})
@@ -115,13 +127,36 @@ jobs:
       - name: Build integration tests
         run: dotnet build src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj -c Release --no-restore
       - name: Run integration tests
-        run: dotnet test src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj -c Release --no-build --logger "trx;LogFileName=integration-tests.trx"
+        run: dotnet test src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj -c Release --no-build --logger "trx;LogFileName=integration-tests.trx" --results-directory ./TestResults/integration
       - name: Upload integration test results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: integration-test-results
-          path: '**/integration-tests.trx'
+          path: TestResults/integration/*.trx
+
+  test-summary:
+    name: Test summary
+    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Verify summary renderer
+        run: python3 -m unittest discover -s src/ci -p 'test_*.py'
+      - name: Download all test results
+        if: ${{ !cancelled() }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: '*test-results'
+          path: ./test-results
+      - name: Write test summary
+        if: always()
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+        run: python3 src/ci/summarize_tests.py ./test-results
 
   publish-api-image:
     name: Publish API image
