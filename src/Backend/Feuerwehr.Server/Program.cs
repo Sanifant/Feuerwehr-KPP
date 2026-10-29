@@ -184,6 +184,10 @@ public partial class Program
         builder.Services.AddScoped<IMapSymbolService, MapSymbolService>();
         builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
         builder.Services.AddScoped<IUsersService, UsersService>();
+        builder.Services.AddScoped<IInventoryService, InventoryService>();
+        builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();
+        builder.Services.AddScoped<IInventoryReminderService, InventoryReminderService>();
+        builder.Services.AddHostedService<InventoryReminderWorker>();
 
         var app = builder.Build();
 

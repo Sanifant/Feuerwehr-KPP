@@ -4,6 +4,10 @@ using Avalonia.iOS;
 using Avalonia.Media;
 using Foundation;
 using UIKit;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.iOS.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace de.openelp.feuerwehr.App.iOS
 {
@@ -18,7 +22,9 @@ namespace de.openelp.feuerwehr.App.iOS
         protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
         {
             return base.CustomizeAppBuilder(builder)
-                .WithInterFont();
+                .WithInterFont()
+                .AfterSetup(app => ((App)app.Instance!).ConfigurePlatformServices = services =>
+                    services.Replace(ServiceDescriptor.Singleton<IBarcodeScanner, IosBarcodeScanner>()));
         }
     }
 }

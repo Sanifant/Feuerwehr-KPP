@@ -9,7 +9,7 @@ type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung' | 'einsatz';
 
 export function SideBar() {
     const { isAuthenticated } = useAuth();
-    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, isAdmin } = useRole();
+    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, canViewInventory, canManageInventory, isAdmin } = useRole();
     const { incident, loading, error } = useActiveIncident();
     const incidentToolsDisabled = loading || !!error || !incident;
     const location = useLocation();
@@ -46,6 +46,17 @@ export function SideBar() {
                                 Hydrant
                             </SidebarLink>
                         )}
+
+                        {canViewInventory && <>
+                            <SidebarGroupButton isActive={activeGroup === 'inventory'}
+                                onClick={() => setActiveGroup(activeGroup === 'inventory' ? null : 'inventory')}>
+                                <span className="nav-icon" aria-hidden="true">▤</span>Inventar
+                            </SidebarGroupButton>
+                            {activeGroup === 'inventory' && <div className="sidebar-subnav">
+                                <SidebarLink to="/inventory" currentPath={currentPath}>Inventarübersicht</SidebarLink>
+                                {canManageInventory && <SidebarLink to="/inventory/types" currentPath={currentPath}>Gerätetypen und Prüfpläne</SidebarLink>}
+                            </div>}
+                        </>}
 
                         {(isAdmin || canViewSituationMap || canViewIncidentDiary) && (
                             <>
@@ -162,6 +173,9 @@ export function SideBar() {
                                         Tagebuchkategorien
                                     </SidebarLink>
                                 )}
+                                {isAdmin && <SidebarLink to="/inventory/categories" currentPath={currentPath}>
+                                    <span className="nav-icon" aria-hidden="true">▤</span>Inventarkategorien
+                                </SidebarLink>}
                                 {isAdmin && <SidebarLink to="/map-symbols" currentPath={currentPath}>
                                     <span className="nav-icon" aria-hidden="true">◇</span>
                                     Lagekartensymbole
@@ -178,6 +192,9 @@ export function SideBar() {
 }
 
 function getActiveGroup(currentPath: string): SidebarGroup | null {
+    if (['/inventory', '/inventory/types'].includes(currentPath.split('?')[0])) {
+        return 'inventory';
+    }
     if (currentPath === '/trainingdashboard' || currentPath.startsWith('/trainingdashboard?level=')) {
         return 'lehrgaenge';
     }
@@ -189,6 +206,7 @@ function getActiveGroup(currentPath: string): SidebarGroup | null {
     if (
         currentPath === '/hydrant' ||
         currentPath === '/diary-categories' ||
+        currentPath.split('?')[0] === '/inventory/categories' ||
         currentPath === '/map-symbols' ||
         currentPath === '/firedepartments' ||
         currentPath.startsWith('/trainingdashboard?view=') ||

@@ -10,15 +10,13 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
     public const string SeedAdminEmail = "integration-admin@feuerwehr.local";
     public const string SeedAdminPassword = "IntegrationAdmin123";
 
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("postgresdb")
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
 
-    private readonly RedisContainer _redis = new RedisBuilder()
-        .WithImage("redis:7-alpine")
+    private readonly RedisContainer _redis = new RedisBuilder("redis:7-alpine")
         .Build();
 
     private ApiWebApplicationFactory? _factory;

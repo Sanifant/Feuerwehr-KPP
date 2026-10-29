@@ -23,7 +23,10 @@ namespace de.openelp.feuerwehr.App.Android
                 .AfterSetup(appBuilder =>
                 {
                     ((App)appBuilder.Instance!).ConfigurePlatformServices = services =>
+                    {
                         services.Replace(ServiceDescriptor.Singleton<IGpsService, AndroidGpsService>());
+                        services.Replace(ServiceDescriptor.Singleton<IBarcodeScanner, AndroidBarcodeScanner>());
+                    };
                 });
         }
     }

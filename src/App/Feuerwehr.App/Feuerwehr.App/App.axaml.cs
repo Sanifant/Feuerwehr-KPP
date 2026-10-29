@@ -122,6 +122,8 @@ namespace de.openelp.feuerwehr.App
             collection.AddTransient<LoginViewModel>();
             collection.AddTransient<MapViewModel>();
             collection.AddTransient<SituationMapViewModel>();
+            collection.AddTransient<InventoryViewModel>();
+            collection.AddSingleton<IBarcodeScanner, UnsupportedBarcodeScanner>();
 
             collection.AddSingleton<IGpsService, UnsupportedGpsService>();
 
@@ -133,6 +135,7 @@ namespace de.openelp.feuerwehr.App
             // Für Blazor WebAssembly / Web-Clients
             collection.AddScoped<IHydrantService, HydrantService>();
             collection.AddScoped<ISituationMapService, SituationMapService>();
+            collection.AddScoped<IInventoryService, InventoryService>();
 
             var baseUrl = Environment.GetEnvironmentVariable("webapi")
                 ?? Environment.GetEnvironmentVariable("services__server__https__0")

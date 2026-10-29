@@ -14,6 +14,8 @@ export const useRole = () => {
         canManageHydrants: hasRole('Admin') || hasRole('Commander'),
         canManageTraining: hasRole('Admin') || hasRole('Commander'),
         canManageUsers: hasRole('Admin'),
+        canViewInventory: hasRole('Admin') || hasRole('EquipmentOfficer') || hasRole('InventoryViewer'),
+        canManageInventory: hasRole('Admin') || hasRole('EquipmentOfficer'),
         canViewSituationMap: hasRole('SituationMapViewer') || hasRole('SituationMapEditor'),
         canEditSituationMap: hasRole('SituationMapEditor'),
         canViewIncidentDiary: hasRole('IncidentDiaryViewer') || hasRole('IncidentDiaryEditor'),

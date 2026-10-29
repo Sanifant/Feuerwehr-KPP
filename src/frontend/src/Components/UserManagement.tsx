@@ -5,7 +5,8 @@ import { getApiErrorMessage } from '../api/errors';
 import { useRole } from '../hooks/useRole';
 import { Navigate } from 'react-router-dom';
 
-const AVAILABLE_ROLES = ['Admin', 'Commander', 'Firefighter', 'Viewer', 'SituationMapViewer','SituationMapEditor', 'IncidentDiaryViewer', 'IncidentDiaryEditor'];
+const AVAILABLE_ROLES = ['Admin', 'Commander', 'Firefighter', 'Viewer', 'SituationMapViewer','SituationMapEditor', 'IncidentDiaryViewer', 'IncidentDiaryEditor', 'EquipmentOfficer', 'InventoryViewer'];
+const roleLabel = (role: string) => ({ EquipmentOfficer: 'Gerätewart', InventoryViewer: 'Inventar ansehen' }[role] ?? role);
 
 interface User {
     id: string;
@@ -252,7 +253,7 @@ const UserManagement: React.FC = () => {
                                 <td>
                                     {user.roles.map(role => (
                                         <span key={role} className="badge badge-role">
-                                            {role}
+                                            {roleLabel(role)}
                                         </span>
                                     ))}
                                 </td>
@@ -406,7 +407,7 @@ const UserManagement: React.FC = () => {
                                                 onChange={() => handleRoleToggle(role)}
                                                 disabled={submitting}
                                             />
-                                            {role}
+                                            {roleLabel(role)}
                                         </label>
                                     ))}
                                 </div>
