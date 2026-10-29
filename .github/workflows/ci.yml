@@ -8,10 +8,16 @@ on:
   pull_request:
     branches: ['**']
     paths:
+
+permissions:
+  contents: read
       - 'src/**'
   release:
     types: [published]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -208,6 +214,7 @@ jobs:
     needs: [publish-api-image, publish-frontend-image]
     if: github.event_name == 'push' && (github.ref_name == 'master' || github.ref_name == 'main')
     runs-on: ubuntu-latest
+    permissions: {}
     environment: integration
     steps:
       - name: Trigger integration deployment
