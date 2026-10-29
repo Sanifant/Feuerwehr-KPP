@@ -9,6 +9,9 @@ on:
   pull_request:
     branches: ['**']
     paths:
+
+permissions:
+  contents: read
       - 'src/**'
       - '.github/workflows/ci.yml'
   release:
