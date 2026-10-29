@@ -21,6 +21,9 @@ import ActiveIncidentProvider from './ActiveIncidentProvider.tsx';
 import ActiveIncidentRoute from './Components/ActiveIncidentRoute.tsx';
 import IncidentArchivePage from './Components/IncidentArchivePage.tsx';
 import MapSymbolAdmin from './Components/MapSymbolAdmin.tsx';
+import InventoryPage from './Components/InventoryPage.tsx';
+import EquipmentTypesPage from './Components/EquipmentTypesPage.tsx';
+import InventoryCategoryAdmin from './Components/InventoryCategoryAdmin.tsx';
 
 
 const App: React.FC = () => {
@@ -55,6 +58,9 @@ const App: React.FC = () => {
                                     </Route>
                                     <Route path="/diary-categories" element={<DiaryCategoryAdmin />} />
                                     <Route path="/map-symbols" element={<MapSymbolAdmin />} />
+                                    <Route path="/inventory" element={<InventoryPage />} />
+                                    <Route path="/inventory/types" element={<EquipmentTypesPage />} />
+                                    <Route path="/inventory/categories" element={<InventoryCategoryAdmin />} />
                                 </Route>
                             </Routes>
                         </main>

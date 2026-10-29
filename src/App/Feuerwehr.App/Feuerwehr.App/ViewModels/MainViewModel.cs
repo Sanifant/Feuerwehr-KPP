@@ -70,6 +70,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
 
         public bool IsAuthenticated => _authService.IsAuthenticated;
         public bool CanViewSituationMap => IsAuthenticated && (_authService.UserRoles.Contains("SituationMapViewer") || _authService.UserRoles.Contains("SituationMapEditor"));
+        public bool CanViewInventory => IsAuthenticated && _authService.UserRoles.Any(role => role is "Admin" or "EquipmentOfficer" or "InventoryViewer");
 
         public MainViewModel(IAuthService authService)
         { 
@@ -86,12 +87,14 @@ namespace de.openelp.feuerwehr.App.ViewModels
             OnPropertyChanged(nameof(UserName));
             OnPropertyChanged(nameof(IsAuthenticated));
             OnPropertyChanged(nameof(CanViewSituationMap));
+            OnPropertyChanged(nameof(CanViewInventory));
         }
 
         private void PreparePages()
         {  
             Pages.Add(new PageItem("Hydranten", () => new MapView()));
             Pages.Add(new PageItem("Einsatzkarte", () => new SituationMapView(), "M 0,0 L 1,0 L 1,1 L 0,1 Z", () => CanViewSituationMap));
+            Pages.Add(new PageItem("Inventar / Geräteprüfung", () => new InventoryView(), isVisible: () => CanViewInventory));
             this.SelectedPageIndex = 0;
         }
 

@@ -5,12 +5,10 @@ on:
     branches: ['**']
     paths:
       - 'src/**'
-      - '.github/workflows/ci.yml'
   pull_request:
     branches: ['**']
     paths:
       - 'src/**'
-      - '.github/workflows/ci.yml'
   release:
     types: [published]
   workflow_dispatch:
@@ -33,14 +31,16 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Restore solution
-        run: dotnet restore src/Feuerwehr.slnx
+      - name: Restore backend and app tests
+        run: |
+          dotnet restore src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj
+          dotnet restore src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj
       - name: Build backend server
         run: dotnet build src/Backend/Feuerwehr.Server/Feuerwehr.Server.csproj -c Release --no-restore
       - name: Run backend tests
-        run: dotnet test src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj -c Release --no-build --logger "trx;LogFileName=backend-tests.trx"
+        run: dotnet test src/Backend/Tests.Feuerwehr.Backend/Tests.Feuerwehr.Backend.csproj -c Release --no-restore --logger "trx;LogFileName=backend-tests.trx"
       - name: Run app tests
-        run: dotnet test src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj -c Release --no-build --logger "trx;LogFileName=app-tests.trx"
+        run: dotnet test src/App/Feuerwehr.App/Tests.Feuerwehr.App/Tests.Feuerwehr.App.csproj -c Release --no-restore --logger "trx;LogFileName=app-tests.trx"
       - name: Upload .NET test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -104,6 +104,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Check Docker
+        run: docker info
       - name: Restore integration tests
         run: dotnet restore src/Backend/Tests.Feuerwehr.Backend.Integration/Tests.Feuerwehr.Backend.Integration.csproj
       - name: Build integration tests

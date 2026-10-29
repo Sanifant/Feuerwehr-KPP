@@ -2,6 +2,7 @@ using de.openelp.feuerwehr.Common.Models.IncidentModules;
 
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using de.openelp.feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Server.Models.Inventory;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,10 +33,16 @@ namespace de.openelp.feuerwehr.Server.Data
         public DbSet<DiaryEntryRevision> DiaryEntryRevisions { get; set; }
         public DbSet<ProcessedCommand> ProcessedCommands { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
+        public DbSet<InventoryCategory> InventoryCategories { get; set; }
+        public DbSet<EquipmentType> EquipmentTypes { get; set; }
+        public DbSet<Equipment> Equipment { get; set; }
+        public DbSet<EquipmentInspection> EquipmentInspections { get; set; }
+        public DbSet<EquipmentReminderDelivery> EquipmentReminderDeliveries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.ConfigureInventory();
 
             modelBuilder.HasSequence<int>("Hydrants_Id_seq")
                 .StartsAt(1)

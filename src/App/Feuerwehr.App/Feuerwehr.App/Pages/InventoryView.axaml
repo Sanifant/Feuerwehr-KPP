@@ -1,0 +1,51 @@
+<ContentPage xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:de.openelp.feuerwehr.App.ViewModels"
+             xmlns:inventory="using:de.openelp.feuerwehr.Common.Models.Inventory"
+             xmlns:models="using:de.openelp.feuerwehr.App.Models"
+             x:Class="de.openelp.feuerwehr.App.Pages.InventoryView"
+             x:DataType="vm:InventoryViewModel" Header="Inventar / Geräteprüfung">
+    <ContentPage.Resources><models:EquipmentStatusConverter x:Key="EquipmentStatus" /></ContentPage.Resources>
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="14" MaxWidth="760" HorizontalAlignment="Stretch">
+            <TextBlock Text="Gerät erfassen" FontSize="22" FontWeight="Bold" />
+            <TextBlock Text="Barcode scannen oder eingeben. Ein externer Scanner kann die Eingabe mit Enter abschließen." TextWrapping="Wrap" />
+            <TextBox x:Name="BarcodeInput" Text="{Binding Barcode}" PlaceholderText="KPP-001" KeyDown="OnBarcodeKeyDown" />
+            <WrapPanel>
+                <Button Content="Gerät laden" Command="{Binding LookupCommand}" Margin="0,0,12,0" />
+                <Button Content="Mit Kamera scannen" Command="{Binding ScanCommand}" IsVisible="{Binding CanScan}" />
+                <Button Content="Scan abbrechen" Command="{Binding ScanCancelCommand}" IsVisible="{Binding ScanCommand.IsRunning}" />
+            </WrapPanel>
+            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding DeviceTitle}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding DeviceDescription}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding DeviceStatus}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding LastInspection}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding NextInspection}" TextWrapping="Wrap" FontWeight="Bold" />
+            <TextBlock Text="{Binding Instructions}" TextWrapping="Wrap" />
+            <StackPanel Spacing="10" IsVisible="{Binding CanInspect}" IsEnabled="{Binding !SaveInspectionCommand.IsRunning}">
+                <TextBlock Text="Prüfung dokumentieren" FontSize="18" FontWeight="SemiBold" />
+                <TextBlock Text="Prüfdatum" /><DatePicker SelectedDate="{Binding InspectedOn}" />
+                <TextBlock Text="Status nach Prüfung" /><ComboBox ItemsSource="{Binding StatusOptions}" SelectedIndex="{Binding SelectedStatus}" />
+                <TextBlock Text="Kommentar (optional)" /><TextBox Text="{Binding Comment}" AcceptsReturn="True" MinHeight="90" MaxLength="4000" TextWrapping="Wrap" />
+                <Button Content="Prüfung speichern" Command="{Binding SaveInspectionCommand}" />
+            </StackPanel>
+            <TextBlock Text="Prüfhistorie" FontSize="18" FontWeight="SemiBold" />
+            <ItemsControl ItemsSource="{Binding History}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="inventory:EquipmentInspectionDto">
+                        <Border BorderThickness="0,0,0,1" BorderBrush="Gray" Padding="0,10">
+                            <StackPanel Spacing="5">
+                                <TextBlock Text="{Binding InspectedOn, StringFormat='Prüfung: {0:dd.MM.yyyy}'}" FontWeight="Bold" />
+                                <TextBlock Text="{Binding InspectorName, StringFormat='Geprüft von {0}'}" />
+                                <TextBlock Text="{Binding Status, Converter={StaticResource EquipmentStatus}}" />
+                                <TextBlock Text="{Binding Comment}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding InspectionInstructions}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</ContentPage>

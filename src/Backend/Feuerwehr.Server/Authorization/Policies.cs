@@ -17,6 +17,8 @@ namespace de.openelp.feuerwehr.Server.Authorization
         public const string CanEditIncidentDiary = "CanEditIncidentDiary";
         public const string CanAccessIncidentModule = "CanAccessIncidentModule";
         public const string CanViewMapSymbols = "CanViewMapSymbols";
+        public const string CanViewInventory = "CanViewInventory";
+        public const string CanManageInventory = "CanManageInventory";
     }
 
     /// <summary>
@@ -32,8 +34,10 @@ namespace de.openelp.feuerwehr.Server.Authorization
         public const string SituationMapEditor = "SituationMapEditor";
         public const string IncidentDiaryViewer = "IncidentDiaryViewer";
         public const string IncidentDiaryEditor = "IncidentDiaryEditor";
+        public const string EquipmentOfficer = "EquipmentOfficer";
+        public const string InventoryViewer = "InventoryViewer";
 
-        public static readonly string[] AllRoles = { Admin, Commander, Firefighter, Viewer, SituationMapViewer, SituationMapEditor, IncidentDiaryViewer, IncidentDiaryEditor };
+        public static readonly string[] AllRoles = { Admin, Commander, Firefighter, Viewer, SituationMapViewer, SituationMapEditor, IncidentDiaryViewer, IncidentDiaryEditor, EquipmentOfficer, InventoryViewer };
         public static readonly string[] ManagementRoles = { Admin, Commander };
         public static readonly string[] DataAccessRoles = { Admin, Commander, Firefighter, Viewer };
     }
@@ -51,6 +55,11 @@ namespace de.openelp.feuerwehr.Server.Authorization
             // Admin-only policy
             options.AddPolicy(PolicyNames.RequireAdmin, policy =>
                 policy.RequireRole(Roles.Admin));
+
+            options.AddPolicy(PolicyNames.CanViewInventory, policy =>
+                policy.RequireRole(Roles.Admin, Roles.EquipmentOfficer, Roles.InventoryViewer));
+            options.AddPolicy(PolicyNames.CanManageInventory, policy =>
+                policy.RequireRole(Roles.Admin, Roles.EquipmentOfficer));
 
             // Commander and Admin policy
             options.AddPolicy(PolicyNames.RequireCommander, policy =>
