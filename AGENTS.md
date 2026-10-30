@@ -1,4 +1,4 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 ## Scope
 - Gilt fuer das gesamte Repository `Feuerwehr-KPP/` (Quellcode unter `src/`).
@@ -60,6 +60,11 @@
 - `frontend.esproj` deaktiviert NPM-Installation und Build-Skript. Ein erfolgreicher Solution-Build validiert das Web-Frontend nicht.
 - Frontend-Tests: `cd src/frontend`, `npm test` (Vitest, Testing Library, jsdom); interaktiv `npm run test:watch`. Die CI prueft Backend-Build/Tests, Web-Build/Tests und Desktop auf Windows/Linux; Mobile-Jobs sind auskommentiert.
 - Bestehender ESLint-Bestand ist noch nicht fehlerfrei (u. a. `no-explicit-any` und Hook-Abhaengigkeiten); neue Aenderungen sollen keine weiteren Befunde hinzufuegen.
+
+## Repo-spezifische Regeln fuer Agenten
+- Fuer alle Aenderungen im Repository ist die `.editorconfig` im Repository-Root verbindlich.
+- Formatierung, Einrueckung, Zeilenenden und C#-Code-Style sind nach `.editorconfig` umzusetzen.
+- Bei Konflikten mit Standard-Tooling oder persoenlichen Defaults hat `.editorconfig` Vorrang.
 
 ## Konfiguration und Integrationen
 - API-Konfiguration: `src/Backend/Feuerwehr.Server/appsettings.json` und `appsettings.Development.json`.

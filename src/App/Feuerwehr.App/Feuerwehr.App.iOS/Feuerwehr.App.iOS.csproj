@@ -27,6 +27,13 @@
 		<Compile Include="DummyMain.cs" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="StyleCop.Analyzers">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Feuerwehr.App\Feuerwehr.App.csproj" />
   </ItemGroup>
