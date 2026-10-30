@@ -9,7 +9,7 @@ type SidebarGroup = 'lehrgaenge' | 'inventory' | 'verwaltung' | 'einsatz';
 
 export function SideBar() {
     const { isAuthenticated } = useAuth();
-    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, canViewInventory, canManageInventory, isAdmin } = useRole();
+    const { canManageUsers, canViewHydrants, canManageTraining, canViewSituationMap, canViewIncidentDiary, canViewInventory, canManageInventory, canManageVehicles, isAdmin } = useRole();
     const { incident, loading, error } = useActiveIncident();
     const incidentToolsDisabled = loading || !!error || !incident;
     const location = useLocation();
@@ -46,6 +46,10 @@ export function SideBar() {
                                 Hydrant
                             </SidebarLink>
                         )}
+
+                        <SidebarLink to="/vehicles" currentPath={currentPath}>
+                            <span className="nav-icon" aria-hidden="true">▦</span>MTW-Übersicht
+                        </SidebarLink>
 
                         {canViewInventory && <>
                             <SidebarGroupButton isActive={activeGroup === 'inventory'}
@@ -155,6 +159,15 @@ export function SideBar() {
 
                         {activeGroup === 'verwaltung' && (
                             <div className="sidebar-subnav">
+                                {isAdmin && <SidebarLink to="/vehicle-types" currentPath={currentPath}>
+                                    <span className="nav-icon" aria-hidden="true">▦</span>Fahrzeugtypen
+                                </SidebarLink>}
+                                {isAdmin && <SidebarLink to="/vehicle-statuses" currentPath={currentPath}>
+                                    <span className="nav-icon" aria-hidden="true">▦</span>Fahrzeugstatus
+                                </SidebarLink>}
+                                {canManageVehicles && <SidebarLink to="/vehicles/manage" currentPath={currentPath}>
+                                    <span className="nav-icon" aria-hidden="true">▦</span>Fahrzeug Verwaltung
+                                </SidebarLink>}
                                 {canManageUsers && (
                                     <SidebarLink to="/users" currentPath={currentPath}>
                                         <span className="nav-icon" aria-hidden="true">♙</span>
@@ -208,6 +221,9 @@ function getActiveGroup(currentPath: string): SidebarGroup | null {
         currentPath === '/diary-categories' ||
         currentPath.split('?')[0] === '/inventory/categories' ||
         currentPath === '/map-symbols' ||
+        currentPath === '/vehicles/manage' ||
+        currentPath === '/vehicle-types' ||
+        currentPath === '/vehicle-statuses' ||
         currentPath === '/firedepartments' ||
         currentPath.startsWith('/trainingdashboard?view=') ||
         currentPath.startsWith('/dashboard?view=')

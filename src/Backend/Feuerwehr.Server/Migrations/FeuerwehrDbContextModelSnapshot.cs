@@ -1131,6 +1131,351 @@ namespace de.openelp.feuerwehr.Server.Migrations
                     b.ToTable("TrainingCourse", (string)null);
                 });
 
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.Vehicle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EquipmentOfficerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("FireDepartmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LicensePlate")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("RadioCallSign")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("StatusChangedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VehicleStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValue(new Guid("5032f99d-4352-4000-8000-000000000001"));
+
+                    b.Property<Guid?>("VehicleTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentOfficerId");
+
+                    b.HasIndex("VehicleStatusId");
+
+                    b.HasIndex("VehicleTypeId");
+
+                    b.HasIndex("FireDepartmentId", "IsActive");
+
+                    b.ToTable("Vehicles", (string)null);
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleBookingDay", b =>
+                {
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("VehicleId", "Date");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("VehicleBookingDays", (string)null);
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ActorId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("OccurredAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReservationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VehicleId", "OccurredAtUtc");
+
+                    b.ToTable("VehicleEvents", (string)null);
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleMailMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HtmlBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LeaseUntilUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("NextAttemptAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Recipient")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TextBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReservationId", "Kind")
+                        .IsUnique();
+
+                    b.HasIndex("SentAtUtc", "NextAttemptAtUtc");
+
+                    b.ToTable("VehicleMailMessages", (string)null);
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommandId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DecidedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DecidedById")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FireDepartmentName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("From")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDirectBooking")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("PayloadHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("RadioCallSign")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RequesterEmail")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RequesterId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RequesterName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("To")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommandId")
+                        .IsUnique();
+
+                    b.HasIndex("RequesterId");
+
+                    b.HasIndex("VehicleId", "Status", "From", "To");
+
+                    b.ToTable("VehicleReservations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_VehicleReservation_Dates", "\"From\" <= \"To\"");
+                        });
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AllowsBooking")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.ToTable("VehicleStatuses", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("5032f99d-4352-4000-8000-000000000001"),
+                            AllowsBooking = true,
+                            IsActive = true,
+                            Name = "Betriebsbereit",
+                            NormalizedName = "BETRIEBSBEREIT",
+                            Version = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("5032f99d-4352-4000-8000-000000000002"),
+                            AllowsBooking = false,
+                            IsActive = true,
+                            Name = "Wartung",
+                            NormalizedName = "WARTUNG",
+                            Version = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("5032f99d-4352-4000-8000-000000000003"),
+                            AllowsBooking = false,
+                            IsActive = true,
+                            Name = "Abgemeldet",
+                            NormalizedName = "ABGEMELDET",
+                            Version = 1
+                        });
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
+
+                    b.ToTable("VehicleTypes", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1341,6 +1686,68 @@ namespace de.openelp.feuerwehr.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.Vehicle", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.ApplicationUser", "EquipmentOfficer")
+                        .WithMany()
+                        .HasForeignKey("EquipmentOfficerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.FireDepartment", "FireDepartment")
+                        .WithMany()
+                        .HasForeignKey("FireDepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleStatus", "VehicleStatus")
+                        .WithMany()
+                        .HasForeignKey("VehicleStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleType", "VehicleType")
+                        .WithMany()
+                        .HasForeignKey("VehicleTypeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("EquipmentOfficer");
+
+                    b.Navigation("FireDepartment");
+
+                    b.Navigation("VehicleStatus");
+
+                    b.Navigation("VehicleType");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleBookingDay", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleReservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.Vehicles.Vehicle", null)
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.VehicleReservation", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.Vehicles.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.FireDepartment", b =>

@@ -8,15 +8,33 @@ namespace de.openelp.feuerwehr.Server.Services
         Task SendAsync(string recipient, string subject, string body);
     }
 
-    public sealed class MailService(ISmtpClient client, SmtpSettings settings, ILogger<MailService> logger) : IMailService
+    public interface IHtmlMailService
     {
-        public async Task SendAsync(string recipient, string subject, string body)
+        Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody);
+    }
+
+    public sealed class MailService(ISmtpClient client, SmtpSettings settings, ILogger<MailService> logger) : IMailService, IHtmlMailService
+    {
+        public Task SendAsync(string recipient, string subject, string body) =>
+            SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
+
+        public async Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody)
+        {
+            var builder = new BodyBuilder { TextBody = textBody, HtmlBody = htmlBody };
+            using var logoStream = typeof(MailService).Assembly.GetManifestResourceStream("de.openelp.feuerwehr.Server.MailLogo.png")
+                ?? throw new InvalidOperationException("Das eingebettete E-Mail-Logo fehlt.");
+            var logo = builder.LinkedResources.Add("feuerwehr.png", logoStream, new ContentType("image", "png"));
+            logo.ContentId = "feuerwehr-logo";
+            await SendMessageAsync(recipient, subject, builder.ToMessageBody());
+        }
+
+        private async Task SendMessageAsync(string recipient, string subject, MimeEntity body)
         {
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(settings.FromName, settings.From));
             message.To.Add(MailboxAddress.Parse(recipient));
             message.Subject = subject;
-            message.Body = new TextPart("plain") { Text = body };
+            message.Body = body;
             client.Timeout = settings.TimeoutMilliseconds;
             try
             {

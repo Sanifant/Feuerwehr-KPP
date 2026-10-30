@@ -47,6 +47,12 @@ public partial class Program
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<IMailService, MailService>();
+        builder.Services.AddScoped<IHtmlMailService, MailService>();
+        builder.Services.AddScoped<IVehicleService, VehicleService>();
+        builder.Services.AddScoped<IVehicleTransferService, VehicleTransferService>();
+        builder.Services.AddScoped<IVehicleMailComposer, VehicleMailComposer>();
+        builder.Services.AddScoped<IVehicleMailDispatcher, VehicleMailDispatcher>();
+        builder.Services.AddHostedService<VehicleMailWorker>();
         builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
         builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
 

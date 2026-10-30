@@ -178,6 +178,9 @@ public sealed class UsersService : IUsersService
         if (user.PasswordResetRequired && !string.IsNullOrEmpty(request.NewPassword))
             return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss über den Einladungslink festgelegt werden."));
 
+        if (request.ClearFireDepartment && request.FireDepartmentId.HasValue)
+            return ServiceResult.BadRequest(new MessageResponse("Bitte entweder eine Feuerwehr auswählen oder die Zuordnung entfernen."));
+
         if (request.Email != null)
         {
             var email = request.Email.Trim();
@@ -204,7 +207,7 @@ public sealed class UsersService : IUsersService
 
         user.FirstName = request.FirstName ?? user.FirstName;
         user.LastName = request.LastName ?? user.LastName;
-        user.FireDepartmentId = request.FireDepartmentId ?? user.FireDepartmentId;
+        user.FireDepartmentId = request.ClearFireDepartment ? null : request.FireDepartmentId ?? user.FireDepartmentId;
         user.IsActive = request.IsActive ?? user.IsActive;
 
         var result = await _userManager.UpdateAsync(user);
@@ -303,7 +306,13 @@ public sealed class UsersService : IUsersService
             return ServiceResult.BadRequest(new MessageResponse("Cannot delete your own account"));
         }
 
-        var result = await _userManager.DeleteAsync(user);
+        IdentityResult result;
+        try { result = await _userManager.DeleteAsync(user); }
+        catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
+            { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
+        {
+            return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als Gerätewart Fahrzeugen zugeordnet. Bitte die Zuständigkeit vor dem endgültigen Löschen übertragen."));
+        }
 
         if (!result.Succeeded)
         {

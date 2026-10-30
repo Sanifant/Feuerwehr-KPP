@@ -146,6 +146,36 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             _mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
         }
 
+        [Theory]
+        [InlineData(null, false, 1)]
+        [InlineData(2, false, 2)]
+        [InlineData(null, true, null)]
+        public async Task UpdateUser_PreservesChangesOrClearsFireDepartmentExplicitly(int? departmentId, bool clear, int? expected)
+        {
+            var user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            _mockUserManager.Setup(manager => manager.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+
+            var result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = departmentId, ClearFireDepartment = clear });
+
+            Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(expected, user.FireDepartmentId);
+        }
+
+        [Fact]
+        public async Task UpdateUser_RejectsConflictingDepartmentChanges()
+        {
+            var user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+
+            var result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = 2, ClearFireDepartment = true });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(1, user.FireDepartmentId);
+            _mockUserManager.Verify(manager => manager.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        }
+
         [Fact]
         public async Task UpdateUser_ReturnsBadRequest_WhenEmailBelongsToAnotherUser()
         {

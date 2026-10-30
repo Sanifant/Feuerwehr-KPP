@@ -107,6 +107,36 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    public async Task FireDepartmentAssignment_IsPersistedAndReturned_AndCanBeChangedOrCleared()
+    {
+        var db = _provider.GetRequiredService<FeuerwehrDbContext>();
+        var first = new FireDepartment { Name = "Feuerwehr A" };
+        var second = new FireDepartment { Name = "Feuerwehr B" };
+        db.FireDepartments.AddRange(first, second);
+        await db.SaveChangesAsync();
+        Assert.True((await _roles.CreateAsync(new IdentityRole("EquipmentOfficer"))).Succeeded);
+
+        var response = Assert.IsType<CreatedAtActionResult>(await _usersApi.CreateUser(new RegisterUserRequest
+        {
+            Email = "officer@example.com", FirstName = "Ada", LastName = "Muster",
+            Roles = ["EquipmentOfficer"], FireDepartmentId = first.Id
+        }));
+        var created = Assert.IsType<UserSummaryDto>(response.Value);
+        Assert.Equal(first.Id, created.FireDepartmentId);
+        Assert.Equal(first.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
+        var listed = Assert.IsType<List<UserDetailsDto>>(Assert.IsType<OkObjectResult>(await _usersApi.GetAllUsers()).Value);
+        Assert.Equal(first.Id, Assert.Single(listed).FireDepartmentId);
+
+        Assert.IsType<OkObjectResult>(await _usersApi.UpdateUser(created.Id, new UpdateUserRequest { FireDepartmentId = second.Id }));
+        Assert.Equal(second.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
+        // Existing clients can still update unrelated fields without removing the assignment.
+        Assert.IsType<OkObjectResult>(await _usersApi.UpdateUser(created.Id, new UpdateUserRequest { FirstName = "Bea" }));
+        Assert.Equal(second.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
+        Assert.IsType<OkObjectResult>(await _usersApi.UpdateUser(created.Id, new UpdateUserRequest { ClearFireDepartment = true }));
+        Assert.Null((await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
+    }
+
+    [Fact]
     public async Task ResetPassword_ValidatesEmailSetsRealPasswordAndRejectsReplay()
     {
         var (user, id) = await CreateInvitedUser();

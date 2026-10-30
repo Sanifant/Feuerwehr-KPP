@@ -1,0 +1,8 @@
+.vehicle-modal { width: min(580px, calc(100vw - 2rem)); box-sizing: border-box; max-height: 90vh; overflow: auto; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: var(--modal-radius); color: var(--text-primary); background: var(--surface); }
+.vehicle-modal::backdrop { background: #0f172a99; }
+.vehicle-modal header { display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+.vehicle-modal header h2 { margin-top: 0; }
+.vehicle-modal form, .vehicle-modal fieldset { display: grid; gap: 1rem; }
+.vehicle-modal fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.vehicle-modal label { display: grid; gap: .35rem; }
+.vehicle-modal footer { display: flex; justify-content: end; flex-wrap: wrap; gap: .75rem; }
