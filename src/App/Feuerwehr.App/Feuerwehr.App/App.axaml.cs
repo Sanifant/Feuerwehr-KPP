@@ -1,12 +1,12 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.ViewModels;
-using de.openelp.feuerwehr.App.Views;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -14,7 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 
-namespace de.openelp.feuerwehr.App
+namespace De.Openelp.Feuerwehr.App
 {
     public partial class App : Application
     {
@@ -23,11 +23,17 @@ namespace de.openelp.feuerwehr.App
         /// <summary>Set by the platform host before framework initialization.</summary>
         public Action<IServiceCollection>? ConfigurePlatformServices { get; set; }
 
+        /// <summary>
+        /// Initializes the operation.
+        /// </summary>
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
+        /// <summary>
+        /// Executes on Framework Initialization Completed.
+        /// </summary>
         public override void OnFrameworkInitializationCompleted()
         {
             //var appConfiguration = AppConfiguration.Current;
@@ -132,7 +138,7 @@ namespace de.openelp.feuerwehr.App
             collection.AddSingleton<IAuthService, AuthService>();
             collection.AddScoped<AuthenticatedHttpClient>();
 
-            // Für Blazor WebAssembly / Web-Clients
+            // FÃ¼r Blazor WebAssembly / Web-Clients
             collection.AddScoped<IHydrantService, HydrantService>();
             collection.AddScoped<ISituationMapService, SituationMapService>();
             collection.AddScoped<IInventoryService, InventoryService>();
@@ -144,7 +150,7 @@ namespace de.openelp.feuerwehr.App
 
             if (string.IsNullOrEmpty(baseUrl))
             {
-                // Standard-Fallback für lokales Testen ohne Aspire
+                // Standard-Fallback fÃ¼r lokales Testen ohne Aspire
                 baseUrl = "https://integration.ff-kleinparin-pohnsdorf.de/";
             }
 
@@ -155,3 +161,4 @@ namespace de.openelp.feuerwehr.App
         }
     }
 }
+

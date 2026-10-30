@@ -1,27 +1,38 @@
 using System.Globalization;
 using System.Net;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public interface IVehicleMailComposer
 {
     VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request);
 }
 
+/// <summary>
+/// Executes vehicle Mail Composer.
+/// </summary>
+/// <param name="configuration">The configuration.</param>
+/// <param name="clock">The clock.</param>
 public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvider clock) : IVehicleMailComposer
 {
+    /// <summary>
+    /// Executes compose.
+    /// </summary>
+    /// <param name="reservation">The reservation.</param>
+    /// <param name="recipient">The recipient.</param>
+    /// <param name="request">The request.</param>
     public VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request)
     {
-        var title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestätigt";
-        var dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschließlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
+        var title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestÃ¤tigt";
+        var dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschlieÃŸlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
         var lines = $"Fahrzeug: {reservation.RadioCallSign}\nFeuerwehr: {reservation.FireDepartmentName}\n" +
             $"Anfragende Person: {reservation.RequesterName}\nZeitraum: {dates}\nBuchungsnummer: {reservation.Id}\n";
         if (reservation.Comment is not null) lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
-        var instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Übersicht prüfen und bestätigen oder ablehnen." :
-            "Die Buchung ist verbindlich bestätigt.";
+        var instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Ãœbersicht prÃ¼fen und bestÃ¤tigen oder ablehnen." :
+            "Die Buchung ist verbindlich bestÃ¤tigt.";
         var link = "";
         if (Uri.TryCreate(configuration["Frontend:BaseUrl"], UriKind.Absolute, out var baseUri) &&
             (baseUri.Scheme == Uri.UriSchemeHttps || baseUri.Scheme == Uri.UriSchemeHttp) && string.IsNullOrEmpty(baseUri.Query) && string.IsNullOrEmpty(baseUri.Fragment))
@@ -31,7 +42,7 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
             "<table role=\"presentation\" style=\"width:100%;max-width:640px;margin:24px auto;background:#fff;border:1px solid #cbd5e1\"><tr><td style=\"padding:24px;border-top:6px solid #b91c1c\">" +
             "<img src=\"cid:feuerwehr-logo\" width=\"80\" alt=\"Feuerwehr\"><h1 style=\"font-size:24px;color:#b91c1c\">" + Encode(title) + "</h1>" +
             "<p>" + Encode(instruction) + "</p><p style=\"line-height:1.7\">" + Encode(lines).Replace("\n", "<br>") + "</p>" +
-            (link.Length == 0 ? "" : "<p><a style=\"color:#b91c1c\" href=\"" + Encode(link) + "\">MTW-Übersicht öffnen</a></p>") +
+            (link.Length == 0 ? "" : "<p><a style=\"color:#b91c1c\" href=\"" + Encode(link) + "\">MTW-Ãœbersicht Ã¶ffnen</a></p>") +
             "</td></tr></table></body></html>";
         var now = clock.GetUtcNow().UtcDateTime;
         return new VehicleMailMessage
@@ -48,9 +59,20 @@ public interface IVehicleMailDispatcher
     Task Dispatch(CancellationToken ct);
 }
 
+/// <summary>
+/// Executes vehicle Mail Dispatcher.
+/// </summary>
+/// <param name="db">The db.</param>
+/// <param name="mail">The mail.</param>
+/// <param name="clock">The clock.</param>
+/// <param name="logger">The logger.</param>
 public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailService mail, TimeProvider clock,
     ILogger<VehicleMailDispatcher> logger) : IVehicleMailDispatcher
 {
+    /// <summary>
+    /// Executes dispatch.
+    /// </summary>
+    /// <param name="ct">The ct.</param>
     public async Task Dispatch(CancellationToken ct)
     {
         var now = clock.GetUtcNow().UtcDateTime;
@@ -102,6 +124,11 @@ public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailServic
     }
 }
 
+/// <summary>
+/// Executes vehicle Mail Worker.
+/// </summary>
+/// <param name="scopes">The scopes.</param>
+/// <param name="logger">The logger.</param>
 public sealed class VehicleMailWorker(IServiceScopeFactory scopes, ILogger<VehicleMailWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -120,3 +147,4 @@ public sealed class VehicleMailWorker(IServiceScopeFactory scopes, ILogger<Vehic
         }
     }
 }
+

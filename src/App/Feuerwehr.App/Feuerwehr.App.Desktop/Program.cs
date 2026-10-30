@@ -1,12 +1,12 @@
-
+﻿
 using Avalonia;
-using de.openelp.feuerwehr.App.Desktop.Services;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Desktop.Services;
+using De.Openelp.Feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
-namespace de.openelp.feuerwehr.App.Desktop
+namespace De.Openelp.Feuerwehr.App.Desktop
 {
     internal sealed class Program
     {
@@ -14,10 +14,16 @@ namespace de.openelp.feuerwehr.App.Desktop
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
         [STAThread]
+        /// <summary>
+        /// Executes main.
+        /// </summary>
         public static void Main(string[] args) => BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
 
         // Avalonia configuration, don't remove; also used by visual designer.
+        /// <summary>
+        /// Builds the avalonia App.
+        /// </summary>
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
@@ -33,3 +39,4 @@ namespace de.openelp.feuerwehr.App.Desktop
                 .LogToTrace();
     }
 }
+

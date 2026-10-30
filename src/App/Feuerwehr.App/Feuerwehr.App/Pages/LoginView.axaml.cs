@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using de.openelp.feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace de.openelp.feuerwehr.App;
+namespace De.Openelp.Feuerwehr.App;
 
 public partial class LoginView : ContentPage
 {

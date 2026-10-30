@@ -1,10 +1,10 @@
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace de.openelp.feuerwehr.Server.Controller;
+namespace De.Openelp.Feuerwehr.Server.Controller;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -16,6 +16,10 @@ public class AuthController(IAuthService service) : ControllerBase
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    /// <summary>
+    /// Executes login.
+    /// </summary>
+    /// <param name="request">The request.</param>
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -27,6 +31,10 @@ public class AuthController(IAuthService service) : ControllerBase
     /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
+    /// <summary>
+    /// Executes refresh Token.
+    /// </summary>
+    /// <param name="request">The request.</param>
     public async Task<ActionResult<TokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -35,6 +43,10 @@ public class AuthController(IAuthService service) : ControllerBase
 
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    /// <summary>
+    /// Executes reset Password.
+    /// </summary>
+    /// <param name="request">The request.</param>
     public async Task<IActionResult> ResetPassword([FromBody] ResetRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -43,6 +55,10 @@ public class AuthController(IAuthService service) : ControllerBase
 
     [HttpPost("change-password")]
     [Authorize]
+    /// <summary>
+    /// Executes change Password.
+    /// </summary>
+    /// <param name="request">The request.</param>
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -55,6 +71,9 @@ public class AuthController(IAuthService service) : ControllerBase
     /// </summary>
     [HttpPost("logout")]
     [Authorize]
+    /// <summary>
+    /// Executes logout.
+    /// </summary>
     public async Task<IActionResult> Logout()
     {
         return this.ToActionResult(await service.Logout(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
@@ -65,9 +84,13 @@ public class AuthController(IAuthService service) : ControllerBase
     /// </summary>
     [HttpGet("me")]
     [Authorize]
+    /// <summary>
+    /// Gets the current User.
+    /// </summary>
     public async Task<IActionResult> GetCurrentUser()
     {
         return this.ToActionResult(await service.GetCurrentUser(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
     }
 
 }
+

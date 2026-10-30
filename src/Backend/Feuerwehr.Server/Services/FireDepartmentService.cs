@@ -1,12 +1,12 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public sealed class FireDepartmentService : IFireDepartmentService
 {
@@ -19,6 +19,9 @@ public sealed class FireDepartmentService : IFireDepartmentService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
     public async Task<ServiceResult> Get()
     {
         var fireDepartments = await _db.FireDepartments
@@ -44,6 +47,10 @@ public sealed class FireDepartmentService : IFireDepartmentService
         return ServiceResult.Ok(fireDepartments);
     }
 
+    /// <summary>
+    /// Adds the operation.
+    /// </summary>
+    /// <param name="fireDepartmentDto">The fire Department Dto.</param>
     public async Task<ServiceResult> Add(FireDepartmentDto fireDepartmentDto)
     {
         var entity = new FireDepartment
@@ -68,6 +75,10 @@ public sealed class FireDepartmentService : IFireDepartmentService
         return ServiceResult.CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
     }
 
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
+    /// <param name="id">The id.</param>
     public async Task<ServiceResult> Get(int id)
     {
         var fireDepartment = await _db.FireDepartments
@@ -108,3 +119,4 @@ public interface IFireDepartmentService
     Task<ServiceResult> Add(FireDepartmentDto fireDepartmentDto);
     Task<ServiceResult> Get(int id);
 }
+

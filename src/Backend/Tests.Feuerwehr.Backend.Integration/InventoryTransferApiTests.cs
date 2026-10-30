@@ -3,15 +3,22 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Authorization;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
 
 [Trait("Category", "Integration")]
+/// <summary>
+/// Executes inventory Transfer Api Tests.
+/// </summary>
+/// <param name="fixture">The fixture.</param>
 public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : IClassFixture<InventoryApiFixture>
 {
     [Fact]
+    /// <summary>
+    /// Executes csv Upsert Uses Barcode Preserves Identity State And History And Advances Automatic Numbers.
+    /// </summary>
     public async Task CsvUpsertUsesBarcode_PreservesIdentityStateAndHistory_AndAdvancesAutomaticNumbers()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -39,17 +46,20 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     }
 
     [Fact]
+    /// <summary>
+    /// Executes csv Export Is Excel Compatible And Round Trips Quotes Unicode Newlines And Formula Prefixes.
+    /// </summary>
     public async Task CsvExportIsExcelCompatibleAndRoundTripsQuotesUnicodeNewlinesAndFormulaPrefixes()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var type = await fixture.CreateType(officer);
-        var request = new SaveEquipmentRequest { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "Größe; \"Zitat\"\nzweite Zeile" };
+        var request = new SaveEquipmentRequest { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "GrÃ¶ÃŸe; \"Zitat\"\nzweite Zeile" };
         using var create = await officer.PostAsJsonAsync("/api/inventory", request); create.EnsureSuccessStatusCode();
         var item = (await create.Content.ReadFromJsonAsync<EquipmentDto>())!;
         using var export = await officer.GetAsync("/api/inventory/export"); export.EnsureSuccessStatusCode();
         Assert.Equal("text/csv", export.Content.Headers.ContentType!.MediaType);
         var bytes = await export.Content.ReadAsByteArrayAsync(); Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes.Take(3));
-        var csv = Encoding.UTF8.GetString(bytes); Assert.Contains("'=SUM", csv); Assert.Contains("Größe", csv);
+        var csv = Encoding.UTF8.GetString(bytes); Assert.Contains("'=SUM", csv); Assert.Contains("GrÃ¶ÃŸe", csv);
         using var import = await Upload(officer, "/api/inventory/import", csv, "inventar.csv"); import.EnsureSuccessStatusCode();
         Assert.Equal(0, (await import.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
         var detail = (await officer.GetFromJsonAsync<EquipmentDetailDto>($"/api/inventory/{item.Id}"))!;
@@ -57,6 +67,9 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     }
 
     [Fact]
+    /// <summary>
+    /// Executes invalid Inventory Rows And Duplicate Barcodes Reject The Whole File.
+    /// </summary>
     public async Task InvalidInventoryRowsAndDuplicateBarcodesRejectTheWholeFile()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -74,6 +87,9 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     }
 
     [Fact]
+    /// <summary>
+    /// Executes import And Ordinary Create Do Not Collide And Sequence Never Rewinds.
+    /// </summary>
     public async Task ImportAndOrdinaryCreateDoNotCollide_AndSequenceNeverRewinds()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer); var type = await fixture.CreateType(officer);
@@ -85,6 +101,9 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     }
 
     [Fact]
+    /// <summary>
+    /// Executes categories And Types Use Json And Update Existing Records.
+    /// </summary>
     public async Task CategoriesAndTypesUseJsonAndUpdateExistingRecords()
     {
         using var admin = await fixture.Client(Roles.Admin); using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -117,8 +136,13 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     [Theory]
     [InlineData("categories", "[null]")]
     [InlineData("categories", "[{\"name\":\"Doppelt\"},{\"name\":\"doppelt\"}]")]
-    [InlineData("types", "[{\"name\":\"Unvollständig\",\"inspectionIntervalMonths\":0}]")]
+    [InlineData("types", "[{\"name\":\"UnvollstÃ¤ndig\",\"inspectionIntervalMonths\":0}]")]
     [InlineData("types", "not json")]
+    /// <summary>
+    /// Executes invalid Json Reports Errors Without Partial Writes.
+    /// </summary>
+    /// <param name="kind">The kind.</param>
+    /// <param name="json">The json.</param>
     public async Task InvalidJsonReportsErrorsWithoutPartialWrites(string kind, string json)
     {
         using var admin = await fixture.Client(Roles.Admin);
@@ -130,11 +154,14 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     }
 
     [Fact]
+    /// <summary>
+    /// Executes json Export Can Reimport Distinct Existing Types With The Same Display Name.
+    /// </summary>
     public async Task JsonExportCanReimportDistinctExistingTypesWithTheSameDisplayName()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var categories = (await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!;
-        var request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "Prüfen" };
+        var request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "PrÃ¼fen" };
         for (var i = 0; i < 2; i++) { using var create = await officer.PostAsJsonAsync("/api/inventory/types", request); create.EnsureSuccessStatusCode(); }
         using var export = await officer.GetAsync("/api/inventory/types/export"); export.EnsureSuccessStatusCode();
         using var import = await Upload(officer, "/api/inventory/types/import", await export.Content.ReadAsStringAsync(), "types.json"); import.EnsureSuccessStatusCode();
@@ -142,6 +169,9 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     }
 
     [Fact]
+    /// <summary>
+    /// Executes readers Can Export But Only Officers And Admins Can Import And Categories Require Admin.
+    /// </summary>
     public async Task ReadersCanExportButOnlyOfficersAndAdminsCanImportAndCategoriesRequireAdmin()
     {
         using var viewer = await fixture.Client(Roles.InventoryViewer); using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -162,3 +192,4 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         form.Add(file, "file", filename); return await client.PostAsync(url, form);
     }
 }
+

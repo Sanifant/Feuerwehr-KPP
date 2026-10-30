@@ -1,10 +1,10 @@
 using System.Text;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public sealed class InventoryTransferTests
 {
@@ -16,6 +16,11 @@ public sealed class InventoryTransferTests
     [InlineData("barcode;serialNumber;manufacturer;equipmentType;isActive\nKPP-001;A;B;Test;vielleicht", "isActive")]
     [InlineData("barcode;serialNumber;manufacturer;equipmentType;lastInspectedOn\nKPP-001;A;B;Test;29.10.2026", "JJJJ-MM-TT")]
     [InlineData("barcode;serialNumber;manufacturer;equipmentType\nKPP-001;\"Nicht geschlossen;B;Test", "CSV-Zeile")]
+    /// <summary>
+    /// Executes invalid Csv Is Rejected Before Changing Any Data.
+    /// </summary>
+    /// <param name="content">The content.</param>
+    /// <param name="expected">The expected.</param>
     public async Task InvalidCsvIsRejectedBeforeChangingAnyData(string content, string expected)
     {
         await using var db = Database();
@@ -28,6 +33,9 @@ public sealed class InventoryTransferTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes category Batch Is Atomic And Invalid Json Entries Have Readable Errors.
+    /// </summary>
     public async Task CategoryBatchIsAtomicAndInvalidJsonEntriesHaveReadableErrors()
     {
         await using var db = Database();
@@ -42,3 +50,4 @@ public sealed class InventoryTransferTests
 
     private static FeuerwehrDbContext Database() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 }
+

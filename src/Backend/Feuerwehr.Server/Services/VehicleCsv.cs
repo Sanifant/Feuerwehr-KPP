@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 internal sealed record VehicleCsvRow(long Line, VehicleImportDto Data);
 
@@ -83,3 +83,4 @@ internal static class VehicleCsv
         return (rows, errors);
     }
 }
+

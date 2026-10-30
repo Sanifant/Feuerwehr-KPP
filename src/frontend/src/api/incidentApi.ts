@@ -250,17 +250,37 @@ export async function getDiaryCategories(incidentId: string) {
     return response.data;
 }
 
-export async function createDiaryEntry(incidentId: string, payload: any) {
+export interface CreateDiaryEntryRequest {
+    commandId: string;
+    eventTimestampUtc: string;
+    categoryCode: string;
+    text: string;
+    sender?: string | null;
+    recipient?: string | null;
+    transmissionType?: string | null;
+}
+
+export interface UpdateDiaryEntryRequest extends CreateDiaryEntryRequest {
+    expectedRevision: number;
+}
+
+export interface CancelDiaryEntryRequest {
+    commandId: string;
+    expectedRevision: number;
+    reason: string;
+}
+
+export async function createDiaryEntry(incidentId: string, payload: CreateDiaryEntryRequest) {
     const response = await apiClient.post(`/api/incidents/${incidentId}/diary/entries`, payload);
     return response.data;
 }
 
-export async function updateDiaryEntry(incidentId: string, entryId: string, payload: any) {
+export async function updateDiaryEntry(incidentId: string, entryId: string, payload: UpdateDiaryEntryRequest) {
     const response = await apiClient.post(`/api/incidents/${incidentId}/diary/entries/${entryId}/revisions`, payload);
     return response.data;
 }
 
-export async function cancelDiaryEntry(incidentId: string, entryId: string, payload: any) {
+export async function cancelDiaryEntry(incidentId: string, entryId: string, payload: CancelDiaryEntryRequest) {
     const response = await apiClient.post(`/api/incidents/${incidentId}/diary/entries/${entryId}/cancel`, payload);
     return response.data;
 }

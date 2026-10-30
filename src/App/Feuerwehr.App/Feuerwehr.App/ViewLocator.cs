@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using de.openelp.feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.ViewModels;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace de.openelp.feuerwehr.App
+namespace De.Openelp.Feuerwehr.App
 {
     /// <summary>
     /// Given a view model, returns the corresponding view if possible.
@@ -14,6 +14,10 @@ namespace de.openelp.feuerwehr.App
         Url = "https://docs.avaloniaui.net/docs/concepts/view-locator")]
     public class ViewLocator : IDataTemplate
     {
+        /// <summary>
+        /// Builds the operation.
+        /// </summary>
+        /// <param name="param">The param.</param>
         public Control? Build(object? param)
         {
             if (param is null)
@@ -30,6 +34,10 @@ namespace de.openelp.feuerwehr.App
             return new TextBlock { Text = "Not Found: " + name };
         }
 
+        /// <summary>
+        /// Executes match.
+        /// </summary>
+        /// <param name="data">The data.</param>
         public bool Match(object? data)
         {
             return data is ViewModelBase;

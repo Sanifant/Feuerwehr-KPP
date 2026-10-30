@@ -2,19 +2,26 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
 
+/// <summary>
+/// Executes vehicle Api Tests.
+/// </summary>
+/// <param name="fixture">The fixture.</param>
 public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture<InventoryApiFixture>
 {
     [Fact]
+    /// <summary>
+    /// Executes import Export Uses Officer Email And Preserves Bookings With Real Postgres And Http Uploads.
+    /// </summary>
     public async Task ImportExportUsesOfficerEmailAndPreservesBookingsWithRealPostgresAndHttpUploads()
     {
         using var admin = await fixture.Client(Roles.Admin);
@@ -48,6 +55,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes invalid Email Rolls Back All Csv Rows And Returns Their Line Number.
+    /// </summary>
     public async Task InvalidEmailRollsBackAllCsvRowsAndReturnsTheirLineNumber()
     {
         using var admin = await fixture.Client(Roles.Admin);
@@ -64,12 +74,15 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes custom Statuses Are Admin Managed And Mtw Availability Excludes Other Vehicle Types.
+    /// </summary>
     public async Task CustomStatusesAreAdminManagedAndMtwAvailabilityExcludesOtherVehicleTypes()
     {
         using var admin = await fixture.Client(Roles.Admin);
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var vehicle = await CreateVehicle(officer);
-        var statusName = $"Außer Dienst {Guid.NewGuid():N}";
+        var statusName = $"AuÃŸer Dienst {Guid.NewGuid():N}";
         Assert.Equal(HttpStatusCode.Forbidden, (await officer.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName })).StatusCode);
         var response = await admin.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName, AllowsBooking = false });
         response.EnsureSuccessStatusCode();
@@ -104,6 +117,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes vehicle Types Are Admin Managed And Appear In Vehicle And Calendar Responses.
+    /// </summary>
     public async Task VehicleTypesAreAdminManaged_AndAppearInVehicleAndCalendarResponses()
     {
         using var admin = await fixture.Client(Roles.Admin);
@@ -134,6 +150,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes concurrent Approvals Claim The Entire Range Exactly Once And Send Html With Inline Logo And Comment.
+    /// </summary>
     public async Task ConcurrentApprovals_ClaimTheEntireRangeExactlyOnce_AndSendHtmlWithInlineLogoAndComment()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -168,7 +187,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         using var mail = new HttpClient { BaseAddress = fixture.MailpitUrl };
         var messages = await mail.GetFromJsonAsync<JsonElement>("/api/v1/messages");
         var matching = messages.GetProperty("messages").EnumerateArray().Where(x =>
-            x.GetProperty("Subject").GetString() == $"MTW-Buchung bestätigt: {vehicle.RadioCallSign}").ToArray();
+            x.GetProperty("Subject").GetString() == $"MTW-Buchung bestÃ¤tigt: {vehicle.RadioCallSign}").ToArray();
         var delivered = Assert.Single(matching);
         var body = await mail.GetFromJsonAsync<JsonElement>($"/api/v1/message/{delivered.GetProperty("ID").GetString()}");
         Assert.Contains(comment, body.GetProperty("Text").GetString());
@@ -188,6 +207,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes parallel Direct Booking And Approval Cannot Partially Book Overlapping Ranges.
+    /// </summary>
     public async Task ParallelDirectBookingAndApproval_CannotPartiallyBookOverlappingRanges()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -212,6 +234,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes vehicle Api Enforces Ownership And Roles And Preserves Bookings After Deactivation.
+    /// </summary>
     public async Task VehicleApiEnforcesOwnershipAndRoles_AndPreservesBookingsAfterDeactivation()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -241,6 +266,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     }
 
     [Fact]
+    /// <summary>
+    /// Executes concurrent Deactivation And Approval Uses The Same Vehicle Lock.
+    /// </summary>
     public async Task ConcurrentDeactivationAndApproval_UsesTheSameVehicleLock()
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -279,3 +307,4 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         return (await response.Content.ReadFromJsonAsync<VehicleDto>())!;
     }
 }
+

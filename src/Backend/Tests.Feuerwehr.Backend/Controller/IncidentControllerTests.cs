@@ -1,15 +1,15 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Controller.IncidentModules;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Controller;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Controller;
 
 public sealed class IncidentControllerTests : IDisposable
 {
@@ -37,6 +37,9 @@ public sealed class IncidentControllerTests : IDisposable
     };
 
     [Fact]
+    /// <summary>
+    /// Creates the returns Persisted Incident With Alarm Time And Lease And Active Returns Same Incident.
+    /// </summary>
     public async Task Create_ReturnsPersistedIncidentWithAlarmTimeAndLease_AndActiveReturnsSameIncident()
     {
         var request = Request();
@@ -63,6 +66,9 @@ public sealed class IncidentControllerTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Creates the replay Returns Identical Body Without Duplicating Incident Or Events.
+    /// </summary>
     public async Task Create_ReplayReturnsIdenticalBodyWithoutDuplicatingIncidentOrEvents()
     {
         var request = Request();
@@ -78,6 +84,9 @@ public sealed class IncidentControllerTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Creates the command Payload Includes Alarm Time.
+    /// </summary>
     public async Task Create_CommandPayloadIncludesAlarmTime()
     {
         var request = Request();
@@ -88,6 +97,9 @@ public sealed class IncidentControllerTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Creates the missing Alarm Time Is Rejected By Contract And Service.
+    /// </summary>
     public async Task Create_MissingAlarmTimeIsRejectedByContractAndService()
     {
         var request = Request();
@@ -100,6 +112,9 @@ public sealed class IncidentControllerTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes close Preserves Alarm Time In Archive And Removes Active Incident.
+    /// </summary>
     public async Task Close_PreservesAlarmTimeInArchiveAndRemovesActiveIncident()
     {
         var created = Assert.IsType<IncidentCreatedResponse>((await _service.CreateIncident(Request(), default)).Value);
@@ -115,5 +130,9 @@ public sealed class IncidentControllerTests : IDisposable
         Assert.Equal(created.Incident.AlarmedAtUtc, Assert.Single(archive).AlarmedAtUtc);
     }
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public void Dispose() => _db.Dispose();
 }
+

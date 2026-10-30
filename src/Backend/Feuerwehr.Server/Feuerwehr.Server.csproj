@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-    <RootNamespace>de.openelp.feuerwehr.Server</RootNamespace>
+    <RootNamespace>De.Openelp.Feuerwehr.Server</RootNamespace>
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
@@ -49,6 +49,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Migrations\" />
-	  <EmbeddedResource Include="..\..\frontend\public\Logo_Feuerwehr.png" LogicalName="de.openelp.feuerwehr.Server.MailLogo.png" />
+	  <EmbeddedResource Include="..\..\frontend\public\Logo_Feuerwehr.png" LogicalName="De.Openelp.Feuerwehr.Server.MailLogo.png" />
 	</ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Server.Authorization
+namespace De.Openelp.Feuerwehr.Server.Authorization
 {
     /// <summary>
     /// Constants for authorization policy names
@@ -50,6 +50,7 @@ namespace de.openelp.feuerwehr.Server.Authorization
         /// <summary>
         /// Configure all authorization policies for the Feuerwehr system
         /// </summary>
+        /// <param name="options">The options.</param>
         public static void AddFeuerwehrPolicies(this Microsoft.AspNetCore.Authorization.AuthorizationOptions options)
         {
             // Admin-only policy
@@ -97,3 +98,4 @@ namespace de.openelp.feuerwehr.Server.Authorization
         }
     }
 }
+

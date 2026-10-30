@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace de.openelp.feuerwehr.Diagnostics;
+namespace De.Openelp.Feuerwehr.Diagnostics;
 
 // Linked into the API and AppHost so each process records its own lifetime independently.
 internal sealed class ProcessDiagnostics : IDisposable
@@ -20,8 +20,17 @@ internal sealed class ProcessDiagnostics : IDisposable
         Record("Diagnostics.File", _path);
     }
 
+    /// <summary>
+    /// Executes start.
+    /// </summary>
     public static ProcessDiagnostics Start(string name) => new(name);
 
+    /// <summary>
+    /// Executes record.
+    /// </summary>
+    /// <param name="step">The step.</param>
+    /// <param name="details">The details.</param>
+    /// <param name="exception">The exception.</param>
     public void Record(string step, string? details = null, Exception? exception = null)
     {
         var text = $"{DateTime.UtcNow:O} [{_name}] {step}: {details}";
@@ -55,6 +64,9 @@ internal sealed class ProcessDiagnostics : IDisposable
     private void Canceled(object? sender, ConsoleCancelEventArgs args)
         => Record("Process.CancelKeyPress", $"Key={args.SpecialKey}");
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public void Dispose()
     {
         Record("Process.DiagnosticsDisposed", $"ExitCode={Environment.ExitCode}");
@@ -64,3 +76,4 @@ internal sealed class ProcessDiagnostics : IDisposable
         Console.CancelKeyPress -= Canceled;
     }
 }
+

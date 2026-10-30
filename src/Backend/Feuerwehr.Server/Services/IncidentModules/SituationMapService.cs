@@ -1,17 +1,25 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 
-namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
+namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 
+/// <summary>
+/// Executes situation Map Service.
+/// </summary>
+/// <param name="dbContext">The db Context.</param>
+/// <param name="userContext">The user Context.</param>
+/// <param name="idempotency">The idempotency.</param>
+/// <param name="outboxService">The outbox Service.</param>
+/// <param name="leaseService">The lease Service.</param>
 public sealed class SituationMapService(FeuerwehrDbContext dbContext,
     IUserContextAccessor userContext,
     ICommandIdempotencyService idempotency,
@@ -19,6 +27,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
     IMapLeaseService leaseService) : ISituationMapService
 {
 
+    /// <summary>
+    /// Gets the state.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> GetState(Guid incidentId, CancellationToken cancellationToken)
     {
         var incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -53,6 +66,12 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes acquire Lease.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> AcquireLease(Guid incidentId, AcquireLeaseRequest request, CancellationToken cancellationToken)
     {
 
@@ -130,6 +149,12 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes heartbeat.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> Heartbeat(Guid incidentId, LeaseHeartbeatRequest request, CancellationToken cancellationToken)
     {
 
@@ -168,6 +193,12 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes release.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> Release(Guid incidentId, ReleaseLeaseRequest request, CancellationToken cancellationToken)
     {
 
@@ -204,6 +235,12 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes upsert Element.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
     {
         var strategy = dbContext.Database.CreateExecutionStrategy();
@@ -277,7 +314,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             {
                 if (request.ElementType == MapElementType.Symbol && string.IsNullOrWhiteSpace(request.SymbolId))
                 {
-                    return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Für Symbol-Elemente ist symbolId erforderlich.");
+                    return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "FÃ¼r Symbol-Elemente ist symbolId erforderlich.");
                 }
 
                 element = new MapElement
@@ -302,11 +339,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                 if (request.ElementType == MapElementType.Symbol)
                 {
                     if (!Guid.TryParse(request.SymbolId, out var symbolId))
-                        return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
+                        return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wÃ¤hlen.");
                     var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
-                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfÃ¼gbar.");
                     if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
-                        return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                        return ServiceResult.Problem(400, "Bitte einen Funkrufnamen fÃ¼r das Fahrzeug angeben.");
                     element.IsVehicle = symbol.IsVehicle;
                     if (!symbol.IsVehicle)
                     {
@@ -333,11 +370,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                 }
 
                 if (element.ElementType != request.ElementType)
-                    return ServiceResult.Problem(400, "Der Elementtyp kann nicht geändert werden.");
+                    return ServiceResult.Problem(400, "Der Elementtyp kann nicht geÃ¤ndert werden.");
                 if (!string.Equals(element.SymbolId, request.SymbolId, StringComparison.Ordinal))
                     return ServiceResult.Problem(400, "Das Symbol eines platzierten Elements kann nicht ausgetauscht werden.");
                 if (element.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
-                    return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                    return ServiceResult.Problem(400, "Bitte einen Funkrufnamen fÃ¼r das Fahrzeug angeben.");
                 element.Label = request.Label;
                 var allowsDetails = element.ElementType != MapElementType.Symbol || element.IsVehicle;
                 if (allowsDetails)
@@ -405,6 +442,13 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Deletes the element.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="elementId">The element Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> DeleteElement(Guid incidentId, Guid elementId, DeleteMapElementRequest request, CancellationToken cancellationToken)
     {
 
@@ -479,6 +523,13 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Gets the audit.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="page">The page.</param>
+    /// <param name="pageSize">The page Size.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> GetAudit(Guid incidentId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
     {
         page = Math.Max(1, page);
@@ -506,6 +557,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes export Audit Csv.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken)
     {
         var events = await dbContext.MapAuditEvents.AsNoTracking()
@@ -518,6 +574,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes export Map Pdf.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken)
     {
         var incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -572,7 +633,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
             if (type == MapElementType.Polygon && typeValue != "Polygon")
             {
-                error = "Fläche muss eine Polygon-Geometrie verwenden.";
+                error = "FlÃ¤che muss eine Polygon-Geometrie verwenden.";
                 return false;
             }
 
@@ -582,7 +643,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                 var lat = coordinates[1].GetDouble();
                 if (lon is < -180 or > 180 || lat is < -90 or > 90)
                 {
-                    error = "Point-Koordinaten sind außerhalb von WGS84.";
+                    error = "Point-Koordinaten sind auÃŸerhalb von WGS84.";
                     return false;
                 }
             }
@@ -594,7 +655,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     {
                         if (coordinate.GetArrayLength() < 2)
                         {
-                            error = "Polygon enthält ungültige Koordinaten.";
+                            error = "Polygon enthÃ¤lt ungÃ¼ltige Koordinaten.";
                             return false;
                         }
 
@@ -602,7 +663,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                         var lat = coordinate[1].GetDouble();
                         if (lon is < -180 or > 180 || lat is < -90 or > 90)
                         {
-                            error = "Polygon-Koordinaten sind außerhalb von WGS84.";
+                            error = "Polygon-Koordinaten sind auÃŸerhalb von WGS84.";
                             return false;
                         }
                     }
@@ -613,7 +674,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         }
         catch (Exception)
         {
-            error = "Ungültige GeoJSON-Geometrie.";
+            error = "UngÃ¼ltige GeoJSON-Geometrie.";
             return false;
         }
     }
@@ -666,3 +727,4 @@ public interface ISituationMapService
     Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken);
     Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken);
 }
+

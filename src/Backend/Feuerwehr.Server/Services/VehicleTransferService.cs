@@ -3,15 +3,15 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public enum VehicleTransferKind { Vehicles, Types }
 
@@ -21,6 +21,13 @@ public interface IVehicleTransferService
     Task<ServiceResult> Import(VehicleTransferKind kind, Stream stream, CancellationToken ct);
 }
 
+/// <summary>
+/// Executes vehicle Transfer Service.
+/// </summary>
+/// <param name="db">The db.</param>
+/// <param name="http">The http.</param>
+/// <param name="normalizer">The normalizer.</param>
+/// <param name="clock">The clock.</param>
 public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAccessor http, ILookupNormalizer normalizer,
     TimeProvider clock) : IVehicleTransferService
 {
@@ -34,6 +41,11 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
     private static ServiceResult Invalid(IEnumerable<VehicleImportError> errors, int code = 400) =>
         ServiceResult.StatusCode(code, new VehicleImportResponse(0, 0, errors.Take(100).ToList()));
 
+    /// <summary>
+    /// Executes export.
+    /// </summary>
+    /// <param name="kind">The kind.</param>
+    /// <param name="ct">The ct.</param>
     public async Task<ServiceResult> Export(VehicleTransferKind kind, CancellationToken ct)
     {
         if (!Allowed(kind)) return ServiceResult.Forbid();
@@ -57,6 +69,12 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
         return ServiceResult.File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "fahrzeuge.csv");
     }
 
+    /// <summary>
+    /// Executes import.
+    /// </summary>
+    /// <param name="kind">The kind.</param>
+    /// <param name="stream">The stream.</param>
+    /// <param name="ct">The ct.</param>
     public async Task<ServiceResult> Import(VehicleTransferKind kind, Stream stream, CancellationToken ct)
     {
         if (!Allowed(kind)) return ServiceResult.Forbid();
@@ -74,7 +92,7 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
             var errors = rows.SelectMany((row, index) => Validate(row, index + 1)).Take(100).ToList();
             return errors.Count > 0 ? Invalid(errors) : await InTransaction(kind, () => ImportTypes(rows, ct), ct);
         }
-        catch (JsonException) { return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gültigen Feldwerten.")]); }
+        catch (JsonException) { return Invalid([new(null, "UngÃ¼ltige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gÃ¼ltigen Feldwerten.")]); }
     }
 
     private static IEnumerable<VehicleImportError> Validate(object? row, long line)
@@ -82,7 +100,7 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
         if (row is null) return [new(line, "Der Eintrag darf nicht null sein.")];
         List<ValidationResult> errors = [];
         Validator.TryValidateObject(row, new ValidationContext(row), errors, true);
-        return errors.Select(error => new VehicleImportError(line, error.ErrorMessage ?? "Ungültiger Eintrag."));
+        return errors.Select(error => new VehicleImportError(line, error.ErrorMessage ?? "UngÃ¼ltiger Eintrag."));
     }
 
     private async Task<ServiceResult> InTransaction(VehicleTransferKind kind, Func<Task<ServiceResult>> apply, CancellationToken ct)
@@ -103,9 +121,9 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
                 return result;
             });
         }
-        catch (DbUpdateConcurrencyException) { return Invalid([new(null, "Die Daten wurden gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
+        catch (DbUpdateConcurrencyException) { return Invalid([new(null, "Die Daten wurden gleichzeitig geÃ¤ndert. Es wurde kein Eintrag importiert.")], 409); }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" or "23503" })
-        { return Invalid([new(null, "Eine Zuordnung oder ein Name wurde gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
+        { return Invalid([new(null, "Eine Zuordnung oder ein Name wurde gleichzeitig geÃ¤ndert. Es wurde kein Eintrag importiert.")], 409); }
     }
 
     private async Task<ServiceResult> ImportTypes(List<VehicleTypeImportDto> rows, CancellationToken ct)
@@ -119,7 +137,7 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
         {
             var row = rows[index]; var name = row.Name.Trim(); var normalized = Normalize(name);
             if (name.Length == 0 || !names.Add(normalized) || row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
-            { errors.Add(new(index + 1, "Typname/ID ist leer, ungültig oder in der Datei mehrfach vorhanden.")); continue; }
+            { errors.Add(new(index + 1, "Typname/ID ist leer, ungÃ¼ltig oder in der Datei mehrfach vorhanden.")); continue; }
             var idMatch = row.Id is { } id ? byId.GetValueOrDefault(id) : null;
             var nameMatch = byName.GetValueOrDefault(normalized);
             if (idMatch is not null && nameMatch is not null && idMatch.Id != nameMatch.Id)
@@ -127,7 +145,7 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
             var type = idMatch ?? nameMatch;
             if (type is null) { type = new VehicleType { Id = row.Id ?? Guid.NewGuid() }; db.Set<VehicleType>().Add(type); created++; }
             else { type.Version++; updated++; }
-            if (!targets.Add(type.Id)) { errors.Add(new(index + 1, "Derselbe Fahrzeugtyp würde mehrfach ersetzt werden.")); continue; }
+            if (!targets.Add(type.Id)) { errors.Add(new(index + 1, "Derselbe Fahrzeugtyp wÃ¼rde mehrfach ersetzt werden.")); continue; }
             type.Name = name; type.NormalizedName = normalized; type.IsActive = row.IsActive;
         }
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated, []));
@@ -160,7 +178,7 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
             if (department is null) { errors.Add(new(entry.Line, "Feuerwehr nicht gefunden oder nicht eindeutig. Bei gleichen Namen bitte fireDepartmentId angeben.")); continue; }
             var matches = byEmail[normalizer.NormalizeEmail(row.EquipmentOfficerEmail.Trim()) ?? ""].ToList();
             if (matches.Count != 1 || matches[0].FireDepartmentId != department.Id)
-            { errors.Add(new(entry.Line, "Die Gerätewart-E-Mail muss genau einem aktiven Gerätewart dieser Feuerwehr zugeordnet sein.")); continue; }
+            { errors.Add(new(entry.Line, "Die GerÃ¤tewart-E-Mail muss genau einem aktiven GerÃ¤tewart dieser Feuerwehr zugeordnet sein.")); continue; }
             var officer = matches[0];
             var key = (department.Id, Normalize(row.RadioCallSign));
             if (!keys.Add(key) || row.Id is { } rowId && !ids.Add(rowId))
@@ -173,18 +191,18 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
             { errors.Add(new(entry.Line, "ID und Funkrufname/Feuerwehr verweisen auf unterschiedliche Fahrzeuge.")); continue; }
             vehicle ??= natural.SingleOrDefault();
             if (!IsAdmin && (department.Id != actor.FireDepartmentId || vehicle is not null && vehicle.EquipmentOfficerId != UserId))
-                return Invalid([new(entry.Line, "Keine Berechtigung für dieses Fahrzeug oder diese Feuerwehr.")], 403);
+                return Invalid([new(entry.Line, "Keine Berechtigung fÃ¼r dieses Fahrzeug oder diese Feuerwehr.")], 403);
             var isNew = vehicle is null;
             vehicle ??= new Vehicle { Id = row.Id ?? Guid.NewGuid() };
-            if (!targets.Add(vehicle.Id)) { errors.Add(new(entry.Line, "Dasselbe Fahrzeug würde mehrfach ersetzt werden.")); continue; }
+            if (!targets.Add(vehicle.Id)) { errors.Add(new(entry.Line, "Dasselbe Fahrzeug wÃ¼rde mehrfach ersetzt werden.")); continue; }
             var type = row.VehicleType is null ? vehicle.VehicleTypeId is { } currentType ? types.Values.SingleOrDefault(x => x.Id == currentType) : null
                 : Clean(row.VehicleType) is { } typeName ? types.GetValueOrDefault(Normalize(typeName)) : null;
             if (!string.IsNullOrWhiteSpace(row.VehicleType) && type is null || type is not null && !type.IsActive && (isNew || vehicle.VehicleTypeId != type.Id))
-            { errors.Add(new(entry.Line, "Fahrzeugtyp nicht gefunden oder für neue Zuordnungen deaktiviert. Bitte zuerst die Fahrzeugtypen importieren.")); continue; }
+            { errors.Add(new(entry.Line, "Fahrzeugtyp nicht gefunden oder fÃ¼r neue Zuordnungen deaktiviert. Bitte zuerst die Fahrzeugtypen importieren.")); continue; }
             var status = !string.IsNullOrWhiteSpace(row.Status) ? statuses.GetValueOrDefault(Normalize(row.Status))
                 : statuses.Values.SingleOrDefault(x => x.Id == vehicle.VehicleStatusId);
             if (status is null || !status.IsActive && (isNew || vehicle.VehicleStatusId != status.Id))
-            { errors.Add(new(entry.Line, "Status nicht gefunden oder für neue Zuordnungen deaktiviert. Bitte zuerst den Status anlegen.")); continue; }
+            { errors.Add(new(entry.Line, "Status nicht gefunden oder fÃ¼r neue Zuordnungen deaktiviert. Bitte zuerst den Status anlegen.")); continue; }
             vehicle.FireDepartmentId = department.Id; vehicle.EquipmentOfficerId = officer.Id;
             vehicle.RadioCallSign = row.RadioCallSign.Trim();
             if (row.Name is not null) vehicle.Name = Clean(row.Name);
@@ -201,3 +219,4 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated, []));
     }
 }
+

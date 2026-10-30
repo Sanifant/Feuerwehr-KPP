@@ -2,18 +2,18 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Controller.IncidentModules;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public sealed class IncidentArchiveTests : IDisposable
 {
@@ -40,8 +40,8 @@ public sealed class IncidentArchiveTests : IDisposable
     {
         var incident = new Incident
         {
-            Id = Guid.NewGuid(), Name = "Brand Gerätehaus", Keyword = "B3", IncidentNumber = "2026-123",
-            Description = "Löschzug Straße", Status = status, CreatedAtUtc = DateTime.UtcNow.AddHours(-6),
+            Id = Guid.NewGuid(), Name = "Brand GerÃ¤tehaus", Keyword = "B3", IncidentNumber = "2026-123",
+            Description = "LÃ¶schzug StraÃŸe", Status = status, CreatedAtUtc = DateTime.UtcNow.AddHours(-6),
             AlarmedAtUtc = DateTime.UtcNow.AddHours(-7), ClosedAtUtc = status == IncidentStatus.Closed ? DateTime.UtcNow.AddHours(-closedHoursAgo) : null,
             ClosedByDisplayName = "Ada Muster", Revision = 3,
         };
@@ -62,7 +62,7 @@ public sealed class IncidentArchiveTests : IDisposable
         {
             Id = Guid.NewGuid(), DiaryEntryId = entry.Id, RevisionNumber = 1, RevisionType = DiaryRevisionType.Created,
             EventTimestampUtc = incident.CreatedAtUtc, CategoryCode = "meldung", CategoryNameSnapshot = "Meldung",
-            Text = number == 70 ? "LetzteMeldung" : "Löschzug Straße: Wasser am Rohr. " + new string('X', 180) + "\nWeitere Informationen zur Einsatzlage.",
+            Text = number == 70 ? "LetzteMeldung" : "LÃ¶schzug StraÃŸe: Wasser am Rohr. " + new string('X', 180) + "\nWeitere Informationen zur Einsatzlage.",
             Sender = "Florian 1", Recipient = "Einsatzleitung", TransmissionType = "Funk",
             CreatedAtUtc = incident.CreatedAtUtc, CreatedByUserId = "admin-1", CreatedByDisplayName = "Ada Muster",
         };
@@ -77,6 +77,9 @@ public sealed class IncidentArchiveTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes archive Lists Only Closed Incidents In Newest First Pages.
+    /// </summary>
     public async Task ArchiveListsOnlyClosedIncidentsInNewestFirstPages()
     {
         var older = AddIncident(closedHoursAgo: 3);
@@ -90,6 +93,9 @@ public sealed class IncidentArchiveTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes archive Diary Includes Current State And All Revisions Without Changing Data.
+    /// </summary>
     public async Task ArchiveDiaryIncludesCurrentStateAndAllRevisionsWithoutChangingData()
     {
         var incident = AddIncident();
@@ -106,6 +112,9 @@ public sealed class IncidentArchiveTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes archive Rejects Active Or Unknown Incidents.
+    /// </summary>
     public async Task ArchiveRejectsActiveOrUnknownIncidents()
     {
         var active = AddIncident(IncidentStatus.Active);
@@ -118,6 +127,9 @@ public sealed class IncidentArchiveTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes non Admins Cannot Read Archives Or Use Legacy Diary Endpoints For Closed Incidents.
+    /// </summary>
     public async Task NonAdminsCannotReadArchivesOrUseLegacyDiaryEndpointsForClosedIncidents()
     {
         var closed = AddIncident();
@@ -139,6 +151,11 @@ public sealed class IncidentArchiveTests : IDisposable
     [InlineData("IncidentDiaryEditor", false)]
     [InlineData("SituationMapEditor", false)]
     [InlineData(null, false)]
+    /// <summary>
+    /// Executes all Archive Http Endpoints Require Admin Role.
+    /// </summary>
+    /// <param name="role">The role.</param>
+    /// <param name="allowed">The allowed.</param>
     public async Task AllArchiveHttpEndpointsRequireAdminRole(string? role, bool allowed)
     {
         var services = new ServiceCollection();
@@ -164,6 +181,9 @@ public sealed class IncidentArchiveTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes pdf Includes All Entries With Page Breaks Umlauts And Revision History.
+    /// </summary>
     public async Task PdfIncludesAllEntriesWithPageBreaksUmlautsAndRevisionHistory()
     {
         var incident = AddIncident();
@@ -184,5 +204,9 @@ public sealed class IncidentArchiveTests : IDisposable
         if (!string.IsNullOrWhiteSpace(preview)) await File.WriteAllBytesAsync(preview, bytes);
     }
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public void Dispose() => _db.Dispose();
 }
+

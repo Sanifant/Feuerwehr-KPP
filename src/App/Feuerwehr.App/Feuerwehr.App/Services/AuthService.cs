@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 public class AuthService : IAuthService
 {
@@ -57,6 +57,11 @@ public class AuthService : IAuthService
         _ = LoadStoredTokensAsync();
     }
 
+    /// <summary>
+    /// Executes login.
+    /// </summary>
+    /// <param name="email">The email.</param>
+    /// <param name="password">The password.</param>
     public async Task<bool> LoginAsync(string email, string password)
     {
         try
@@ -80,6 +85,9 @@ public class AuthService : IAuthService
         }
     }
 
+    /// <summary>
+    /// Executes logout.
+    /// </summary>
     public async Task LogoutAsync()
     {
         try
@@ -102,6 +110,9 @@ public class AuthService : IAuthService
         }
     }
 
+    /// <summary>
+    /// Executes refresh Token.
+    /// </summary>
     public async Task<bool> RefreshTokenAsync()
     {
         if (string.IsNullOrEmpty(_refreshToken))
@@ -132,6 +143,9 @@ public class AuthService : IAuthService
         }
     }
 
+    /// <summary>
+    /// Gets the access Token.
+    /// </summary>
     public async Task<string?> GetAccessTokenAsync()
     {
         // Check if token is still valid
@@ -198,3 +212,4 @@ public class AuthService : IAuthService
         }
     }
 }
+

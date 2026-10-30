@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using de.openelp.feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace de.openelp.feuerwehr.App.Pages;
+namespace De.Openelp.Feuerwehr.App.Pages;
 
 public partial class InventoryView : ContentPage
 {
@@ -30,3 +30,4 @@ public partial class InventoryView : ContentPage
         { e.Handled = true; await vm.LookupCommand.ExecuteAsync(null); }
     }
 }
+

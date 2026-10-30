@@ -6,13 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Services;
 using Mapsui;
 using Mapsui.Projections;
 using Mapsui.Tiling;
 
-namespace de.openelp.feuerwehr.App.ViewModels;
+namespace De.Openelp.Feuerwehr.App.ViewModels;
 
+/// <summary>
+/// Executes situation Map View Model.
+/// </summary>
+/// <param name="service">The service.</param>
+/// <param name="authService">The auth Service.</param>
 public partial class SituationMapViewModel(ISituationMapService service, IAuthService authService) : ViewModelBase
 {
     private Guid? displayedIncidentId;
@@ -35,6 +40,9 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
 
     public bool CanView => authService.IsAuthenticated && (authService.UserRoles.Contains("SituationMapViewer") || authService.UserRoles.Contains("SituationMapEditor"));
 
+    /// <summary>
+    /// Executes activate.
+    /// </summary>
     public void Activate()
     {
         authService.AuthStateChanged += OnAuthStateChanged;
@@ -47,6 +55,9 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         Map = currentMap;
         }
 
+    /// <summary>
+    /// Executes deactivate.
+    /// </summary>
     public void Deactivate()
     {
         authService.AuthStateChanged -= OnAuthStateChanged;
@@ -62,23 +73,27 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         {
             RefreshCommand.Cancel();
             Clear();
-            StatusMessage = "Keine Berechtigung für die Lagekarte.";
+            StatusMessage = "Keine Berechtigung fÃ¼r die Lagekarte.";
         }
     }
 
     [RelayCommand(CanExecute = nameof(CanView))]
+    /// <summary>
+    /// Executes refresh.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
         if (!CanView)
         {
             Clear();
-            StatusMessage = "Keine Berechtigung für die Lagekarte.";
+            StatusMessage = "Keine Berechtigung fÃ¼r die Lagekarte.";
             return;
         }
 
         try
         {
-            StatusMessage = "Lagekarte wird geladen …";
+            StatusMessage = "Lagekarte wird geladen â€¦";
             var incident = await service.GetActiveIncidentAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             if (!CanView) return;
@@ -124,7 +139,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         {
             Clear();
             StatusMessage = exception is HttpRequestException { StatusCode: HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized }
-                ? "Keine Berechtigung für die Lagekarte. Bitte erneut anmelden."
+                ? "Keine Berechtigung fÃ¼r die Lagekarte. Bitte erneut anmelden."
                 : "Die Lagekarte konnte nicht geladen werden. Bitte erneut aktualisieren.";
         }
     }
@@ -132,6 +147,9 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
 
 
     [RelayCommand]
+    /// <summary>
+    /// Executes zoom In.
+    /// </summary>
     public void ZoomIn()
     {
         if (zoomFactor == 1)
@@ -144,6 +162,9 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
     }
 
     [RelayCommand]
+    /// <summary>
+    /// Executes zoom Out.
+    /// </summary>
     public void ZoomOut()
     {
         CanZoomIn = true;
@@ -161,3 +182,4 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         LastUpdated = string.Empty;
     }
 }
+

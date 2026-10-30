@@ -1,10 +1,10 @@
-using de.openelp.feuerwehr.Server;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Server.Controller;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Server.Controller;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Data;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Data;
 
 public sealed class DbInitializerTests : IDisposable
 {
@@ -49,6 +49,10 @@ public sealed class DbInitializerTests : IDisposable
     [InlineData("   ")]
     [InlineData("admin@example.org")]
     [InlineData("  admin@example.org  ")]
+    /// <summary>
+    /// Executes seed Data Uses Environment Credentials And Assigns All Admin Roles.
+    /// </summary>
+    /// <param name="configuredEmail">The configured Email.</param>
     public async Task SeedData_UsesEnvironmentCredentialsAndAssignsAllAdminRoles(string? configuredEmail)
     {
         // A unique prefix avoids changing the real application's configuration or other tests.
@@ -91,6 +95,10 @@ public sealed class DbInitializerTests : IDisposable
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
+    /// <summary>
+    /// Executes seed Data Missing Password Fails Without Creating Admin.
+    /// </summary>
+    /// <param name="password">The password.</param>
     public async Task SeedData_MissingPasswordFailsWithoutCreatingAdmin(string? password)
     {
         _configuration["SeedAdmin:Password"] = password;
@@ -102,6 +110,9 @@ public sealed class DbInitializerTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes seed Data Invalid Password Fails Without Creating Admin Or Logging Password.
+    /// </summary>
     public async Task SeedData_InvalidPasswordFailsWithoutCreatingAdminOrLoggingPassword()
     {
         const string invalidPassword = "weak-secret";
@@ -121,6 +132,11 @@ public sealed class DbInitializerTests : IDisposable
     [InlineData(AdminEmail, "DifferentSeedPassword456!")]
     [InlineData("admin@example.org", null)]
     [InlineData("admin@example.org", "DifferentSeedPassword456!")]
+    /// <summary>
+    /// Executes seed Data Existing Admin Keeps Password And Repairs Missing Roles.
+    /// </summary>
+    /// <param name="email">The email.</param>
+    /// <param name="configuredPassword">The configured Password.</param>
     public async Task SeedData_ExistingAdminKeepsPasswordAndRepairsMissingRoles(string email, string? configuredPassword)
     {
         var admin = new ApplicationUser { UserName = email, Email = email };
@@ -145,6 +161,10 @@ public sealed class DbInitializerTests : IDisposable
     [InlineData(Roles.SituationMapEditor)]
     [InlineData(Roles.IncidentDiaryViewer)]
     [InlineData(Roles.IncidentDiaryEditor)]
+    /// <summary>
+    /// Executes seed Data Existing Database Adds Module Roles And Allows User Role Updates.
+    /// </summary>
+    /// <param name="moduleRole">The module Role.</param>
     public async Task SeedData_ExistingDatabaseAddsModuleRolesAndAllowsUserRoleUpdates(string moduleRole)
     {
         var roles = _provider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -174,8 +194,11 @@ public sealed class DbInitializerTests : IDisposable
         }
         Assert.Equal(new[] { Roles.Viewer }, await _users.GetRolesAsync(user));
 
-        var controller = new UsersController(new UsersService(_users, roles,
-            Mock.Of<IUserInvitationService>(), NullLogger<UsersService>.Instance));
+        var controller = new UsersController(new UsersService(
+            _users,
+            roles,
+            Mock.Of<IUserInvitationService>(),
+            NullLogger<UsersService>.Instance));
         var response = await controller.UpdateUser(user.Id, new UpdateUserRequest
         {
             Roles = [Roles.Viewer, moduleRole]
@@ -186,6 +209,9 @@ public sealed class DbInitializerTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes seed Data Invalid Email Fails Without Creating Admin.
+    /// </summary>
     public async Task SeedData_InvalidEmailFailsWithoutCreatingAdmin()
     {
         _configuration["SeedAdmin:Email"] = "not-an-email";
@@ -199,6 +225,9 @@ public sealed class DbInitializerTests : IDisposable
         Assert.DoesNotContain(InitialPassword, string.Join("\n", _logger.Messages));
     }
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public void Dispose()
     {
         _provider.Dispose();
@@ -208,9 +237,19 @@ public sealed class DbInitializerTests : IDisposable
     private sealed class CapturingLogger : ILogger<Program>
     {
         public List<string> Messages { get; } = [];
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+            => null;
+
+        /// <summary>
+        /// Determines whether enabled.
+        /// </summary>
+        /// <param name="logLevel">The log Level.</param>
         public bool IsEnabled(LogLevel logLevel) => true;
+
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter) => Messages.Add(formatter(state, exception) + exception);
     }
 }
+

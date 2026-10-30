@@ -1,10 +1,10 @@
 using System.Security.Claims;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +12,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public sealed class VehicleServiceTests
 {
     [Fact]
+    /// <summary>
+    /// Executes status Timestamp Tracks Initial Assignment And Real Transitions But Not Master Data Or Activation Edits.
+    /// </summary>
     public async Task StatusTimestampTracksInitialAssignmentAndRealTransitionsButNotMasterDataOrActivationEdits()
     {
         await using var fixture = new Fixture();
@@ -46,6 +49,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes legacy Vehicle Timestamp Stays Unknown Until Its Status Actually Changes.
+    /// </summary>
     public async Task LegacyVehicleTimestampStaysUnknownUntilItsStatusActuallyChanges()
     {
         await using var fixture = new Fixture();
@@ -55,22 +61,25 @@ public sealed class VehicleServiceTests
         var updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
         {
             FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-            Name = "Name geändert", ExpectedVersion = vehicle.Version
+            Name = "Name geÃ¤ndert", ExpectedVersion = vehicle.Version
         }, default)).Value);
         Assert.Null(updated.StatusChangedAtUtc);
     }
 
     [Fact]
+    /// <summary>
+    /// Executes status Catalog Is Extensible And Maintenance Prevents New Bookings And Approval.
+    /// </summary>
     public async Task StatusCatalogIsExtensibleAndMaintenancePreventsNewBookingsAndApproval()
     {
         await using var fixture = new Fixture();
         var statuses = Assert.IsType<List<VehicleStatusDto>>((await fixture.Service.Statuses(false, default)).Value);
         Assert.Equal(3, statuses.Count);
         Assert.Equal(new[] { "Abgemeldet", "Betriebsbereit", "Wartung" }, statuses.Select(x => x.Name).OrderBy(x => x).ToArray());
-        Assert.Equal(403, (await fixture.Service.SaveStatus(null, new() { Name = "Außer Dienst" }, default)).Code);
+        Assert.Equal(403, (await fixture.Service.SaveStatus(null, new() { Name = "AuÃŸer Dienst" }, default)).Code);
         fixture.As("admin", Roles.Admin);
-        var custom = Assert.IsType<VehicleStatusDto>((await fixture.Service.SaveStatus(null, new() { Name = "Außer Dienst", AllowsBooking = false }, default)).Value);
-        Assert.Equal(409, (await fixture.Service.SaveStatus(null, new() { Name = "außer dienst" }, default)).Code);
+        var custom = Assert.IsType<VehicleStatusDto>((await fixture.Service.SaveStatus(null, new() { Name = "AuÃŸer Dienst", AllowsBooking = false }, default)).Value);
+        Assert.Equal(409, (await fixture.Service.SaveStatus(null, new() { Name = "auÃŸer dienst" }, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
         var vehicle = await fixture.Vehicle();
         fixture.As("member", Roles.Firefighter);
@@ -89,6 +98,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes availability Can Be Filtered By Normalized Vehicle Type.
+    /// </summary>
     public async Task AvailabilityCanBeFilteredByNormalizedVehicleType()
     {
         await using var fixture = new Fixture();
@@ -104,6 +116,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes vehicle Types Require Admin Reject Duplicates And Preserve Existing Assignments When Deactivated.
+    /// </summary>
     public async Task VehicleTypesRequireAdmin_RejectDuplicatesAndPreserveExistingAssignmentsWhenDeactivated()
     {
         await using var fixture = new Fixture();
@@ -143,6 +158,11 @@ public sealed class VehicleServiceTests
     [InlineData(Roles.Viewer, 403)]
     [InlineData(Roles.InventoryViewer, 403)]
     [InlineData(Roles.Admin, 403)]
+    /// <summary>
+    /// Executes requests Require An Explicit Booking Role.
+    /// </summary>
+    /// <param name="role">The role.</param>
+    /// <param name="expected">The expected.</param>
     public async Task RequestsRequireAnExplicitBookingRole(string role, int expected)
     {
         await using var fixture = new Fixture();
@@ -154,12 +174,15 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes pending Requests Are Orange And Non Blocking Only Approval Claims All Days.
+    /// </summary>
     public async Task PendingRequestsAreOrangeAndNonBlocking_OnlyApprovalClaimsAllDays()
     {
         await using var fixture = new Fixture();
         var vehicle = await fixture.Vehicle();
         fixture.As("member", Roles.Firefighter);
-        var request = fixture.Request("Fahrt zur Jugendfeuerwehr <Übung>");
+        var request = fixture.Request("Fahrt zur Jugendfeuerwehr <Ãœbung>");
         var first = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, request, false, default)).Value);
         var second = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
         Assert.Equal(VehicleReservationStatus.Pending, first.Status);
@@ -179,13 +202,16 @@ public sealed class VehicleServiceTests
         Assert.All(calendar[0].Days, day => Assert.Equal(VehicleDayStatus.Booked, day.Status));
         var confirmation = await fixture.Db.VehicleMailMessages.SingleAsync(x => x.Kind == "Confirmed");
         Assert.Equal("member@example.test", confirmation.Recipient);
-        Assert.Contains("Fahrt zur Jugendfeuerwehr <Übung>", confirmation.TextBody);
+        Assert.Contains("Fahrt zur Jugendfeuerwehr <Ãœbung>", confirmation.TextBody);
         Assert.Contains("&lt;", confirmation.HtmlBody);
-        Assert.Contains("Fahrt zur Jugendfeuerwehr <Übung>", System.Net.WebUtility.HtmlDecode(confirmation.HtmlBody));
-        Assert.DoesNotContain("<Übung>", confirmation.HtmlBody);
+        Assert.Contains("Fahrt zur Jugendfeuerwehr <Ãœbung>", System.Net.WebUtility.HtmlDecode(confirmation.HtmlBody));
+        Assert.DoesNotContain("<Ãœbung>", confirmation.HtmlBody);
     }
 
     [Fact]
+    /// <summary>
+    /// Executes retries Do Not Create Duplicate Requests Bookings Or Emails.
+    /// </summary>
     public async Task RetriesDoNotCreateDuplicateRequestsBookingsOrEmails()
     {
         await using var fixture = new Fixture();
@@ -207,6 +233,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes only Assigned Officer Can Decide Or Book Directly Admin Can Maintain.
+    /// </summary>
     public async Task OnlyAssignedOfficerCanDecideOrBookDirectly_AdminCanMaintain()
     {
         await using var fixture = new Fixture();
@@ -226,6 +255,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes direct Booking Is Confirmed And Cancellation Releases Days Without Deleting History.
+    /// </summary>
     public async Task DirectBookingIsConfirmed_AndCancellationReleasesDaysWithoutDeletingHistory()
     {
         await using var fixture = new Fixture();
@@ -242,6 +274,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes vehicle Data And Booking Dates Are Validated Officer Cannot Create For Another Department.
+    /// </summary>
     public async Task VehicleDataAndBookingDatesAreValidated_OfficerCannotCreateForAnotherDepartment()
     {
         await using var fixture = new Fixture();
@@ -257,6 +292,9 @@ public sealed class VehicleServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes mail Failure Keeps Booking And Retries Later.
+    /// </summary>
     public async Task MailFailureKeepsBookingAndRetriesLater()
     {
         await using var fixture = new Fixture();
@@ -295,17 +333,35 @@ public sealed class VehicleServiceTests
                 new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), Clock));
             As("officer", Roles.EquipmentOfficer);
         }
+        /// <summary>
+        /// Executes as.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public void As(string id, string role) => http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
             [new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
+        /// <summary>
+        /// Executes vehicle.
+        /// </summary>
         public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await Service.Save(null, new()
             { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
+        /// <summary>
+        /// Executes request.
+        /// </summary>
+        /// <param name="comment">The comment.</param>
         public CreateVehicleReservationRequest Request(string? comment = null) => new()
             { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
+        /// <summary>
+        /// Executes dispose.
+        /// </summary>
         public ValueTask DisposeAsync() => Db.DisposeAsync();
     }
     private sealed class TestClock : TimeProvider
     {
         public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        /// <summary>
+        /// Gets the utc Now.
+        /// </summary>
         public override DateTimeOffset GetUtcNow() => UtcNow;
     }
 }
+

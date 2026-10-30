@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace de.openelp.feuerwehr.App.Models
+namespace De.Openelp.Feuerwehr.App.Models
 {
     public class HydrantPin
     {
@@ -15,3 +15,4 @@ namespace de.openelp.feuerwehr.App.Models
         public double Longitude { get; set; }
     }
 }
+

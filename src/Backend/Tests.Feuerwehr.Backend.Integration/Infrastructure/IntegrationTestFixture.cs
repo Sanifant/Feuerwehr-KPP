@@ -1,9 +1,9 @@
-using System.Net.Http.Json;
-using de.openelp.feuerwehr.Common.Models.Auth;
+﻿using System.Net.Http.Json;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
 public sealed class IntegrationTestFixture : IAsyncLifetime
 {
@@ -23,6 +23,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
 
     public HttpClient Client { get; private set; } = default!;
 
+    /// <summary>
+    /// Initializes the operation.
+    /// </summary>
     public async Task InitializeAsync()
     {
         await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
@@ -45,6 +48,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         });
     }
 
+    /// <summary>
+    /// Executes login As Admin And Get Access Token.
+    /// </summary>
     public async Task<string> LoginAsAdminAndGetAccessTokenAsync()
     {
         var response = await Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
@@ -58,6 +64,9 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         return login?.AccessToken ?? throw new InvalidOperationException("Login response did not contain an access token.");
     }
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public async Task DisposeAsync()
     {
         Client.Dispose();
@@ -77,3 +86,4 @@ public sealed class IntegrationTestFixture : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 }
+

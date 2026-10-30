@@ -1,4 +1,4 @@
-using de.openelp.feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace de.openelp.feuerwehr.App.Services
+namespace De.Openelp.Feuerwehr.App.Services
 {
     public class HydrantService : IHydrantService
     {
@@ -19,6 +19,9 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // GET: api/hydrant
+        /// <summary>
+        /// Gets the all.
+        /// </summary>
         public async Task<IEnumerable<Hydrant>> GetAllAsync()
         {
             var response = await _httpClient.GetAsync(BaseUrl);
@@ -33,6 +36,10 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // GET: api/hydrant/5
+        /// <summary>
+        /// Gets the by Id.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public async Task<Hydrant> GetByIdAsync(int id)
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
@@ -42,10 +49,14 @@ namespace de.openelp.feuerwehr.App.Services
                 return await response.Content.ReadFromJsonAsync<Hydrant>();
             }
 
-            return null; // Oder wirf hier eine Exception, je nach gewünschtem Fehlerhandling
+            return null; // Oder wirf hier eine Exception, je nach gewÃ¼nschtem Fehlerhandling
         }
 
         // POST: api/hydrant
+        /// <summary>
+        /// Creates the operation.
+        /// </summary>
+        /// <param name="hydrant">The hydrant.</param>
         public async Task<Hydrant> CreateAsync(Hydrant hydrant)
         {
             var response = await _httpClient.PostAsync(BaseUrl, JsonContent.Create(hydrant));
@@ -59,6 +70,11 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // PUT: api/hydrant/5
+        /// <summary>
+        /// Updates the operation.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="hydrant">The hydrant.</param>
         public async Task<bool> UpdateAsync(int id, Hydrant hydrant)
         {
             var response = await _httpClient.PutAsync($"{BaseUrl}/{id}", JsonContent.Create(hydrant));
@@ -66,6 +82,10 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // DELETE: api/hydrant/5
+        /// <summary>
+        /// Deletes the operation.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public async Task<bool> DeleteAsync(int id)
         {
             var response = await _httpClient.DeleteAsync($"{BaseUrl}/{id}");
@@ -73,3 +93,4 @@ namespace de.openelp.feuerwehr.App.Services
         }
     }
 }
+

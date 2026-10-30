@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace de.openelp.feuerwehr.Server.Migrations
+namespace De.Openelp.Feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class AddIncidentAlarmTime : Migration
@@ -38,3 +38,4 @@ namespace de.openelp.feuerwehr.Server.Migrations
         }
     }
 }
+

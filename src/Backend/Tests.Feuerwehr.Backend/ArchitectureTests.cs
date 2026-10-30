@@ -1,19 +1,22 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Server.Controller;
-using de.openelp.feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Server.Controller;
+using De.Openelp.Feuerwehr.Server.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Tests.Backend;
+namespace De.Openelp.Feuerwehr.Tests.Backend;
 
 public class ArchitectureTests
 {
     [Fact]
+    /// <summary>
+    /// Executes controllers Only Depend On Application Service Interfaces.
+    /// </summary>
     public void Controllers_OnlyDependOnApplicationServiceInterfaces()
     {
         var controllers = typeof(HydrantController).Assembly.GetTypes()
@@ -22,11 +25,14 @@ public class ArchitectureTests
         {
             var dependency = Assert.Single(Assert.Single(controller.GetConstructors()).GetParameters()).ParameterType;
             Assert.True(dependency.IsInterface, controller.FullName);
-            Assert.StartsWith("de.openelp.feuerwehr.Server.Services", dependency.Namespace);
+            Assert.StartsWith("De.Openelp.Feuerwehr.Server.Services", dependency.Namespace);
         }
     }
 
     [Fact]
+    /// <summary>
+    /// Executes common Contains Contracts Without Server Or Persistence Dependencies.
+    /// </summary>
     public void Common_ContainsContractsWithoutServerOrPersistenceDependencies()
     {
         var common = typeof(LoginRequest).Assembly;
@@ -39,6 +45,9 @@ public class ArchitectureTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes shared Responses Keep Existing Json Field Names.
+    /// </summary>
     public void SharedResponses_KeepExistingJsonFieldNames()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -51,6 +60,9 @@ public class ArchitectureTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes namespace And Entity Separation Do Not Require Schema Changes.
+    /// </summary>
     public void NamespaceAndEntitySeparation_DoNotRequireSchemaChanges()
     {
         using var db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
@@ -58,3 +70,4 @@ public class ArchitectureTests
         Assert.False(db.Database.HasPendingModelChanges());
     }
 }
+

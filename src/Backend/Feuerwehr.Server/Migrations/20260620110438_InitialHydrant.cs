@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace de.openelp.feuerwehr.Server.Migrations
+namespace De.Openelp.Feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class InitialHydrant : Migration
@@ -48,3 +48,4 @@ namespace de.openelp.feuerwehr.Server.Migrations
         }
     }
 }
+

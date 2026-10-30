@@ -1,11 +1,11 @@
-ï»¿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace de.openelp.feuerwehr.Server.Migrations
+namespace De.Openelp.Feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class AddEquipmentInventory : Migration
@@ -132,7 +132,7 @@ namespace de.openelp.feuerwehr.Server.Migrations
                 columns: new[] { "Id", "Name", "NormalizedName" },
                 values: new object[,]
                 {
-                    { new Guid("f3050002-0000-0000-0000-000000000001"), "LÃ¶schgerÃ¤te", "LÃ–SCHGERÃ„TE" },
+                    { new Guid("f3050002-0000-0000-0000-000000000001"), "Löschgeräte", "LÖSCHGERÄTE" },
                     { new Guid("f3050002-0000-0000-0000-000000000002"), "Armaturen", "ARMATUREN" },
                     { new Guid("f3050002-0000-0000-0000-000000000003"), "Beleuchtung", "BELEUCHTUNG" }
                 });
@@ -200,3 +200,4 @@ namespace de.openelp.feuerwehr.Server.Migrations
         }
     }
 }
+

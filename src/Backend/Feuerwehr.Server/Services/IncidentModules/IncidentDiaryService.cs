@@ -1,22 +1,34 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using System.Text.Json;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 
-namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
+namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 
+/// <summary>
+/// Executes incident Diary Service.
+/// </summary>
+/// <param name="dbContext">The db Context.</param>
+/// <param name="userContext">The user Context.</param>
+/// <param name="idempotency">The idempotency.</param>
+/// <param name="outboxService">The outbox Service.</param>
 public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
     IUserContextAccessor userContext,
     ICommandIdempotencyService idempotency,
     IOutboxService outboxService) : IIncidentDiaryService
 {
 
+    /// <summary>
+    /// Gets the entries.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> GetEntries(Guid incidentId, CancellationToken cancellationToken)
     {
         var incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -58,6 +70,10 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Gets the categories.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> GetCategories(CancellationToken cancellationToken)
     {
         var categories = await dbContext.DiaryCategories.AsNoTracking()
@@ -69,6 +85,12 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Creates the entry.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> CreateEntry(Guid incidentId, CreateDiaryEntryRequest request, CancellationToken cancellationToken)
     {
 
@@ -93,7 +115,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         var category = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == request.CategoryCode, cancellationToken);
         if (category is null || !category.IsActive)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfügbar.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfÃ¼gbar.");
         }
 
         var now = DateTime.UtcNow;
@@ -148,6 +170,13 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Updates the entry.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="entryId">The entry Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> UpdateEntry(Guid incidentId, Guid entryId, UpdateDiaryEntryRequest request, CancellationToken cancellationToken)
     {
 
@@ -183,7 +212,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         var category = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == request.CategoryCode, cancellationToken);
         if (category is null || !category.IsActive)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfügbar.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfÃ¼gbar.");
         }
 
         var now = DateTime.UtcNow;
@@ -226,12 +255,19 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes cancel Entry.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="entryId">The entry Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> CancelEntry(Guid incidentId, Guid entryId, CancelDiaryEntryRequest request, CancellationToken cancellationToken)
     {
 
         if (string.IsNullOrWhiteSpace(request.Reason))
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Stornierungsbegründung ist erforderlich.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "StornierungsbegrÃ¼ndung ist erforderlich.");
         }
 
         var payload = new { incidentId, entryId, request.ExpectedRevision, request.Reason };
@@ -311,6 +347,11 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes export Diary Pdf.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> ExportDiaryPdf(Guid incidentId, CancellationToken cancellationToken)
     {
         var incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -352,7 +393,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
             }
             lines.Add("");
         }
-        if (entries.Count == 0) lines.Add("Keine Tagebucheinträge vorhanden.");
+        if (entries.Count == 0) lines.Add("Keine TagebucheintrÃ¤ge vorhanden.");
 
         var pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Einsatztagebuch", lines);
         return ServiceResult.File(pdfBytes, "application/pdf", $"einsatztagebuch-{incidentId:N}.pdf");
@@ -362,8 +403,8 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
     private static void AddRevisionLines(List<string> lines, DiaryRevisionDto revision)
     {
         lines.Add($"Version {revision.RevisionNumber} | Ereignis UTC: {revision.EventTimestampUtc:dd.MM.yyyy HH:mm:ss}");
-        lines.Add($"Kategorie: {revision.CategoryNameSnapshot} | Übermittlung: {revision.TransmissionType ?? "-"}");
-        lines.Add($"Absender: {revision.Sender ?? "-"} | Empfänger: {revision.Recipient ?? "-"}");
+        lines.Add($"Kategorie: {revision.CategoryNameSnapshot} | Ãœbermittlung: {revision.TransmissionType ?? "-"}");
+        lines.Add($"Absender: {revision.Sender ?? "-"} | EmpfÃ¤nger: {revision.Recipient ?? "-"}");
         lines.Add(revision.Text);
         if (!string.IsNullOrWhiteSpace(revision.CancellationReason)) lines.Add($"Grund: {revision.CancellationReason}");
         lines.Add($"Erfasst UTC: {revision.CreatedAtUtc:dd.MM.yyyy HH:mm:ss} durch {revision.CreatedByDisplayName}");
@@ -396,3 +437,4 @@ public interface IIncidentDiaryService
     Task<ServiceResult> CancelEntry(Guid incidentId, Guid entryId, CancelDiaryEntryRequest request, CancellationToken cancellationToken);
     Task<ServiceResult> ExportDiaryPdf(Guid incidentId, CancellationToken cancellationToken);
 }
+

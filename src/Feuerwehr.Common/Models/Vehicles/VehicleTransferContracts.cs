@@ -1,8 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace de.openelp.feuerwehr.Common.Models.Vehicles;
+namespace De.Openelp.Feuerwehr.Common.Models.Vehicles;
 
+/// <summary>
+/// Executes vehicle Import Error.
+/// </summary>
+/// <param name="LineNumber">The line Number.</param>
+/// <param name="Description">The description.</param>
 public sealed record VehicleImportError(long? LineNumber, string Description);
+/// <summary>
+/// Executes vehicle Import Response.
+/// </summary>
+/// <param name="CreatedCount">The created Count.</param>
+/// <param name="UpdatedCount">The updated Count.</param>
+/// <param name="Errors">The errors.</param>
 public sealed record VehicleImportResponse(int CreatedCount, int UpdatedCount, IReadOnlyList<VehicleImportError> Errors);
 
 public sealed class VehicleTypeImportDto
@@ -25,3 +36,4 @@ public sealed class VehicleImportDto
     [StringLength(100)] public string? Status { get; set; }
     public bool? IsActive { get; set; }
 }
+

@@ -1,11 +1,11 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Identity;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public sealed class AuthService : IAuthService
 {
@@ -32,6 +32,7 @@ public sealed class AuthService : IAuthService
     /// <summary>
     /// Login with email and password
     /// </summary>
+    /// <param name="request">The request.</param>
 
     public async Task<ServiceResult> Login(LoginRequest request)
     {
@@ -43,7 +44,7 @@ public sealed class AuthService : IAuthService
         }
 
         if (user.PasswordResetRequired)
-            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe über den Einladungslink gesperrt."));
+            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe Ã¼ber den Einladungslink gesperrt."));
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
@@ -90,6 +91,8 @@ public sealed class AuthService : IAuthService
     /// <summary>
     /// Refresh access token using refresh token
     /// </summary>
+    /// <param name="request">The request.</param>
+    /// <param name="bearerToken">The bearer Token.</param>
 
     public async Task<ServiceResult> RefreshToken(RefreshTokenRequest request, string bearerToken)
     {
@@ -147,8 +150,16 @@ public sealed class AuthService : IAuthService
 
     }
 
+    /// <summary>
+    /// Executes reset Password.
+    /// </summary>
     public Task<ServiceResult> ResetPassword(ResetRequest request) => _invitations.CompleteAsync(request);
 
+    /// <summary>
+    /// Executes change Password.
+    /// </summary>
+    /// <param name="request">The request.</param>
+    /// <param name="currentUserId">The current User Id.</param>
     public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId)) return ServiceResult.Unauthorized();
@@ -159,26 +170,27 @@ public sealed class AuthService : IAuthService
         // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.
         var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
         if (passwordCheck.IsLockedOut)
-            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorübergehend gesperrt."));
+            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorÃ¼bergehend gesperrt."));
         if (!passwordCheck.Succeeded)
-            return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestätigt werden."));
+            return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestÃ¤tigt werden."));
 
         var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
         {
             if (result.Errors.Any(error => error.Code == "PasswordMismatch"))
                 return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort ist falsch."));
-            return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geändert werden.",
+            return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geÃ¤ndert werden.",
                 result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
         }
 
         await _tokenService.RevokeRefreshTokenAsync(user.Id);
-        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde geändert."));
+        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde geÃ¤ndert."));
     }
 
     /// <summary>
     /// Logout and revoke refresh token
     /// </summary>
+    /// <param name="currentUserId">The current User Id.</param>
 
     public async Task<ServiceResult> Logout(string? currentUserId)
     {
@@ -198,6 +210,7 @@ public sealed class AuthService : IAuthService
     /// <summary>
     /// Get current user info
     /// </summary>
+    /// <param name="currentUserId">The current User Id.</param>
 
     public async Task<ServiceResult> GetCurrentUser(string? currentUserId)
     {
@@ -230,3 +243,4 @@ public interface IAuthService
     Task<ServiceResult> Logout(string? currentUserId);
     Task<ServiceResult> GetCurrentUser(string? currentUserId);
 }
+

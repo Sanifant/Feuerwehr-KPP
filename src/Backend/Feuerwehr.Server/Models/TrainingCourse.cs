@@ -1,6 +1,6 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
 
-namespace de.openelp.feuerwehr.Server.Models;
+namespace De.Openelp.Feuerwehr.Server.Models;
 
 public class TrainingCourse
 {
@@ -20,3 +20,4 @@ public class TrainingCourse
 
     public ICollection<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; } = new List<FireDepartmentTrainingCourse>();
 }
+

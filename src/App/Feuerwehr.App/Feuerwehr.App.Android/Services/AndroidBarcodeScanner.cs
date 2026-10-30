@@ -3,13 +3,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.Content;
 using Avalonia.Threading;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Services;
 
-namespace de.openelp.feuerwehr.App.Android.Services;
+namespace De.Openelp.Feuerwehr.App.Android.Services;
 
 public sealed class AndroidBarcodeScanner : IBarcodeScanner
 {
     public bool IsSupported => true;
+    /// <summary>
+    /// Executes scan.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<string?> ScanAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -23,3 +27,4 @@ public sealed class AndroidBarcodeScanner : IBarcodeScanner
         return await completion.Task;
     }
 }
+

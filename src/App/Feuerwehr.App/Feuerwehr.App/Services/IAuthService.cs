@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 public interface IAuthService
 {
@@ -17,3 +17,4 @@ public interface IAuthService
     IReadOnlyList<string> UserRoles { get; }
     event EventHandler? AuthStateChanged;
 }
+

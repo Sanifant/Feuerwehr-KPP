@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Models;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.Common.Models;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
@@ -22,7 +22,7 @@ using Mapsui.UI;
 using Mapsui.UI.Avalonia;
 using Mapsui.Widgets.InfoWidgets;
 
-namespace de.openelp.feuerwehr.App.ViewModels
+namespace De.Openelp.Feuerwehr.App.ViewModels
 {
     public partial class MapViewModel : ViewModelBase
     {
@@ -83,6 +83,9 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes zoom In.
+        /// </summary>
         public void ZoomIn()
         {
             if(zoomFactor == 1)
@@ -95,6 +98,9 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes zoom Out.
+        /// </summary>
         public void ZoomOut()
         {
             CanZoomIn = true;
@@ -103,6 +109,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes center On Location.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task CenterOnLocationAsync(CancellationToken cancellationToken)
         {
             GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
@@ -119,6 +129,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes settings.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task SettingsAsync(CancellationToken cancellationToken)
         {
             GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
@@ -153,12 +167,19 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Adds the hydrant.
+        /// </summary>
         public void AddHydrant()
         {
             IsAddVisible = false;
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes map Clicked.
+        /// </summary>
+        /// <param name="mapEventArgs">The map Event Args.</param>
         public void MapClicked(TappedEventArgs? mapEventArgs)
         {
             if (Map is null || mapEventArgs?.Source is not MapControl mapControl)
@@ -197,6 +218,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
             Map = map;
         }
 
+        /// <summary>
+        /// Initializes the location.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task InitializeLocationAsync(CancellationToken cancellationToken = default)
         {
             GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
@@ -210,7 +235,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
-                // --- 2. Einen Pin (Marker) hinzufügen
+                // --- 2. Einen Pin (Marker) hinzufÃ¼gen
                 var pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // Stylen des Pins (z.B. ein roter Punkt)
@@ -220,7 +245,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                     Fill = new Brush { Color = new Color { A = 255, R = 255, G = 0, B = 0 } } // Rot
                 });
 
-                // Layer für den Pin erstellen und der Karte hinzufügen
+                // Layer fÃ¼r den Pin erstellen und der Karte hinzufÃ¼gen
                 var memoryLayer = new MemoryLayer
                 {
                     Name = "Pins",
@@ -264,3 +289,4 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
     }
 }
+

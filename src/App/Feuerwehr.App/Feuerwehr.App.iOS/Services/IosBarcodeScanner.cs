@@ -5,16 +5,20 @@ using System.Threading.Tasks;
 using AVFoundation;
 using CoreFoundation;
 using CoreGraphics;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Services;
 using UIKit;
 
-namespace de.openelp.feuerwehr.App.iOS.Services;
+namespace De.Openelp.Feuerwehr.App.iOS.Services;
 
 public sealed class IosBarcodeScanner : IBarcodeScanner
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     public bool IsSupported => true;
 
+    /// <summary>
+    /// Executes scan.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<string?> ScanAsync(CancellationToken cancellationToken)
     {
         await gate.WaitAsync(cancellationToken);
@@ -56,11 +60,14 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
     private sealed class BarcodeViewController(TaskCompletionSource<string?> completion) : UIViewController
     {
         private readonly AVCaptureSession session = new();
-        private readonly DispatchQueue sessionQueue = new("de.openelp.feuerwehr.inventory.camera");
+        private readonly DispatchQueue sessionQueue = new("De.Openelp.Feuerwehr.inventory.camera");
         private AVCaptureVideoPreviewLayer? preview;
         private MetadataDelegate? metadataDelegate;
         private bool completed;
 
+        /// <summary>
+        /// Executes view Did Load.
+        /// </summary>
         public override void ViewDidLoad()
         {
             base.ViewDidLoad();
@@ -68,13 +75,13 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
             try
             {
                 var device = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video)
-                    ?? throw new InvalidOperationException("Keine Kamera verfügbar.");
+                    ?? throw new InvalidOperationException("Keine Kamera verfÃ¼gbar.");
                 var input = AVCaptureDeviceInput.FromDevice(device, out var error);
-                if (input is null) throw new InvalidOperationException(error?.LocalizedDescription ?? "Kamera nicht verfügbar.");
-                if (!session.CanAddInput(input)) throw new InvalidOperationException("Kameraeingang nicht verfügbar.");
+                if (input is null) throw new InvalidOperationException(error?.LocalizedDescription ?? "Kamera nicht verfÃ¼gbar.");
+                if (!session.CanAddInput(input)) throw new InvalidOperationException("Kameraeingang nicht verfÃ¼gbar.");
                 session.AddInput(input);
                 var output = new AVCaptureMetadataOutput();
-                if (!session.CanAddOutput(output)) throw new InvalidOperationException("Barcodescan nicht verfügbar.");
+                if (!session.CanAddOutput(output)) throw new InvalidOperationException("Barcodescan nicht verfÃ¼gbar.");
                 session.AddOutput(output);
                 metadataDelegate = new MetadataDelegate(this);
                 output.SetDelegate(metadataDelegate, DispatchQueue.MainQueue);
@@ -88,8 +95,16 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
             }
             catch (Exception ex) { Complete(null, ex); }
         }
+        /// <summary>
+        /// Executes view Did Layout Subviews.
+        /// </summary>
         public override void ViewDidLayoutSubviews()
         { base.ViewDidLayoutSubviews(); if (preview is not null) preview.Frame = View!.Bounds; }
+        /// <summary>
+        /// Executes complete.
+        /// </summary>
+        /// <param name="barcode">The barcode.</param>
+        /// <param name="error">The error.</param>
         public void Complete(string? barcode, Exception? error = null)
         {
             if (completed) return;
@@ -97,6 +112,10 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
             sessionQueue.DispatchAsync(() => session.StopRunning());
             DismissViewController(true, () => { if (error is null) completion.TrySetResult(barcode); else completion.TrySetException(error); });
         }
+        /// <summary>
+        /// Executes view Did Disappear.
+        /// </summary>
+        /// <param name="animated">The animated.</param>
         public override void ViewDidDisappear(bool animated)
         {
             base.ViewDidDisappear(animated);
@@ -113,6 +132,12 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
         }
         private sealed class MetadataDelegate(BarcodeViewController owner) : AVCaptureMetadataOutputObjectsDelegate
         {
+            /// <summary>
+            /// Executes did Output Metadata Objects.
+            /// </summary>
+            /// <param name="captureOutput">The capture Output.</param>
+            /// <param name="metadataObjects">The metadata Objects.</param>
+            /// <param name="connection">The connection.</param>
             public override void DidOutputMetadataObjects(AVCaptureMetadataOutput captureOutput, AVMetadataObject[] metadataObjects, AVCaptureConnection connection)
             {
                 foreach (var value in metadataObjects.OfType<AVMetadataMachineReadableCodeObject>())
@@ -125,3 +150,4 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
         }
     }
 }
+

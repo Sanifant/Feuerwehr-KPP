@@ -2,13 +2,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public enum InventoryTransferKind { Equipment, Types, Categories }
 
@@ -18,6 +18,11 @@ public interface IInventoryTransferService
     Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct);
 }
 
+/// <summary>
+/// Executes inventory Transfer Service.
+/// </summary>
+/// <param name="db">The db.</param>
+/// <param name="clock">The clock.</param>
 public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider clock) : IInventoryTransferService
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
@@ -25,6 +30,11 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
     private static string Normalize(string value) => value.Trim().ToUpperInvariant();
     private static ServiceResult Invalid(IEnumerable<InventoryImportError> errors) => ServiceResult.BadRequest(new InventoryImportResponse(0, 0, errors.Take(100).ToList()));
 
+    /// <summary>
+    /// Executes export.
+    /// </summary>
+    /// <param name="kind">The kind.</param>
+    /// <param name="ct">The ct.</param>
     public async Task<ServiceResult> Export(InventoryTransferKind kind, CancellationToken ct)
     {
         if (kind == InventoryTransferKind.Categories)
@@ -55,6 +65,12 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
 
     private static string Date(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
+    /// <summary>
+    /// Executes import.
+    /// </summary>
+    /// <param name="kind">The kind.</param>
+    /// <param name="stream">The stream.</param>
+    /// <param name="ct">The ct.</param>
     public async Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct)
     {
         if (kind == InventoryTransferKind.Equipment)
@@ -78,20 +94,20 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
                 return errors.Count > 0 ? Invalid(errors) : await InTransaction(kind, () => ImportTypes(rows!, ct), ct);
             }
         }
-        catch (JsonException) { return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Kategorien bzw. Gerätetypen mit gültigen UUIDs und Feldwerten.")]); }
+        catch (JsonException) { return Invalid([new(null, "UngÃ¼ltige JSON-Datei. Erwartet wird eine Liste von Kategorien bzw. GerÃ¤tetypen mit gÃ¼ltigen UUIDs und Feldwerten.")]); }
     }
 
     private static List<InventoryImportError> Validate<T>(List<T>? rows) where T : class
     {
         if (rows is null || rows.Count == 0) return [new(null, "Die JSON-Datei muss eine nicht leere Liste enthalten.")];
-        if (rows.Count > 10_000) return [new(null, "Pro Import sind höchstens 10.000 Einträge erlaubt.")];
+        if (rows.Count > 10_000) return [new(null, "Pro Import sind hÃ¶chstens 10.000 EintrÃ¤ge erlaubt.")];
         List<InventoryImportError> errors = [];
         for (var i = 0; i < rows.Count && errors.Count < 100; i++)
         {
             if (rows[i] is not { } row) { errors.Add(new(i + 1, "Der Eintrag darf nicht null sein.")); continue; }
             List<ValidationResult> validation = [];
             Validator.TryValidateObject(row, new ValidationContext(row), validation, validateAllProperties: true);
-            errors.AddRange(validation.Select(x => new InventoryImportError(i + 1, x.ErrorMessage ?? "Ungültiger Eintrag.")));
+            errors.AddRange(validation.Select(x => new InventoryImportError(i + 1, x.ErrorMessage ?? "UngÃ¼ltiger Eintrag.")));
         }
         return errors;
     }
@@ -129,9 +145,9 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
                 return result;
             });
         }
-        catch (DbUpdateConcurrencyException) { return ServiceResult.Problem(409, "Die Daten wurden gleichzeitig geändert. Bitte die Datei und den aktuellen Bestand prüfen und erneut importieren."); }
+        catch (DbUpdateConcurrencyException) { return ServiceResult.Problem(409, "Die Daten wurden gleichzeitig geÃ¤ndert. Bitte die Datei und den aktuellen Bestand prÃ¼fen und erneut importieren."); }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" or "23503" })
-        { return ServiceResult.Problem(409, "Ein Barcode, eine Kategorie oder eine Zuordnung wurde gleichzeitig geändert. Es wurden keine Importzeilen gespeichert."); }
+        { return ServiceResult.Problem(409, "Ein Barcode, eine Kategorie oder eine Zuordnung wurde gleichzeitig geÃ¤ndert. Es wurden keine Importzeilen gespeichert."); }
     }
 
     private async Task<ServiceResult> ImportCategories(List<InventoryCategoryImportDto> rows, CancellationToken ct)
@@ -146,7 +162,7 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
             ct.ThrowIfCancellationRequested();
             var row = rows[i]; var name = row.Name.Trim(); var normalized = Normalize(name);
             if (name.Length == 0 || !names.Add(normalized) || row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
-            { errors.Add(new(i + 1, "Kategoriename/ID ist leer, ungültig oder in der Datei mehrfach vorhanden.")); continue; }
+            { errors.Add(new(i + 1, "Kategoriename/ID ist leer, ungÃ¼ltig oder in der Datei mehrfach vorhanden.")); continue; }
             var byId = row.Id is { } id ? byIds.GetValueOrDefault(id) : null;
             var byName = byNames.GetValueOrDefault(normalized);
             if (byId is not null && byName is not null && byId.Id != byName.Id)
@@ -157,7 +173,7 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
                 category = new InventoryCategory { Id = row.Id ?? Guid.NewGuid() }; db.InventoryCategories.Add(category); created++;
             }
             else updated++;
-            if (!targets.Add(category.Id)) { errors.Add(new(i + 1, "Dieselbe Kategorie würde mehrfach ersetzt werden.")); continue; }
+            if (!targets.Add(category.Id)) { errors.Add(new(i + 1, "Dieselbe Kategorie wÃ¼rde mehrfach ersetzt werden.")); continue; }
             category.Name = name; category.NormalizedName = normalized;
         }
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
@@ -185,18 +201,18 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
             var name = row.Name.Trim();
             if (name.Length == 0 || string.IsNullOrWhiteSpace(row.InspectionInstructions) ||
                 row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
-            { errors.Add(new(i + 1, "Typname/Prüfanweisung ist leer oder Gerätetyp/ID in der Datei mehrfach vorhanden.")); continue; }
+            { errors.Add(new(i + 1, "Typname/PrÃ¼fanweisung ist leer oder GerÃ¤tetyp/ID in der Datei mehrfach vorhanden.")); continue; }
             var type = row.Id is { } id ? typesById.GetValueOrDefault(id) : null;
             if (type is null)
             {
-                if (!keys.Add($"{category.Id}/{Normalize(name)}")) { errors.Add(new(i + 1, "Der Gerätetyp ist in der Datei mehrfach vorhanden.")); continue; }
+                if (!keys.Add($"{category.Id}/{Normalize(name)}")) { errors.Add(new(i + 1, "Der GerÃ¤tetyp ist in der Datei mehrfach vorhanden.")); continue; }
                 var matches = typesByName.GetValueOrDefault((category.Id, Normalize(name))) ?? [];
-                if (matches.Count > 1) { errors.Add(new(i + 1, "Der Gerätetyp ist nicht eindeutig. Bitte seine bestehende ID angeben.")); continue; }
+                if (matches.Count > 1) { errors.Add(new(i + 1, "Der GerÃ¤tetyp ist nicht eindeutig. Bitte seine bestehende ID angeben.")); continue; }
                 type = matches.SingleOrDefault();
             }
             if (type is null) { type = new EquipmentType { Id = row.Id ?? Guid.NewGuid() }; db.EquipmentTypes.Add(type); created++; }
             else { type.Version++; updated++; }
-            if (!targets.Add(type.Id)) { errors.Add(new(i + 1, "Derselbe Gerätetyp würde mehrfach ersetzt werden.")); continue; }
+            if (!targets.Add(type.Id)) { errors.Add(new(i + 1, "Derselbe GerÃ¤tetyp wÃ¼rde mehrfach ersetzt werden.")); continue; }
             type.Category = category; type.CategoryId = category.Id; type.Name = name;
             type.InspectionIntervalMonths = row.InspectionIntervalMonths; type.InspectionInstructions = row.InspectionInstructions.Trim();
         }
@@ -218,12 +234,12 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
             var type = row.TypeId is { } typeId ? typesById.GetValueOrDefault(typeId) : null;
             if (type is not null && (row.TypeName.Length > 0 && Normalize(row.TypeName) != Normalize(type.Name) ||
                 row.Category.Length > 0 && Normalize(row.Category) != type.Category.NormalizedName))
-            { errors.Add(new(row.Line, "Gerätetyp-ID und Typname/Kategorie passen nicht zusammen.")); continue; }
+            { errors.Add(new(row.Line, "GerÃ¤tetyp-ID und Typname/Kategorie passen nicht zusammen.")); continue; }
             if (type is null)
             {
                 var matches = (row.Category.Length == 0 ? typesByName.GetValueOrDefault(Normalize(row.TypeName))
                     : typesByCategory.GetValueOrDefault((Normalize(row.TypeName), Normalize(row.Category)))) ?? [];
-                if (matches.Count != 1) { errors.Add(new(row.Line, "Gerätetyp nicht gefunden oder nicht eindeutig. Bitte vorhandene ID oder Typname und Kategorie angeben.")); continue; }
+                if (matches.Count != 1) { errors.Add(new(row.Line, "GerÃ¤tetyp nicht gefunden oder nicht eindeutig. Bitte vorhandene ID oder Typname und Kategorie angeben.")); continue; }
                 type = matches[0];
             }
             if (existing.TryGetValue(row.BarcodeNumber, out var item))
@@ -236,7 +252,7 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
             {
                 var createdOn = row.CreatedOn ?? Today;
                 if (createdOn > Today || row.LastInspectedOn > Today || row.LastInspectedOn < createdOn)
-                { errors.Add(new(row.Line, "Bei neuen Geräten darf das Datum nicht in der Zukunft liegen; die letzte Prüfung darf nicht vor der Anlage liegen.")); continue; }
+                { errors.Add(new(row.Line, "Bei neuen GerÃ¤ten darf das Datum nicht in der Zukunft liegen; die letzte PrÃ¼fung darf nicht vor der Anlage liegen.")); continue; }
                 item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = row.BarcodeNumber, CreatedOn = createdOn,
                     LastInspectedOn = row.LastInspectedOn, Status = row.Status, IsActive = row.IsActive };
                 db.Equipment.Add(item); created++;
@@ -247,3 +263,4 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
     }
 }
+

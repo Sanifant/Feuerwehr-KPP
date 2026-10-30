@@ -1,21 +1,24 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using System.Text;
 using System.Text.Json;
-using global::de.openelp.feuerwehr.Server.Controller.IncidentModules;
-using global::de.openelp.feuerwehr.Server.Data;
-using global::de.openelp.feuerwehr.Server.Models.IncidentModules;
-using global::de.openelp.feuerwehr.Server.Services.IncidentModules;
+using global::De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
+using global::De.Openelp.Feuerwehr.Server.Data;
+using global::De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using global::De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Controller;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Controller;
 
 public class IncidentDiaryControllerTests
 {
-    private static FeuerwehrDbContext CreateDbContext()
+    /// <summary>
+    /// Creates the db Context.
+    /// </summary>
+    public static FeuerwehrDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -26,7 +29,12 @@ public class IncidentDiaryControllerTests
         return context;
     }
 
-    private static Mock<IUserContextAccessor> CreateUserContextMock(string userId = "user-1", string displayName = "Ada Admin")
+    /// <summary>
+    /// Creates the user Context Mock.
+    /// </summary>
+    /// <param name="userId">The user Id.</param>
+    /// <param name="displayName">The display Name.</param>
+    public static Mock<IUserContextAccessor> CreateUserContextMock(string userId = "user-1", string displayName = "Ada Admin")
     {
         var mock = new Mock<IUserContextAccessor>();
         mock.SetupGet(x => x.UserId).Returns(userId);
@@ -34,7 +42,10 @@ public class IncidentDiaryControllerTests
         return mock;
     }
 
-    private static Mock<ICommandIdempotencyService> CreateIdempotencyMock()
+    /// <summary>
+    /// Creates the idempotency Mock.
+    /// </summary>
+    public static Mock<ICommandIdempotencyService> CreateIdempotencyMock()
     {
         var mock = new Mock<ICommandIdempotencyService>();
         mock.Setup(x => x.FindExistingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -56,7 +67,14 @@ public class IncidentDiaryControllerTests
         return mock;
     }
 
-    private static IncidentDiaryController CreateController(
+    /// <summary>
+    /// Creates the controller.
+    /// </summary>
+    /// <param name="dbContext">The db Context.</param>
+    /// <param name="userContextMock">The user Context Mock.</param>
+    /// <param name="idempotencyMock">The idempotency Mock.</param>
+    /// <param name="outboxMock">The outbox Mock.</param>
+    public static IncidentDiaryController CreateController(
         FeuerwehrDbContext dbContext,
         Mock<IUserContextAccessor>? userContextMock = null,
         Mock<ICommandIdempotencyService>? idempotencyMock = null,
@@ -69,7 +87,14 @@ public class IncidentDiaryControllerTests
             (outboxMock ?? new Mock<IOutboxService>()).Object));
     }
 
-    private static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
+    /// <summary>
+    /// Creates the incident.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="name">The name.</param>
+    /// <param name="status">The status.</param>
+    /// <param name="revision">The revision.</param>
+    public static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
         => new()
         {
             Id = incidentId,
@@ -79,7 +104,13 @@ public class IncidentDiaryControllerTests
             CreatedAtUtc = DateTime.UtcNow.AddHours(-2),
         };
 
-    private static DiaryCategory CreateCategory(string code, string name, bool isActive = true)
+    /// <summary>
+    /// Creates the category.
+    /// </summary>
+    /// <param name="code">The code.</param>
+    /// <param name="name">The name.</param>
+    /// <param name="isActive">The is Active.</param>
+    public static DiaryCategory CreateCategory(string code, string name, bool isActive = true)
         => new()
         {
             Id = Guid.NewGuid(),
@@ -90,7 +121,15 @@ public class IncidentDiaryControllerTests
             UpdatedAtUtc = DateTime.UtcNow.AddDays(-1),
         };
 
-    private static DiaryEntry CreateEntry(Guid incidentId, long entryNumber = 1, int currentRevision = 1, bool isCanceled = false, string? cancellationReason = null)
+    /// <summary>
+    /// Creates the entry.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="entryNumber">The entry Number.</param>
+    /// <param name="currentRevision">The current Revision.</param>
+    /// <param name="isCanceled">The is Canceled.</param>
+    /// <param name="cancellationReason">The cancellation Reason.</param>
+    public static DiaryEntry CreateEntry(Guid incidentId, long entryNumber = 1, int currentRevision = 1, bool isCanceled = false, string? cancellationReason = null)
         => new()
         {
             Id = Guid.NewGuid(),
@@ -103,7 +142,17 @@ public class IncidentDiaryControllerTests
             UpdatedAtUtc = DateTime.UtcNow.AddMinutes(-5),
         };
 
-    private static DiaryEntryRevision CreateRevision(
+    /// <summary>
+    /// Creates the revision.
+    /// </summary>
+    /// <param name="entry">The entry.</param>
+    /// <param name="revisionNumber">The revision Number.</param>
+    /// <param name="revisionType">The revision Type.</param>
+    /// <param name="categoryCode">The category Code.</param>
+    /// <param name="categoryName">The category Name.</param>
+    /// <param name="text">The text.</param>
+    /// <param name="cancellationReason">The cancellation Reason.</param>
+    public static DiaryEntryRevision CreateRevision(
         DiaryEntry entry,
         int revisionNumber,
         DiaryRevisionType revisionType,
@@ -132,6 +181,9 @@ public class IncidentDiaryControllerTests
         };
 
     [Fact]
+    /// <summary>
+    /// Gets the entries Returns Ordered Entries With Latest Revisions.
+    /// </summary>
     public async Task GetEntries_ReturnsOrderedEntriesWithLatestRevisions()
     {
         await using var dbContext = CreateDbContext();
@@ -174,6 +226,9 @@ public class IncidentDiaryControllerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Gets the categories Returns Categories Ordered By Name.
+    /// </summary>
     public async Task GetCategories_ReturnsCategoriesOrderedByName()
     {
         await using var dbContext = CreateDbContext();
@@ -198,6 +253,9 @@ public class IncidentDiaryControllerTests
 
     /*
     [Fact]
+    /// <summary>
+    /// Creates the entry Returns Validation Problem When Model State Is Invalid.
+    /// </summary>
     public async Task CreateEntry_ReturnsValidationProblem_WhenModelStateIsInvalid()
     {
         await using var dbContext = CreateDbContext();
@@ -215,6 +273,9 @@ public class IncidentDiaryControllerTests
     */
 
     [Fact]
+    /// <summary>
+    /// Creates the entry Returns Stored Response When Command Was Already Processed.
+    /// </summary>
     public async Task CreateEntry_ReturnsStoredResponse_WhenCommandWasAlreadyProcessed()
     {
         await using var dbContext = CreateDbContext();
@@ -258,6 +319,9 @@ public class IncidentDiaryControllerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Updates the entry Returns Conflict When Expected Revision Does Not Match.
+    /// </summary>
     public async Task UpdateEntry_ReturnsConflict_WhenExpectedRevisionDoesNotMatch()
     {
         await using var dbContext = CreateDbContext();
@@ -290,6 +354,9 @@ public class IncidentDiaryControllerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Updates the entry Persists New Revision When Request Is Valid.
+    /// </summary>
     public async Task UpdateEntry_PersistsNewRevision_WhenRequestIsValid()
     {
         await using var dbContext = CreateDbContext();
@@ -342,6 +409,9 @@ public class IncidentDiaryControllerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes cancel Entry Returns Bad Request When Reason Is Missing.
+    /// </summary>
     public async Task CancelEntry_ReturnsBadRequest_WhenReasonIsMissing()
     {
         await using var dbContext = CreateDbContext();
@@ -356,10 +426,13 @@ public class IncidentDiaryControllerTests
         var objectResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         var details = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("Stornierungsbegründung ist erforderlich.", details.Title);
+        Assert.Equal("StornierungsbegrÃ¼ndung ist erforderlich.", details.Title);
     }
 
     [Fact]
+    /// <summary>
+    /// Executes cancel Entry Persists Cancellation Revision When Request Is Valid.
+    /// </summary>
     public async Task CancelEntry_PersistsCancellationRevision_WhenRequestIsValid()
     {
         await using var dbContext = CreateDbContext();
@@ -408,6 +481,9 @@ public class IncidentDiaryControllerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes export Diary Pdf Returns Not Found When Incident Does Not Exist.
+    /// </summary>
     public async Task ExportDiaryPdf_ReturnsNotFound_WhenIncidentDoesNotExist()
     {
         await using var dbContext = CreateDbContext();
@@ -420,6 +496,9 @@ public class IncidentDiaryControllerTests
 
     /*
     [Fact]
+    /// <summary>
+    /// Executes export Diary Pdf Returns Pdf File With Diary Content.
+    /// </summary>
     public async Task ExportDiaryPdf_ReturnsPdfFile_WithDiaryContent()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
@@ -465,6 +544,11 @@ public class IncidentDiaryControllerTests
     }
     */
 
-    private static JsonElement ToJsonElement(object value)
+    /// <summary>
+    /// Executes to Json Element.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    public static JsonElement ToJsonElement(object value)
         => JsonSerializer.SerializeToElement(value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 }
+

@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Common.Models;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 internal static class HydrantCsvImport
 {
@@ -115,3 +115,4 @@ internal static class HydrantCsvImport
         return (hydrants, errors);
     }
 }
+

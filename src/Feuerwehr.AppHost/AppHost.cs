@@ -1,4 +1,4 @@
-using de.openelp.feuerwehr.Diagnostics;
+using De.Openelp.Feuerwehr.Diagnostics;
 
 using var diagnostics = ProcessDiagnostics.Start("AppHost");
 var builder = DistributedApplication.CreateBuilder(args);
@@ -100,3 +100,4 @@ catch (Exception error)
     diagnostics.Record("AppHost.FatalException", exception: error);
     throw;
 }
+

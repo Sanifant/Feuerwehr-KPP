@@ -1,12 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Server.Controller;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Server.Controller;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Controller;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Controller;
 
 // Real Identity token/password handling and EF storage, with mail/Redis replaced at their boundaries.
 public sealed class UserInvitationApiTests : IDisposable
@@ -88,6 +88,9 @@ public sealed class UserInvitationApiTests : IDisposable
         new() { Token = id.ToString("D"), Email = email, NewPassword = password };
 
     [Fact]
+    /// <summary>
+    /// Creates the user Sends Uuid Link And Creates Account Without Password.
+    /// </summary>
     public async Task CreateUser_SendsUuidLinkAndCreatesAccountWithoutPassword()
     {
         var (user, id) = await CreateInvitedUser();
@@ -107,6 +110,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes fire Department Assignment Is Persisted And Returned And Can Be Changed Or Cleared.
+    /// </summary>
     public async Task FireDepartmentAssignment_IsPersistedAndReturned_AndCanBeChangedOrCleared()
     {
         var db = _provider.GetRequiredService<FeuerwehrDbContext>();
@@ -137,6 +143,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Validates Email Sets Real Password And Rejects Replay.
+    /// </summary>
     public async Task ResetPassword_ValidatesEmailSetsRealPasswordAndRejectsReplay()
     {
         var (user, id) = await CreateInvitedUser();
@@ -153,6 +162,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Wrong Email Cannot Select Another User Or Consume Link.
+    /// </summary>
     public async Task ResetPassword_WrongEmailCannotSelectAnotherUserOrConsumeLink()
     {
         var (user, id) = await CreateInvitedUser();
@@ -166,6 +178,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Expired Invitation Does Not Set Password.
+    /// </summary>
     public async Task ResetPassword_ExpiredInvitationDoesNotSetPassword()
     {
         var (user, id) = await CreateInvitedUser();
@@ -175,6 +190,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Invitation Is Valid Just Before Sixty Minute Expiry.
+    /// </summary>
     public async Task ResetPassword_InvitationIsValidJustBeforeSixtyMinuteExpiry()
     {
         var (user, id) = await CreateInvitedUser();
@@ -184,6 +202,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Cache Deletion Failure Still Revokes Tokens And Returns Success.
+    /// </summary>
     public async Task ResetPassword_CacheDeletionFailureStillRevokesTokensAndReturnsSuccess()
     {
         var (user, id) = await CreateInvitedUser();
@@ -210,6 +231,10 @@ public sealed class UserInvitationApiTests : IDisposable
     [InlineData("invalid")]
     [InlineData("00000000-0000-0000-0000-000000000000")]
     [InlineData("0db09979-818f-4b48-91ba-1a5d836b8da2")]
+    /// <summary>
+    /// Executes reset Password Invalid Or Unknown Uuid Is Rejected.
+    /// </summary>
+    /// <param name="token">The token.</param>
     public async Task ResetPassword_InvalidOrUnknownUuidIsRejected(string token)
     {
         Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(new ResetRequest
@@ -219,6 +244,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Weak Password Leaves Invitation Available For Retry.
+    /// </summary>
     public async Task ResetPassword_WeakPasswordLeavesInvitationAvailableForRetry()
     {
         var (user, id) = await CreateInvitedUser();
@@ -233,6 +261,10 @@ public sealed class UserInvitationApiTests : IDisposable
     [InlineData("disabled")]
     [InlineData("deleted")]
     [InlineData("changed-email")]
+    /// <summary>
+    /// Executes reset Password Rejects Changed Or Unavailable Account.
+    /// </summary>
+    /// <param name="change">The change.</param>
     public async Task ResetPassword_RejectsChangedOrUnavailableAccount(string change)
     {
         var (user, id) = await CreateInvitedUser();
@@ -243,6 +275,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Creates the user Mail Failure Rolls Back Account And Invitation.
+    /// </summary>
     public async Task CreateUser_MailFailureRollsBackAccountAndInvitation()
     {
         _mail.Fail = true;
@@ -256,6 +291,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reset Password Invalid Model Is Rejected At Api Boundary.
+    /// </summary>
     public async Task ResetPassword_InvalidModelIsRejectedAtApiBoundary()
     {
         _authApi.ModelState.AddModelError("Email", "Eine E-Mail-Adresse ist erforderlich.");
@@ -266,6 +304,9 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.Contains(validation, result => result.MemberNames.Contains(nameof(ResetRequest.Email)));
     }
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public void Dispose() => _provider.Dispose();
 
     private void SignInAs(string userId)
@@ -281,6 +322,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes change Password Uses Signed In User And Requires Current Password.
+    /// </summary>
     public async Task ChangePassword_UsesSignedInUserAndRequiresCurrentPassword()
     {
         var (user, id) = await CreateInvitedUser();
@@ -297,6 +341,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes change Password Rejects Missing User Or Invalid Model.
+    /// </summary>
     public async Task ChangePassword_RejectsMissingUserOrInvalidModel()
     {
         var request = new ChangePasswordRequest { CurrentPassword = "CurrentPassword123", NewPassword = "ChangedPassword123" };
@@ -308,6 +355,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes change Password Five Wrong Current Passwords Lock Account And Prevent Changes.
+    /// </summary>
     public async Task ChangePassword_FiveWrongCurrentPasswordsLockAccountAndPreventChanges()
     {
         var (user, id) = await CreateInvitedUser();
@@ -342,6 +392,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes change Password Shares Failed Attempt Counter With Login.
+    /// </summary>
     public async Task ChangePassword_SharesFailedAttemptCounterWithLogin()
     {
         var (user, id) = await CreateInvitedUser();
@@ -362,6 +415,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes change Password Rejects Preexisting Lockout And Allows Change After Expiry.
+    /// </summary>
     public async Task ChangePassword_RejectsPreexistingLockoutAndAllowsChangeAfterExpiry()
     {
         var (user, id) = await CreateInvitedUser();
@@ -376,6 +432,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes change Password Correct Current Password Resets Failures Even When New Password Is Weak.
+    /// </summary>
     public async Task ChangePassword_CorrectCurrentPasswordResetsFailuresEvenWhenNewPasswordIsWeak()
     {
         var (user, id) = await CreateInvitedUser();
@@ -396,6 +455,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes resend Invitation Locks Existing Account Until Successful Password Reset.
+    /// </summary>
     public async Task ResendInvitation_LocksExistingAccountUntilSuccessfulPasswordReset()
     {
         var (user, firstId) = await CreateInvitedUser();
@@ -449,6 +511,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes resend Invitation Invalidates Previous Links And Keeps Lock After Expiry.
+    /// </summary>
     public async Task ResendInvitation_InvalidatesPreviousLinksAndKeepsLockAfterExpiry()
     {
         var (user, oldId) = await CreateInvitedUser();
@@ -467,6 +532,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes resend Invitation Revokes Existing Access Tokens Including After Unlock.
+    /// </summary>
     public async Task ResendInvitation_RevokesExistingAccessTokensIncludingAfterUnlock()
     {
         var (user, id) = await CreateInvitedUser();
@@ -494,6 +562,10 @@ public sealed class UserInvitationApiTests : IDisposable
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    /// <summary>
+    /// Executes resend Invitation Mail Failure Restores Previous Lock And Invitation.
+    /// </summary>
+    /// <param name="alreadyInvited">The already Invited.</param>
     public async Task ResendInvitation_MailFailureRestoresPreviousLockAndInvitation(bool alreadyInvited)
     {
         var (user, id) = await CreateInvitedUser();
@@ -521,6 +593,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes resend Invitation Password Reset Also Clears Existing Failed Login Lockout.
+    /// </summary>
     public async Task ResendInvitation_PasswordResetAlsoClearsExistingFailedLoginLockout()
     {
         var (user, id) = await CreateInvitedUser();
@@ -546,6 +621,9 @@ public sealed class UserInvitationApiTests : IDisposable
     }
 
     [Fact]
+    /// <summary>
+    /// Executes resend Invitation Rejects Unknown And Inactive Users.
+    /// </summary>
     public async Task ResendInvitation_RejectsUnknownAndInactiveUsers()
     {
         Assert.IsType<NotFoundObjectResult>(await _usersApi.ResendInvitation("missing"));
@@ -559,6 +637,9 @@ public sealed class UserInvitationApiTests : IDisposable
     private sealed class MutableClock : TimeProvider
     {
         public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
+        /// <summary>
+        /// Gets the utc Now.
+        /// </summary>
         public override DateTimeOffset GetUtcNow() => Now;
     }
 
@@ -568,11 +649,24 @@ public sealed class UserInvitationApiTests : IDisposable
         public TimeSpan StoredLifetime { get; private set; }
         public bool FailRemoval { get; set; }
         public Action? BeforeRemove { get; set; }
+        /// <summary>
+        /// Executes store.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="invitation">The invitation.</param>
+        /// <param name="lifetime">The lifetime.</param>
         public Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
         {
             Entries[id] = invitation; StoredLifetime = lifetime; return Task.CompletedTask;
         }
+        /// <summary>
+        /// Executes find.
+        /// </summary>
         public Task<UserInvitation?> FindAsync(Guid id) => Task.FromResult(Entries.GetValueOrDefault(id));
+        /// <summary>
+        /// Removes the operation.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public Task RemoveAsync(Guid id)
         {
             BeforeRemove?.Invoke();
@@ -586,6 +680,12 @@ public sealed class UserInvitationApiTests : IDisposable
     {
         public List<(string Recipient, string Subject, string Body)> Messages { get; } = [];
         public bool Fail { get; set; }
+        /// <summary>
+        /// Sends the operation.
+        /// </summary>
+        /// <param name="recipient">The recipient.</param>
+        /// <param name="subject">The subject.</param>
+        /// <param name="body">The body.</param>
         public Task SendAsync(string recipient, string subject, string body)
         {
             if (Fail) throw new System.Net.Mail.SmtpException("SMTP unavailable");
@@ -593,3 +693,4 @@ public sealed class UserInvitationApiTests : IDisposable
         }
     }
 }
+

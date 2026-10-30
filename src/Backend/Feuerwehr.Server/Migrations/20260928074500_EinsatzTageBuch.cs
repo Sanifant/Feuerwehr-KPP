@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace de.openelp.feuerwehr.Server.Migrations
+namespace De.Openelp.Feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class EinsatzTageBuch : Migration
@@ -323,3 +323,4 @@ namespace de.openelp.feuerwehr.Server.Migrations
         }
     }
 }
+

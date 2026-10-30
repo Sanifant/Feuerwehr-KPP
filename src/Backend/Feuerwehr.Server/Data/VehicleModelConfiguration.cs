@@ -1,10 +1,14 @@
-using de.openelp.feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Data;
+namespace De.Openelp.Feuerwehr.Server.Data;
 
 public static class VehicleModelConfiguration
 {
+    /// <summary>
+    /// Executes configure Vehicles.
+    /// </summary>
+    /// <param name="model">The model.</param>
     public static void ConfigureVehicles(this ModelBuilder model)
     {
         model.Entity<VehicleStatus>(entity =>
@@ -81,3 +85,4 @@ public static class VehicleModelConfiguration
         });
     }
 }
+

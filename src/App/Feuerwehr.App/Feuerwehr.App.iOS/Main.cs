@@ -1,6 +1,6 @@
 using UIKit;
 
-namespace de.openelp.feuerwehr.App.iOS
+namespace De.Openelp.Feuerwehr.App.iOS
 {
     public class Application
     {
@@ -13,3 +13,4 @@ namespace de.openelp.feuerwehr.App.iOS
         }
     }
 }
+

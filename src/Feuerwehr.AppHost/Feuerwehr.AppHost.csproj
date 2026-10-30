@@ -1,7 +1,7 @@
 <Project Sdk="Aspire.AppHost.Sdk/13.5.1">
 
   <PropertyGroup>
-    <RootNamespace>de.openelp.feuerwehr.AppHost</RootNamespace>
+    <RootNamespace>De.Openelp.Feuerwehr.AppHost</RootNamespace>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

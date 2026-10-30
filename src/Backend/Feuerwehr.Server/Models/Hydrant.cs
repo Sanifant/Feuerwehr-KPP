@@ -1,4 +1,4 @@
-using de.openelp.feuerwehr.Common.Models;
+﻿using De.Openelp.Feuerwehr.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Net;
 using System.Text;
 
-namespace de.openelp.feuerwehr.Server.Models
+namespace De.Openelp.Feuerwehr.Server.Models
 {
 
     public class Address
@@ -17,6 +17,9 @@ namespace de.openelp.feuerwehr.Server.Models
         public string City { get; set; } = string.Empty;
         public string? AdditionalInfo { get; set; }
 
+        /// <summary>
+        /// Gets the formatted Address.
+        /// </summary>
         public string GetFormattedAddress() =>
             $"{Street} {HouseNumber}, {PostalCode} {City}".Trim();
     }
@@ -52,3 +55,4 @@ namespace de.openelp.feuerwehr.Server.Models
         public string DiameterDescription => $"DIN {NominalDiameter}";
     }
 }
+

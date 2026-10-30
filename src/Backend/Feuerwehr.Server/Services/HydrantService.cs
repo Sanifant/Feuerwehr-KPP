@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Server.Data;
 using Microsoft.EntityFrameworkCore;
-using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant;
-using AddressEntity = de.openelp.feuerwehr.Server.Models.Address;
+using HydrantEntity = De.Openelp.Feuerwehr.Server.Models.Hydrant;
+using AddressEntity = De.Openelp.Feuerwehr.Server.Models.Address;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public interface IHydrantService
 {
@@ -19,8 +19,16 @@ public interface IHydrantService
     Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Executes hydrant Service.
+/// </summary>
+/// <param name="context">The context.</param>
 public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
 {
+    /// <summary>
+    /// Executes export.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<byte[]> ExportAsync(CancellationToken cancellationToken = default)
     {
         var hydrants = await context.Hydrants.AsNoTracking().OrderBy(h => h.Id).ToListAsync(cancellationToken);
@@ -56,6 +64,11 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 
+    /// <summary>
+    /// Executes import.
+    /// </summary>
+    /// <param name="csv">The csv.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
     {
         var (hydrants, errors) = HydrantCsvImport.Read(csv, cancellationToken);
@@ -73,14 +86,25 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
         return ServiceResult.Ok(new HydrantImportResponse(entities.Count, []));
     }
 
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
     public ServiceResult Get() => ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
 
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
+    /// <param name="id">The id.</param>
     public ServiceResult Get(int id)
     {
         var entity = context.Hydrants.Find(id);
         return entity is null ? ServiceResult.NotFound() : ServiceResult.Ok(ToDto(entity));
     }
 
+    /// <summary>
+    /// Executes post.
+    /// </summary>
+    /// <param name="value">The value.</param>
     public ServiceResult Post(Hydrant value)
     {
         var entity = new HydrantEntity { Id = value.Id };
@@ -91,6 +115,11 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
         return ServiceResult.CreatedAtAction("Get", new { id = dto.Id }, dto);
     }
 
+    /// <summary>
+    /// Executes put.
+    /// </summary>
+    /// <param name="id">The id.</param>
+    /// <param name="value">The value.</param>
     public ServiceResult Put(int id, Hydrant value)
     {
         var entity = context.Hydrants.Find(id);
@@ -100,6 +129,10 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
         return ServiceResult.NoContent();
     }
 
+    /// <summary>
+    /// Deletes the operation.
+    /// </summary>
+    /// <param name="id">The id.</param>
     public ServiceResult Delete(int id)
     {
         var entity = context.Hydrants.Find(id);
@@ -148,3 +181,4 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
         Notes = entity.Notes,
     };
 }
+

@@ -1,6 +1,6 @@
-using de.openelp.feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
 
-namespace de.openelp.feuerwehr.Server.Models.Vehicles;
+namespace De.Openelp.Feuerwehr.Server.Models.Vehicles;
 
 public sealed class Vehicle
 {
@@ -106,3 +106,4 @@ public sealed class VehicleMailMessage
     public int Attempts { get; set; }
     public string? LastError { get; set; }
 }
+

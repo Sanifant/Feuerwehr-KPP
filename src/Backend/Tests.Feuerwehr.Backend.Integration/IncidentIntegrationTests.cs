@@ -1,16 +1,23 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
 
 [Collection(IntegrationTestCollection.Name)]
+/// <summary>
+/// Executes incident Integration Tests.
+/// </summary>
+/// <param name="fixture">The fixture.</param>
 public sealed class IncidentIntegrationTests(IntegrationTestFixture fixture)
 {
     [Fact]
+    /// <summary>
+    /// Executes incident Lifecycle Create Active Close Archive Works End To End.
+    /// </summary>
     public async Task IncidentLifecycle_CreateActiveCloseArchive_WorksEndToEnd()
     {
         var token = await fixture.LoginAsAdminAndGetAccessTokenAsync();

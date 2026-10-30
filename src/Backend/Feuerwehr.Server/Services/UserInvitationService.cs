@@ -1,9 +1,9 @@
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public interface IUserInvitationService
 {
@@ -11,6 +11,16 @@ public interface IUserInvitationService
     Task<ServiceResult> CompleteAsync(ResetRequest request);
 }
 
+/// <summary>
+/// Executes user Invitation Service.
+/// </summary>
+/// <param name="users">The users.</param>
+/// <param name="store">The store.</param>
+/// <param name="mail">The mail.</param>
+/// <param name="tokens">The tokens.</param>
+/// <param name="configuration">The configuration.</param>
+/// <param name="clock">The clock.</param>
+/// <param name="logger">The logger.</param>
 public sealed class UserInvitationService(
     UserManager<ApplicationUser> users,
     IUserInvitationStore store,
@@ -22,6 +32,10 @@ public sealed class UserInvitationService(
 {
     public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(60);
 
+    /// <summary>
+    /// Sends the operation.
+    /// </summary>
+    /// <param name="user">The user.</param>
     public async Task SendAsync(ApplicationUser user)
     {
         var configuredUrl = configuration["Frontend:BaseUrl"];
@@ -36,7 +50,7 @@ public sealed class UserInvitationService(
         // Persist the lock and invalidate previous invitations and access tokens before sending.
         var locked = await users.UpdateSecurityStampAsync(user);
         if (!locked.Succeeded)
-            throw new InvalidOperationException("Das Konto konnte nicht für die Passwortvergabe gesperrt werden.");
+            throw new InvalidOperationException("Das Konto konnte nicht fÃ¼r die Passwortvergabe gesperrt werden.");
 
         var id = Guid.NewGuid();
         var link = new Uri(new Uri(baseUri.AbsoluteUri.TrimEnd('/') + "/"), $"password/{id:D}");
@@ -46,11 +60,11 @@ public sealed class UserInvitationService(
             var invitation = new UserInvitation(user.Id, user.Email!, resetToken, clock.GetUtcNow().Add(Lifetime));
             await store.StoreAsync(id, invitation, Lifetime);
             await tokens.RevokeRefreshTokenAsync(user.Id);
-            await mail.SendAsync(user.Email!, "Ihr Feuerwehr-Benutzerkonto – Passwort festlegen",
-                $"Hallo {user.FirstName},\n\nSie wurden zur Passwortvergabe für Ihr Benutzerkonto eingeladen.\n" +
-                $"Öffnen Sie diesen Link und geben Sie Ihre E-Mail-Adresse ein, um Ihr Passwort festzulegen:\n\n{link.AbsoluteUri}\n\n" +
-                $"Der Link ist {Lifetime.TotalMinutes:0} Minuten gültig und kann einmal verwendet werden.\n" +
-                "Ihr Konto ist bis zur erfolgreichen Passwortvergabe gesperrt. Frühere Einladungslinks sind ungültig.");
+            await mail.SendAsync(user.Email!, "Ihr Feuerwehr-Benutzerkonto â€“ Passwort festlegen",
+                $"Hallo {user.FirstName},\n\nSie wurden zur Passwortvergabe fÃ¼r Ihr Benutzerkonto eingeladen.\n" +
+                $"Ã–ffnen Sie diesen Link und geben Sie Ihre E-Mail-Adresse ein, um Ihr Passwort festzulegen:\n\n{link.AbsoluteUri}\n\n" +
+                $"Der Link ist {Lifetime.TotalMinutes:0} Minuten gÃ¼ltig und kann einmal verwendet werden.\n" +
+                "Ihr Konto ist bis zur erfolgreichen Passwortvergabe gesperrt. FrÃ¼here Einladungslinks sind ungÃ¼ltig.");
         }
         catch
         {
@@ -67,16 +81,20 @@ public sealed class UserInvitationService(
             }
             catch (Exception exception)
             {
-                logger.LogWarning(exception, "Fehlgeschlagene Einladung konnte nicht aus dem Cache gelöscht werden; sie läuft über ihre TTL ab.");
+                logger.LogWarning(exception, "Fehlgeschlagene Einladung konnte nicht aus dem Cache gelÃ¶scht werden; sie lÃ¤uft Ã¼ber ihre TTL ab.");
             }
             throw;
         }
     }
 
+    /// <summary>
+    /// Executes complete.
+    /// </summary>
+    /// <param name="request">The request.</param>
     public async Task<ServiceResult> CompleteAsync(ResetRequest request)
     {
         static ServiceResult InvalidInvitation() => ServiceResult.BadRequest(
-            new MessageResponse("Der Einladungslink oder die E-Mail-Adresse ist ungültig oder abgelaufen."));
+            new MessageResponse("Der Einladungslink oder die E-Mail-Adresse ist ungÃ¼ltig oder abgelaufen."));
 
         if (!Guid.TryParseExact(request.Token, "D", out var id) || id == Guid.Empty)
             return InvalidInvitation();
@@ -121,8 +139,9 @@ public sealed class UserInvitationService(
         {
             // The password is already saved and the Identity token invalidated. Cache
             // cleanup must not turn this into a failed reset; the original TTL still applies.
-            logger.LogWarning(exception, "Einladung konnte nach erfolgreicher Passwortvergabe nicht aus dem Cache gelöscht werden; sie läuft über ihre TTL ab.");
+            logger.LogWarning(exception, "Einladung konnte nach erfolgreicher Passwortvergabe nicht aus dem Cache gelÃ¶scht werden; sie lÃ¤uft Ã¼ber ihre TTL ab.");
         }
-        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde gespeichert. Sie können sich jetzt anmelden."));
+        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde gespeichert. Sie kÃ¶nnen sich jetzt anmelden."));
     }
 }
+

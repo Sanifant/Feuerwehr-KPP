@@ -1,21 +1,24 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public sealed class VehicleTransferTests
 {
     [Fact]
+    /// <summary>
+    /// Executes import Timestamps Only Actual Status Changes And Rolls Them Back With An Invalid Batch.
+    /// </summary>
     public async Task ImportTimestampsOnlyActualStatusChangesAndRollsThemBackWithAnInvalidBatch()
     {
         await using var fixture = new Fixture();
@@ -37,11 +40,14 @@ public sealed class VehicleTransferTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes csv Round Trip Resolves Officer Email And Preserves Vehicle Identity Bookings And Quoted Text.
+    /// </summary>
     public async Task CsvRoundTripResolvesOfficerEmailAndPreservesVehicleIdentityBookingsAndQuotedText()
     {
         await using var fixture = new Fixture();
         var vehicle = fixture.Vehicle();
-        vehicle.Name = "=SUM(1;2)\n\"Übung\"";
+        vehicle.Name = "=SUM(1;2)\n\"Ãœbung\"";
         var booking = new VehicleReservation { Id = Guid.NewGuid(), VehicleId = vehicle.Id, CommandId = Guid.NewGuid(),
             From = new DateOnly(2026, 11, 1), To = new DateOnly(2026, 11, 1), Status = VehicleReservationStatus.Confirmed };
         fixture.Db.VehicleReservations.Add(booking);
@@ -71,6 +77,10 @@ public sealed class VehicleTransferTests
     [InlineData("viewer@example.test")]
     [InlineData("inactive@example.test")]
     [InlineData("foreign@example.test")]
+    /// <summary>
+    /// Executes invalid Officer Rejects The Whole File Without Creating Users Or Partial Vehicles.
+    /// </summary>
+    /// <param name="email">The email.</param>
     public async Task InvalidOfficerRejectsTheWholeFileWithoutCreatingUsersOrPartialVehicles(string email)
     {
         await using var fixture = new Fixture();
@@ -78,7 +88,7 @@ public sealed class VehicleTransferTests
         var usersBefore = await fixture.Db.Users.CountAsync();
         var result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
         Assert.Equal(400, result.Code);
-        Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.LineNumber == 3 && x.Description.Contains("Gerätewart"));
+        Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.LineNumber == 3 && x.Description.Contains("GerÃ¤tewart"));
         Assert.Empty(fixture.Db.Vehicles);
         Assert.Equal(usersBefore, await fixture.Db.Users.CountAsync());
     }
@@ -88,6 +98,11 @@ public sealed class VehicleTransferTests
     [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail\n\"Nicht geschlossen;Feuerwehr A;owner@example.test", "CSV-Zeile")]
     [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail;vehicleType\nA;Feuerwehr A;owner@example.test;Unbekannt", "Fahrzeugtyp")]
     [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail;status\nA;Feuerwehr A;owner@example.test;Unbekannt", "Status")]
+    /// <summary>
+    /// Executes invalid Files Have Actionable Errors And Do Not Change Data.
+    /// </summary>
+    /// <param name="csv">The csv.</param>
+    /// <param name="expected">The expected.</param>
     public async Task InvalidFilesHaveActionableErrorsAndDoNotChangeData(string csv, string expected)
     {
         await using var fixture = new Fixture(); using var stream = Csv(csv);
@@ -98,6 +113,9 @@ public sealed class VehicleTransferTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes officers Only Export Assigned Vehicles And Cannot Import Updates For Other Officers.
+    /// </summary>
     public async Task OfficersOnlyExportAssignedVehiclesAndCannotImportUpdatesForOtherOfficers()
     {
         await using var fixture = new Fixture();
@@ -119,6 +137,9 @@ public sealed class VehicleTransferTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reimport Without Ids Updates By Department And Call Sign And Missing Columns Preserve Values.
+    /// </summary>
     public async Task ReimportWithoutIdsUpdatesByDepartmentAndCallSignAndMissingColumnsPreserveValues()
     {
         await using var fixture = new Fixture();
@@ -134,6 +155,9 @@ public sealed class VehicleTransferTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes vehicle Types Round Trip And Rename In Place While Duplicate Names Rollback The Entire Batch.
+    /// </summary>
     public async Task VehicleTypesRoundTripAndRenameInPlaceWhileDuplicateNamesRollbackTheEntireBatch()
     {
         await using var fixture = new Fixture();
@@ -173,18 +197,34 @@ public sealed class VehicleTransferTests
             Service = new VehicleTransferService(Db, http, new UpperInvariantLookupNormalizer(), Clock);
             As("admin", Roles.Admin);
         }
+        /// <summary>
+        /// Executes as.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public void As(string id, string role) => http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity([
             new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
+        /// <summary>
+        /// Executes vehicle.
+        /// </summary>
+        /// <param name="callSign">The call Sign.</param>
+        /// <param name="owner">The owner.</param>
         public Vehicle Vehicle(string callSign = "Florian 19-01", string owner = "owner")
         {
             var vehicle = new Vehicle { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = typeId };
             Db.Vehicles.Add(vehicle); return vehicle;
         }
+        /// <summary>
+        /// Executes dispose.
+        /// </summary>
         public ValueTask DisposeAsync() => Db.DisposeAsync();
     }
     private sealed class TestClock : TimeProvider
     {
         public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        /// <summary>
+        /// Gets the utc Now.
+        /// </summary>
         public override DateTimeOffset GetUtcNow() => UtcNow;
     }
 }
+

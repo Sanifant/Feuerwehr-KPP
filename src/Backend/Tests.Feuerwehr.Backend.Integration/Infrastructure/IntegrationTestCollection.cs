@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
 [CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class IntegrationTestCollection : ICollectionFixture<IntegrationTestFixture>

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>de.openelp.feuerwehr.Tests.Backend</RootNamespace>
+    <RootNamespace>De.Openelp.Feuerwehr.Tests.Backend</RootNamespace>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

@@ -1,14 +1,18 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Data
+namespace De.Openelp.Feuerwehr.Server.Data
 {
     public static class DbInitializer
     {
+        /// <summary>
+        /// Executes seed Data.
+        /// </summary>
+        /// <param name="serviceProvider">The service Provider.</param>
         public static async Task SeedDataAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -64,9 +68,9 @@ namespace de.openelp.feuerwehr.Server.Data
             {
                 new { Code = "meldung", Name = "Meldung" },
                 new { Code = "auftrag", Name = "Auftrag" },
-                new { Code = "rueckmeldung", Name = "Rückmeldung" },
+                new { Code = "rueckmeldung", Name = "RÃ¼ckmeldung" },
                 new { Code = "entscheidung", Name = "Entscheidung" },
-                new { Code = "massnahme", Name = "Maßnahme" },
+                new { Code = "massnahme", Name = "MaÃŸnahme" },
                 new { Code = "sonstiges", Name = "Sonstiges" },
             };
 
@@ -154,3 +158,4 @@ namespace de.openelp.feuerwehr.Server.Data
         }
     }
 }
+

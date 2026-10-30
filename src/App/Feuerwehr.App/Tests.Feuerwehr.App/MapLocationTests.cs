@@ -1,14 +1,17 @@
-using de.openelp.feuerwehr.App.Models;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.ViewModels;
-using de.openelp.feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.Common.Models;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.App;
+namespace De.Openelp.Feuerwehr.Tests.App;
 
 public class MapLocationTests
 {
     [Fact]
+    /// <summary>
+    /// Executes constructing Map Does Not Request Location Before The View Is Loaded.
+    /// </summary>
     public void ConstructingMap_DoesNotRequestLocationBeforeTheViewIsLoaded()
     {
         var gps = new Mock<IGpsService>(MockBehavior.Strict);
@@ -20,6 +23,9 @@ public class MapLocationTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes settings Waits Asynchronously And Uses The Returned Coordinates.
+    /// </summary>
     public async Task Settings_WaitsAsynchronouslyAndUsesTheReturnedCoordinates()
     {
         var completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -41,6 +47,9 @@ public class MapLocationTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes unavailable Location Does Not Create A Pin Or Open Hydrant Creation.
+    /// </summary>
     public async Task UnavailableLocation_DoesNotCreateAPinOrOpenHydrantCreation()
     {
         var gps = new Mock<IGpsService>();
@@ -57,6 +66,9 @@ public class MapLocationTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes initialization Replaces Existing Location Pin.
+    /// </summary>
     public async Task Initialization_ReplacesExistingLocationPin()
     {
         var gps = new Mock<IGpsService>();
@@ -73,6 +85,10 @@ public class MapLocationTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    /// <summary>
+    /// Executes cancellation Prevents Late Location Results From Changing The View.
+    /// </summary>
+    /// <param name="initialize">The initialize.</param>
     public async Task Cancellation_PreventsLateLocationResultsFromChangingTheView(bool initialize)
     {
         var completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -98,6 +114,10 @@ public class MapLocationTests
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    /// <summary>
+    /// Executes canceling Bound Commands Completes Without An Unhandled Cancellation.
+    /// </summary>
+    /// <param name="center">The center.</param>
     public async Task CancelingBoundCommands_CompletesWithoutAnUnhandledCancellation(bool center)
     {
         var gps = new Mock<IGpsService>();
@@ -129,3 +149,4 @@ public class MapLocationTests
         return new MapViewModel(hydrants.Object, gps);
     }
 }
+
