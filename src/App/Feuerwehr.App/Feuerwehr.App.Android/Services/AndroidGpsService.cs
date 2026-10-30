@@ -9,18 +9,22 @@ using AndroidX.Core.Content;
 using AndroidX.Core.Location;
 using AndroidX.Core.Util;
 using Avalonia.Threading;
-using de.openelp.feuerwehr.App.Models;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Services;
 using CancellationSignal = global::Android.OS.CancellationSignal;
 using Manifest = global::Android.Manifest;
 
-namespace de.openelp.feuerwehr.App.Android.Services;
+namespace De.Openelp.Feuerwehr.App.Android.Services;
 
 /// <summary>Obtains one foreground location fix without requiring Google Play Services.</summary>
 public sealed class AndroidGpsService : IGpsService
 {
     private static readonly TimeSpan LocationTimeout = TimeSpan.FromSeconds(30);
 
+    /// <summary>
+    /// Gets the current Location.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -97,6 +101,10 @@ public sealed class AndroidGpsService : IGpsService
 
     private sealed class LocationConsumer(TaskCompletionSource<GpsLocation?> completion) : Java.Lang.Object, IConsumer
     {
+        /// <summary>
+        /// Executes accept.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public void Accept(Java.Lang.Object? value)
         {
             completion.TrySetResult(value is Location location
@@ -105,3 +113,4 @@ public sealed class AndroidGpsService : IGpsService
         }
     }
 }
+

@@ -1,6 +1,6 @@
-using de.openelp.feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
 
-namespace de.openelp.feuerwehr.Server.Models.Inventory;
+namespace De.Openelp.Feuerwehr.Server.Models.Inventory;
 
 public sealed class InventoryCategory
 {
@@ -61,3 +61,4 @@ public sealed class EquipmentReminderDelivery
     public DateOnly DueOn { get; set; }
     public DateTime SentAtUtc { get; set; }
 }
+

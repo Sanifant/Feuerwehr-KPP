@@ -1,10 +1,14 @@
-using de.openelp.feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Data;
+namespace De.Openelp.Feuerwehr.Server.Data;
 
 internal static class InventoryModelConfiguration
 {
+    /// <summary>
+    /// Executes configure Inventory.
+    /// </summary>
+    /// <param name="model">The model.</param>
     public static void ConfigureInventory(this ModelBuilder model)
     {
         model.HasSequence<int>("InventoryBarcodeSequence").StartsAt(1).HasMax(999);
@@ -15,7 +19,7 @@ internal static class InventoryModelConfiguration
             entity.Property(x => x.NormalizedName).HasMaxLength(100).IsRequired();
             entity.HasIndex(x => x.NormalizedName).IsUnique();
             entity.HasData(
-                new InventoryCategory { Id = Guid.Parse("f3050002-0000-0000-0000-000000000001"), Name = "Löschgeräte", NormalizedName = "LÖSCHGERÄTE" },
+                new InventoryCategory { Id = Guid.Parse("f3050002-0000-0000-0000-000000000001"), Name = "LÃ¶schgerÃ¤te", NormalizedName = "LÃ–SCHGERÃ„TE" },
                 new InventoryCategory { Id = Guid.Parse("f3050002-0000-0000-0000-000000000002"), Name = "Armaturen", NormalizedName = "ARMATUREN" },
                 new InventoryCategory { Id = Guid.Parse("f3050002-0000-0000-0000-000000000003"), Name = "Beleuchtung", NormalizedName = "BELEUCHTUNG" });
         });
@@ -60,3 +64,4 @@ internal static class InventoryModelConfiguration
         });
     }
 }
+

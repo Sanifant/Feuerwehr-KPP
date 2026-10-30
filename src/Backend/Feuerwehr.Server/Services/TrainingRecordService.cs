@@ -1,12 +1,12 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public sealed class TrainingRecordService : ITrainingRecordService
 {
@@ -18,6 +18,11 @@ public sealed class TrainingRecordService : ITrainingRecordService
         _db = dbContext;
         _logger = logger;
     }
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
+    /// <param name="level">The level.</param>
+    /// <param name="title">The title.</param>
     public async Task<ServiceResult> Get(string? level, string? title)
     {
         var trainingsQuery = _db.TrainingCourses
@@ -29,7 +34,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
         {
             if (!TryParseTrainingLevel(level, out var parsedLevel))
             {
-                return ServiceResult.BadRequest("Ungültiger Level-Filter. Erlaubt sind: gemeinde, kreis, land.");
+                return ServiceResult.BadRequest("UngÃ¼ltiger Level-Filter. Erlaubt sind: gemeinde, kreis, land.");
             }
 
             trainingsQuery = trainingsQuery.Where(tc => tc.Level == parsedLevel);
@@ -61,6 +66,10 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
     }
 
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
+    /// <param name="id">The id.</param>
     public async Task<ServiceResult> Get(int id)
     {
         var training = await _db.TrainingCourses
@@ -91,6 +100,10 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
     }
 
+    /// <summary>
+    /// Executes post.
+    /// </summary>
+    /// <param name="value">The value.</param>
     public async Task<ServiceResult> Post(TrainingCourseDto value)
     {
         var trimmedTitle = value.Title.Trim();
@@ -105,7 +118,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
         if (!hasMatchingTitle && string.IsNullOrWhiteSpace(value.Description))
         {
-            return ServiceResult.BadRequest("Für neue Titel ist eine Beschreibung erforderlich.");
+            return ServiceResult.BadRequest("FÃ¼r neue Titel ist eine Beschreibung erforderlich.");
         }
 
         var fireDepartment = await _db.FireDepartments
@@ -113,7 +126,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
         if (fireDepartment is null)
         {
-            return ServiceResult.BadRequest("Die ausgewählte Feuerwehr existiert nicht.");
+            return ServiceResult.BadRequest("Die ausgewÃ¤hlte Feuerwehr existiert nicht.");
         }
 
         var trainingEntity = _db.TrainingCourses.FirstOrDefault(t => t.Title.Equals(trimmedTitle));
@@ -160,6 +173,11 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
     }
 
+    /// <summary>
+    /// Executes put.
+    /// </summary>
+    /// <param name="id">The id.</param>
+    /// <param name="value">The value.</param>
     public async Task<ServiceResult> Put(int id, TrainingCourseDto value)
     {
         var trainingEntity = await _db.TrainingCourses
@@ -176,7 +194,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
         if (fireDepartment is null)
         {
-            return ServiceResult.BadRequest("Die ausgewählte Feuerwehr existiert nicht.");
+            return ServiceResult.BadRequest("Die ausgewÃ¤hlte Feuerwehr existiert nicht.");
         }
 
         trainingEntity.Title = value.Title.Trim();
@@ -207,6 +225,10 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
     }
 
+    /// <summary>
+    /// Deletes the operation.
+    /// </summary>
+    /// <param name="id">The id.</param>
     public async Task<ServiceResult> Delete(int id)
     {
         var trainingEntity = await _db.TrainingCourses
@@ -258,3 +280,4 @@ public interface ITrainingRecordService
     Task<ServiceResult> Put(int id, TrainingCourseDto value);
     Task<ServiceResult> Delete(int id);
 }
+

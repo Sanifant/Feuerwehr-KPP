@@ -1,14 +1,17 @@
-using de.openelp.feuerwehr.App.Services;
+﻿using De.Openelp.Feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
-using ClientApp = de.openelp.feuerwehr.App.App;
+using ClientApp = De.Openelp.Feuerwehr.App.App;
 
-namespace de.openelp.feuerwehr.Tests.App;
+namespace De.Openelp.Feuerwehr.Tests.App;
 
 public class GpsServiceRegistrationTests
 {
     [Fact]
+    /// <summary>
+    /// Executes default Registration Does Not Invent A Location.
+    /// </summary>
     public async Task DefaultRegistration_DoesNotInventALocation()
     {
         var app = new ClientApp();
@@ -21,6 +24,9 @@ public class GpsServiceRegistrationTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes platform Registration Is Preserved When Services Are Reloaded.
+    /// </summary>
     public void PlatformRegistration_IsPreservedWhenServicesAreReloaded()
     {
         var gps = Mock.Of<IGpsService>();
@@ -37,6 +43,9 @@ public class GpsServiceRegistrationTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes unsupported Service Respects Caller Cancellation.
+    /// </summary>
     public async Task UnsupportedService_RespectsCallerCancellation()
     {
         using var cancellation = new CancellationTokenSource();
@@ -46,3 +55,4 @@ public class GpsServiceRegistrationTests
             new UnsupportedGpsService().GetCurrentLocationAsync(cancellation.Token));
     }
 }
+

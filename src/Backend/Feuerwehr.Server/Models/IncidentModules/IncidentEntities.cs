@@ -1,8 +1,8 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace de.openelp.feuerwehr.Server.Models.IncidentModules;
+namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 
 public class Incident
 {
@@ -295,3 +295,4 @@ public class OutboxMessage
     [MaxLength(2000)]
     public string? LastError { get; set; }
 }
+

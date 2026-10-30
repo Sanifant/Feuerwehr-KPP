@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public class HydrantExportTests
 {
@@ -14,6 +14,9 @@ public class HydrantExportTests
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
     [Fact]
+    /// <summary>
+    /// Executes export Matches Import Example And Preserves Csv Escaping Regardless Of Culture.
+    /// </summary>
     public async Task Export_MatchesImportExampleAndPreservesCsvEscapingRegardlessOfCulture()
     {
         using var db = CreateDatabase();
@@ -23,7 +26,7 @@ public class HydrantExportTests
             Id = 2,
             Address = new Address
             {
-                Street = "Dorfstraße; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                Street = "DorfstraÃŸe; SÃ¼d", HouseNumber = "12a", PostalCode = "02361", City = "LÃ¼beck",
                 AdditionalInfo = "Tor \"links\"",
             },
             Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 80,
@@ -54,7 +57,7 @@ public class HydrantExportTests
         Assert.Equal(11, first.Length);
         Assert.Equal("", first[0]);
         Assert.Equal("'=1+1", first[10]);
-        Assert.Equal(new[] { "Dorfstraße; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
+        Assert.Equal(new[] { "DorfstraÃŸe; SÃ¼d", "12a", "02361", "LÃ¼beck", "53.929134", "-10.638436",
             "80", "1", "1", "1", "Erste Zeile\r\nZweite Zeile; \"frei\"" }, parser.ReadFields());
         Assert.True(parser.EndOfData);
         Assert.Equal(2, await db.Hydrants.CountAsync());
@@ -63,6 +66,10 @@ public class HydrantExportTests
     [Theory]
     [InlineData(null)]
     [InlineData("Beim Tor; Hinweis: \"frei\"\r\nZweite Zeile")]
+    /// <summary>
+    /// Executes export Can Be Imported Without Changing The Csv.
+    /// </summary>
+    /// <param name="notes">The notes.</param>
     public async Task Export_CanBeImportedWithoutChangingTheCsv(string? notes)
     {
         using var source = CreateDatabase();
@@ -72,7 +79,7 @@ public class HydrantExportTests
             Id = 42,
             Address = new Address
             {
-                Street = "Dorfstraße; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                Street = "DorfstraÃŸe; SÃ¼d", HouseNumber = "12a", PostalCode = "02361", City = "LÃ¼beck",
                 AdditionalInfo = "Nicht Bestandteil des Importformats",
             },
             Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 100,
@@ -107,6 +114,9 @@ public class HydrantExportTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes empty Database Exports Headers And Cancellation Is Respected.
+    /// </summary>
     public async Task EmptyDatabase_ExportsHeadersAndCancellationIsRespected()
     {
         using var db = CreateDatabase();
@@ -117,3 +127,4 @@ public class HydrantExportTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(new CancellationToken(true)));
     }
 }
+

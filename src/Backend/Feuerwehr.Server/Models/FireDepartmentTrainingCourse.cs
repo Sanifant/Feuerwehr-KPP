@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Server.Models;
+namespace De.Openelp.Feuerwehr.Server.Models;
 
 public class FireDepartmentTrainingCourse
 {
@@ -12,3 +12,4 @@ public class FireDepartmentTrainingCourse
 
     public int SeatsAssigned { get; set; }
 }
+

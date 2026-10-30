@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using AndroidX.Core.Content;
 using Manifest = global::Android.Manifest;
 
-namespace de.openelp.feuerwehr.App.Android
+namespace De.Openelp.Feuerwehr.App.Android
 {
     [Activity(
-        Label = "de.openelp.feuerwehr.App.Android",
+        Label = "De.Openelp.Feuerwehr.App.Android",
         Theme = "@style/MyTheme.NoActionBar",
         Icon = "@drawable/icon",
         MainLauncher = true,
@@ -56,6 +56,12 @@ namespace de.openelp.feuerwehr.App.Android
             return request.Task;
         }
 
+        /// <summary>
+        /// Executes on Request Permissions Result.
+        /// </summary>
+        /// <param name="requestCode">The request Code.</param>
+        /// <param name="permissions">The permissions.</param>
+        /// <param name="grantResults">The grant Results.</param>
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -80,3 +86,4 @@ namespace de.openelp.feuerwehr.App.Android
         }
     }
 }
+

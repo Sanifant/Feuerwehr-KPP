@@ -1,10 +1,10 @@
-using de.openelp.feuerwehr.Server;
+using De.Openelp.Feuerwehr.Server;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
 public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
 {

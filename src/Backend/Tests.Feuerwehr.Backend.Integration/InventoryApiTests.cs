@@ -2,12 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Services;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using Microsoft.AspNetCore.Hosting;
@@ -19,27 +19,37 @@ using Npgsql;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
 
 // Actual Program startup, migrations, JWT/Identity and HTTP routing against disposable infrastructure.
 [Trait("Category", "Integration")]
+/// <summary>
+/// Executes inventory Api Tests.
+/// </summary>
+/// <param name="fixture">The fixture.</param>
 public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixture<InventoryApiFixture>
 {
     private static readonly CancellationToken Ct = CancellationToken.None;
 
     [Fact]
+    /// <summary>
+    /// Executes startup Migrates And Seeds Categories And Roles.
+    /// </summary>
     public async Task Startup_MigratesAndSeedsCategoriesAndRoles()
     {
         using var scope = fixture.Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
         Assert.Empty(await db.Database.GetPendingMigrationsAsync());
         Assert.Contains(await db.Database.GetAppliedMigrationsAsync(), x => x.EndsWith("AddEquipmentInventory"));
-        foreach (var name in new[] { "Armaturen", "Beleuchtung", "Löschgeräte" }) Assert.True(await db.InventoryCategories.AnyAsync(x => x.Name == name));
+        foreach (var name in new[] { "Armaturen", "Beleuchtung", "LÃ¶schgerÃ¤te" }) Assert.True(await db.InventoryCategories.AnyAsync(x => x.Name == name));
         Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.EquipmentOfficer));
         Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.InventoryViewer));
     }
 
     [Fact]
+    /// <summary>
+    /// Executes authorization Separates Viewing Maintenance And Category Administration.
+    /// </summary>
     public async Task Authorization_SeparatesViewingMaintenanceAndCategoryAdministration()
     {
         using var anonymous = fixture.Factory.CreateClient();
@@ -62,6 +72,9 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
     }
 
     [Fact]
+    /// <summary>
+    /// Executes equipment Uses Type Plan And Calendar Months Records Inspection And Snapshots.
+    /// </summary>
     public async Task Equipment_UsesTypePlanAndCalendarMonths_RecordsInspectionAndSnapshots()
     {
         using var client = await fixture.Client(Roles.EquipmentOfficer);
@@ -100,6 +113,9 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
     }
 
     [Fact]
+    /// <summary>
+    /// Executes inactive Equipment Remains Readable But Cannot Be Inspected And Barcode Is Not Reused.
+    /// </summary>
     public async Task InactiveEquipment_RemainsReadableButCannotBeInspected_AndBarcodeIsNotReused()
     {
         using var client = await fixture.Client(Roles.EquipmentOfficer);
@@ -116,6 +132,9 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
     }
 
     [Fact]
+    /// <summary>
+    /// Executes validation And Concurrent Edits Do Not Lose Inspection History.
+    /// </summary>
     public async Task ValidationAndConcurrentEdits_DoNotLoseInspectionHistory()
     {
         using var client = await fixture.Client(Roles.EquipmentOfficer);
@@ -135,6 +154,9 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
     }
 
     [Fact]
+    /// <summary>
+    /// Executes barcode Limit Stops At999 Without Wrapping.
+    /// </summary>
     public async Task BarcodeLimit_StopsAt999WithoutWrapping()
     {
         using var client = await fixture.Client(Roles.EquipmentOfficer);
@@ -149,7 +171,7 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
             Assert.Equal("KPP-999", (await fixture.CreateEquipment(client, type.Id)).Barcode);
             var response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type.Id, SerialNumber = "Limit", Manufacturer = "Test" });
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Contains("ausgeschöpft", await response.Content.ReadAsStringAsync());
+            Assert.Contains("ausgeschÃ¶pft", await response.Content.ReadAsStringAsync());
         }
         finally
         {
@@ -159,6 +181,9 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
     }
 
     [Fact]
+    /// <summary>
+    /// Executes reminders Send One Digest Per Active Officer And Do Not Repeat.
+    /// </summary>
     public async Task Reminders_SendOneDigestPerActiveOfficer_AndDoNotRepeat()
     {
         using var client = await fixture.Client(Roles.EquipmentOfficer);
@@ -200,11 +225,14 @@ public sealed class InventoryApiFixture : IAsyncLifetime
     private readonly IContainer mailpit = new ContainerBuilder("axllent/mailpit:v1.27")
         .WithPortBinding(1025, true).WithPortBinding(8025, true)
         .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(8025))).Build();
-    public WebApplicationFactory<de.openelp.feuerwehr.Server.Program> Factory { get; private set; } = null!;
+    public WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program> Factory { get; private set; } = null!;
     public DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
     public Uri MailpitUrl => new($"http://{mailpit.Hostname}:{mailpit.GetMappedPublicPort(8025)}");
     private const string Password = "InventoryTest123456";
 
+    /// <summary>
+    /// Initializes the operation.
+    /// </summary>
     public async Task InitializeAsync()
     {
         try
@@ -224,12 +252,22 @@ public sealed class InventoryApiFixture : IAsyncLifetime
         }
         catch { await DisposeAsync(); throw; }
     }
+    /// <summary>
+    /// Creates the user.
+    /// </summary>
+    /// <param name="role">The role.</param>
+    /// <param name="email">The email.</param>
+    /// <param name="active">The active.</param>
     public async Task CreateUser(string role, string email, bool active = true)
     {
         using var scope = Factory.Services.CreateScope(); var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var user = new ApplicationUser { UserName = email, Email = email, FirstName = "Test", LastName = role, IsActive = active };
         Assert.True((await users.CreateAsync(user, Password)).Succeeded); Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
     }
+    /// <summary>
+    /// Executes client.
+    /// </summary>
+    /// <param name="role">The role.</param>
     public async Task<HttpClient> Client(string role)
     {
         var client = Factory.CreateClient();
@@ -237,26 +275,40 @@ public sealed class InventoryApiFixture : IAsyncLifetime
         login.EnsureSuccessStatusCode(); var tokens = await login.Content.ReadFromJsonAsync<LoginResponse>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken); return client;
     }
+    /// <summary>
+    /// Creates the type.
+    /// </summary>
+    /// <param name="client">The client.</param>
+    /// <param name="interval">The interval.</param>
     public async Task<EquipmentTypeDto> CreateType(HttpClient client, int interval = 12)
     {
         var categories = await client.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories");
         var response = await client.PostAsJsonAsync("/api/inventory/types", new SaveEquipmentTypeRequest
-        { CategoryId = categories![0].Id, Name = $"Typ {Guid.NewGuid()}", InspectionInstructions = "Sicht- und Funktionsprüfung nach Herstellerangaben", InspectionIntervalMonths = interval });
+        { CategoryId = categories![0].Id, Name = $"Typ {Guid.NewGuid()}", InspectionInstructions = "Sicht- und FunktionsprÃ¼fung nach Herstellerangaben", InspectionIntervalMonths = interval });
         response.EnsureSuccessStatusCode(); return (await response.Content.ReadFromJsonAsync<EquipmentTypeDto>())!;
     }
+    /// <summary>
+    /// Creates the equipment.
+    /// </summary>
+    /// <param name="client">The client.</param>
+    /// <param name="type">The type.</param>
     public async Task<EquipmentDto> CreateEquipment(HttpClient client, Guid type)
     {
         var response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type, SerialNumber = Guid.NewGuid().ToString(), Manufacturer = "Testhersteller" });
         response.EnsureSuccessStatusCode(); return (await response.Content.ReadFromJsonAsync<EquipmentDto>())!;
     }
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public async Task DisposeAsync()
     {
         if (Factory is not null) await Factory.DisposeAsync();
         await Task.WhenAll(Postgres.DisposeAsync().AsTask(), redis.DisposeAsync().AsTask(), mailpit.DisposeAsync().AsTask());
     }
-    private sealed class InventoryFactory(Dictionary<string, string> settings) : WebApplicationFactory<de.openelp.feuerwehr.Server.Program>
+    private sealed class InventoryFactory(Dictionary<string, string> settings) : WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         { builder.UseEnvironment("Testing"); foreach (var pair in settings) builder.UseSetting(pair.Key, pair.Value); }
     }
 }
+

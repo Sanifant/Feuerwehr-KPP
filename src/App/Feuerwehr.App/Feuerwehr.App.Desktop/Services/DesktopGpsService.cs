@@ -1,13 +1,17 @@
 using System.Threading;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.App.Models;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Services;
 
-namespace de.openelp.feuerwehr.App.Desktop.Services;
+namespace De.Openelp.Feuerwehr.App.Desktop.Services;
 
 /// <summary>Desktop stub that returns a fixed location.</summary>
 public sealed class DesktopGpsService : IGpsService
 {
+    /// <summary>
+    /// Gets the current Location.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -18,3 +22,4 @@ public sealed class DesktopGpsService : IGpsService
         });
     }
 }
+

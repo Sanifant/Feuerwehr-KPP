@@ -5,12 +5,16 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 // This client deliberately exposes only the two read endpoints, with no lease or mutation calls.
+/// <summary>
+/// Executes situation Map Service.
+/// </summary>
+/// <param name="httpClient">The http Client.</param>
 public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : ISituationMapService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -18,6 +22,10 @@ public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : IS
         Converters = { new JsonStringEnumConverter() }
     };
 
+    /// <summary>
+    /// Gets the active Incident.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
     {
         using var response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
@@ -27,6 +35,11 @@ public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : IS
             ?? throw new JsonException("Die Einsatzantwort ist leer.");
     }
 
+    /// <summary>
+    /// Gets the state.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<MapStateResponse> GetStateAsync(Guid incidentId, CancellationToken cancellationToken)
     {
         using var response = await httpClient.GetAsync($"/api/incidents/{incidentId}/map/state", cancellationToken);
@@ -35,3 +48,4 @@ public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : IS
             ?? throw new JsonException("Die Lagekartenantwort ist leer.");
     }
 }
+

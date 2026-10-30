@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Common.Models.IncidentModules;
+namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
 public enum IncidentStatus
 {
@@ -18,4 +18,5 @@ public enum DiaryRevisionType
     Edited = 2,
     Canceled = 3,
 }
+
 

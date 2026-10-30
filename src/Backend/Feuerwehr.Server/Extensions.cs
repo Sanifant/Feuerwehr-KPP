@@ -9,7 +9,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace de.openelp.feuerwehr.Server;
+namespace De.Openelp.Feuerwehr.Server;
 
 // Adds common Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
 // This project should be referenced by each service project in your solution.
@@ -108,6 +108,10 @@ public static class Extensions
         return builder;
     }
 
+    /// <summary>
+    /// Executes map Default Endpoints.
+    /// </summary>
+    /// <param name="app">The app.</param>
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
         // Adding health checks endpoints to applications in non-development environments has security implications.
@@ -127,3 +131,4 @@ public static class Extensions
         return app;
     }
 }
+

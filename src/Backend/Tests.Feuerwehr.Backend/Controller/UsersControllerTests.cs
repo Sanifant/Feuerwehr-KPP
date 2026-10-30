@@ -1,7 +1,7 @@
-using de.openelp.feuerwehr.Server.Services;
-using global::de.openelp.feuerwehr.Server.Controller;
-using global::de.openelp.feuerwehr.Server.Models;
-using global::de.openelp.feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Server.Services;
+using global::De.Openelp.Feuerwehr.Server.Controller;
+using global::De.Openelp.Feuerwehr.Server.Models;
+using global::De.Openelp.Feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Controller
+namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
     public class UsersControllerTests
     {
@@ -34,6 +34,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region GetAllUsers Tests
         /*
         [Fact]
+        /// <summary>
+        /// Gets the all Users Returns Ok Result With List Of Users.
+        /// </summary>
         public async Task GetAllUsers_ReturnsOkResult_WithListOfUsers()
         {
             // Arrange
@@ -63,6 +66,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Gets the all Users Returns Empty List When No Users Exist.
+        /// </summary>
         public async Task GetAllUsers_ReturnsEmptyList_WhenNoUsersExist()
         {
             // Arrange
@@ -83,6 +89,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region GetUser Tests
 
         [Fact]
+        /// <summary>
+        /// Gets the user Returns Ok Result With Valid User Id.
+        /// </summary>
         public async Task GetUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
@@ -110,6 +119,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Updates Email And Username.
+        /// </summary>
         public async Task UpdateUser_UpdatesEmailAndUsername()
         {
             var user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
@@ -127,6 +139,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Clears Roles When Empty Role List Provided.
+        /// </summary>
         public async Task UpdateUser_ClearsRoles_WhenEmptyRoleListProvided()
         {
             var user = new ApplicationUser { Id = "user-1" };
@@ -146,7 +161,49 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             _mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
         }
 
+        [Theory]
+        [InlineData(null, false, 1)]
+        [InlineData(2, false, 2)]
+        [InlineData(null, true, null)]
+        /// <summary>
+        /// Updates the user Preserves Changes Or Clears Fire Department Explicitly.
+        /// </summary>
+        /// <param name="departmentId">The department Id.</param>
+        /// <param name="clear">The clear.</param>
+        /// <param name="expected">The expected.</param>
+        public async Task UpdateUser_PreservesChangesOrClearsFireDepartmentExplicitly(int? departmentId, bool clear, int? expected)
+        {
+            var user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            _mockUserManager.Setup(manager => manager.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+
+            var result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = departmentId, ClearFireDepartment = clear });
+
+            Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(expected, user.FireDepartmentId);
+        }
+
         [Fact]
+        /// <summary>
+        /// Updates the user Rejects Conflicting Department Changes.
+        /// </summary>
+        public async Task UpdateUser_RejectsConflictingDepartmentChanges()
+        {
+            var user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+
+            var result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = 2, ClearFireDepartment = true });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(1, user.FireDepartmentId);
+            _mockUserManager.Verify(manager => manager.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        }
+
+        [Fact]
+        /// <summary>
+        /// Updates the user Returns Bad Request When Email Belongs To Another User.
+        /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenEmailBelongsToAnotherUser()
         {
             var user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
@@ -162,6 +219,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Gets the user Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task GetUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -181,6 +241,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region CreateUser Tests
         /*
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Created At Action With Valid Request.
+        /// </summary>
         public async Task CreateUser_ReturnsCreatedAtAction_WithValidRequest()
         {
             // Arrange
@@ -224,6 +287,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
         */
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Bad Request When User Email Already Exists.
+        /// </summary>
         public async Task CreateUser_ReturnsBadRequest_WhenUserEmailAlreadyExists()
         {
             // Arrange
@@ -249,6 +315,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Bad Request When Role Does Not Exist.
+        /// </summary>
         public async Task CreateUser_ReturnsBadRequest_WhenRoleDoesNotExist()
         {
             // Arrange
@@ -274,6 +343,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Creates the user Rolls Back User Creation When Role Assignment Fails.
+        /// </summary>
         public async Task CreateUser_RollsBackUserCreation_WhenRoleAssignmentFails()
         {
             // Arrange
@@ -312,6 +384,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Bad Request When User Creation Fails.
+        /// </summary>
         public async Task CreateUser_ReturnsBadRequest_WhenUserCreationFails()
         {
             // Arrange
@@ -342,6 +417,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region UpdateUser Tests
 
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Ok Result With Valid Request.
+        /// </summary>
         public async Task UpdateUser_ReturnsOkResult_WithValidRequest()
         {
             // Arrange
@@ -383,6 +461,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task UpdateUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -400,6 +481,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Updates Only Provided Fields.
+        /// </summary>
         public async Task UpdateUser_UpdatesOnlyProvidedFields()
         {
             // Arrange
@@ -429,6 +513,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Updates Password When New Password Provided.
+        /// </summary>
         public async Task UpdateUser_UpdatesPassword_WhenNewPasswordProvided()
         {
             // Arrange
@@ -452,6 +539,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Bad Request When Update Fails.
+        /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenUpdateFails()
         {
             // Arrange
@@ -471,6 +561,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             Assert.NotNull(badRequestResult.Value);
         }
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Bad Request When Invalid Role Provided.
+        /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenInvalidRoleProvided()
         {
             // Arrange
@@ -494,6 +587,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region DeleteUser Tests
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Ok Result With Valid User Id.
+        /// </summary>
         public async Task DeleteUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
@@ -515,6 +611,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task DeleteUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -530,6 +629,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Bad Request When Trying To Delete Own Account.
+        /// </summary>
         public async Task DeleteUser_ReturnsBadRequest_WhenTryingToDeleteOwnAccount()
         {
             // Arrange
@@ -549,6 +651,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Bad Request When Update Fails.
+        /// </summary>
         public async Task DeleteUser_ReturnsBadRequest_WhenUpdateFails()
         {
             // Arrange
@@ -574,6 +679,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region PermanentlyDeleteUser Tests
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Ok Result With Valid User Id.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
@@ -594,6 +702,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -609,6 +720,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Bad Request When Trying To Delete Own Account.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsBadRequest_WhenTryingToDeleteOwnAccount()
         {
             // Arrange
@@ -628,6 +742,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Bad Request When Delete Fails.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsBadRequest_WhenDeleteFails()
         {
             // Arrange
@@ -675,3 +792,4 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #endregion
     }
 }
+

@@ -2,12 +2,12 @@ using Android.App;
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
-using de.openelp.feuerwehr.App.Android.Services;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Android.Services;
+using De.Openelp.Feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace de.openelp.feuerwehr.App.Android
+namespace De.Openelp.Feuerwehr.App.Android
 {
     [Application]
     public class Application : AvaloniaAndroidApplication<App>
@@ -31,3 +31,4 @@ namespace de.openelp.feuerwehr.App.Android
         }
     }
 }
+

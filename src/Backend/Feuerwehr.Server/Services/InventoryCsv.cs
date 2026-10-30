@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 internal sealed record InventoryCsvRow(long Line, int BarcodeNumber, Guid? TypeId, string TypeName, string Category,
     string SerialNumber, string Manufacturer, EquipmentStatus Status, bool IsActive, DateOnly? CreatedOn, DateOnly? LastInspectedOn);
@@ -98,3 +98,4 @@ internal static class InventoryCsv
         return (rows, errors);
     }
 }
+

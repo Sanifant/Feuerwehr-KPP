@@ -1,10 +1,10 @@
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace de.openelp.feuerwehr.Server.Controller;
+namespace De.Openelp.Feuerwehr.Server.Controller;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -13,6 +13,10 @@ public class HydrantController(IHydrantService service) : ControllerBase
 {
     public const long MaximumImportBytes = 5 * 1024 * 1024;
 
+    /// <summary>
+    /// Exports hydrant data as a CSV file.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
     [HttpGet("export")]
     [Authorize(Policy = PolicyNames.RequireAdmin)]
     public async Task<IActionResult> Export(CancellationToken cancellationToken)
@@ -20,6 +24,11 @@ public class HydrantController(IHydrantService service) : ControllerBase
         return File(await service.ExportAsync(cancellationToken), "text/csv; charset=utf-8", "hydranten.csv");
     }
 
+    /// <summary>
+    /// Imports hydrant data from an uploaded CSV file.
+    /// </summary>
+    /// <param name="file">The uploaded CSV file.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
     [HttpPost("import")]
     [Authorize(Policy = PolicyNames.RequireAdmin)]
     [Consumes("multipart/form-data")]
@@ -35,21 +44,29 @@ public class HydrantController(IHydrantService service) : ControllerBase
         return this.ToActionResult(await service.ImportAsync(stream, cancellationToken));
     }
 
-    // GET: api/<HydrantController>
+    /// <summary>
+    /// Gets all hydrants.
+    /// </summary>
     [HttpGet]
     public ActionResult<IEnumerable<Hydrant>> Get()
     {
         return this.ToActionResult(service.Get());
     }
 
-    // GET api/<HydrantController>/5
+    /// <summary>
+    /// Gets a hydrant by id.
+    /// </summary>
+    /// <param name="id">The hydrant identifier.</param>
     [HttpGet("{id}")]
     public IActionResult Get(int id)
     {
         return this.ToActionResult(service.Get(id));
     }
 
-    // POST api/<HydrantController>
+    /// <summary>
+    /// Creates a hydrant.
+    /// </summary>
+    /// <param name="value">The hydrant to create.</param>
     [HttpPost]
     [Authorize(Policy = PolicyNames.CanManageHydrants)]
     public IActionResult Post([FromBody] Hydrant value)
@@ -57,7 +74,11 @@ public class HydrantController(IHydrantService service) : ControllerBase
         return this.ToActionResult(service.Post(value));
     }
 
-    // PUT api/<HydrantController>/5
+    /// <summary>
+    /// Updates a hydrant.
+    /// </summary>
+    /// <param name="id">The hydrant identifier.</param>
+    /// <param name="value">The hydrant values to update.</param>
     [HttpPut("{id}")]
     [Authorize(Policy = PolicyNames.CanManageHydrants)]
     public IActionResult Put(int id, [FromBody] Hydrant value)
@@ -65,7 +86,10 @@ public class HydrantController(IHydrantService service) : ControllerBase
         return this.ToActionResult(service.Put(id, value));
     }
 
-    // DELETE api/<HydrantController>/5
+    /// <summary>
+    /// Deletes a hydrant.
+    /// </summary>
+    /// <param name="id">The hydrant identifier.</param>
     [HttpDelete("{id}")]
     [Authorize(Policy = PolicyNames.CanManageHydrants)]
     public IActionResult Delete(int id)

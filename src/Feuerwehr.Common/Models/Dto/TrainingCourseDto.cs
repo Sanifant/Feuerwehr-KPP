@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace de.openelp.feuerwehr.Common.Models.Dto
+namespace De.Openelp.Feuerwehr.Common.Models.Dto
 {
     public class TrainingCourseDto
     {
@@ -16,3 +16,4 @@ namespace de.openelp.feuerwehr.Common.Models.Dto
         public int AssignedSeats { get; set; }
     }
 }
+

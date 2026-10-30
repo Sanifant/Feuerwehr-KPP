@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 /// <summary>
 /// Platform-specific secure storage for sensitive data like tokens.
@@ -11,3 +11,4 @@ public interface ISecureStorage
     Task<string?> GetAsync(string key);
     Task RemoveAsync(string key);
 }
+

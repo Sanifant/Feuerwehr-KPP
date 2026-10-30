@@ -1,22 +1,33 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public interface IInventoryReminderService
 {
     Task SendDueReminders(CancellationToken ct);
 }
 
+/// <summary>
+/// Executes inventory Reminder Service.
+/// </summary>
+/// <param name="db">The db.</param>
+/// <param name="mail">The mail.</param>
+/// <param name="clock">The clock.</param>
+/// <param name="logger">The logger.</param>
 public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService mail, TimeProvider clock,
     ILogger<InventoryReminderService> logger) : IInventoryReminderService
 {
+    /// <summary>
+    /// Sends the due Reminders.
+    /// </summary>
+    /// <param name="ct">The ct.</param>
     public async Task SendDueReminders(CancellationToken ct)
     {
         var now = clock.GetUtcNow().UtcDateTime;
@@ -38,33 +49,39 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
             var sent = await db.EquipmentReminderDeliveries.AsNoTracking().Where(x => x.RecipientId == recipient.Id).ToListAsync(ct);
             var pending = due.Where(x => !sent.Any(s => s.EquipmentId == x.Id && s.DueOn == x.NextInspectionOn)).ToList();
             if (pending.Count == 0) continue;
-            var body = new StringBuilder("Folgende Geräte sind innerhalb der nächsten zwei Wochen zur Prüfung fällig oder bereits überfällig:\n\n");
+            var body = new StringBuilder("Folgende GerÃ¤te sind innerhalb der nÃ¤chsten zwei Wochen zur PrÃ¼fung fÃ¤llig oder bereits Ã¼berfÃ¤llig:\n\n");
             foreach (var item in pending)
             {
                 var status = item.Status switch { EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", _ => "In Reparatur" };
                 body.AppendLine($"{item.Barcode} | {item.EquipmentTypeName} | {item.Manufacturer} | Seriennummer {item.SerialNumber}");
-                body.AppendLine($"Prüftermin: {item.NextInspectionOn.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} | Status: {status}");
+                body.AppendLine($"PrÃ¼ftermin: {item.NextInspectionOn.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} | Status: {status}");
                 body.AppendLine();
             }
             try
             {
-                await mail.SendAsync(recipient.Email!, $"Geräteprüfung: {pending.Count} Gerät(e) fällig", body.ToString());
+                await mail.SendAsync(recipient.Email!, $"GerÃ¤teprÃ¼fung: {pending.Count} GerÃ¤t(e) fÃ¤llig", body.ToString());
             }
             catch (Exception ex) when (!ct.IsCancellationRequested)
             {
-                logger.LogWarning(ex, "Inventarerinnerung konnte nicht zugestellt werden. Erneuter Versuch im nächsten Lauf.");
+                logger.LogWarning(ex, "Inventarerinnerung konnte nicht zugestellt werden. Erneuter Versuch im nÃ¤chsten Lauf.");
                 continue;
             }
             db.EquipmentReminderDeliveries.AddRange(pending.Select(x => new EquipmentReminderDelivery
             {
                 Id = Guid.NewGuid(), EquipmentId = x.Id, RecipientId = recipient.Id, DueOn = x.NextInspectionOn, SentAtUtc = now,
             }));
-            // Erst nach erfolgreicher SMTP-Annahme markieren; fehlgeschlagene Empfänger bleiben offen.
+            // Erst nach erfolgreicher SMTP-Annahme markieren; fehlgeschlagene EmpfÃ¤nger bleiben offen.
             await db.SaveChangesAsync(ct);
         }
     }
 }
 
+/// <summary>
+/// Executes inventory Reminder Worker.
+/// </summary>
+/// <param name="scopes">The scopes.</param>
+/// <param name="clock">The clock.</param>
+/// <param name="logger">The logger.</param>
 public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimeProvider clock,
     ILogger<InventoryReminderWorker> logger) : BackgroundService
 {
@@ -76,7 +93,7 @@ public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimePro
             {
                 await using var scope = scopes.CreateAsyncScope();
                 var db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
-                // Eine dedizierte PostgreSQL-Verbindung hält die Sperre auch über mehrere SaveChanges hinweg.
+                // Eine dedizierte PostgreSQL-Verbindung hÃ¤lt die Sperre auch Ã¼ber mehrere SaveChanges hinweg.
                 // Damit senden mehrere API-Instanzen nicht gleichzeitig dieselbe Zusammenfassung.
                 await using var mutex = new NpgsqlConnection(db.Database.GetConnectionString());
                 await mutex.OpenAsync(stoppingToken);
@@ -86,7 +103,7 @@ public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimePro
                     try { await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken); }
                     finally
                     {
-                        // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schließt die Verbindung.
+                        // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schlieÃŸt die Verbindung.
                         await using var release = new NpgsqlCommand("SELECT pg_advisory_unlock(305002014)", mutex) { CommandTimeout = 5 };
                         await release.ExecuteNonQueryAsync(CancellationToken.None);
                     }
@@ -100,3 +117,4 @@ public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimePro
         }
     }
 }
+

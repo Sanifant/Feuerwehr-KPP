@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-    <RootNamespace>de.openelp.feuerwehr.App.iOS</RootNamespace>
+    <RootNamespace>De.Openelp.Feuerwehr.App.iOS</RootNamespace>
 		<OutputType>Exe</OutputType>
 		<Nullable>enable</Nullable>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -25,6 +25,13 @@
 
 	<ItemGroup Condition="!$([MSBuild]::IsOSPlatform('OSX'))">
 		<Compile Include="DummyMain.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="StyleCop.Analyzers">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
 
   <ItemGroup>

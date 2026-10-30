@@ -1,12 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.ViewModels;
-using de.openelp.feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.App;
+namespace De.Openelp.Feuerwehr.Tests.App;
 
 public sealed class InventoryTests
 {
@@ -15,6 +15,12 @@ public sealed class InventoryTests
     [InlineData("InventoryViewer", true, false)]
     [InlineData("Admin", true, true)]
     [InlineData("Firefighter", false, false)]
+    /// <summary>
+    /// Executes role Controls Navigation Lookup And Inspection.
+    /// </summary>
+    /// <param name="role">The role.</param>
+    /// <param name="view">The view.</param>
+    /// <param name="manage">The manage.</param>
     public async Task RoleControlsNavigationLookupAndInspection(string role, bool view, bool manage)
     {
         var auth = Auth(role); var service = new Mock<IInventoryService>();
@@ -28,6 +34,9 @@ public sealed class InventoryTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes camera Result Loads Device And Inspection Uses Its Version And Preserves Retry Command.
+    /// </summary>
     public async Task CameraResultLoadsDeviceAndInspectionUsesItsVersionAndPreservesRetryCommand()
     {
         var service = new Mock<IInventoryService>(); var detail = Detail();
@@ -40,7 +49,7 @@ public sealed class InventoryTests
             .ThrowsAsync(new HttpRequestException("offline"));
         var vm = new InventoryViewModel(service.Object, Auth("EquipmentOfficer").Object, scanner.Object);
         await vm.ScanAsync(CancellationToken.None);
-        Assert.Contains("KPP-001", vm.DeviceTitle); Assert.Contains("Nächste Prüfung:", vm.NextInspection);
+        Assert.Contains("KPP-001", vm.DeviceTitle); Assert.Contains("NÃ¤chste PrÃ¼fung:", vm.NextInspection);
         vm.Comment = "Dichtung defekt"; vm.SelectedStatus = 1;
         await vm.SaveInspectionAsync(CancellationToken.None); await vm.SaveInspectionAsync(CancellationToken.None);
         Assert.Equal(2, requests.Count); Assert.Equal(requests[0].CommandId, requests[1].CommandId);
@@ -49,6 +58,9 @@ public sealed class InventoryTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes inactive Device And Role Revocation Prevent Maintenance And Discard Late Lookup.
+    /// </summary>
     public async Task InactiveDeviceAndRoleRevocationPreventMaintenanceAndDiscardLateLookup()
     {
         var auth = Auth("EquipmentOfficer"); var service = new Mock<IInventoryService>();
@@ -64,6 +76,9 @@ public sealed class InventoryTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes client Sends Authenticated Json With String Status And Encodes Barcode.
+    /// </summary>
     public async Task ClientSendsAuthenticatedJsonWithStringStatusAndEncodesBarcode()
     {
         var handler = new InventoryHandler(); using var http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test") };
@@ -84,7 +99,7 @@ public sealed class InventoryTests
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return new(new EquipmentDto(Guid.Parse("30500200-0000-0000-0000-000000000001"), "KPP-001", Guid.NewGuid(), "Strahlrohr", "Armaturen", "SN-123", "Hersteller", EquipmentStatus.Ready,
-            active, today, null, today.AddMonths(12), 12, "Sicht- und Funktionsprüfung", 7), []);
+            active, today, null, today.AddMonths(12), 12, "Sicht- und FunktionsprÃ¼fung", 7), []);
     }
     private sealed class InventoryHandler : HttpMessageHandler
     {
@@ -99,3 +114,4 @@ public sealed class InventoryTests
         }
     }
 }
+

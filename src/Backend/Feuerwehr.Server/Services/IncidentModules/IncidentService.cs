@@ -1,22 +1,33 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using System.Text.Json;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 
-namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
+namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 
+/// <summary>
+/// Executes incident Service.
+/// </summary>
+/// <param name="dbContext">The db Context.</param>
+/// <param name="userContext">The user Context.</param>
+/// <param name="idempotency">The idempotency.</param>
+/// <param name="outboxService">The outbox Service.</param>
 public sealed class IncidentService(FeuerwehrDbContext dbContext,
     IUserContextAccessor userContext,
     ICommandIdempotencyService idempotency,
     IOutboxService outboxService) : IIncidentService
 {
 
+    /// <summary>
+    /// Gets the active Incident.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> GetActiveIncident(CancellationToken cancellationToken)
     {
         var incident = await dbContext.Incidents
@@ -33,6 +44,12 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Gets the archive.
+    /// </summary>
+    /// <param name="page">The page.</param>
+    /// <param name="pageSize">The page Size.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
     {
         if (!userContext.IsAdmin) return ServiceResult.Forbid();
@@ -53,16 +70,21 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Creates the incident.
+    /// </summary>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> CreateIncident(CreateIncidentRequest request, CancellationToken cancellationToken)
     {
         if (request.AlarmedAtUtc is null || request.AlarmedAtUtc == DateTimeOffset.MinValue)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Bitte einen gültigen Alarmierungszeitpunkt angeben.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Bitte einen gÃ¼ltigen Alarmierungszeitpunkt angeben.");
         }
 
         if (request.OriginLatitude is < -90 or > 90 || request.OriginLongitude is < -180 or > 180)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Ungültige Koordinaten.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "UngÃ¼ltige Koordinaten.");
         }
 
         var payload = new
@@ -138,6 +160,12 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     }
 
+    /// <summary>
+    /// Executes close Incident.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<ServiceResult> CloseIncident(Guid incidentId, CloseIncidentRequest request, CancellationToken cancellationToken)
     {
 
@@ -164,7 +192,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
             var lease = await dbContext.EditorLeases.FirstOrDefaultAsync(x => x.IncidentId == incidentId, cancellationToken);
             if (lease is null || lease.ExpiresAtUtc <= DateTime.UtcNow)
             {
-                return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Keine gültige Lagekarten-Sperre vorhanden.");
+                return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Keine gÃ¼ltige Lagekarten-Sperre vorhanden.");
             }
 
             if (!string.Equals(lease.UserId, userContext.UserId, StringComparison.Ordinal)
@@ -239,3 +267,4 @@ public interface IIncidentService
     Task<ServiceResult> CreateIncident(CreateIncidentRequest request, CancellationToken cancellationToken);
     Task<ServiceResult> CloseIncident(Guid incidentId, CloseIncidentRequest request, CancellationToken cancellationToken);
 }
+

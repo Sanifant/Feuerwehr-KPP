@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace de.openelp.feuerwehr.Server.Hubs;
+namespace De.Openelp.Feuerwehr.Server.Hubs;
 
 public interface IIncidentClient
 {
@@ -15,26 +15,38 @@ public interface IIncidentClient
 [Authorize]
 public sealed class IncidentHub : Hub<IIncidentClient>
 {
+    /// <summary>
+    /// Executes subscribe Incident.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
     public async Task SubscribeIncident(string incidentId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, $"incident:{incidentId}");
     }
 
+    /// <summary>
+    /// Executes subscribe Map.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
     public async Task SubscribeMap(string incidentId)
     {
         if (!CanViewMap())
         {
-            throw new HubException("Keine Berechtigung für Lagekarte.");
+            throw new HubException("Keine Berechtigung fÃ¼r Lagekarte.");
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{incidentId}");
     }
 
+    /// <summary>
+    /// Executes subscribe Diary.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
     public async Task SubscribeDiary(string incidentId)
     {
         if (!CanViewDiary())
         {
-            throw new HubException("Keine Berechtigung für Einsatztagebuch.");
+            throw new HubException("Keine Berechtigung fÃ¼r Einsatztagebuch.");
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"diary:{incidentId}");
@@ -52,3 +64,4 @@ public sealed class IncidentHub : Hub<IIncidentClient>
         return roles.Contains("IncidentDiaryViewer") || roles.Contains("IncidentDiaryEditor");
     }
 }
+

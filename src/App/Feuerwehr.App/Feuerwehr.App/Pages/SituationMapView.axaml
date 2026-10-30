@@ -1,8 +1,8 @@
 <ContentPage xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:geo="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
-             xmlns:vm="using:de.openelp.feuerwehr.App.ViewModels"
-             x:Class="de.openelp.feuerwehr.App.Pages.SituationMapView"
+             xmlns:vm="using:De.Openelp.Feuerwehr.App.ViewModels"
+             x:Class="De.Openelp.Feuerwehr.App.Pages.SituationMapView"
              x:DataType="vm:SituationMapViewModel"
              Header="Lagekarte">
     <Grid RowDefinitions="Auto,Auto,*">

@@ -1,13 +1,16 @@
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Services;
+﻿using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public class HydrantServiceTests
 {
     [Fact]
+    /// <summary>
+    /// Creates the and Update Map Transport Contract Without Replacing Entity.
+    /// </summary>
     public void CreateAndUpdate_MapTransportContractWithoutReplacingEntity()
     {
         using var db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
@@ -15,7 +18,7 @@ public class HydrantServiceTests
         var service = new HydrantService(db);
         var request = new Hydrant
         {
-            Address = new Address { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
+            Address = new Address { Street = "DorfstraÃŸe", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
             Latitude = 53.9, Longitude = 10.7, NominalDiameter = 100,
             Status = HydrantStatus.Operational, Type = HydrantType.Underground,
         };
@@ -30,17 +33,18 @@ public class HydrantServiceTests
 
         var update = new Hydrant
         {
-            Id = response.Id, Address = new Address { Street = "Neue Straße", City = "Stockelsdorf" },
+            Id = response.Id, Address = new Address { Street = "Neue StraÃŸe", City = "Stockelsdorf" },
             Latitude = 54, Longitude = 11, NominalDiameter = 150,
-            Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "Geprüft",
+            Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "GeprÃ¼ft",
         };
         Assert.Equal(204, service.Put(response.Id, update).Code);
         Assert.Same(entity, Assert.Single(db.Hydrants));
         var updated = Assert.IsType<Hydrant>(service.Get(response.Id).Value);
-        Assert.Equal("Neue Straße", updated.Address.Street);
+        Assert.Equal("Neue StraÃŸe", updated.Address.Street);
         Assert.Equal(150, updated.NominalDiameter);
-        Assert.Equal("Geprüft", updated.Notes);
+        Assert.Equal("GeprÃ¼ft", updated.Notes);
         Assert.Equal(204, service.Delete(response.Id).Code);
         Assert.Equal(404, service.Get(response.Id).Code);
     }
 }
+

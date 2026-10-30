@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Common.Models.Dto;
+namespace De.Openelp.Feuerwehr.Common.Models.Dto;
 
 public class FireDepartmentDto
 {
@@ -12,3 +12,4 @@ public class FireDepartmentDto
 
     public ICollection<FireDepartmentTrainingCourseDto> TrainingCourses { get; set; } = new List<FireDepartmentTrainingCourseDto>();
 }
+

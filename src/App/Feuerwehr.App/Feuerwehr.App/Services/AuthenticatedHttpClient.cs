@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 /// <summary>
 /// HttpClient wrapper that automatically adds authentication headers.
@@ -19,6 +19,11 @@ public class AuthenticatedHttpClient
         _authService = authService;
     }
 
+    /// <summary>
+    /// Sends the operation.
+    /// </summary>
+    /// <param name="request">The request.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
     {
         var token = await _authService.GetAccessTokenAsync();
@@ -30,27 +35,50 @@ public class AuthenticatedHttpClient
         return await _httpClient.SendAsync(request, cancellationToken);
     }
 
+    /// <summary>
+    /// Gets the operation.
+    /// </summary>
+    /// <param name="requestUri">The request Uri.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         return await SendAsync(request, cancellationToken);
     }
 
+    /// <summary>
+    /// Executes post.
+    /// </summary>
+    /// <param name="requestUri">The request Uri.</param>
+    /// <param name="content">The content.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent? content, CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
         return await SendAsync(request, cancellationToken);
     }
 
+    /// <summary>
+    /// Executes put.
+    /// </summary>
+    /// <param name="requestUri">The request Uri.</param>
+    /// <param name="content">The content.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<HttpResponseMessage> PutAsync(string requestUri, HttpContent? content, CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Put, requestUri) { Content = content };
         return await SendAsync(request, cancellationToken);
     }
 
+    /// <summary>
+    /// Deletes the operation.
+    /// </summary>
+    /// <param name="requestUri">The request Uri.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<HttpResponseMessage> DeleteAsync(string requestUri, CancellationToken cancellationToken = default)
     {
         var request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
         return await SendAsync(request, cancellationToken);
     }
 }
+

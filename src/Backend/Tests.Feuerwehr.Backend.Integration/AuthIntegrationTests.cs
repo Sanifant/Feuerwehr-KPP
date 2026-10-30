@@ -1,14 +1,21 @@
 using System.Net;
 using System.Net.Http.Json;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
 
 [Collection(IntegrationTestCollection.Name)]
+/// <summary>
+/// Executes auth Integration Tests.
+/// </summary>
+/// <param name="fixture">The fixture.</param>
 public sealed class AuthIntegrationTests(IntegrationTestFixture fixture)
 {
     [Fact]
+    /// <summary>
+    /// Executes login With Seeded Admin Returns Access And Refresh Token.
+    /// </summary>
     public async Task Login_WithSeededAdmin_ReturnsAccessAndRefreshToken()
     {
         var response = await fixture.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest

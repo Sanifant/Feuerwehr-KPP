@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.ViewModels;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using Mapsui.Layers;
 using Mapsui.Nts;
 using Mapsui.Projections;
@@ -13,7 +13,7 @@ using Mapsui.Styles;
 using Moq;
 using NetTopologySuite.Geometries;
 
-namespace de.openelp.feuerwehr.Tests.App;
+namespace De.Openelp.Feuerwehr.Tests.App;
 
 public class SituationMapTests
 {
@@ -22,6 +22,11 @@ public class SituationMapTests
     [InlineData("SituationMapEditor", true)]
     [InlineData("IncidentDiaryViewer", false)]
     [InlineData("Admin", false)]
+    /// <summary>
+    /// Executes only Viewer Role Shows Navigation And Allows Loading.
+    /// </summary>
+    /// <param name="role">The role.</param>
+    /// <param name="allowed">The allowed.</param>
     public async Task OnlyViewerRole_ShowsNavigationAndAllowsLoading(string role, bool allowed)
     {
         var auth = CreateAuth(role);
@@ -39,6 +44,9 @@ public class SituationMapTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes refresh Replaces Elements And Keeps Viewport Then Clears When Incident Ends.
+    /// </summary>
     public async Task Refresh_ReplacesElementsAndKeepsViewport_ThenClearsWhenIncidentEnds()
     {
         var incident = Incident();
@@ -77,6 +85,9 @@ public class SituationMapTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes role Revocation Cancels Loading And Discards Late Results.
+    /// </summary>
     public async Task RoleRevocation_CancelsLoadingAndDiscardsLateResults()
     {
         var completion = new TaskCompletionSource<MapStateResponse>();
@@ -101,6 +112,9 @@ public class SituationMapTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes navigation Away Discards Pending Response.
+    /// </summary>
     public async Task NavigationAway_DiscardsPendingResponse()
     {
         var completion = new TaskCompletionSource<IncidentSummaryDto?>();
@@ -119,6 +133,9 @@ public class SituationMapTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes refresh Failure Clears Old Map And Allows Retry.
+    /// </summary>
     public async Task RefreshFailure_ClearsOldMapAndAllowsRetry()
     {
         var incident = Incident();
@@ -138,6 +155,9 @@ public class SituationMapTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes layers Project Coordinates And Preserve Polygon Holes And Svg Symbols.
+    /// </summary>
     public void Layers_ProjectCoordinatesAndPreservePolygonHolesAndSvgSymbols()
     {
         var symbol = Element("[10.6,53.9]") with
@@ -162,6 +182,9 @@ public class SituationMapTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes http Client Uses Only Get And Reads String Enums Handles Missing Active Incident.
+    /// </summary>
     public async Task HttpClient_UsesOnlyGetAndReadsStringEnums_HandlesMissingActiveIncident()
     {
         var incident = Incident();
@@ -220,3 +243,4 @@ public class SituationMapTests
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using de.openelp.feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace De.Openelp.Feuerwehr.Server.Services
 {
     public interface ITokenService
     {
@@ -31,6 +31,11 @@ namespace de.openelp.feuerwehr.Server.Services
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Executes generate Access Token.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="roles">The roles.</param>
         public async Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -77,6 +82,9 @@ namespace de.openelp.feuerwehr.Server.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        /// <summary>
+        /// Executes generate Refresh Token.
+        /// </summary>
         public string GenerateRefreshToken()
         {
             var randomNumber = new byte[64];
@@ -85,6 +93,10 @@ namespace de.openelp.feuerwehr.Server.Services
             return Convert.ToBase64String(randomNumber);
         }
 
+        /// <summary>
+        /// Determines whether access Token Valid.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
         public async Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal)
         {
             var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -95,6 +107,11 @@ namespace de.openelp.feuerwehr.Server.Services
                 string.Equals(stamp, await _userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
         }
 
+        /// <summary>
+        /// Validates the refresh Token.
+        /// </summary>
+        /// <param name="userId">The user Id.</param>
+        /// <param name="refreshToken">The refresh Token.</param>
         public async Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -110,6 +127,11 @@ namespace de.openelp.feuerwehr.Server.Services
             return storedToken == hashedProvidedToken;
         }
 
+        /// <summary>
+        /// Executes store Refresh Token.
+        /// </summary>
+        /// <param name="userId">The user Id.</param>
+        /// <param name="refreshToken">The refresh Token.</param>
         public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -125,6 +147,10 @@ namespace de.openelp.feuerwehr.Server.Services
             await _userManager.SetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken", hashedToken);
         }
 
+        /// <summary>
+        /// Executes revoke Refresh Token.
+        /// </summary>
+        /// <param name="userId">The user Id.</param>
         public async Task RevokeRefreshTokenAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -133,6 +159,10 @@ namespace de.openelp.feuerwehr.Server.Services
             await _userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
         }
 
+        /// <summary>
+        /// Gets the principal From Expired Token.
+        /// </summary>
+        /// <param name="token">The token.</param>
         public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -176,3 +206,4 @@ namespace de.openelp.feuerwehr.Server.Services
         }
     }
 }
+

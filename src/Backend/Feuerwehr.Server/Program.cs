@@ -1,9 +1,9 @@
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Hubs;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Hubs;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +13,9 @@ using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
 using MailKit.Net.Smtp;
 using System.Text;
-using de.openelp.feuerwehr.Diagnostics;
+using De.Openelp.Feuerwehr.Diagnostics;
 
-namespace de.openelp.feuerwehr.Server;
+namespace De.Openelp.Feuerwehr.Server;
 
 public partial class Program
 {
@@ -47,6 +47,12 @@ public partial class Program
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddScoped<IMailService, MailService>();
+        builder.Services.AddScoped<IHtmlMailService, MailService>();
+        builder.Services.AddScoped<IVehicleService, VehicleService>();
+        builder.Services.AddScoped<IVehicleTransferService, VehicleTransferService>();
+        builder.Services.AddScoped<IVehicleMailComposer, VehicleMailComposer>();
+        builder.Services.AddScoped<IVehicleMailDispatcher, VehicleMailDispatcher>();
+        builder.Services.AddHostedService<VehicleMailWorker>();
         builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
         builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
 
@@ -248,3 +254,4 @@ public partial class Program
         await DbInitializer.SeedDataAsync(scope.ServiceProvider);
     }
 }
+

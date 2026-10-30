@@ -14,11 +14,17 @@ interface User {
     firstName: string;
     lastName: string;
     fullName: string;
+    fireDepartmentId: number | null;
     isActive: boolean;
     passwordResetRequired: boolean;
     roles: string[];
     createdAt: string;
     lastLoginAt?: string;
+}
+
+interface FireDepartment {
+    id: number;
+    name: string;
 }
 
 interface CreateUserForm {
@@ -27,6 +33,7 @@ interface CreateUserForm {
     confirmPassword: string;
     firstName: string;
     lastName: string;
+    fireDepartmentId: string;
     roles: string[];
 }
 
@@ -45,12 +52,14 @@ const EMPTY_FORM: CreateUserForm = {
     confirmPassword: '',
     firstName: '',
     lastName: '',
+    fireDepartmentId: '',
     roles: [],
 };
 
 const UserManagement: React.FC = () => {
     const { isAdmin } = useRole();
     const [users, setUsers] = useState<User[]>([]);
+    const [fireDepartments, setFireDepartments] = useState<FireDepartment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
@@ -73,11 +82,15 @@ const UserManagement: React.FC = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get<User[]>('/api/Users');
+            const [response, departmentResponse] = await Promise.all([
+                apiClient.get<User[]>('/api/Users'),
+                apiClient.get<FireDepartment[]>('/api/FireDepartment'),
+            ]);
             setUsers(response.data);
+            setFireDepartments([...departmentResponse.data].sort((a, b) => a.name.localeCompare(b.name, 'de')));
             setError(null);
         } catch (err: unknown) {
-            setError(getApiErrorMessage(err, 'Fehler beim Laden der Benutzer'));
+            setError(getApiErrorMessage(err, 'Fehler beim Laden der Benutzer oder Feuerwehren'));
             console.error('Error fetching users:', err);
         } finally {
             setLoading(false);
@@ -100,6 +113,7 @@ const UserManagement: React.FC = () => {
             confirmPassword: '',
             firstName: user.firstName,
             lastName: user.lastName,
+            fireDepartmentId: user.fireDepartmentId == null ? '' : String(user.fireDepartmentId),
             roles: [...user.roles],
         });
         setFormErrors({});
@@ -112,7 +126,7 @@ const UserManagement: React.FC = () => {
         setEditingUser(null);
     };
 
-    const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
         setFormErrors(prev => ({ ...prev, [name]: undefined }));
@@ -164,11 +178,13 @@ const UserManagement: React.FC = () => {
                 email: form.email.trim(),
                 firstName: form.firstName,
                 lastName: form.lastName,
+                fireDepartmentId: form.fireDepartmentId ? Number(form.fireDepartmentId) : null,
                 roles: form.roles,
             };
             if (editingUser) {
                 await apiClient.put(`/api/Users/${editingUser.id}`, {
                     ...userRequest,
+                    clearFireDepartment: !form.fireDepartmentId && editingUser.fireDepartmentId != null,
                     newPassword: form.password || undefined,
                 });
             } else {
@@ -238,6 +254,7 @@ const UserManagement: React.FC = () => {
                         <tr>
                             <th>Name</th>
                             <th>E-Mail</th>
+                            <th>Feuerwehr</th>
                             <th>Rollen</th>
                             <th>Status</th>
                             <th>Erstellt am</th>
@@ -250,6 +267,7 @@ const UserManagement: React.FC = () => {
                             <tr key={user.id}>
                                 <td>{user.fullName}</td>
                                 <td>{user.email}</td>
+                                <td>{fireDepartments.find(department => department.id === user.fireDepartmentId)?.name ?? 'Keine Zuordnung'}</td>
                                 <td>
                                     {user.roles.map(role => (
                                         <span key={role} className="badge badge-role">
@@ -361,6 +379,17 @@ const UserManagement: React.FC = () => {
                             </div>
 
                             {!editingUser && <p>Der Benutzer erhält eine Einladung per E-Mail und legt sein Passwort selbst fest.</p>}
+                            <div className="form-group">
+                                <label htmlFor="fireDepartmentId">Feuerwehr</label>
+                                <select id="fireDepartmentId" name="fireDepartmentId" value={form.fireDepartmentId}
+                                    onChange={handleFieldChange} disabled={submitting} aria-describedby="user-fire-department-hint">
+                                    <option value="">Keine Zuordnung</option>
+                                    {fireDepartments.map(department => <option key={department.id} value={department.id}>{department.name}</option>)}
+                                </select>
+                                <small id="user-fire-department-hint">{fireDepartments.length === 0
+                                    ? 'Es sind noch keine Feuerwehren angelegt. Diese können unter Verwaltung → Feuerwehren erstellt werden.'
+                                    : 'Gerätewarte benötigen eine Feuerwehrzuordnung, um Fahrzeuge dieser Feuerwehr zu verwalten.'}</small>
+                            </div>
                             {editingUser && (
                             <div className="form-row">
                                 <div className="form-group">

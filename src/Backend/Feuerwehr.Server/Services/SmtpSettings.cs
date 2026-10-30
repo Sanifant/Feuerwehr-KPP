@@ -3,7 +3,7 @@ using System.Globalization;
 using MailKit.Security;
 using MimeKit;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public sealed class SmtpSettings
 {
@@ -16,6 +16,10 @@ public sealed class SmtpSettings
     public required string FromName { get; init; }
     public required int TimeoutMilliseconds { get; init; }
 
+    /// <summary>
+    /// Executes from Configuration.
+    /// </summary>
+    /// <param name="configuration">The configuration.</param>
     public static SmtpSettings FromConfiguration(IConfiguration configuration)
     {
         static string? NonBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -46,13 +50,13 @@ public sealed class SmtpSettings
         var username = NonBlank(configuration["MAIL_USERNAME"]);
         var password = configuration["MAIL_PASSWORD"];
         if ((username is null) != string.IsNullOrEmpty(password))
-            throw new InvalidOperationException("MAIL_USERNAME und MAIL_PASSWORD müssen gemeinsam gesetzt werden.");
+            throw new InvalidOperationException("MAIL_USERNAME und MAIL_PASSWORD mÃ¼ssen gemeinsam gesetzt werden.");
         if (username is not null && security == SecureSocketOptions.None)
             throw new InvalidOperationException("SMTP-Anmeldung erfordert MAIL_SECURITY=StartTls oder SslOnConnect.");
 
         var from = NonBlank(configuration["MAIL_FROM"]) ?? NonBlank(configuration["Mail:From"]) ?? username ?? "noreply@localhost.de";
         if (!MailboxAddress.TryParse(from, out var sender))
-            throw new InvalidOperationException("MAIL_FROM muss eine gültige Absenderadresse enthalten.");
+            throw new InvalidOperationException("MAIL_FROM muss eine gÃ¼ltige Absenderadresse enthalten.");
 
         return new SmtpSettings
         {
@@ -88,7 +92,8 @@ public sealed class SmtpSettings
         catch (Exception exception) when (exception is ArgumentException or FormatException or KeyNotFoundException)
         {
             // Do not include connection strings, which could contain credentials, in diagnostics.
-            throw new InvalidOperationException("ConnectionStrings:mail enthält keinen gültigen SMTP-Endpunkt.");
+            throw new InvalidOperationException("ConnectionStrings:mail enthÃ¤lt keinen gÃ¼ltigen SMTP-Endpunkt.");
         }
     }
 }
+

@@ -24,6 +24,9 @@ import MapSymbolAdmin from './Components/MapSymbolAdmin.tsx';
 import InventoryPage from './Components/InventoryPage.tsx';
 import EquipmentTypesPage from './Components/EquipmentTypesPage.tsx';
 import InventoryCategoryAdmin from './Components/InventoryCategoryAdmin.tsx';
+import VehiclesPage from './Components/VehiclesPage.tsx';
+import VehicleTypesPage from './Components/VehicleTypesPage.tsx';
+import VehicleStatusesPage from './Components/VehicleStatusesPage.tsx';
 
 
 const App: React.FC = () => {
@@ -61,6 +64,10 @@ const App: React.FC = () => {
                                     <Route path="/inventory" element={<InventoryPage />} />
                                     <Route path="/inventory/types" element={<EquipmentTypesPage />} />
                                     <Route path="/inventory/categories" element={<InventoryCategoryAdmin />} />
+                                    <Route path="/vehicles" element={<VehiclesPage />} />
+                                    <Route path="/vehicles/manage" element={<VehiclesPage management />} />
+                                    <Route path="/vehicle-types" element={<VehicleTypesPage />} />
+                                    <Route path="/vehicle-statuses" element={<VehicleStatusesPage />} />
                                 </Route>
                             </Routes>
                         </main>

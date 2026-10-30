@@ -1,11 +1,11 @@
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging.Abstractions;
 using MimeKit;
 using Moq;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public class MailServiceTests
 {
@@ -16,12 +16,16 @@ public class MailServiceTests
         Security = authenticate ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None,
         Username = authenticate ? "mail@example.org" : null,
         Password = authenticate ? "test-only-password" : null,
-        From = "mail@example.org", FromName = "Feuerwehr Übung", TimeoutMilliseconds = 45000,
+        From = "mail@example.org", FromName = "Feuerwehr Ãœbung", TimeoutMilliseconds = 45000,
     };
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    /// <summary>
+    /// Sends the connects Authenticates And Sends Configured Message.
+    /// </summary>
+    /// <param name="authenticate">The authenticate.</param>
     public async Task Send_ConnectsAuthenticatesAndSendsConfiguredMessage(bool authenticate)
     {
         var settings = Settings(authenticate);
@@ -41,14 +45,14 @@ public class MailServiceTests
         client.InSequence(sequence).Setup(c => c.DisconnectAsync(true, default)).Returns(Task.CompletedTask);
 
         await new MailService(client.Object, settings, NullLogger<MailService>.Instance)
-            .SendAsync("recipient@example.org", "Einladung für Müller", "Passwort vergeben: https://example.org/password/test");
+            .SendAsync("recipient@example.org", "Einladung fÃ¼r MÃ¼ller", "Passwort vergeben: https://example.org/password/test");
 
         Assert.NotNull(sent);
         var sender = Assert.Single(sent.From.Mailboxes);
         Assert.Equal(settings.From, sender.Address);
         Assert.Equal(settings.FromName, sender.Name);
         Assert.Equal("recipient@example.org", Assert.Single(sent.To.Mailboxes).Address);
-        Assert.Equal("Einladung für Müller", sent.Subject);
+        Assert.Equal("Einladung fÃ¼r MÃ¼ller", sent.Subject);
         Assert.Equal("Passwort vergeben: https://example.org/password/test", sent.TextBody);
         Assert.Null(sent.HtmlBody);
         client.VerifyAll();
@@ -60,6 +64,10 @@ public class MailServiceTests
     [InlineData("connect")]
     [InlineData("authenticate")]
     [InlineData("send")]
+    /// <summary>
+    /// Sends the propagates Failures And Closes Open Connections.
+    /// </summary>
+    /// <param name="failingStep">The failing Step.</param>
     public async Task Send_PropagatesFailuresAndClosesOpenConnections(string failingStep)
     {
         var settings = Settings();
@@ -83,6 +91,9 @@ public class MailServiceTests
     }
 
     [Fact]
+    /// <summary>
+    /// Executes disconnect Failure After Accepted Message Does Not Fail Delivery.
+    /// </summary>
     public async Task DisconnectFailure_AfterAcceptedMessageDoesNotFailDelivery()
     {
         var client = new Mock<ISmtpClient>();
@@ -96,3 +107,4 @@ public class MailServiceTests
         client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Once);
     }
 }
+

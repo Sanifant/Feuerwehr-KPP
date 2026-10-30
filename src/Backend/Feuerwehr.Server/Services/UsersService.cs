@@ -1,15 +1,15 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace De.Openelp.Feuerwehr.Server.Services;
 
 public sealed class UsersService : IUsersService
 {
@@ -54,6 +54,7 @@ public sealed class UsersService : IUsersService
     /// <summary>
     /// Get user by ID (Admin only)
     /// </summary>
+    /// <param name="id">The id.</param>
 
     public async Task<ServiceResult> GetUser(string id)
     {
@@ -72,6 +73,7 @@ public sealed class UsersService : IUsersService
     /// <summary>
     /// Create new user (Admin only)
     /// </summary>
+    /// <param name="request">The request.</param>
 
     public async Task<ServiceResult> CreateUser(RegisterUserRequest request)
     {
@@ -131,10 +133,10 @@ public sealed class UsersService : IUsersService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurückgenommen.");
+            _logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurÃ¼ckgenommen.");
             var rollback = await _userManager.DeleteAsync(user);
             if (!rollback.Succeeded)
-                _logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurückgenommen werden.");
+                _logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurÃ¼ckgenommen werden.");
             return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
         }
 
@@ -142,12 +144,16 @@ public sealed class UsersService : IUsersService
 
     }
 
+    /// <summary>
+    /// Executes resend Invitation.
+    /// </summary>
+    /// <param name="id">The id.</param>
     public async Task<ServiceResult> ResendInvitation(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
         if (user is null) return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
         if (!user.IsActive)
-            return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
+            return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer kÃ¶nnen nicht eingeladen werden."));
 
         try
         {
@@ -165,6 +171,8 @@ public sealed class UsersService : IUsersService
     /// <summary>
     /// Update user (Admin only)
     /// </summary>
+    /// <param name="id">The id.</param>
+    /// <param name="request">The request.</param>
 
     public async Task<ServiceResult> UpdateUser(string id, UpdateUserRequest request)
     {
@@ -176,7 +184,10 @@ public sealed class UsersService : IUsersService
         }
 
         if (user.PasswordResetRequired && !string.IsNullOrEmpty(request.NewPassword))
-            return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss über den Einladungslink festgelegt werden."));
+            return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss Ã¼ber den Einladungslink festgelegt werden."));
+
+        if (request.ClearFireDepartment && request.FireDepartmentId.HasValue)
+            return ServiceResult.BadRequest(new MessageResponse("Bitte entweder eine Feuerwehr auswÃ¤hlen oder die Zuordnung entfernen."));
 
         if (request.Email != null)
         {
@@ -204,7 +215,7 @@ public sealed class UsersService : IUsersService
 
         user.FirstName = request.FirstName ?? user.FirstName;
         user.LastName = request.LastName ?? user.LastName;
-        user.FireDepartmentId = request.FireDepartmentId ?? user.FireDepartmentId;
+        user.FireDepartmentId = request.ClearFireDepartment ? null : request.FireDepartmentId ?? user.FireDepartmentId;
         user.IsActive = request.IsActive ?? user.IsActive;
 
         var result = await _userManager.UpdateAsync(user);
@@ -255,6 +266,8 @@ public sealed class UsersService : IUsersService
     /// <summary>
     /// Delete user (Admin only) - Soft delete by setting IsActive = false
     /// </summary>
+    /// <param name="id">The id.</param>
+    /// <param name="currentUserId">The current User Id.</param>
 
     public async Task<ServiceResult> DeleteUser(string id, string? currentUserId)
     {
@@ -287,6 +300,8 @@ public sealed class UsersService : IUsersService
     /// <summary>
     /// Hard delete user (Admin only) - Permanently remove from database
     /// </summary>
+    /// <param name="id">The id.</param>
+    /// <param name="currentUserId">The current User Id.</param>
 
     public async Task<ServiceResult> PermanentlyDeleteUser(string id, string? currentUserId)
     {
@@ -303,7 +318,13 @@ public sealed class UsersService : IUsersService
             return ServiceResult.BadRequest(new MessageResponse("Cannot delete your own account"));
         }
 
-        var result = await _userManager.DeleteAsync(user);
+        IdentityResult result;
+        try { result = await _userManager.DeleteAsync(user); }
+        catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
+            { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
+        {
+            return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als GerÃ¤tewart Fahrzeugen zugeordnet. Bitte die ZustÃ¤ndigkeit vor dem endgÃ¼ltigen LÃ¶schen Ã¼bertragen."));
+        }
 
         if (!result.Succeeded)
         {
@@ -326,3 +347,4 @@ public interface IUsersService
     Task<ServiceResult> DeleteUser(string id, string? currentUserId);
     Task<ServiceResult> PermanentlyDeleteUser(string id, string? currentUserId);
 }
+

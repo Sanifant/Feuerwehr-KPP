@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using de.openelp.feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace de.openelp.feuerwehr.App.Pages;
+namespace De.Openelp.Feuerwehr.App.Pages;
 
 public partial class SituationMapView : ContentPage
 {
@@ -29,3 +29,4 @@ public partial class SituationMapView : ContentPage
         base.OnUnloaded(e);
     }
 }
+

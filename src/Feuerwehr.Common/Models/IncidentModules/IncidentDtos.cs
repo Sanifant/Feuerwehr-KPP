@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace de.openelp.feuerwehr.Common.Models.IncidentModules;
+namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
 public record IncidentSummaryDto(
     Guid Id,
@@ -282,4 +282,5 @@ public record DiaryEntryDto(
     DateTime UpdatedAtUtc,
     DiaryRevisionDto CurrentRevisionData,
     IReadOnlyCollection<DiaryRevisionDto> Revisions);
+
 

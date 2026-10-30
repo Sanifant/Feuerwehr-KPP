@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Nts;
@@ -11,10 +11,14 @@ using Mapsui.Projections;
 using Mapsui.Styles;
 using NetTopologySuite.Geometries;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 public static class SituationMapLayers
 {
+    /// <summary>
+    /// Creates the elements.
+    /// </summary>
+    /// <param name="elements">The elements.</param>
     public static MemoryLayer CreateElements(IEnumerable<MapElementDto> elements)
     {
         var features = new List<IFeature>();
@@ -67,6 +71,10 @@ public static class SituationMapLayers
         return new MemoryLayer { Name = "Lage", Style = null, Features = features };
     }
 
+    /// <summary>
+    /// Creates the hydrants.
+    /// </summary>
+    /// <param name="hydrants">The hydrants.</param>
     public static MemoryLayer CreateHydrants(IEnumerable<MapHydrantDto> hydrants)
     {
         return new MemoryLayer
@@ -87,3 +95,4 @@ public static class SituationMapLayers
         return new Coordinate(point.x, point.y);
     }
 }
+

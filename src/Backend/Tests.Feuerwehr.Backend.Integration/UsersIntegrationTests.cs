@@ -1,15 +1,22 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
 
 [Collection(IntegrationTestCollection.Name)]
+/// <summary>
+/// Executes users Integration Tests.
+/// </summary>
+/// <param name="fixture">The fixture.</param>
 public sealed class UsersIntegrationTests(IntegrationTestFixture fixture)
 {
     [Fact]
+    /// <summary>
+    /// Gets the all Users Without Token Returns Unauthorized.
+    /// </summary>
     public async Task GetAllUsers_WithoutToken_ReturnsUnauthorized()
     {
         fixture.Client.DefaultRequestHeaders.Authorization = null;
@@ -20,6 +27,9 @@ public sealed class UsersIntegrationTests(IntegrationTestFixture fixture)
     }
 
     [Fact]
+    /// <summary>
+    /// Gets the all Users With Admin Token Returns Users.
+    /// </summary>
     public async Task GetAllUsers_WithAdminToken_ReturnsUsers()
     {
         var token = await fixture.LoginAsAdminAndGetAccessTokenAsync();

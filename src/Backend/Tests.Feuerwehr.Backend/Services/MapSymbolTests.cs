@@ -2,13 +2,13 @@ using System.Reflection;
 using System.Data.Common;
 using System.Security.Claims;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Controller.IncidentModules;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Services;
+namespace De.Openelp.Feuerwehr.Tests.Backend.Services;
 
 public sealed class MapSymbolTests : IAsyncLifetime
 {
@@ -34,6 +34,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     private long _sequence;
     private readonly Guid _incidentId = Guid.NewGuid();
 
+    /// <summary>
+    /// Initializes the operation.
+    /// </summary>
     public async Task InitializeAsync()
     {
         await _connection.OpenAsync();
@@ -58,7 +61,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     private static SaveMapSymbolRequest SymbolRequest(string svg = Svg, string category = "Feuerwehr")
-        => new() { Name = "Löschfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
+        => new() { Name = "LÃ¶schfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
 
     private UpsertMapElementRequest Write(string symbolId, Guid? elementId = null, int? version = null, string geometry = "{\"type\":\"Point\",\"coordinates\":[10.25,51.5]}")
         => new()
@@ -69,6 +72,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
         };
 
     [Fact]
+    /// <summary>
+    /// Executes catalog Has Four Categories And Stores Validated Svg With Consistent Dimensions.
+    /// </summary>
     public async Task CatalogHasFourCategoriesAndStoresValidatedSvgWithConsistentDimensions()
     {
         Assert.Equal(MapSymbolCategories.All.OrderBy(x => x), Assert.IsAssignableFrom<IEnumerable<string>>((await _symbols.GetCategories(default)).Value));
@@ -86,6 +92,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes svg Allows Internal Gradients Styles And Editor Metadata.
+    /// </summary>
     public async Task SvgAllowsInternalGradientsStylesAndEditorMetadata()
     {
         const string svg = "<svg xmlns='http://www.w3.org/2000/svg' width='32px' height='32px'><metadata><data xmlns='urn:metadata'>Editor</data></metadata><style>.a{fill:url(#red);stroke:#000}</style><defs><linearGradient id='red'><stop offset='0' stop-color='red'/></linearGradient></defs><path class='a' d='M0 0 L32 32'/></svg>";
@@ -101,6 +110,12 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [InlineData("xlink:href", "png", Png)]
     [InlineData("href", "jpeg", Jpeg)]
     [InlineData("xlink:href", "jpeg", Jpeg)]
+    /// <summary>
+    /// Executes embedded Raster Can Be Uploaded Listed And Placed On The Map.
+    /// </summary>
+    /// <param name="referenceAttribute">The reference Attribute.</param>
+    /// <param name="format">The format.</param>
+    /// <param name="data">The data.</param>
     public async Task EmbeddedRasterCanBeUploadedListedAndPlacedOnTheMap(string referenceAttribute, string format, string data)
     {
         var svg = $"<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 32 32'><image width='32' height='32' {referenceAttribute}='data:image/{format};base64,{data}'/></svg>";
@@ -129,6 +144,10 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [InlineData("data:image/png;base64,not-base64!")]
     [InlineData("data:image/png;base64,")]
     [InlineData("data:image/png,%89PNG")]
+    /// <summary>
+    /// Executes embedded Images Reject External Active Mislabeled And Invalid Content.
+    /// </summary>
+    /// <param name="reference">The reference.</param>
     public async Task EmbeddedImagesRejectExternalActiveMislabeledAndInvalidContent(string reference)
     {
         var svg = $"<svg viewBox='0 0 32 32'><image href='{reference}'/></svg>";
@@ -137,6 +156,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes embedded Raster Data Remains Disallowed For Use Elements.
+    /// </summary>
     public async Task EmbeddedRasterDataRemainsDisallowedForUseElements()
     {
         var svg = $"<svg viewBox='0 0 32 32'><use href='data:image/png;base64,{Png}'/></svg>";
@@ -155,6 +177,10 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [InlineData("<html>Not SVG</html>")]
     [InlineData("\u0089PNG\r\n\u001a\n")]
     [InlineData("<svg viewBox='0 0 0 10'/>")]
+    /// <summary>
+    /// Executes upload Rejects Active External Or Invalid Svg.
+    /// </summary>
+    /// <param name="svg">The svg.</param>
     public async Task UploadRejectsActiveExternalOrInvalidSvg(string svg)
     {
         Assert.Equal(400, (await _symbols.Save(null, SymbolRequest(svg), default)).Code);
@@ -162,6 +188,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes upload Checks Size Category And Admin Role And Hides Inactive Symbols For Viewers.
+    /// </summary>
     public async Task UploadChecksSizeCategoryAndAdminRoleAndHidesInactiveSymbolsForViewers()
     {
         Assert.Equal(400, (await _symbols.Save(null, SymbolRequest(new string('x', 262145)), default)).Code);
@@ -176,6 +205,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes symbol Can Be Placed Moved Reloaded And Deleted With Consistent Audit And Idempotency.
+    /// </summary>
     public async Task SymbolCanBePlacedMovedReloadedAndDeletedWithConsistentAuditAndIdempotency()
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -208,6 +240,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes catalog Changes Do Not Alter Existing Symbols And Inactive Symbols Cannot Be Placed Again.
+    /// </summary>
     public async Task CatalogChangesDoNotAlterExistingSymbolsAndInactiveSymbolsCannotBePlacedAgain()
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -221,6 +256,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes moves And Deletes Respect Versions And Editing Leases.
+    /// </summary>
     public async Task MovesAndDeletesRespectVersionsAndEditingLeases()
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -239,6 +277,12 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [InlineData("SituationMapEditor", true, false)]
     [InlineData("SituationMapViewer", true, false)]
     [InlineData("Commander", false, false)]
+    /// <summary>
+    /// Executes catalog Http Permissions Separate Viewing And Administration.
+    /// </summary>
+    /// <param name="role">The role.</param>
+    /// <param name="canView">The can View.</param>
+    /// <param name="canManage">The can Manage.</param>
     public async Task CatalogHttpPermissionsSeparateViewingAndAdministration(string role, bool canView, bool canManage)
     {
         var services = new ServiceCollection(); services.AddLogging(); services.AddAuthorization(options => options.AddFeuerwehrPolicies());
@@ -255,13 +299,16 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes polygon Is Saved With Audit And Idempotency Under The Npgsql Retry Strategy.
+    /// </summary>
     public async Task PolygonIsSavedWithAuditAndIdempotencyUnderTheNpgsqlRetryStrategy()
     {
         var command = Write(string.Empty, geometry: "{\"type\":\"Polygon\",\"coordinates\":[[[10,51],[10.1,51],[10.1,51.1],[10,51]]]}");
         command.ElementType = MapElementType.Polygon;
         command.SymbolId = null;
         command.RadioCallName = null;
-        command.Category = "Fläche";
+        command.Category = "FlÃ¤che";
         var result = await _map.UpsertElement(_incidentId, command, default);
         Assert.True(result.Code == 200, result.ProblemTitle);
         var saved = Assert.IsType<MapElementResponse>(result.Value);
@@ -280,6 +327,10 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    /// <summary>
+    /// Executes retrying Creation After An Uncertain Commit Does Not Duplicate Elements Or Audit.
+    /// </summary>
+    /// <param name="committed">The committed.</param>
     public async Task RetryingCreationAfterAnUncertainCommitDoesNotDuplicateElementsOrAudit(bool committed)
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -298,6 +349,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes retrying A Move Reloads The Original Version After Rollback.
+    /// </summary>
     public async Task RetryingAMoveReloadsTheOriginalVersionAfterRollback()
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -321,6 +375,10 @@ public sealed class MapSymbolTests : IAsyncLifetime
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
+    /// <summary>
+    /// Executes symbols Require A Call Name Without Persisting Partial Changes.
+    /// </summary>
+    /// <param name="callName">The call Name.</param>
     public async Task SymbolsRequireACallNameWithoutPersistingPartialChanges(string? callName)
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -335,6 +393,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes symbol Details Are Persisted And The Call Name Cannot Be Cleared.
+    /// </summary>
     public async Task SymbolDetailsArePersistedAndTheCallNameCannotBeCleared()
     {
         var symbol = Assert.IsType<MapSymbolDto>((await _symbols.Save(null, SymbolRequest(), default)).Value);
@@ -358,6 +419,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes custom Categories Persist And Can Be Used For Symbols.
+    /// </summary>
     public async Task CustomCategoriesPersistAndCanBeUsedForSymbols()
     {
         var created = await _symbols.CreateCategory(new() { Name = "  Technische Hilfe  " }, default);
@@ -379,7 +443,11 @@ public sealed class MapSymbolTests : IAsyncLifetime
 
     [Theory]
     [InlineData(null)]
-    [InlineData("Unnötiger Funkrufname")]
+    [InlineData("UnnÃ¶tiger Funkrufname")]
+    /// <summary>
+    /// Executes non Vehicle Symbols Can Be Placed And Moved Without Details.
+    /// </summary>
+    /// <param name="callName">The call Name.</param>
     public async Task NonVehicleSymbolsCanBePlacedAndMovedWithoutDetails(string? callName)
     {
         var request = SymbolRequest(); request.IsVehicle = false;
@@ -400,6 +468,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     [Fact]
+    /// <summary>
+    /// Executes vehicle Flag Is Editable And Placed Elements Keep Their Vehicle Rules.
+    /// </summary>
     public async Task VehicleFlagIsEditableAndPlacedElementsKeepTheirVehicleRules()
     {
         var request = SymbolRequest();
@@ -418,6 +489,9 @@ public sealed class MapSymbolTests : IAsyncLifetime
         Assert.False(Assert.IsType<MapElementResponse>((await _map.UpsertElement(_incidentId, newPlacement, default)).Value).Element.IsVehicle);
     }
 
+    /// <summary>
+    /// Executes dispose.
+    /// </summary>
     public async Task DisposeAsync() { await _db.DisposeAsync(); await _connection.DisposeAsync(); }
 
     private sealed class TransientCommitFailure : DbTransactionInterceptor
@@ -426,6 +500,13 @@ public sealed class MapSymbolTests : IAsyncLifetime
         public bool AfterCommit { get; set; }
         public int Failures { get; private set; }
 
+        /// <summary>
+        /// Executes transaction Committing.
+        /// </summary>
+        /// <param name="transaction">The transaction.</param>
+        /// <param name="eventData">The event Data.</param>
+        /// <param name="result">The result.</param>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public override ValueTask<InterceptionResult> TransactionCommittingAsync(DbTransaction transaction, TransactionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default)
         {
             if (BeforeCommit)
@@ -437,6 +518,12 @@ public sealed class MapSymbolTests : IAsyncLifetime
             return ValueTask.FromResult(result);
         }
 
+        /// <summary>
+        /// Executes transaction Committed.
+        /// </summary>
+        /// <param name="transaction">The transaction.</param>
+        /// <param name="eventData">The event Data.</param>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public override Task TransactionCommittedAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
         {
             if (AfterCommit)
@@ -461,3 +548,4 @@ public sealed class MapSymbolTests : IAsyncLifetime
         }
     }
 }
+

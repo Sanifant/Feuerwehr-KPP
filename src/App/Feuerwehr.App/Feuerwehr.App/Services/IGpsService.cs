@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Models;
 
-namespace de.openelp.feuerwehr.App.Services;
+namespace De.Openelp.Feuerwehr.App.Services;
 
 public interface IGpsService
 {
@@ -14,3 +14,4 @@ public interface IGpsService
     /// </summary>
     Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default);
 }
+

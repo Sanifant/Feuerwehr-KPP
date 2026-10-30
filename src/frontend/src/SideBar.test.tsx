@@ -45,3 +45,27 @@ it('limits read-only viewers to the inventory overview', async () => {
     await user.click(screen.getByRole('button', { name: 'Verwaltung' }));
     expect(screen.queryByRole('link', { name: 'Inventarkategorien' })).not.toBeInTheDocument();
 });
+
+it('offers the MTW overview and opens vehicle management under administration for equipment officers', () => {
+    vi.mocked(useRole).mockReturnValue({ canManageVehicles: true } as ReturnType<typeof useRole>);
+    show('/vehicles/manage');
+    expect(screen.getByRole('link', { name: 'MTW-Übersicht' })).toHaveAttribute('href', '/vehicles');
+    expect(screen.getByRole('button', { name: 'Verwaltung' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Fahrzeug Verwaltung' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.queryByRole('link', { name: 'Fahrzeugtypen' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Fahrzeugstatus' })).not.toBeInTheDocument();
+});
+
+it('puts vehicle types under administration for administrators', () => {
+    vi.mocked(useRole).mockReturnValue({ isAdmin: true, canManageVehicles: true } as ReturnType<typeof useRole>);
+    show('/vehicle-types');
+    expect(screen.getByRole('button', { name: 'Verwaltung' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Fahrzeugtypen' })).toHaveAttribute('aria-current', 'page');
+});
+
+it('offers the extensible vehicle-status list to administrators', () => {
+    vi.mocked(useRole).mockReturnValue({ isAdmin: true, canManageVehicles: true } as ReturnType<typeof useRole>);
+    show('/vehicle-statuses');
+    expect(screen.getByRole('button', { name: 'Verwaltung' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Fahrzeugstatus' })).toHaveAttribute('aria-current', 'page');
+});

@@ -1,0 +1,16 @@
+.vehicles-page { display: grid; gap: 1.25rem; min-width: 0; }
+.vehicles-page .card { min-width: 0; }
+.vehicle-management-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.vehicle-management-table { overflow-x: auto; }
+.vehicle-management-table th, .vehicle-management-table td { text-align: left; vertical-align: middle; }
+.vehicle-management-table .vehicle-row-actions { margin-top: 0; }
+.vehicle-management-table small { display: block; font-weight: normal; }
+.vehicle-management-inactive { color: var(--text-secondary); }
+.vehicle-management-book { border: 0; background: transparent; color: var(--primary); padding: .25rem 0; font-weight: 700; text-decoration: underline; }
+.vehicle-row-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.vehicle-row-actions button { font-size: .85rem; }
+.vehicle-reservations { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 1rem; }
+.vehicle-reservation { border: 1px solid var(--border-color); border-radius: var(--field-radius); padding: 1rem; }
+.vehicle-reservation h3 { margin-top: 0; }
+.vehicle-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.vehicle-transfer-example { max-width: 100%; overflow-x: auto; padding: .75rem; background: var(--surface-secondary); }

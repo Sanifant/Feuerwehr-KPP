@@ -1,10 +1,15 @@
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace de.openelp.feuerwehr.Server.Controller;
+namespace De.Openelp.Feuerwehr.Server.Controller;
 
 internal static class ServiceResultExtensions
 {
+    /// <summary>
+    /// Executes to Action Result.
+    /// </summary>
+    /// <param name="controller">The controller.</param>
+    /// <param name="result">The result.</param>
     public static ActionResult ToActionResult(this ControllerBase controller, ServiceResult result)
     {
         if (result.Content is not null)
@@ -26,3 +31,4 @@ internal static class ServiceResultExtensions
         };
     }
 }
+

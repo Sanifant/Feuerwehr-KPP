@@ -1,17 +1,17 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using System.Globalization;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Hubs;
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Hubs;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
+namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 
 public static class IncidentModuleTime
 {
@@ -35,6 +35,10 @@ public interface IUserContextAccessor
     bool IsAdmin { get; }
 }
 
+/// <summary>
+/// Executes http User Context Accessor.
+/// </summary>
+/// <param name="httpContextAccessor">The http Context Accessor.</param>
 public sealed class HttpUserContextAccessor(IHttpContextAccessor httpContextAccessor) : IUserContextAccessor
 {
     public string UserId => httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -50,6 +54,10 @@ public interface ICommandIdempotencyService
     ProcessedCommand BuildStoredCommand(string commandId, string scope, string? targetId, string payloadHash, CommandEnvelopeResponse response, string userId);
 }
 
+/// <summary>
+/// Executes command Idempotency Service.
+/// </summary>
+/// <param name="dbContext">The db Context.</param>
 public sealed class CommandIdempotencyService(FeuerwehrDbContext dbContext) : ICommandIdempotencyService
 {
     public async Task<(ProcessedCommand? Existing, string PayloadHash)> FindExistingAsync(string commandId, string scope, string? targetId, object payload, string userId, CancellationToken cancellationToken)
@@ -74,6 +82,15 @@ public sealed class CommandIdempotencyService(FeuerwehrDbContext dbContext) : IC
         return (existing, hash);
     }
 
+    /// <summary>
+    /// Builds the stored Command.
+    /// </summary>
+    /// <param name="commandId">The command Id.</param>
+    /// <param name="scope">The scope.</param>
+    /// <param name="targetId">The target Id.</param>
+    /// <param name="payloadHash">The payload Hash.</param>
+    /// <param name="response">The response.</param>
+    /// <param name="userId">The user Id.</param>
     public ProcessedCommand BuildStoredCommand(string commandId, string scope, string? targetId, string payloadHash, CommandEnvelopeResponse response, string userId)
     {
         return new ProcessedCommand
@@ -96,8 +113,19 @@ public interface IOutboxService
     void AddMessage(string aggregateType, string eventType, string aggregateId, object payload);
 }
 
+/// <summary>
+/// Executes outbox Service.
+/// </summary>
+/// <param name="dbContext">The db Context.</param>
 public sealed class OutboxService(FeuerwehrDbContext dbContext) : IOutboxService
 {
+    /// <summary>
+    /// Adds the message.
+    /// </summary>
+    /// <param name="aggregateType">The aggregate Type.</param>
+    /// <param name="eventType">The event Type.</param>
+    /// <param name="aggregateId">The aggregate Id.</param>
+    /// <param name="payload">The payload.</param>
     public void AddMessage(string aggregateType, string eventType, string aggregateId, object payload)
     {
         dbContext.OutboxMessages.Add(new OutboxMessage
@@ -114,6 +142,11 @@ public sealed class OutboxService(FeuerwehrDbContext dbContext) : IOutboxService
 
 public static class ResponseHelpers
 {
+    /// <summary>
+    /// Builds the envelope.
+    /// </summary>
+    /// <param name="statusCode">The status Code.</param>
+    /// <param name="payload">The payload.</param>
     public static CommandEnvelopeResponse BuildEnvelope(int statusCode, object payload)
     {
         return new CommandEnvelopeResponse
@@ -129,8 +162,20 @@ public interface IMapLeaseService
     Task<EditorLease> RequireValidLeaseAsync(Guid incidentId, string sessionId, string leaseToken, string userId, CancellationToken cancellationToken);
 }
 
+/// <summary>
+/// Executes map Lease Service.
+/// </summary>
+/// <param name="dbContext">The db Context.</param>
 public sealed class MapLeaseService(FeuerwehrDbContext dbContext) : IMapLeaseService
 {
+    /// <summary>
+    /// Executes require Valid Lease.
+    /// </summary>
+    /// <param name="incidentId">The incident Id.</param>
+    /// <param name="sessionId">The session Id.</param>
+    /// <param name="leaseToken">The lease Token.</param>
+    /// <param name="userId">The user Id.</param>
+    /// <param name="cancellationToken">The cancellation Token.</param>
     public async Task<EditorLease> RequireValidLeaseAsync(Guid incidentId, string sessionId, string leaseToken, string userId, CancellationToken cancellationToken)
     {
         var lease = await dbContext.EditorLeases.FirstOrDefaultAsync(x => x.IncidentId == incidentId, cancellationToken)
@@ -146,13 +191,19 @@ public sealed class MapLeaseService(FeuerwehrDbContext dbContext) : IMapLeaseSer
             || !string.Equals(lease.SessionId, sessionId, StringComparison.Ordinal)
             || !string.Equals(lease.LeaseToken, leaseToken, StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("Diese Sitzung besitzt keine gültige Bearbeitungssperre.");
+            throw new InvalidOperationException("Diese Sitzung besitzt keine gÃ¼ltige Bearbeitungssperre.");
         }
 
         return lease;
     }
 }
 
+/// <summary>
+/// Executes outbox Dispatcher.
+/// </summary>
+/// <param name="serviceProvider">The service Provider.</param>
+/// <param name="logger">The logger.</param>
+/// <param name="hubContext">The hub Context.</param>
 public sealed class OutboxDispatcher(
     IServiceProvider serviceProvider,
     ILogger<OutboxDispatcher> logger,
@@ -231,6 +282,10 @@ public sealed class OutboxDispatcher(
 
 public static class CsvExportHelpers
 {
+    /// <summary>
+    /// Executes sanitize Csv Cell.
+    /// </summary>
+    /// <param name="value">The value.</param>
     public static string SanitizeCsvCell(string? value)
     {
         var normalized = (value ?? string.Empty).Replace("\r", " ").Replace("\n", " ");
@@ -242,6 +297,10 @@ public static class CsvExportHelpers
         return $"\"{normalized.Replace("\"", "\"\"")}\"";
     }
 
+    /// <summary>
+    /// Builds the map Audit Csv.
+    /// </summary>
+    /// <param name="events">The events.</param>
     public static byte[] BuildMapAuditCsv(IEnumerable<MapAuditEvent> events)
     {
         var sb = new StringBuilder();
@@ -265,6 +324,11 @@ public static class CsvExportHelpers
 
 public static class MinimalPdfBuilder
 {
+    /// <summary>
+    /// Builds the simple Pdf.
+    /// </summary>
+    /// <param name="title">The title.</param>
+    /// <param name="lines">The lines.</param>
     public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
     {
         var pages = Paginate(lines.SelectMany(WrapLine));
@@ -384,3 +448,4 @@ public static class MinimalPdfBuilder
         return result.ToString();
     }
 }
+

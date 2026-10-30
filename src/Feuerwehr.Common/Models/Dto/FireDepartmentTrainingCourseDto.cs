@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Common.Models.Dto;
+namespace De.Openelp.Feuerwehr.Common.Models.Dto;
 
 public class FireDepartmentTrainingCourseDto
 {
@@ -8,3 +8,4 @@ public class FireDepartmentTrainingCourseDto
 
     public int AssignedSeats { get; set; }
 }
+

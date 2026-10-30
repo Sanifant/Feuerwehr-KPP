@@ -1,9 +1,9 @@
 using Avalonia.Controls;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.ViewModels;
 using System;
 
-namespace de.openelp.feuerwehr.App.Views
+namespace De.Openelp.Feuerwehr.App.Views
 {
     public partial class MainWindow : Window
     {

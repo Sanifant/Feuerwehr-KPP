@@ -1,6 +1,6 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
-namespace de.openelp.feuerwehr.Common.Models.Dto;
+namespace De.Openelp.Feuerwehr.Common.Models.Dto;
 
 public record MessageResponse(string Message);
 
@@ -45,3 +45,4 @@ public record DiaryEntryChangedEvent(Guid IncidentId, Guid EntryId, long EntryNu
 public record MapHydrantDto(int Id, double Longitude, double Latitude, HydrantStatus Status, int NominalDiameter);
 
 public record MapStateResponse(Guid IncidentId, IncidentStatus IncidentStatus, long Revision, DateTime ServerUtc, EditorLeaseDto? Lease, IReadOnlyCollection<MapElementDto> Elements, IReadOnlyCollection<MapHydrantDto> Hydrants);
+
