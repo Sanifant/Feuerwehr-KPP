@@ -2,10 +2,8 @@ name: Pipeline - CI/CD
 
 on:
   push:
+    # Include every master merge, even when only files outside src change.
     branches: ['**']
-    paths:
-      - 'src/**'
-      - '.github/workflows/ci.yml'
   pull_request:
     branches: ['**']
     paths:
@@ -294,13 +292,52 @@ jobs:
           path: ./artifacts/desktop-${{ matrix.runtime }}/**
 
   build-android-bundle:
-    name: Build Android bundles
+    name: Build and deploy Android bundles
     needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
-    if: github.event_name == 'release'
+    if: >-
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on: windows-latest
+    # Serialize Play edits across internal and production uploads.
+    concurrency:
+      group: google-play-de-openelp-feuerwehr
+      cancel-in-progress: false
+    env:
+      # Increase this repository variable if migrating from a higher Play versionCode.
+      ANDROID_VERSION_CODE_BASE: ${{ vars.ANDROID_VERSION_CODE_BASE || '0' }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      PLAY_TRACK: ${{ github.event_name == 'release' && 'production' || 'internal' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set Android version
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [long]$versionBase = 0
+          if (-not [long]::TryParse($env:ANDROID_VERSION_CODE_BASE, [ref]$versionBase) -or $versionBase -lt 0) {
+            throw 'ANDROID_VERSION_CODE_BASE must be a non-negative integer.'
+          }
+          # Reserve two digits for reruns so retrying an upload gets a fresh versionCode.
+          [long]$runNumber = $env:GITHUB_RUN_NUMBER
+          [long]$attempt = $env:GITHUB_RUN_ATTEMPT
+          if ($runNumber -lt 1 -or $attempt -lt 1 -or $attempt -gt 99) {
+            throw 'Invalid workflow run number or attempt (supported attempts: 1-99).'
+          }
+          [long]$versionCode = $versionBase + ($runNumber * 100) + $attempt
+          if ($versionCode -gt 2100000000 -or $versionCode -lt 1) {
+            throw 'Android versionCode must be between 1 and 2100000000.'
+          }
+          $versionName = "0.0.$runNumber-ci.$attempt"
+          if ($env:GITHUB_EVENT_NAME -eq 'release') {
+            $versionName = $env:RELEASE_TAG -replace '^v', ''
+          }
+          if ($versionName -notmatch '^[0-9A-Za-z][0-9A-Za-z.+_-]{0,49}$') {
+            throw 'Invalid Android display version.'
+          }
+          "ANDROID_VERSION_CODE=$versionCode" >> $env:GITHUB_ENV
+          "ANDROID_VERSION_NAME=$versionName" >> $env:GITHUB_ENV
+          Write-Host "Android $versionName ($versionCode) -> $env:PLAY_TRACK"
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
@@ -309,51 +346,132 @@ jobs:
         uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: microsoft
-          java-version: '17'
+          java-version: '21'
+      - name: Prepare and validate Android signing
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($name in @('ANDROID_KEYSTORE_BASE64', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD')) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+              throw "Missing required GitHub secret: $name"
+            }
+          }
+          try {
+            $keystoreBytes = [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64.Trim())
+          } catch {
+            throw 'ANDROID_KEYSTORE_BASE64 must contain a Base64-encoded keystore.'
+          }
+          # Preserve support for the double-encoded secret accepted by the old CD.
+          $possibleBase64 = [Text.Encoding]::ASCII.GetString($keystoreBytes) -replace '\s', ''
+          if ($possibleBase64.Length -gt 0 -and $possibleBase64.Length % 4 -eq 0 -and $possibleBase64 -match '^[A-Za-z0-9+/]+={0,2}$') {
+            $keystoreBytes = [Convert]::FromBase64String($possibleBase64)
+          }
+          $keystorePath = Join-Path $env:RUNNER_TEMP 'android-release.keystore'
+          $storePasswordPath = Join-Path $env:RUNNER_TEMP 'android-store-password.txt'
+          $keyPasswordPath = Join-Path $env:RUNNER_TEMP 'android-key-password.txt'
+          [IO.File]::WriteAllBytes($keystorePath, $keystoreBytes)
+          $utf8 = [Text.UTF8Encoding]::new($false)
+          [IO.File]::WriteAllText($storePasswordPath, $env:ANDROID_KEYSTORE_PASSWORD, $utf8)
+          [IO.File]::WriteAllText($keyPasswordPath, $env:ANDROID_KEY_PASSWORD, $utf8)
+          & keytool -list -keystore $keystorePath -alias $env:ANDROID_KEY_ALIAS '-storepass:env' ANDROID_KEYSTORE_PASSWORD *> $null
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Keystore validation failed. Check the keystore, store password and key alias secrets.'
+          }
+          "ANDROID_KEYSTORE_PATH=$keystorePath" >> $env:GITHUB_ENV
+          "ANDROID_STORE_PASSWORD_PATH=$storePasswordPath" >> $env:GITHUB_ENV
+          "ANDROID_KEY_PASSWORD_PATH=$keyPasswordPath" >> $env:GITHUB_ENV
       - name: Install Android workload
+        run: dotnet workload install android --source https://api.nuget.org/v3/index.json
+      - name: Install Android SDK dependencies
+        run: dotnet build src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj -t:InstallAndroidDependencies -f net10.0-android -p:AcceptAndroidSdkLicenses=True
+      - name: Publish signed Android AAB and APK
+        shell: pwsh
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($format in @('aab', 'apk')) {
+            dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj `
+              -c Release -f net10.0-android `
+              "-p:ApplicationId=de.openelp.feuerwehr" `
+              "-p:ApplicationVersion=$env:ANDROID_VERSION_CODE" `
+              "-p:ApplicationDisplayVersion=$env:ANDROID_VERSION_NAME" `
+              "-p:AndroidPackageFormat=$format" "-p:AndroidPackageFormats=$format" `
+              -p:AndroidKeyStore=true `
+              "-p:AndroidSigningKeyStore=$env:ANDROID_KEYSTORE_PATH" `
+              "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS" `
+              "-p:AndroidSigningStorePass=file:$env:ANDROID_STORE_PASSWORD_PATH" `
+              "-p:AndroidSigningKeyPass=file:$env:ANDROID_KEY_PASSWORD_PATH" `
+              -o "./artifacts/android/$format"
+            if ($LASTEXITCODE -ne 0) { throw "Android $format publish failed." }
+          }
+      - name: Verify signed Android bundle
+        id: android-bundle
         shell: pwsh
         run: |
-          dotnet workload install android --skip-manifest-update `
-            --source https://api.nuget.org/v3/index.json `
-            --source https://aka.ms/dotnet9/nuget/index.json
-      - name: Restore Android project
-        run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj
-      - name: Publish Android AAB
-        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=aab -o ./artifacts/android/aab
-      - name: Publish Android APK
-        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.Android/Feuerwehr.App.Android.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -o ./artifacts/android/apk
+          $ErrorActionPreference = 'Stop'
+          $bundles = @(Get-ChildItem ./artifacts/android/aab -Recurse -Filter '*-Signed.aab')
+          if ($bundles.Count -ne 1) { throw 'Expected exactly one signed Android App Bundle.' }
+          $verification = & jarsigner '-J-Duser.language=en' '-J-Duser.country=US' -verify $bundles[0].FullName | Out-String
+          if ($LASTEXITCODE -ne 0 -or $verification -notmatch 'jar verified\.') {
+            throw 'Android App Bundle signature verification failed or the bundle is unsigned.'
+          }
+          Write-Host $verification
+          "path=$($bundles[0].FullName)" >> $env:GITHUB_OUTPUT
       - name: Upload Android artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-android
           path: |
-            ./artifacts/android/aab/**/*.aab
-            ./artifacts/android/apk/**/*.apk
+            ./artifacts/android/aab/**/*-Signed.aab
+            ./artifacts/android/apk/**/*-Signed.apk
           if-no-files-found: error
+      - name: Upload Android bundle to Google Play
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: de.openelp.feuerwehr
+          releaseFiles: ${{ steps.android-bundle.outputs.path }}
+          track: ${{ env.PLAY_TRACK }}
+          status: completed
+      - name: Remove Android signing material
+        if: always()
+        shell: pwsh
+        run: |
+          foreach ($name in @('android-release.keystore', 'android-store-password.txt', 'android-key-password.txt')) {
+            $path = Join-Path $env:RUNNER_TEMP $name
+            if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
+          }
 
-  build-ios-bundle:
-    name: Build iOS bundle
-    needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
-    if: github.event_name == 'release'
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-      - name: Install iOS workload
-        run: dotnet workload install ios --skip-manifest-update
-      - name: Restore iOS project
-        run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj
-      - name: Publish iOS simulator app bundle
-        run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj -c Release -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -o ./artifacts/ios
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: release-ios
-          path: ./artifacts/ios/**
+
+  # build-ios-bundle:
+  #   name: Build iOS bundle
+  #   needs: [backend-build-and-test, frontend-build-and-test, integration-tests]
+  #   if: github.event_name == 'release'
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+  #     - name: Setup .NET
+  #       uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+  #       with:
+  #         dotnet-version: ${{ env.DOTNET_VERSION }}
+  #     - name: Install iOS workload
+  #       run: dotnet workload install ios --skip-manifest-update
+  #     - name: Restore iOS project
+  #       run: dotnet restore src/App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj
+  #     - name: Publish iOS simulator app bundle
+  #       run: dotnet publish src/App/Feuerwehr.App/Feuerwehr.App.iOS/Feuerwehr.App.iOS.csproj -c Release -f net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64 -o ./artifacts/ios
+  #     - name: Upload iOS artifact
+  #       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+  #       with:
+  #         name: release-ios
+  #         path: ./artifacts/ios/**
 
   upload-release-assets:
     name: Upload release assets
@@ -362,7 +480,7 @@ jobs:
       - publish-frontend-image
       - build-desktop-bundles
       - build-android-bundle
-      - build-ios-bundle
+      # - build-ios-bundle
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
