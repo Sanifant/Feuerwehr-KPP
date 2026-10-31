@@ -5,13 +5,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace De.Openelp.Feuerwehr.Server.Hubs;
 
-public interface IIncidentClient
-{
-    Task IncidentUpdated(JsonElement payload);
-    Task MapUpdated(JsonElement payload);
-    Task DiaryUpdated(JsonElement payload);
-}
-
 [Authorize]
 public sealed class IncidentHub : Hub<IIncidentClient>
 {
@@ -64,4 +57,3 @@ public sealed class IncidentHub : Hub<IIncidentClient>
         return roles.Contains("IncidentDiaryViewer") || roles.Contains("IncidentDiaryEditor");
     }
 }
-

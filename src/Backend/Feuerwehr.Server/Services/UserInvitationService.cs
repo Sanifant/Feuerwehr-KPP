@@ -5,12 +5,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace De.Openelp.Feuerwehr.Server.Services;
 
-public interface IUserInvitationService
-{
-    Task SendAsync(ApplicationUser user);
-    Task<ServiceResult> CompleteAsync(ResetRequest request);
-}
-
 /// <summary>
 /// Executes user Invitation Service.
 /// </summary>
@@ -144,4 +138,3 @@ public sealed class UserInvitationService(
         return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde gespeichert. Sie kÃ¶nnen sich jetzt anmelden."));
     }
 }
-

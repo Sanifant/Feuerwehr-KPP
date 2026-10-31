@@ -6,11 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Services;
 
-public interface IVehicleMailComposer
-{
-    VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request);
-}
-
 /// <summary>
 /// Executes vehicle Mail Composer.
 /// </summary>
@@ -52,11 +47,6 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
             HtmlBody = html, CreatedAtUtc = now, NextAttemptAtUtc = now
         };
     }
-}
-
-public interface IVehicleMailDispatcher
-{
-    Task Dispatch(CancellationToken ct);
 }
 
 /// <summary>
@@ -147,4 +137,3 @@ public sealed class VehicleMailWorker(IServiceScopeFactory scopes, ILogger<Vehic
         }
     }
 }
-

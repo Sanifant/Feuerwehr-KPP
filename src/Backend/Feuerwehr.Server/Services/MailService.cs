@@ -3,15 +3,6 @@ using MimeKit;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
-    public interface IMailService
-    {
-        Task SendAsync(string recipient, string subject, string body);
-    }
-
-    public interface IHtmlMailService
-    {
-        Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody);
-    }
 
     /// <summary>
     /// Executes mail Service.
@@ -77,4 +68,3 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
     }
 }
-

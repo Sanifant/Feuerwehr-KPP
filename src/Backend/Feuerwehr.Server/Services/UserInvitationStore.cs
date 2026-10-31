@@ -6,13 +6,6 @@ using StackExchange.Redis;
 
 namespace De.Openelp.Feuerwehr.Server.Services;
 
-public interface IUserInvitationStore
-{
-    Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime);
-    Task<UserInvitation?> FindAsync(Guid id);
-    Task RemoveAsync(Guid id);
-}
-
 /// <summary>
 /// Executes user Invitation Store.
 /// </summary>
@@ -49,4 +42,3 @@ public sealed class UserInvitationStore(IConnectionMultiplexer redis) : IUserInv
     /// </summary>
     public async Task RemoveAsync(Guid id) => await redis.GetDatabase().KeyDeleteAsync(Key(id));
 }
-

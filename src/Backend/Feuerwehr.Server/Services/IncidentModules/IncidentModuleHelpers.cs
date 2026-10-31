@@ -28,13 +28,6 @@ public static class JsonOptionsFactory
     };
 }
 
-public interface IUserContextAccessor
-{
-    string UserId { get; }
-    string DisplayName { get; }
-    bool IsAdmin { get; }
-}
-
 /// <summary>
 /// Executes http User Context Accessor.
 /// </summary>
@@ -46,12 +39,6 @@ public sealed class HttpUserContextAccessor(IHttpContextAccessor httpContextAcce
     public string DisplayName => httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name) ?? "Unbekannt";
 
     public bool IsAdmin => httpContextAccessor.HttpContext?.User.IsInRole(Authorization.Roles.Admin) == true;
-}
-
-public interface ICommandIdempotencyService
-{
-    Task<(ProcessedCommand? Existing, string PayloadHash)> FindExistingAsync(string commandId, string scope, string? targetId, object payload, string userId, CancellationToken cancellationToken);
-    ProcessedCommand BuildStoredCommand(string commandId, string scope, string? targetId, string payloadHash, CommandEnvelopeResponse response, string userId);
 }
 
 /// <summary>
@@ -108,11 +95,6 @@ public sealed class CommandIdempotencyService(FeuerwehrDbContext dbContext) : IC
     }
 }
 
-public interface IOutboxService
-{
-    void AddMessage(string aggregateType, string eventType, string aggregateId, object payload);
-}
-
 /// <summary>
 /// Executes outbox Service.
 /// </summary>
@@ -155,11 +137,6 @@ public static class ResponseHelpers
             JsonPayload = JsonSerializer.Serialize(payload, JsonOptionsFactory.Default),
         };
     }
-}
-
-public interface IMapLeaseService
-{
-    Task<EditorLease> RequireValidLeaseAsync(Guid incidentId, string sessionId, string leaseToken, string userId, CancellationToken cancellationToken);
 }
 
 /// <summary>

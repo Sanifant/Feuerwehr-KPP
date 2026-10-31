@@ -714,17 +714,3 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
 
 }
-
-public interface ISituationMapService
-{
-    Task<ServiceResult> GetState(Guid incidentId, CancellationToken cancellationToken);
-    Task<ServiceResult> AcquireLease(Guid incidentId, AcquireLeaseRequest request, CancellationToken cancellationToken);
-    Task<ServiceResult> Heartbeat(Guid incidentId, LeaseHeartbeatRequest request, CancellationToken cancellationToken);
-    Task<ServiceResult> Release(Guid incidentId, ReleaseLeaseRequest request, CancellationToken cancellationToken);
-    Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken);
-    Task<ServiceResult> DeleteElement(Guid incidentId, Guid elementId, DeleteMapElementRequest request, CancellationToken cancellationToken);
-    Task<ServiceResult> GetAudit(Guid incidentId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default);
-    Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken);
-    Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken);
-}
-

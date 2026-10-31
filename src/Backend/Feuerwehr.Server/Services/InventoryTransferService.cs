@@ -12,12 +12,6 @@ namespace De.Openelp.Feuerwehr.Server.Services;
 
 public enum InventoryTransferKind { Equipment, Types, Categories }
 
-public interface IInventoryTransferService
-{
-    Task<ServiceResult> Export(InventoryTransferKind kind, CancellationToken ct);
-    Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct);
-}
-
 /// <summary>
 /// Executes inventory Transfer Service.
 /// </summary>
@@ -263,4 +257,3 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
     }
 }
-

@@ -65,10 +65,3 @@ public sealed class DiaryCategoryAdminService(FeuerwehrDbContext dbContext) : ID
     }
 
 }
-
-public interface IDiaryCategoryAdminService
-{
-    Task<ServiceResult> GetAll(CancellationToken cancellationToken);
-    Task<ServiceResult> Upsert(UpsertDiaryCategoryRequest request, CancellationToken cancellationToken);
-}
-

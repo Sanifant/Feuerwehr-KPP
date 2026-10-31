@@ -6,12 +6,6 @@ using De.Openelp.Feuerwehr.Common.Models.Inventory;
 
 namespace De.Openelp.Feuerwehr.App.Services;
 
-public interface IInventoryService
-{
-    Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct);
-    Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct);
-}
-
 /// <summary>
 /// Executes inventory Service.
 /// </summary>
@@ -50,4 +44,3 @@ public sealed class InventoryService(AuthenticatedHttpClient http) : IInventoryS
             ?? throw new InvalidOperationException("Die PrÃ¼fantwort ist leer.");
     }
 }
-

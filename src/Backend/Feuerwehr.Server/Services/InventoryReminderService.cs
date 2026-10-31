@@ -9,11 +9,6 @@ using Npgsql;
 
 namespace De.Openelp.Feuerwehr.Server.Services;
 
-public interface IInventoryReminderService
-{
-    Task SendDueReminders(CancellationToken ct);
-}
-
 /// <summary>
 /// Executes inventory Reminder Service.
 /// </summary>
@@ -117,4 +112,3 @@ public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimePro
         }
     }
 }
-

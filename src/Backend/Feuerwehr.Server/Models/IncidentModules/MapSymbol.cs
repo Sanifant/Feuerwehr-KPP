@@ -16,10 +16,3 @@ public sealed class MapSymbol
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 }
-
-public sealed class MapSymbolCategory
-{
-    [Key, MaxLength(40)]
-    public string Name { get; set; } = string.Empty;
-}
-

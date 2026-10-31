@@ -8,21 +8,6 @@ using System.Text;
 namespace De.Openelp.Feuerwehr.Common.Models
 {
 
-    public class Address
-    {
-        public string Street { get; set; } = string.Empty;
-        public string HouseNumber { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string? AdditionalInfo { get; set; }
-
-        /// <summary>
-        /// Gets the formatted Address.
-        /// </summary>
-        public string GetFormattedAddress() =>
-            $"{Street} {HouseNumber}, {PostalCode} {City}".Trim();
-    }
-
     public class Hydrant
     {
         public int Id { get; set; }
@@ -53,4 +38,3 @@ namespace De.Openelp.Feuerwehr.Common.Models
         public string DiameterDescription => $"DIN {NominalDiameter}";
     }
 }
-

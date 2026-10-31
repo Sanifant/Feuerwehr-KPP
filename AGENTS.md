@@ -13,6 +13,9 @@
 - Das React-/TypeScript-Frontend liegt in `src/frontend/`.
 - Avalonia-Clients liegen in `src/App/Feuerwehr.App/` (Desktop, Android und iOS).
 - Der .NET-Aspire-AppHost liegt in `src/Feuerwehr.AppHost/AppHost.cs` und verdrahtet API, Frontend, Desktop-App, PostgreSQL mit PgWeb, Redis und Mailpit.
+- Interfaces sollen immer im Unterordner `Interfaces/`platziert werden. 
+- Pro Klasse soll jeweils eine eigene Datei erstellt werden.
+- Alle öffentlichen Klassen und Funktionen sollen einen XMLDOC Header haben der die Funktion beschreibt, die Parameter beschreibt und die Rückgabewerte
 
 ## Projekte und Abhaengigkeiten
 - `Feuerwehr.Common`: unabhaengige Vertragsbibliothek fuer .NET 10.
@@ -95,4 +98,4 @@
 - NuGet-Abhaengigkeitsgrenzen beachten: insbesondere `Microsoft.OpenApi` passend zu `Microsoft.AspNetCore.OpenApi` waehlen. NU1608 nicht bloss unterdruecken.
 - Test-Stack: xUnit + Moq, EF InMemory und SQLite; vorhandene Controller-Tests: `UsersControllerTests` und `IncidentDiaryControllerTests`. Service-Tests unter `Services/`, Architekturregeln in `ArchitectureTests.cs`.
 - Relevante Service-/Controller-Tests und bei Common-Aenderungen betroffene Clients pruefen. EF-InMemory/SQLite ersetzen keine PostgreSQL-Integrationstests, etwa fuer Sequenzen.
-- Bekannte Grenzen: `UnitTest1` ist ein leerer Platzhalter, einige Tests sind auskommentiert. Ein gruener Testlauf bedeutet keine vollstaendige Funktionsabdeckung. Einladungs-API-Tests nutzen echtes Identity/EF mit austauschbaren Mail-/Redis-Grenzen; sie ersetzen keinen externen SMTP-/Redis-Integrationstest.
+

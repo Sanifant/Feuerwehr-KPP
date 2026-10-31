@@ -15,12 +15,6 @@ namespace De.Openelp.Feuerwehr.Server.Services;
 
 public enum VehicleTransferKind { Vehicles, Types }
 
-public interface IVehicleTransferService
-{
-    Task<ServiceResult> Export(VehicleTransferKind kind, CancellationToken ct);
-    Task<ServiceResult> Import(VehicleTransferKind kind, Stream stream, CancellationToken ct);
-}
-
 /// <summary>
 /// Executes vehicle Transfer Service.
 /// </summary>
@@ -219,4 +213,3 @@ public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAc
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated, []));
     }
 }
-

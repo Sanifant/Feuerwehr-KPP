@@ -6,14 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 
-public interface IMapSymbolService
-{
-    Task<ServiceResult> GetSymbols(CancellationToken cancellationToken);
-    Task<ServiceResult> GetCategories(CancellationToken cancellationToken);
-    Task<ServiceResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken);
-    Task<ServiceResult> Save(Guid? id, SaveMapSymbolRequest request, CancellationToken cancellationToken);
-}
-
 /// <summary>
 /// Executes map Symbol Service.
 /// </summary>
@@ -129,4 +121,3 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
         return ServiceResult.StatusCode(created ? 201 : 200, new MapSymbolDto(symbol.Id, symbol.Name, symbol.Category, symbol.SvgContent, symbol.IsActive, symbol.IsVehicle));
     }
 }
-
