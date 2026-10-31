@@ -44,8 +44,8 @@ public class HydrantImportTests
         Assert.Empty(response.Errors);
         var entities = db.Hydrants.OrderBy(h => h.Id).ToList();
         Assert.Equal(2, entities.Count);
-        Assert.Equal("DorfstraÃŸe", entities[0].Address.Street);
-        Assert.Equal("Beim GerÃ¤tehaus", entities[0].Notes);
+        Assert.Equal("Dorfstraße", entities[0].Address.Street);
+        Assert.Equal("Beim Gerätehaus", entities[0].Notes);
         Assert.Null(entities[1].Notes);
     }
 

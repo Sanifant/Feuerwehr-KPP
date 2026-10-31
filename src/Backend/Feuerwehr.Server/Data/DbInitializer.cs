@@ -68,9 +68,9 @@ namespace De.Openelp.Feuerwehr.Server.Data
             {
                 new { Code = "meldung", Name = "Meldung" },
                 new { Code = "auftrag", Name = "Auftrag" },
-                new { Code = "rueckmeldung", Name = "RÃ¼ckmeldung" },
+                new { Code = "rueckmeldung", Name = "Rückmeldung" },
                 new { Code = "entscheidung", Name = "Entscheidung" },
-                new { Code = "massnahme", Name = "MaÃŸnahme" },
+                new { Code = "massnahme", Name = "Maßnahme" },
                 new { Code = "sonstiges", Name = "Sonstiges" },
             };
 

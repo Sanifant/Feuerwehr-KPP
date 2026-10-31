@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Text.Json;
 using De.Openelp.Feuerwehr.Common.Models;
 using De.Openelp.Feuerwehr.Common.Models.Auth;
@@ -70,4 +70,3 @@ public class ArchitectureTests
         Assert.False(db.Database.HasPendingModelChanges());
     }
 }
-

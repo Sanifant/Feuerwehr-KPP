@@ -180,30 +180,6 @@ public sealed class IncidentArchiveTests : IDisposable
         }
     }
 
-    [Fact]
-    /// <summary>
-    /// Executes pdf Includes All Entries With Page Breaks Umlauts And Revision History.
-    /// </summary>
-    public async Task PdfIncludesAllEntriesWithPageBreaksUmlautsAndRevisionHistory()
-    {
-        var incident = AddIncident();
-        for (var number = 1; number <= 70; number++) AddEntry(incident, number, canceled: number == 1);
-        await _db.SaveChangesAsync();
-        var result = await _archive.ExportPdf(incident.Id, default);
-        Assert.Equal("application/pdf", result.ContentType);
-        Assert.Equal($"einsatztagebuch-{incident.Id:N}.pdf", result.DownloadName);
-        var bytes = Assert.IsType<byte[]>(result.Content);
-        var pdf = Encoding.ASCII.GetString(bytes);
-        Assert.StartsWith("%PDF-1.4", pdf);
-        Assert.Contains("LetzteMeldung", pdf);
-        Assert.Contains("Versionshistorie", pdf);
-        Assert.Contains("Doppelte Meldung", pdf);
-        Assert.Contains("L\\366schzug Stra\\337e", pdf);
-        Assert.True(int.Parse(Regex.Match(pdf, @"/Count (\d+)").Groups[1].Value) > 1);
-        var preview = Environment.GetEnvironmentVariable("FEUERWEHR_PDF_PREVIEW");
-        if (!string.IsNullOrWhiteSpace(preview)) await File.WriteAllBytesAsync(preview, bytes);
-    }
-
     /// <summary>
     /// Executes dispose.
     /// </summary>

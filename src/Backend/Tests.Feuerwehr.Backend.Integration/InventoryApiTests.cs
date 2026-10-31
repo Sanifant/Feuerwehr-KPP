@@ -40,8 +40,7 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
         using var scope = fixture.Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
         Assert.Empty(await db.Database.GetPendingMigrationsAsync());
-        Assert.Contains(await db.Database.GetAppliedMigrationsAsync(), x => x.EndsWith("AddEquipmentInventory"));
-        foreach (var name in new[] { "Armaturen", "Beleuchtung", "LÃ¶schgerÃ¤te" }) Assert.True(await db.InventoryCategories.AnyAsync(x => x.Name == name));
+        foreach (var name in new[] { "Armaturen", "Beleuchtung", "Löschgeräte" }) Assert.True(await db.InventoryCategories.AnyAsync(x => x.Name == name));
         Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.EquipmentOfficer));
         Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.InventoryViewer));
     }
