@@ -187,7 +187,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         using var mail = new HttpClient { BaseAddress = fixture.MailpitUrl };
         var messages = await mail.GetFromJsonAsync<JsonElement>("/api/v1/messages");
         var matching = messages.GetProperty("messages").EnumerateArray().Where(x =>
-            x.GetProperty("Subject").GetString() == $"MTW-Buchung bestÃ¤tigt: {vehicle.RadioCallSign}").ToArray();
+            x.GetProperty("Subject").GetString() == $"MTW-Buchung bestätigt: {vehicle.RadioCallSign}").ToArray();
         var delivered = Assert.Single(matching);
         var body = await mail.GetFromJsonAsync<JsonElement>($"/api/v1/message/{delivered.GetProperty("ID").GetString()}");
         Assert.Contains(comment, body.GetProperty("Text").GetString());

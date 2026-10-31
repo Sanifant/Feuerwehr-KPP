@@ -426,7 +426,7 @@ public class IncidentDiaryControllerTests
         var objectResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         var details = Assert.IsType<ProblemDetails>(objectResult.Value);
-        Assert.Equal("StornierungsbegrÃ¼ndung ist erforderlich.", details.Title);
+        Assert.Equal("Stornierungsbegründung ist erforderlich.", details.Title);
     }
 
     [Fact]

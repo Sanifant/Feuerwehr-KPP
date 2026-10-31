@@ -115,7 +115,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         var category = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == request.CategoryCode, cancellationToken);
         if (category is null || !category.IsActive)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfÃ¼gbar.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfügbar.");
         }
 
         var now = DateTime.UtcNow;
@@ -212,7 +212,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         var category = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == request.CategoryCode, cancellationToken);
         if (category is null || !category.IsActive)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfÃ¼gbar.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Kategorie ist nicht verfügbar.");
         }
 
         var now = DateTime.UtcNow;
@@ -267,7 +267,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
 
         if (string.IsNullOrWhiteSpace(request.Reason))
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "StornierungsbegrÃ¼ndung ist erforderlich.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Stornierungsbegründung ist erforderlich.");
         }
 
         var payload = new { incidentId, entryId, request.ExpectedRevision, request.Reason };
@@ -393,7 +393,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
             }
             lines.Add("");
         }
-        if (entries.Count == 0) lines.Add("Keine TagebucheintrÃ¤ge vorhanden.");
+        if (entries.Count == 0) lines.Add("Keine Tagebucheinträge vorhanden.");
 
         var pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Einsatztagebuch", lines);
         return ServiceResult.File(pdfBytes, "application/pdf", $"einsatztagebuch-{incidentId:N}.pdf");
@@ -404,7 +404,7 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
     {
         lines.Add($"Version {revision.RevisionNumber} | Ereignis UTC: {revision.EventTimestampUtc:dd.MM.yyyy HH:mm:ss}");
         lines.Add($"Kategorie: {revision.CategoryNameSnapshot} | Ãœbermittlung: {revision.TransmissionType ?? "-"}");
-        lines.Add($"Absender: {revision.Sender ?? "-"} | EmpfÃ¤nger: {revision.Recipient ?? "-"}");
+        lines.Add($"Absender: {revision.Sender ?? "-"} | Empfänger: {revision.Recipient ?? "-"}");
         lines.Add(revision.Text);
         if (!string.IsNullOrWhiteSpace(revision.CancellationReason)) lines.Add($"Grund: {revision.CancellationReason}");
         lines.Add($"Erfasst UTC: {revision.CreatedAtUtc:dd.MM.yyyy HH:mm:ss} durch {revision.CreatedByDisplayName}");

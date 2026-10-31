@@ -26,7 +26,7 @@ public class HydrantExportTests
             Id = 2,
             Address = new Address
             {
-                Street = "DorfstraÃŸe; SÃ¼d", HouseNumber = "12a", PostalCode = "02361", City = "LÃ¼beck",
+                Street = "DorfstraÃŸe; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
                 AdditionalInfo = "Tor \"links\"",
             },
             Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 80,
@@ -57,7 +57,7 @@ public class HydrantExportTests
         Assert.Equal(11, first.Length);
         Assert.Equal("", first[0]);
         Assert.Equal("'=1+1", first[10]);
-        Assert.Equal(new[] { "DorfstraÃŸe; SÃ¼d", "12a", "02361", "LÃ¼beck", "53.929134", "-10.638436",
+        Assert.Equal(new[] { "DorfstraÃŸe; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
             "80", "1", "1", "1", "Erste Zeile\r\nZweite Zeile; \"frei\"" }, parser.ReadFields());
         Assert.True(parser.EndOfData);
         Assert.Equal(2, await db.Hydrants.CountAsync());
@@ -79,7 +79,7 @@ public class HydrantExportTests
             Id = 42,
             Address = new Address
             {
-                Street = "DorfstraÃŸe; SÃ¼d", HouseNumber = "12a", PostalCode = "02361", City = "LÃ¼beck",
+                Street = "DorfstraÃŸe; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
                 AdditionalInfo = "Nicht Bestandteil des Importformats",
             },
             Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 100,

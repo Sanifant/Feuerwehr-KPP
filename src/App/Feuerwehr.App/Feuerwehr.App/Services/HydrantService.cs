@@ -49,7 +49,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 return await response.Content.ReadFromJsonAsync<Hydrant>();
             }
 
-            return null; // Oder wirf hier eine Exception, je nach gewÃ¼nschtem Fehlerhandling
+            return null; // Oder wirf hier eine Exception, je nach gewünschtem Fehlerhandling
         }
 
         // POST: api/hydrant

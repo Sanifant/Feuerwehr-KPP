@@ -73,7 +73,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         {
             RefreshCommand.Cancel();
             Clear();
-            StatusMessage = "Keine Berechtigung fÃ¼r die Lagekarte.";
+            StatusMessage = "Keine Berechtigung für die Lagekarte.";
         }
     }
 
@@ -87,7 +87,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         if (!CanView)
         {
             Clear();
-            StatusMessage = "Keine Berechtigung fÃ¼r die Lagekarte.";
+            StatusMessage = "Keine Berechtigung für die Lagekarte.";
             return;
         }
 
@@ -139,7 +139,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         {
             Clear();
             StatusMessage = exception is HttpRequestException { StatusCode: HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized }
-                ? "Keine Berechtigung fÃ¼r die Lagekarte. Bitte erneut anmelden."
+                ? "Keine Berechtigung für die Lagekarte. Bitte erneut anmelden."
                 : "Die Lagekarte konnte nicht geladen werden. Bitte erneut aktualisieren.";
         }
     }

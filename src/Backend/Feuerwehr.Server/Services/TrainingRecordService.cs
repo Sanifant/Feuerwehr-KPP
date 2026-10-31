@@ -34,7 +34,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
         {
             if (!TryParseTrainingLevel(level, out var parsedLevel))
             {
-                return ServiceResult.BadRequest("UngÃ¼ltiger Level-Filter. Erlaubt sind: gemeinde, kreis, land.");
+                return ServiceResult.BadRequest("Ungültiger Level-Filter. Erlaubt sind: gemeinde, kreis, land.");
             }
 
             trainingsQuery = trainingsQuery.Where(tc => tc.Level == parsedLevel);
@@ -118,7 +118,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
         if (!hasMatchingTitle && string.IsNullOrWhiteSpace(value.Description))
         {
-            return ServiceResult.BadRequest("FÃ¼r neue Titel ist eine Beschreibung erforderlich.");
+            return ServiceResult.BadRequest("Für neue Titel ist eine Beschreibung erforderlich.");
         }
 
         var fireDepartment = await _db.FireDepartments
@@ -126,7 +126,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
         if (fireDepartment is null)
         {
-            return ServiceResult.BadRequest("Die ausgewÃ¤hlte Feuerwehr existiert nicht.");
+            return ServiceResult.BadRequest("Die ausgewählte Feuerwehr existiert nicht.");
         }
 
         var trainingEntity = _db.TrainingCourses.FirstOrDefault(t => t.Title.Equals(trimmedTitle));
@@ -194,7 +194,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
 
         if (fireDepartment is null)
         {
-            return ServiceResult.BadRequest("Die ausgewÃ¤hlte Feuerwehr existiert nicht.");
+            return ServiceResult.BadRequest("Die ausgewählte Feuerwehr existiert nicht.");
         }
 
         trainingEntity.Title = value.Title.Trim();

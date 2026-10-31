@@ -75,13 +75,13 @@ public sealed class IosBarcodeScanner : IBarcodeScanner
             try
             {
                 var device = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video)
-                    ?? throw new InvalidOperationException("Keine Kamera verfÃ¼gbar.");
+                    ?? throw new InvalidOperationException("Keine Kamera verfügbar.");
                 var input = AVCaptureDeviceInput.FromDevice(device, out var error);
-                if (input is null) throw new InvalidOperationException(error?.LocalizedDescription ?? "Kamera nicht verfÃ¼gbar.");
-                if (!session.CanAddInput(input)) throw new InvalidOperationException("Kameraeingang nicht verfÃ¼gbar.");
+                if (input is null) throw new InvalidOperationException(error?.LocalizedDescription ?? "Kamera nicht verfügbar.");
+                if (!session.CanAddInput(input)) throw new InvalidOperationException("Kameraeingang nicht verfügbar.");
                 session.AddInput(input);
                 var output = new AVCaptureMetadataOutput();
-                if (!session.CanAddOutput(output)) throw new InvalidOperationException("Barcodescan nicht verfÃ¼gbar.");
+                if (!session.CanAddOutput(output)) throw new InvalidOperationException("Barcodescan nicht verfügbar.");
                 session.AddOutput(output);
                 metadataDelegate = new MetadataDelegate(this);
                 output.SetDelegate(metadataDelegate, DispatchQueue.MainQueue);

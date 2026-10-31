@@ -50,13 +50,13 @@ public sealed class SmtpSettings
         var username = NonBlank(configuration["MAIL_USERNAME"]);
         var password = configuration["MAIL_PASSWORD"];
         if ((username is null) != string.IsNullOrEmpty(password))
-            throw new InvalidOperationException("MAIL_USERNAME und MAIL_PASSWORD mÃ¼ssen gemeinsam gesetzt werden.");
+            throw new InvalidOperationException("MAIL_USERNAME und MAIL_PASSWORD müssen gemeinsam gesetzt werden.");
         if (username is not null && security == SecureSocketOptions.None)
             throw new InvalidOperationException("SMTP-Anmeldung erfordert MAIL_SECURITY=StartTls oder SslOnConnect.");
 
         var from = NonBlank(configuration["MAIL_FROM"]) ?? NonBlank(configuration["Mail:From"]) ?? username ?? "noreply@localhost.de";
         if (!MailboxAddress.TryParse(from, out var sender))
-            throw new InvalidOperationException("MAIL_FROM muss eine gÃ¼ltige Absenderadresse enthalten.");
+            throw new InvalidOperationException("MAIL_FROM muss eine gültige Absenderadresse enthalten.");
 
         return new SmtpSettings
         {
@@ -92,7 +92,7 @@ public sealed class SmtpSettings
         catch (Exception exception) when (exception is ArgumentException or FormatException or KeyNotFoundException)
         {
             // Do not include connection strings, which could contain credentials, in diagnostics.
-            throw new InvalidOperationException("ConnectionStrings:mail enthÃ¤lt keinen gÃ¼ltigen SMTP-Endpunkt.");
+            throw new InvalidOperationException("ConnectionStrings:mail enthält keinen gültigen SMTP-Endpunkt.");
         }
     }
 }

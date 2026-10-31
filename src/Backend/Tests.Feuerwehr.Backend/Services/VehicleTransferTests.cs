@@ -88,7 +88,7 @@ public sealed class VehicleTransferTests
         var usersBefore = await fixture.Db.Users.CountAsync();
         var result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
         Assert.Equal(400, result.Code);
-        Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.LineNumber == 3 && x.Description.Contains("GerÃ¤tewart"));
+        Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.LineNumber == 3 && x.Description.Contains("Gerätewart"));
         Assert.Empty(fixture.Db.Vehicles);
         Assert.Equal(usersBefore, await fixture.Db.Users.CountAsync());
     }

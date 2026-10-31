@@ -133,10 +133,10 @@ public sealed class UsersService : IUsersService
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurÃ¼ckgenommen.");
+            _logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurückgenommen.");
             var rollback = await _userManager.DeleteAsync(user);
             if (!rollback.Succeeded)
-                _logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurÃ¼ckgenommen werden.");
+                _logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurückgenommen werden.");
             return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
         }
 
@@ -153,7 +153,7 @@ public sealed class UsersService : IUsersService
         var user = await _userManager.FindByIdAsync(id);
         if (user is null) return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
         if (!user.IsActive)
-            return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer kÃ¶nnen nicht eingeladen werden."));
+            return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
 
         try
         {
@@ -184,10 +184,10 @@ public sealed class UsersService : IUsersService
         }
 
         if (user.PasswordResetRequired && !string.IsNullOrEmpty(request.NewPassword))
-            return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss Ã¼ber den Einladungslink festgelegt werden."));
+            return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss über den Einladungslink festgelegt werden."));
 
         if (request.ClearFireDepartment && request.FireDepartmentId.HasValue)
-            return ServiceResult.BadRequest(new MessageResponse("Bitte entweder eine Feuerwehr auswÃ¤hlen oder die Zuordnung entfernen."));
+            return ServiceResult.BadRequest(new MessageResponse("Bitte entweder eine Feuerwehr auswählen oder die Zuordnung entfernen."));
 
         if (request.Email != null)
         {
@@ -323,7 +323,7 @@ public sealed class UsersService : IUsersService
         catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
             { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
         {
-            return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als GerÃ¤tewart Fahrzeugen zugeordnet. Bitte die ZustÃ¤ndigkeit vor dem endgÃ¼ltigen LÃ¶schen Ã¼bertragen."));
+            return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als Gerätewart Fahrzeugen zugeordnet. Bitte die Zuständigkeit vor dem endgültigen Löschen übertragen."));
         }
 
         if (!result.Succeeded)

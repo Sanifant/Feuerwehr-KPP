@@ -61,7 +61,7 @@ public sealed class VehicleServiceTests
         var updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
         {
             FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-            Name = "Name geÃ¤ndert", ExpectedVersion = vehicle.Version
+            Name = "Name geändert", ExpectedVersion = vehicle.Version
         }, default)).Value);
         Assert.Null(updated.StatusChangedAtUtc);
     }

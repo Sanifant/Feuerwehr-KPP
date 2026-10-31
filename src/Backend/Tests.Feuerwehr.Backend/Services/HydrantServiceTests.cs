@@ -35,14 +35,14 @@ public class HydrantServiceTests
         {
             Id = response.Id, Address = new Address { Street = "Neue StraÃŸe", City = "Stockelsdorf" },
             Latitude = 54, Longitude = 11, NominalDiameter = 150,
-            Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "GeprÃ¼ft",
+            Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "Geprüft",
         };
         Assert.Equal(204, service.Put(response.Id, update).Code);
         Assert.Same(entity, Assert.Single(db.Hydrants));
         var updated = Assert.IsType<Hydrant>(service.Get(response.Id).Value);
         Assert.Equal("Neue StraÃŸe", updated.Address.Street);
         Assert.Equal(150, updated.NominalDiameter);
-        Assert.Equal("GeprÃ¼ft", updated.Notes);
+        Assert.Equal("Geprüft", updated.Notes);
         Assert.Equal(204, service.Delete(response.Id).Code);
         Assert.Equal(404, service.Get(response.Id).Code);
     }

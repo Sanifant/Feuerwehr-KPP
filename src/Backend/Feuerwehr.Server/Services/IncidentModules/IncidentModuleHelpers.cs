@@ -168,7 +168,7 @@ public sealed class MapLeaseService(FeuerwehrDbContext dbContext) : IMapLeaseSer
             || !string.Equals(lease.SessionId, sessionId, StringComparison.Ordinal)
             || !string.Equals(lease.LeaseToken, leaseToken, StringComparison.Ordinal))
         {
-            throw new InvalidOperationException("Diese Sitzung besitzt keine gÃ¼ltige Bearbeitungssperre.");
+            throw new InvalidOperationException("Diese Sitzung besitzt keine gültige Bearbeitungssperre.");
         }
 
         return lease;

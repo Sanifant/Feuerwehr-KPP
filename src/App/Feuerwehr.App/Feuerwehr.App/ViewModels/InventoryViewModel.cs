@@ -34,11 +34,11 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
     public bool CanView => auth.IsAuthenticated && auth.UserRoles.Any(x => x is "Admin" or "EquipmentOfficer" or "InventoryViewer");
     public bool CanInspect => CanView && Detail?.Equipment.IsActive == true && auth.UserRoles.Any(x => x is "Admin" or "EquipmentOfficer");
     public bool CanScan => CanView && scanner.IsSupported;
-    public string DeviceTitle => Detail is null ? "GerÃ¤t scannen" : $"{Detail.Equipment.Barcode} Â· {Detail.Equipment.EquipmentTypeName}";
+    public string DeviceTitle => Detail is null ? "Gerät scannen" : $"{Detail.Equipment.Barcode} Â· {Detail.Equipment.EquipmentTypeName}";
     public string DeviceDescription => Detail is null ? "" : $"{Detail.Equipment.CategoryName}\n{Detail.Equipment.Manufacturer} Â· Seriennummer {Detail.Equipment.SerialNumber}\nID: {Detail.Equipment.Id}";
     public string DeviceStatus => Detail is null ? "" : $"{StatusOptions[(int)Detail.Equipment.Status]} Â· {(Detail.Equipment.IsActive ? "Aktiv" : "Deaktiviert")}";
-    public string NextInspection => Detail is null ? "" : $"NÃ¤chste PrÃ¼fung: {Detail.Equipment.NextInspectionOn:dd.MM.yyyy} Â· Intervall: {Detail.Equipment.InspectionIntervalMonths} Monate";
-    public string LastInspection => Detail is null ? "" : Detail.Equipment.LastInspectedOn is { } date ? $"Letzte PrÃ¼fung: {date:dd.MM.yyyy}" : "Noch nicht geprÃ¼ft";
+    public string NextInspection => Detail is null ? "" : $"Nächste Prüfung: {Detail.Equipment.NextInspectionOn:dd.MM.yyyy} Â· Intervall: {Detail.Equipment.InspectionIntervalMonths} Monate";
+    public string LastInspection => Detail is null ? "" : Detail.Equipment.LastInspectedOn is { } date ? $"Letzte Prüfung: {date:dd.MM.yyyy}" : "Noch nicht geprüft";
     public string Instructions => Detail?.Equipment.InspectionInstructions ?? "";
 
     /// <summary>
@@ -61,7 +61,7 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
         Detail = null; History.Clear(); Comment = "";
         OnPropertyChanged(nameof(CanView)); OnPropertyChanged(nameof(CanScan));
         LookupCommand.NotifyCanExecuteChanged(); ScanCommand.NotifyCanExecuteChanged();
-        Message = "Die Anmeldung wurde geÃ¤ndert. Bitte das GerÃ¤t erneut laden.";
+        Message = "Die Anmeldung wurde geändert. Bitte das Gerät erneut laden.";
     }
     partial void OnDetailChanged(EquipmentDetailDto? value)
     {
@@ -107,7 +107,7 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
             await LookupAsync(ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
-        catch (Exception) { Message = "Kamera nicht verfÃ¼gbar oder Zugriff verweigert. Bitte Barcode eingeben oder Scanner verwenden."; }
+        catch (Exception) { Message = "Kamera nicht verfügbar oder Zugriff verweigert. Bitte Barcode eingeben oder Scanner verwenden."; }
     }
 
     [RelayCommand(CanExecute = nameof(CanInspect), IncludeCancelCommand = true)]
@@ -120,10 +120,10 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
         var equipment = Detail?.Equipment;
         if (!CanInspect || equipment is null) return;
         if (InspectedOn is null || SelectedStatus is < 0 or > 2 || Comment.Length > 4000)
-        { Message = "Bitte PrÃ¼fdatum, Status und einen Kommentar mit hÃ¶chstens 4000 Zeichen angeben."; return; }
+        { Message = "Bitte Prüfdatum, Status und einen Kommentar mit höchstens 4000 Zeichen angeben."; return; }
         var date = DateOnly.FromDateTime(InspectedOn.Value.Date);
         if (date > DateOnly.FromDateTime(DateTime.UtcNow) || date < (equipment.LastInspectedOn ?? equipment.CreatedOn))
-        { Message = "Das PrÃ¼fdatum darf nicht in der Zukunft oder vor der Anlage bzw. letzten PrÃ¼fung liegen."; return; }
+        { Message = "Das Prüfdatum darf nicht in der Zukunft oder vor der Anlage bzw. letzten Prüfung liegen."; return; }
         try
         {
             var result = await service.InspectAsync(equipment.Id, new RecordEquipmentInspectionRequest
@@ -132,7 +132,7 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
             }, ct);
             ct.ThrowIfCancellationRequested();
             if (!CanView || Detail?.Equipment.Id != equipment.Id) return;
-            SetDetail(result); Message = "PrÃ¼fung dokumentiert.";
+            SetDetail(result); Message = "Prüfung dokumentiert.";
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception ex) { Message = ErrorMessage(ex); }
@@ -145,11 +145,11 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
     }
     private static string ErrorMessage(Exception exception) => exception switch
     {
-        HttpRequestException { StatusCode: HttpStatusCode.NotFound } => "Kein GerÃ¤t zu diesem Barcode gefunden.",
-        HttpRequestException { StatusCode: HttpStatusCode.Conflict } => "Das GerÃ¤t wurde inzwischen geÃ¤ndert. Bitte neu laden und Angaben prÃ¼fen.",
-        HttpRequestException { StatusCode: HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized } => "Keine Berechtigung. Bitte Anmeldung prÃ¼fen.",
-        HttpRequestException { StatusCode: HttpStatusCode.BadRequest } => "Barcode oder PrÃ¼fungsangaben sind ungÃ¼ltig.",
-        _ => "Die Anfrage konnte nicht abgeschlossen werden. Bitte Verbindung prÃ¼fen und erneut versuchen.",
+        HttpRequestException { StatusCode: HttpStatusCode.NotFound } => "Kein Gerät zu diesem Barcode gefunden.",
+        HttpRequestException { StatusCode: HttpStatusCode.Conflict } => "Das Gerät wurde inzwischen geändert. Bitte neu laden und Angaben prüfen.",
+        HttpRequestException { StatusCode: HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized } => "Keine Berechtigung. Bitte Anmeldung prüfen.",
+        HttpRequestException { StatusCode: HttpStatusCode.BadRequest } => "Barcode oder Prüfungsangaben sind ungültig.",
+        _ => "Die Anfrage konnte nicht abgeschlossen werden. Bitte Verbindung prüfen und erneut versuchen.",
     };
 }
 

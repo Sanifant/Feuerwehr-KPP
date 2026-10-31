@@ -235,7 +235,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
-                // --- 2. Einen Pin (Marker) hinzufÃ¼gen
+                // --- 2. Einen Pin (Marker) hinzufügen
                 var pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // Stylen des Pins (z.B. ein roter Punkt)
@@ -245,7 +245,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                     Fill = new Brush { Color = new Color { A = 255, R = 255, G = 0, B = 0 } } // Rot
                 });
 
-                // Layer fÃ¼r den Pin erstellen und der Karte hinzufÃ¼gen
+                // Layer für den Pin erstellen und der Karte hinzufügen
                 var memoryLayer = new MemoryLayer
                 {
                     Name = "Pins",

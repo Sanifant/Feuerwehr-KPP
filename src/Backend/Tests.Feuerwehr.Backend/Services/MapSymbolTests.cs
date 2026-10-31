@@ -61,7 +61,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
     }
 
     private static SaveMapSymbolRequest SymbolRequest(string svg = Svg, string category = "Feuerwehr")
-        => new() { Name = "LÃ¶schfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
+        => new() { Name = "Löschfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
 
     private UpsertMapElementRequest Write(string symbolId, Guid? elementId = null, int? version = null, string geometry = "{\"type\":\"Point\",\"coordinates\":[10.25,51.5]}")
         => new()
@@ -308,7 +308,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
         command.ElementType = MapElementType.Polygon;
         command.SymbolId = null;
         command.RadioCallName = null;
-        command.Category = "FlÃ¤che";
+        command.Category = "Fläche";
         var result = await _map.UpsertElement(_incidentId, command, default);
         Assert.True(result.Code == 200, result.ProblemTitle);
         var saved = Assert.IsType<MapElementResponse>(result.Value);
@@ -443,7 +443,7 @@ public sealed class MapSymbolTests : IAsyncLifetime
 
     [Theory]
     [InlineData(null)]
-    [InlineData("UnnÃ¶tiger Funkrufname")]
+    [InlineData("Unnötiger Funkrufname")]
     /// <summary>
     /// Executes non Vehicle Symbols Can Be Placed And Moved Without Details.
     /// </summary>

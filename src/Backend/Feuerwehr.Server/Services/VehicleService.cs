@@ -56,10 +56,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             if (!IsAdmin) return ServiceResult.Forbid();
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 100)
-                return Invalid("Bitte einen Status mit hÃ¶chstens 100 Zeichen angeben.");
+                return Invalid("Bitte einen Status mit höchstens 100 Zeichen angeben.");
             var status = id.HasValue ? await db.Set<VehicleStatus>().SingleOrDefaultAsync(x => x.Id == id.Value, ct) : new VehicleStatus { Id = Guid.NewGuid() };
             if (status is null) return ServiceResult.NotFound();
-            if (id.HasValue && status.Version != request.ExpectedVersion) return Conflict("Der Status wurde inzwischen geÃ¤ndert. Bitte neu laden.");
+            if (id.HasValue && status.Version != request.ExpectedVersion) return Conflict("Der Status wurde inzwischen geändert. Bitte neu laden.");
             if (status.Id == VehicleStatusDefaults.ReadyId && !request.IsActive) return Invalid("Der Standardstatus kann nicht deaktiviert werden.");
             var normalized = request.Name.Trim().ToUpperInvariant();
             if (await db.Set<VehicleStatus>().AnyAsync(x => x.NormalizedName == normalized && x.Id != status.Id, ct))
@@ -68,7 +68,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             status.AllowsBooking = request.AllowsBooking; status.IsActive = request.IsActive;
             if (id.HasValue) status.Version++; else db.Set<VehicleStatus>().Add(status);
             try { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Status wurde inzwischen geÃ¤ndert oder existiert bereits."); }
+            catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Status wurde inzwischen geändert oder existiert bereits."); }
             return ServiceResult.Ok(new VehicleStatusDto(status.Id, status.Name, status.AllowsBooking, status.IsActive, status.Version, status.Id == VehicleStatusDefaults.ReadyId));
         });
 
@@ -89,19 +89,19 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             if (!IsAdmin) return ServiceResult.Forbid();
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 100)
-                return Invalid("Bitte einen Fahrzeugtyp mit hÃ¶chstens 100 Zeichen angeben.");
+                return Invalid("Bitte einen Fahrzeugtyp mit höchstens 100 Zeichen angeben.");
             var name = request.Name.Trim();
             var normalized = name.ToUpperInvariant();
             var type = id.HasValue ? await db.Set<VehicleType>().SingleOrDefaultAsync(x => x.Id == id.Value, ct) : new VehicleType { Id = Guid.NewGuid() };
             if (type is null) return ServiceResult.NotFound();
-            if (id.HasValue && type.Version != request.ExpectedVersion) return Conflict("Der Fahrzeugtyp wurde inzwischen geÃ¤ndert. Bitte neu laden.");
+            if (id.HasValue && type.Version != request.ExpectedVersion) return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
             if (await db.Set<VehicleType>().AnyAsync(x => x.NormalizedName == normalized && x.Id != type.Id, ct))
                 return Conflict("Ein Fahrzeugtyp mit diesem Namen existiert bereits.");
             type.Name = name;
             type.NormalizedName = normalized;
             if (id.HasValue) type.Version++; else db.Set<VehicleType>().Add(type);
             try { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Fahrzeugtyp wurde inzwischen geÃ¤ndert oder existiert bereits. Bitte neu laden."); }
+            catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert oder existiert bereits. Bitte neu laden."); }
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
 
@@ -115,11 +115,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (!IsAdmin) return ServiceResult.Forbid();
             var type = await db.Set<VehicleType>().SingleOrDefaultAsync(x => x.Id == id, ct);
             if (type is null) return ServiceResult.NotFound();
-            if (type.Version != request.ExpectedVersion) return Conflict("Der Fahrzeugtyp wurde inzwischen geÃ¤ndert. Bitte neu laden.");
+            if (type.Version != request.ExpectedVersion) return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
             type.IsActive = request.IsActive;
             type.Version++;
             try { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateConcurrencyException) { return Conflict("Der Fahrzeugtyp wurde inzwischen geÃ¤ndert. Bitte neu laden."); }
+            catch (DbUpdateConcurrencyException) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden."); }
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
 
@@ -145,7 +145,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<ServiceResult> Availability(DateOnly from, DateOnly to, CancellationToken ct, string? vehicleType = null)
         {
             if (from == default || to < from || to.DayNumber - from.DayNumber > 365)
-                return Invalid("Bitte einen gÃ¼ltigen Kalenderzeitraum von hÃ¶chstens 366 Tagen wÃ¤hlen.");
+                return Invalid("Bitte einen gültigen Kalenderzeitraum von höchstens 366 Tagen wählen.");
             var query = Vehicles.AsNoTracking().Where(x => x.IsActive);
             if (!string.IsNullOrWhiteSpace(vehicleType))
             {
@@ -210,24 +210,24 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (!IsAdmin && request.FireDepartmentId != actor.FireDepartmentId) return ServiceResult.Forbid();
             if (string.IsNullOrWhiteSpace(request.RadioCallSign) || request.RadioCallSign.Trim().Length > 100 ||
                 request.Name?.Length > 150 || request.LicensePlate?.Length > 30)
-                return Invalid("Ein Funkrufname ist erforderlich; bitte die maximalen FeldlÃ¤ngen beachten.");
+                return Invalid("Ein Funkrufname ist erforderlich; bitte die maximalen Feldlängen beachten.");
             var department = await db.FireDepartments.FindAsync([request.FireDepartmentId], ct);
             var officer = await db.Users.SingleOrDefaultAsync(x => x.Id == request.EquipmentOfficerId && x.IsActive && x.Email != null &&
                 x.FireDepartmentId == request.FireDepartmentId, ct);
             if (department is null || officer is null || !await HasOfficerRole(officer.Id, ct))
-                return Invalid("Bitte eine Feuerwehr und einen aktiven GerÃ¤tewart dieser Feuerwehr mit E-Mail-Adresse wÃ¤hlen.");
+                return Invalid("Bitte eine Feuerwehr und einen aktiven Gerätewart dieser Feuerwehr mit E-Mail-Adresse wählen.");
             var statusId = request.VehicleStatusId ?? vehicle.VehicleStatusId;
             var vehicleStatus = await db.Set<VehicleStatus>().SingleOrDefaultAsync(x => x.Id == statusId, ct);
             if (vehicleStatus is null || (!vehicleStatus.IsActive && (!id.HasValue || vehicle.VehicleStatusId != statusId)))
-                return Invalid("Bitte einen aktiven Fahrzeugstatus wÃ¤hlen.");
+                return Invalid("Bitte einen aktiven Fahrzeugstatus wählen.");
             VehicleType? vehicleType = null;
             if (request.VehicleTypeId.HasValue)
             {
                 vehicleType = await db.Set<VehicleType>().SingleOrDefaultAsync(x => x.Id == request.VehicleTypeId, ct);
                 if (vehicleType is null || (!vehicleType.IsActive && (!id.HasValue || vehicle.VehicleTypeId != vehicleType.Id)))
-                    return Invalid("Bitte einen aktiven Fahrzeugtyp wÃ¤hlen.");
+                    return Invalid("Bitte einen aktiven Fahrzeugtyp wählen.");
             }
-            if (id.HasValue && vehicle.Version != request.ExpectedVersion) return Conflict("Das Fahrzeug wurde inzwischen geÃ¤ndert. Bitte neu laden.");
+            if (id.HasValue && vehicle.Version != request.ExpectedVersion) return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             vehicle.FireDepartmentId = department.Id;
             vehicle.FireDepartment = department;
             vehicle.EquipmentOfficerId = officer.Id;
@@ -248,7 +248,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 await db.SaveChangesAsync(ct);
                 if (transaction is not null) await transaction.CommitAsync(ct);
             }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geÃ¤ndert. Bitte neu laden."); }
+            catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden."); }
             return ServiceResult.Ok(ToDto(vehicle));
         }
 
@@ -265,7 +265,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             var vehicle = await LockVehicle(id, ct);
             if (vehicle is null) return ServiceResult.NotFound();
             if (!IsAdmin && !Owns(vehicle)) return ServiceResult.Forbid();
-            if (vehicle.Version != request.ExpectedVersion) return Conflict("Das Fahrzeug wurde inzwischen geÃ¤ndert. Bitte neu laden.");
+            if (vehicle.Version != request.ExpectedVersion) return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             vehicle.IsActive = request.IsActive;
             vehicle.Version++;
             Audit(vehicle, null, request.IsActive ? "VehicleActivated" : "VehicleDeactivated", "Bestehende Buchungen bleiben erhalten.");
@@ -274,7 +274,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 await db.SaveChangesAsync(ct);
                 if (transaction is not null) await transaction.CommitAsync(ct);
             }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geÃ¤ndert. Bitte neu laden."); }
+            catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden."); }
             return ServiceResult.Ok(ToDto(vehicle));
         }
 
@@ -310,8 +310,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (direct && !IsOfficer) return ServiceResult.Forbid();
             if (request.CommandId == Guid.Empty) return Invalid("Eine CommandId ist erforderlich.");
             if (request.From == default || request.To < request.From || request.To.DayNumber - request.From.DayNumber > 365 || request.To == DateOnly.MaxValue)
-                return Invalid("Bitte einen gÃ¼ltigen Zeitraum von hÃ¶chstens 366 Tagen wÃ¤hlen.");
-            if (request.Comment?.Length > 2000) return Invalid("Der Kommentar darf hÃ¶chstens 2000 Zeichen enthalten.");
+                return Invalid("Bitte einen gültigen Zeitraum von höchstens 366 Tagen wählen.");
+            if (request.Comment?.Length > 2000) return Invalid("Der Kommentar darf höchstens 2000 Zeichen enthalten.");
             var actor = await Actor(ct);
             if (actor is null || string.IsNullOrWhiteSpace(actor.Email)) return ServiceResult.Forbid();
             var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
@@ -324,10 +324,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (existing is not null) return Replay(existing, hash);
             if (!vehicle.IsActive) return Conflict("Dieses Fahrzeug ist deaktiviert und kann nicht gebucht werden.");
             if (!vehicle.VehicleStatus.AllowsBooking) return Conflict($"Das Fahrzeug kann im Status {vehicle.VehicleStatus.Name} nicht gebucht werden.");
-            if (request.From < Today) return Invalid("Buchungen in der Vergangenheit sind nicht mÃ¶glich.");
+            if (request.From < Today) return Invalid("Buchungen in der Vergangenheit sind nicht möglich.");
             if (!vehicle.EquipmentOfficer.IsActive || string.IsNullOrWhiteSpace(vehicle.EquipmentOfficer.Email) ||
                 !await HasOfficerRole(vehicle.EquipmentOfficerId, ct))
-                return Conflict("Der zustÃ¤ndige GerÃ¤tewart ist nicht verfÃ¼gbar. Bitte die Fahrzeugverwaltung kontaktieren.");
+                return Conflict("Der zuständige Gerätewart ist nicht verfügbar. Bitte die Fahrzeugverwaltung kontaktieren.");
             var collision = await Collision(id, request.From, request.To, ct);
             if (collision is not null) return collision;
             var reservation = new VehicleReservation
@@ -354,7 +354,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (transaction is not null) await transaction.RollbackAsync(ct);
                 db.ChangeTracker.Clear();
                 existing = await db.VehicleReservations.Include(x => x.Vehicle).SingleOrDefaultAsync(x => x.CommandId == request.CommandId, ct);
-                return existing is not null ? Replay(existing, hash) : Conflict("Der Zeitraum oder das Fahrzeug wurde inzwischen geÃ¤ndert. Bitte neu laden.");
+                return existing is not null ? Replay(existing, hash) : Conflict("Der Zeitraum oder das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             }
             return ServiceResult.Ok(ToDto(reservation));
         }
@@ -370,7 +370,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private async Task<ServiceResult> DecideCore(Guid id, DecideVehicleReservationRequest request, VehicleReservationStatus status, CancellationToken ct)
         {
             if (status is not (VehicleReservationStatus.Confirmed or VehicleReservationStatus.Rejected or VehicleReservationStatus.Cancelled))
-                return Invalid("UngÃ¼ltige Entscheidung.");
+                return Invalid("Ungültige Entscheidung.");
             var vehicleId = await db.VehicleReservations.Where(x => x.Id == id).Select(x => (Guid?)x.VehicleId).SingleOrDefaultAsync(ct);
             if (!vehicleId.HasValue) return ServiceResult.NotFound();
             await using var transaction = await Begin(ct);
@@ -411,7 +411,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (transaction is not null) await transaction.CommitAsync(ct);
             }
             catch (DbUpdateException exception) when (IsConflict(exception))
-            { return Conflict("Der Zeitraum oder die Anfrage wurde inzwischen geÃ¤ndert. Bitte neu laden."); }
+            { return Conflict("Der Zeitraum oder die Anfrage wurde inzwischen geändert. Bitte neu laden."); }
             return ServiceResult.Ok(ToDto(reservation));
         }
 
@@ -447,7 +447,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = reservation.VehicleId, Date = day, ReservationId = reservation.Id });
         }
         private ServiceResult Replay(VehicleReservation existing, string hash) => existing.RequesterId == UserId && existing.PayloadHash == hash
-            ? ServiceResult.Ok(ToDto(existing)) : Conflict("Die CommandId wurde bereits fÃ¼r eine andere Anfrage verwendet.");
+            ? ServiceResult.Ok(ToDto(existing)) : Conflict("Die CommandId wurde bereits für eine andere Anfrage verwendet.");
         private void Audit(Vehicle vehicle, VehicleReservation? reservation, string action, string details) => db.VehicleEvents.Add(new VehicleEvent
         { Id = Guid.NewGuid(), VehicleId = vehicle.Id, ReservationId = reservation?.Id, ActorId = UserId, Action = action, Details = details, OccurredAtUtc = Now });
         private VehicleDto ToDto(Vehicle vehicle) => new(vehicle.Id, vehicle.FireDepartmentId, vehicle.FireDepartment.Name,

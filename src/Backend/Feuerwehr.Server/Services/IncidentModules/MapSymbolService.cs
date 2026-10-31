@@ -31,7 +31,7 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
         if (!user.IsAdmin) return ServiceResult.Forbid();
         var name = request.Name?.Trim();
         if (string.IsNullOrWhiteSpace(name) || name.Length > 40)
-            return ServiceResult.Problem(400, "Bitte einen Kategorienamen mit hÃ¶chstens 40 Zeichen angeben.");
+            return ServiceResult.Problem(400, "Bitte einen Kategorienamen mit höchstens 40 Zeichen angeben.");
         var normalizedName = name.ToUpperInvariant();
         if (await dbContext.MapSymbolCategories.AnyAsync(x => x.Name.ToUpper() == normalizedName, cancellationToken))
             return ServiceResult.Problem(409, "Diese Symbolkategorie existiert bereits.");
@@ -80,7 +80,7 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
             || !await dbContext.MapSymbolCategories.AnyAsync(x => x.Name == category, cancellationToken))
         {
             logger.LogWarning("Map symbol save rejected: invalid name or category. SymbolId: {SymbolId}", id);
-            return ServiceResult.Problem(400, "Bitte Name und eine gÃ¼ltige Symbolkategorie angeben.");
+            return ServiceResult.Problem(400, "Bitte Name und eine gültige Symbolkategorie angeben.");
         }
         var content = request.SvgContent ?? string.Empty;
         var categoryForLog = category.Replace("\r", string.Empty).Replace("\n", string.Empty);
@@ -90,7 +90,7 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
         catch (Exception error) when (error is XmlException or ArgumentException)
         {
             logger.LogWarning("Map symbol SVG validation rejected. SymbolId: {SymbolId}, ErrorType: {ErrorType}", id, error.GetType().Name);
-            return ServiceResult.Problem(400, error is XmlException ? "Die Datei enthÃ¤lt kein gÃ¼ltiges SVG." : error.Message);
+            return ServiceResult.Problem(400, error is XmlException ? "Die Datei enthält kein gültiges SVG." : error.Message);
         }
         logger.LogDebug("Map symbol SVG validation completed. SymbolId: {SymbolId}", id);
 

@@ -53,13 +53,13 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var type = await fixture.CreateType(officer);
-        var request = new SaveEquipmentRequest { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "GrÃ¶ÃŸe; \"Zitat\"\nzweite Zeile" };
+        var request = new SaveEquipmentRequest { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "GröÃŸe; \"Zitat\"\nzweite Zeile" };
         using var create = await officer.PostAsJsonAsync("/api/inventory", request); create.EnsureSuccessStatusCode();
         var item = (await create.Content.ReadFromJsonAsync<EquipmentDto>())!;
         using var export = await officer.GetAsync("/api/inventory/export"); export.EnsureSuccessStatusCode();
         Assert.Equal("text/csv", export.Content.Headers.ContentType!.MediaType);
         var bytes = await export.Content.ReadAsByteArrayAsync(); Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes.Take(3));
-        var csv = Encoding.UTF8.GetString(bytes); Assert.Contains("'=SUM", csv); Assert.Contains("GrÃ¶ÃŸe", csv);
+        var csv = Encoding.UTF8.GetString(bytes); Assert.Contains("'=SUM", csv); Assert.Contains("GröÃŸe", csv);
         using var import = await Upload(officer, "/api/inventory/import", csv, "inventar.csv"); import.EnsureSuccessStatusCode();
         Assert.Equal(0, (await import.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
         var detail = (await officer.GetFromJsonAsync<EquipmentDetailDto>($"/api/inventory/{item.Id}"))!;
@@ -136,7 +136,7 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     [Theory]
     [InlineData("categories", "[null]")]
     [InlineData("categories", "[{\"name\":\"Doppelt\"},{\"name\":\"doppelt\"}]")]
-    [InlineData("types", "[{\"name\":\"UnvollstÃ¤ndig\",\"inspectionIntervalMonths\":0}]")]
+    [InlineData("types", "[{\"name\":\"Unvollständig\",\"inspectionIntervalMonths\":0}]")]
     [InlineData("types", "not json")]
     /// <summary>
     /// Executes invalid Json Reports Errors Without Partial Writes.
@@ -161,7 +161,7 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     {
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var categories = (await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!;
-        var request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "PrÃ¼fen" };
+        var request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "Prüfen" };
         for (var i = 0; i < 2; i++) { using var create = await officer.PostAsJsonAsync("/api/inventory/types", request); create.EnsureSuccessStatusCode(); }
         using var export = await officer.GetAsync("/api/inventory/types/export"); export.EnsureSuccessStatusCode();
         using var import = await Upload(officer, "/api/inventory/types/import", await export.Content.ReadAsStringAsync(), "types.json"); import.EnsureSuccessStatusCode();

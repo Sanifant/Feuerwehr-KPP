@@ -133,7 +133,7 @@ public class HydrantImportTests
     [InlineData("DorfstraÃŸe;12;02361;Testort;abc;10;80;1;1;1;")]
     [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;0;1;1;")]
     [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;\"nicht geschlossen")]
-    [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;Notiz;zusÃ¤tzlich")]
+    [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;Notiz;zusätzlich")]
     /// <summary>
     /// Executes invalid Csv Or Storage Types Are Rejected.
     /// </summary>

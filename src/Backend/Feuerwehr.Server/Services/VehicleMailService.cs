@@ -21,13 +21,13 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
     /// <param name="request">The request.</param>
     public VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request)
     {
-        var title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestÃ¤tigt";
+        var title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestätigt";
         var dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschlieÃŸlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
         var lines = $"Fahrzeug: {reservation.RadioCallSign}\nFeuerwehr: {reservation.FireDepartmentName}\n" +
             $"Anfragende Person: {reservation.RequesterName}\nZeitraum: {dates}\nBuchungsnummer: {reservation.Id}\n";
         if (reservation.Comment is not null) lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
-        var instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Ãœbersicht prÃ¼fen und bestÃ¤tigen oder ablehnen." :
-            "Die Buchung ist verbindlich bestÃ¤tigt.";
+        var instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Ãœbersicht prüfen und bestätigen oder ablehnen." :
+            "Die Buchung ist verbindlich bestätigt.";
         var link = "";
         if (Uri.TryCreate(configuration["Frontend:BaseUrl"], UriKind.Absolute, out var baseUri) &&
             (baseUri.Scheme == Uri.UriSchemeHttps || baseUri.Scheme == Uri.UriSchemeHttp) && string.IsNullOrEmpty(baseUri.Query) && string.IsNullOrEmpty(baseUri.Fragment))
@@ -37,7 +37,7 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
             "<table role=\"presentation\" style=\"width:100%;max-width:640px;margin:24px auto;background:#fff;border:1px solid #cbd5e1\"><tr><td style=\"padding:24px;border-top:6px solid #b91c1c\">" +
             "<img src=\"cid:feuerwehr-logo\" width=\"80\" alt=\"Feuerwehr\"><h1 style=\"font-size:24px;color:#b91c1c\">" + Encode(title) + "</h1>" +
             "<p>" + Encode(instruction) + "</p><p style=\"line-height:1.7\">" + Encode(lines).Replace("\n", "<br>") + "</p>" +
-            (link.Length == 0 ? "" : "<p><a style=\"color:#b91c1c\" href=\"" + Encode(link) + "\">MTW-Ãœbersicht Ã¶ffnen</a></p>") +
+            (link.Length == 0 ? "" : "<p><a style=\"color:#b91c1c\" href=\"" + Encode(link) + "\">MTW-Ãœbersicht öffnen</a></p>") +
             "</td></tr></table></body></html>";
         var now = clock.GetUtcNow().UtcDateTime;
         return new VehicleMailMessage

@@ -38,8 +38,8 @@ public sealed class VehicleTransferController(IVehicleTransferService service) :
     public Task<IActionResult> ImportTypes([FromForm] IFormFile? file, CancellationToken ct) => Import(VehicleTransferKind.Types, file, ct);
     private async Task<IActionResult> Import(VehicleTransferKind kind, IFormFile? file, CancellationToken ct)
     {
-        if (file is null || file.Length == 0) return BadRequest(new VehicleImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswÃ¤hlen.")]));
-        if (file.Length > MaximumImportBytes) return BadRequest(new VehicleImportResponse(0, 0, [new(null, "Die Importdatei darf hÃ¶chstens 5 MB groÃŸ sein.")]));
+        if (file is null || file.Length == 0) return BadRequest(new VehicleImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
+        if (file.Length > MaximumImportBytes) return BadRequest(new VehicleImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groÃŸ sein.")]));
         await using var stream = file.OpenReadStream();
         return this.ToActionResult(await service.Import(kind, stream, ct));
     }

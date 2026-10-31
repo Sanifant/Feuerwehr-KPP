@@ -314,7 +314,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             {
                 if (request.ElementType == MapElementType.Symbol && string.IsNullOrWhiteSpace(request.SymbolId))
                 {
-                    return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "FÃ¼r Symbol-Elemente ist symbolId erforderlich.");
+                    return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Für Symbol-Elemente ist symbolId erforderlich.");
                 }
 
                 element = new MapElement
@@ -339,11 +339,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                 if (request.ElementType == MapElementType.Symbol)
                 {
                     if (!Guid.TryParse(request.SymbolId, out var symbolId))
-                        return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wÃ¤hlen.");
+                        return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
                     var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
-                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfÃ¼gbar.");
+                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
                     if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
-                        return ServiceResult.Problem(400, "Bitte einen Funkrufnamen fÃ¼r das Fahrzeug angeben.");
+                        return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
                     element.IsVehicle = symbol.IsVehicle;
                     if (!symbol.IsVehicle)
                     {
@@ -370,11 +370,11 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                 }
 
                 if (element.ElementType != request.ElementType)
-                    return ServiceResult.Problem(400, "Der Elementtyp kann nicht geÃ¤ndert werden.");
+                    return ServiceResult.Problem(400, "Der Elementtyp kann nicht geändert werden.");
                 if (!string.Equals(element.SymbolId, request.SymbolId, StringComparison.Ordinal))
                     return ServiceResult.Problem(400, "Das Symbol eines platzierten Elements kann nicht ausgetauscht werden.");
                 if (element.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
-                    return ServiceResult.Problem(400, "Bitte einen Funkrufnamen fÃ¼r das Fahrzeug angeben.");
+                    return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
                 element.Label = request.Label;
                 var allowsDetails = element.ElementType != MapElementType.Symbol || element.IsVehicle;
                 if (allowsDetails)
@@ -633,7 +633,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
             if (type == MapElementType.Polygon && typeValue != "Polygon")
             {
-                error = "FlÃ¤che muss eine Polygon-Geometrie verwenden.";
+                error = "Fläche muss eine Polygon-Geometrie verwenden.";
                 return false;
             }
 
@@ -655,7 +655,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     {
                         if (coordinate.GetArrayLength() < 2)
                         {
-                            error = "Polygon enthÃ¤lt ungÃ¼ltige Koordinaten.";
+                            error = "Polygon enthält ungültige Koordinaten.";
                             return false;
                         }
 
@@ -674,7 +674,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         }
         catch (Exception)
         {
-            error = "UngÃ¼ltige GeoJSON-Geometrie.";
+            error = "Ungültige GeoJSON-Geometrie.";
             return false;
         }
     }

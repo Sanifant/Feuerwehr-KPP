@@ -45,14 +45,14 @@ public class MailServiceTests
         client.InSequence(sequence).Setup(c => c.DisconnectAsync(true, default)).Returns(Task.CompletedTask);
 
         await new MailService(client.Object, settings, NullLogger<MailService>.Instance)
-            .SendAsync("recipient@example.org", "Einladung fÃ¼r MÃ¼ller", "Passwort vergeben: https://example.org/password/test");
+            .SendAsync("recipient@example.org", "Einladung für Müller", "Passwort vergeben: https://example.org/password/test");
 
         Assert.NotNull(sent);
         var sender = Assert.Single(sent.From.Mailboxes);
         Assert.Equal(settings.From, sender.Address);
         Assert.Equal(settings.FromName, sender.Name);
         Assert.Equal("recipient@example.org", Assert.Single(sent.To.Mailboxes).Address);
-        Assert.Equal("Einladung fÃ¼r MÃ¼ller", sent.Subject);
+        Assert.Equal("Einladung für Müller", sent.Subject);
         Assert.Equal("Passwort vergeben: https://example.org/password/test", sent.TextBody);
         Assert.Null(sent.HtmlBody);
         client.VerifyAll();

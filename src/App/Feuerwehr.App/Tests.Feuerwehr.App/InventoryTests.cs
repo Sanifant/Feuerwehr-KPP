@@ -49,7 +49,7 @@ public sealed class InventoryTests
             .ThrowsAsync(new HttpRequestException("offline"));
         var vm = new InventoryViewModel(service.Object, Auth("EquipmentOfficer").Object, scanner.Object);
         await vm.ScanAsync(CancellationToken.None);
-        Assert.Contains("KPP-001", vm.DeviceTitle); Assert.Contains("NÃ¤chste PrÃ¼fung:", vm.NextInspection);
+        Assert.Contains("KPP-001", vm.DeviceTitle); Assert.Contains("Nächste Prüfung:", vm.NextInspection);
         vm.Comment = "Dichtung defekt"; vm.SelectedStatus = 1;
         await vm.SaveInspectionAsync(CancellationToken.None); await vm.SaveInspectionAsync(CancellationToken.None);
         Assert.Equal(2, requests.Count); Assert.Equal(requests[0].CommandId, requests[1].CommandId);
@@ -99,7 +99,7 @@ public sealed class InventoryTests
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return new(new EquipmentDto(Guid.Parse("30500200-0000-0000-0000-000000000001"), "KPP-001", Guid.NewGuid(), "Strahlrohr", "Armaturen", "SN-123", "Hersteller", EquipmentStatus.Ready,
-            active, today, null, today.AddMonths(12), 12, "Sicht- und FunktionsprÃ¼fung", 7), []);
+            active, today, null, today.AddMonths(12), 12, "Sicht- und Funktionsprüfung", 7), []);
     }
     private sealed class InventoryHandler : HttpMessageHandler
     {

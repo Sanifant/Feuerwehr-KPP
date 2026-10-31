@@ -25,7 +25,7 @@ public sealed class IncidentHub : Hub<IIncidentClient>
     {
         if (!CanViewMap())
         {
-            throw new HubException("Keine Berechtigung fÃ¼r Lagekarte.");
+            throw new HubException("Keine Berechtigung für Lagekarte.");
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{incidentId}");
@@ -39,7 +39,7 @@ public sealed class IncidentHub : Hub<IIncidentClient>
     {
         if (!CanViewDiary())
         {
-            throw new HubException("Keine Berechtigung fÃ¼r Einsatztagebuch.");
+            throw new HubException("Keine Berechtigung für Einsatztagebuch.");
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"diary:{incidentId}");

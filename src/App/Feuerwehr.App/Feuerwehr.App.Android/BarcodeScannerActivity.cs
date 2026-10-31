@@ -18,7 +18,7 @@ using ImageFormatType = Android.Graphics.ImageFormatType;
 
 namespace De.Openelp.Feuerwehr.App.Android;
 
-[Activity(Label = "GerÃ¤tebarcode scannen", Theme = "@android:style/Theme.Material.Light.NoActionBar", ScreenOrientation = ScreenOrientation.Portrait, Exported = false)]
+[Activity(Label = "Gerätebarcode scannen", Theme = "@android:style/Theme.Material.Light.NoActionBar", ScreenOrientation = ScreenOrientation.Portrait, Exported = false)]
 public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextureListener, ImageReader.IOnImageAvailableListener
 {
     private static TaskCompletionSource<string?>? pending;
@@ -39,7 +39,7 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
 
     internal static void Begin(Activity owner, TaskCompletionSource<string?> completion)
     {
-        if (pending is not null) throw new InvalidOperationException("Ein Kamerascan lÃ¤uft bereits.");
+        if (pending is not null) throw new InvalidOperationException("Ein Kamerascan läuft bereits.");
         pending = completion;
         try { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
         catch { pending = null; throw; }
@@ -94,14 +94,14 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
             var manager = (CameraManager)GetSystemService(CameraService)!;
             var id = manager.GetCameraIdList().FirstOrDefault(id =>
                 (manager.GetCameraCharacteristics(id).Get(CameraCharacteristics.LensFacing) as Java.Lang.Integer)?.IntValue() == (int)LensFacing.Back)
-                ?? manager.GetCameraIdList().FirstOrDefault() ?? throw new InvalidOperationException("Keine Kamera verfÃ¼gbar.");
+                ?? manager.GetCameraIdList().FirstOrDefault() ?? throw new InvalidOperationException("Keine Kamera verfügbar.");
             thread = new HandlerThread("InventoryBarcode"); thread.Start(); handler = new Handler(thread.Looper!);
             reader = ImageReader.NewInstance(640, 480, ImageFormatType.Yuv420888, 2);
             reader.SetOnImageAvailableListener(this, handler);
             cameraState = new CameraState(this);
             manager.OpenCamera(id, cameraState, handler);
         }
-        catch (Exception) { Fail("Die Kamera konnte nicht geÃ¶ffnet werden."); }
+        catch (Exception) { Fail("Die Kamera konnte nicht geöffnet werden."); }
     }
 
     private void StartPreview(CameraDevice device)
@@ -111,7 +111,7 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
         preview.SurfaceTexture!.SetDefaultBufferSize(640, 480);
         previewSurface = new Surface(preview.SurfaceTexture);
         sessionState = new SessionState(this);
-        // Der kompatible Camera2-Overload unterstÃ¼tzt auch die minimale Android-Version 24.
+        // Der kompatible Camera2-Overload unterstützt auch die minimale Android-Version 24.
         if (OperatingSystem.IsAndroidVersionAtLeast(28))
         {
             var configuration = new SessionConfiguration((int)SessionType.Regular,
@@ -148,7 +148,7 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
             if (code.Length != 7 || !code.StartsWith("KPP-", StringComparison.Ordinal) || !int.TryParse(code.AsSpan(4), out var number) || number is < 1 or > 999) return;
             RunOnUiThread(() => { pending?.TrySetResult(code); Finish(); });
         }
-        catch (Exception) { /* Einzelne unlesbare Frames Ã¼berspringen. */ }
+        catch (Exception) { /* Einzelne unlesbare Frames überspringen. */ }
     }
 
     private void Fail(string message) => RunOnUiThread(() => { pending?.TrySetException(new InvalidOperationException(message)); Finish(); });
@@ -236,7 +236,7 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
         /// <summary>
         /// Executes on Configure Failed.
         /// </summary>
-        public override void OnConfigureFailed(CameraCaptureSession session) => owner.Fail("Kameravorschau nicht verfÃ¼gbar.");
+        public override void OnConfigureFailed(CameraCaptureSession session) => owner.Fail("Kameravorschau nicht verfügbar.");
     }
 }
 

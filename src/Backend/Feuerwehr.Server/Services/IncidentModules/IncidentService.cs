@@ -79,12 +79,12 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
     {
         if (request.AlarmedAtUtc is null || request.AlarmedAtUtc == DateTimeOffset.MinValue)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Bitte einen gÃ¼ltigen Alarmierungszeitpunkt angeben.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Bitte einen gültigen Alarmierungszeitpunkt angeben.");
         }
 
         if (request.OriginLatitude is < -90 or > 90 || request.OriginLongitude is < -180 or > 180)
         {
-            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "UngÃ¼ltige Koordinaten.");
+            return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Ungültige Koordinaten.");
         }
 
         var payload = new
@@ -192,7 +192,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
             var lease = await dbContext.EditorLeases.FirstOrDefaultAsync(x => x.IncidentId == incidentId, cancellationToken);
             if (lease is null || lease.ExpiresAtUtc <= DateTime.UtcNow)
             {
-                return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Keine gÃ¼ltige Lagekarten-Sperre vorhanden.");
+                return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Keine gültige Lagekarten-Sperre vorhanden.");
             }
 
             if (!string.Equals(lease.UserId, userContext.UserId, StringComparison.Ordinal)

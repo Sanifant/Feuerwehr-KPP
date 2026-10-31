@@ -25,7 +25,7 @@ public sealed class InventorySchedulingTests
     {
         await using var db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         var category = new InventoryCategory { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
-        var type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = interval, InspectionInstructions = "SichtprÃ¼fung" };
+        var type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = interval, InspectionInstructions = "Sichtprüfung" };
         var item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = DateOnly.Parse(created), LastInspectedOn = inspected is null ? null : DateOnly.Parse(inspected) };
         db.Equipment.Add(item); await db.SaveChangesAsync();
         var service = new InventoryService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);

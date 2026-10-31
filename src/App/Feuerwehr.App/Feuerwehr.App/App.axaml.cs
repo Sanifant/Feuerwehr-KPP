@@ -138,7 +138,7 @@ namespace De.Openelp.Feuerwehr.App
             collection.AddSingleton<IAuthService, AuthService>();
             collection.AddScoped<AuthenticatedHttpClient>();
 
-            // FÃ¼r Blazor WebAssembly / Web-Clients
+            // Für Blazor WebAssembly / Web-Clients
             collection.AddScoped<IHydrantService, HydrantService>();
             collection.AddScoped<ISituationMapService, SituationMapService>();
             collection.AddScoped<IInventoryService, InventoryService>();
@@ -150,7 +150,7 @@ namespace De.Openelp.Feuerwehr.App
 
             if (string.IsNullOrEmpty(baseUrl))
             {
-                // Standard-Fallback fÃ¼r lokales Testen ohne Aspire
+                // Standard-Fallback für lokales Testen ohne Aspire
                 baseUrl = "https://integration.ff-kleinparin-pohnsdorf.de/";
             }
 

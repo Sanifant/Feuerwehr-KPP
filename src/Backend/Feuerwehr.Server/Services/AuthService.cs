@@ -44,7 +44,7 @@ public sealed class AuthService : IAuthService
         }
 
         if (user.PasswordResetRequired)
-            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe Ã¼ber den Einladungslink gesperrt."));
+            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe über den Einladungslink gesperrt."));
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
@@ -170,21 +170,21 @@ public sealed class AuthService : IAuthService
         // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.
         var passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
         if (passwordCheck.IsLockedOut)
-            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorÃ¼bergehend gesperrt."));
+            return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorübergehend gesperrt."));
         if (!passwordCheck.Succeeded)
-            return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestÃ¤tigt werden."));
+            return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestätigt werden."));
 
         var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
         {
             if (result.Errors.Any(error => error.Code == "PasswordMismatch"))
                 return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort ist falsch."));
-            return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geÃ¤ndert werden.",
+            return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geändert werden.",
                 result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
         }
 
         await _tokenService.RevokeRefreshTokenAsync(user.Id);
-        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde geÃ¤ndert."));
+        return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde geändert."));
     }
 
     /// <summary>

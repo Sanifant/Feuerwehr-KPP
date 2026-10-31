@@ -22,7 +22,7 @@ public sealed class InventoryService(AuthenticatedHttpClient http) : IInventoryS
         using var response = await http.GetAsync($"/api/inventory/barcode/{Uri.EscapeDataString(barcode)}", ct);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Die GerÃ¤teantwort ist leer.");
+            ?? throw new InvalidOperationException("Die Geräteantwort ist leer.");
     }
 
     /// <summary>
@@ -37,10 +37,10 @@ public sealed class InventoryService(AuthenticatedHttpClient http) : IInventoryS
         using var response = await http.PostAsync($"/api/inventory/{id}/inspections", content, ct);
         if (!response.IsSuccessStatusCode)
         {
-            // Status bleibt fÃ¼r die BenutzerfÃ¼hrung auswertbar; Antwortinhalte werden nicht protokolliert.
-            throw new System.Net.Http.HttpRequestException("Die PrÃ¼fung konnte nicht gespeichert werden.", null, response.StatusCode);
+            // Status bleibt für die Benutzerführung auswertbar; Antwortinhalte werden nicht protokolliert.
+            throw new System.Net.Http.HttpRequestException("Die Prüfung konnte nicht gespeichert werden.", null, response.StatusCode);
         }
         return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Die PrÃ¼fantwort ist leer.");
+            ?? throw new InvalidOperationException("Die Prüfantwort ist leer.");
     }
 }

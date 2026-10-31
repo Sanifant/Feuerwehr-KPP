@@ -170,7 +170,7 @@ public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixtu
             Assert.Equal("KPP-999", (await fixture.CreateEquipment(client, type.Id)).Barcode);
             var response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type.Id, SerialNumber = "Limit", Manufacturer = "Test" });
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            Assert.Contains("ausgeschÃ¶pft", await response.Content.ReadAsStringAsync());
+            Assert.Contains("ausgeschöpft", await response.Content.ReadAsStringAsync());
         }
         finally
         {
@@ -283,7 +283,7 @@ public sealed class InventoryApiFixture : IAsyncLifetime
     {
         var categories = await client.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories");
         var response = await client.PostAsJsonAsync("/api/inventory/types", new SaveEquipmentTypeRequest
-        { CategoryId = categories![0].Id, Name = $"Typ {Guid.NewGuid()}", InspectionInstructions = "Sicht- und FunktionsprÃ¼fung nach Herstellerangaben", InspectionIntervalMonths = interval });
+        { CategoryId = categories![0].Id, Name = $"Typ {Guid.NewGuid()}", InspectionInstructions = "Sicht- und Funktionsprüfung nach Herstellerangaben", InspectionIntervalMonths = interval });
         response.EnsureSuccessStatusCode(); return (await response.Content.ReadFromJsonAsync<EquipmentTypeDto>())!;
     }
     /// <summary>
