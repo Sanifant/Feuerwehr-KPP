@@ -1,20 +1,20 @@
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.ViewModels;
-using de.openelp.feuerwehr.App.Views;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.ViewModels;
+using De.Openelp.Feuerwehr.App.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 
-namespace de.openelp.feuerwehr.App
+namespace De.Openelp.Feuerwehr.App
 {
     public partial class App : Application
     {
@@ -23,11 +23,17 @@ namespace de.openelp.feuerwehr.App
         /// <summary>Set by the platform host before framework initialization.</summary>
         public Action<IServiceCollection>? ConfigurePlatformServices { get; set; }
 
+        /// <summary>
+        /// Initializes the operation.
+        /// </summary>
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
+        /// <summary>
+        /// Executes on Framework Initialization Completed.
+        /// </summary>
         public override void OnFrameworkInitializationCompleted()
         {
             //var appConfiguration = AppConfiguration.Current;
@@ -35,9 +41,9 @@ namespace de.openelp.feuerwehr.App
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var authService = Services.GetRequiredService<IAuthService>();
-                var mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
-                var loginViewModelFactory = new Func<LoginViewModel>(() => Services.GetRequiredService<LoginViewModel>());
+                IAuthService authService = Services.GetRequiredService<IAuthService>();
+                Func<MainViewModel> mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
+                Func<LoginViewModel> loginViewModelFactory = new Func<LoginViewModel>(() => Services.GetRequiredService<LoginViewModel>());
 
                 desktop.MainWindow = new MainWindow(authService, mainViewModelFactory, loginViewModelFactory);
             }
@@ -47,7 +53,7 @@ namespace de.openelp.feuerwehr.App
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
-                var authService = Services.GetRequiredService<IAuthService>();
+                IAuthService authService = Services.GetRequiredService<IAuthService>();
                 // For single view platforms, check auth state
                 if (authService.IsAuthenticated)
                 {
@@ -70,8 +76,8 @@ namespace de.openelp.feuerwehr.App
 
         private Control CreateActivityView()
         {
-            var root = new ContentControl();
-            var authService = Services.GetRequiredService<IAuthService>();
+            ContentControl root = new ContentControl();
+            IAuthService authService = Services.GetRequiredService<IAuthService>();
 
             void ShowMainView()
             {
@@ -90,7 +96,7 @@ namespace de.openelp.feuerwehr.App
                 return root;
             }
 
-            var loginViewModel = Services.GetRequiredService<LoginViewModel>();
+            LoginViewModel loginViewModel = Services.GetRequiredService<LoginViewModel>();
 
             EventHandler? handler = null;
 
@@ -137,7 +143,7 @@ namespace de.openelp.feuerwehr.App
             collection.AddScoped<ISituationMapService, SituationMapService>();
             collection.AddScoped<IInventoryService, InventoryService>();
 
-            var baseUrl = Environment.GetEnvironmentVariable("webapi")
+            string? baseUrl = Environment.GetEnvironmentVariable("webapi")
                 ?? Environment.GetEnvironmentVariable("services__server__https__0")
                 ?? Environment.GetEnvironmentVariable("services__server__http__0");
             // Explicit override takes precedence over Aspire's server endpoint references.
@@ -155,3 +161,4 @@ namespace de.openelp.feuerwehr.App
         }
     }
 }
+

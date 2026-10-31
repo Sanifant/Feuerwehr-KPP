@@ -1,17 +1,18 @@
-using de.openelp.feuerwehr.Server.Services;
-using global::de.openelp.feuerwehr.Server.Controller;
-using global::de.openelp.feuerwehr.Server.Models;
-using global::de.openelp.feuerwehr.Common.Models.Auth;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using De.Openelp.Feuerwehr.Server.Services;
+using global::De.Openelp.Feuerwehr.Common.Models.Auth;
+using global::De.Openelp.Feuerwehr.Server.Controller;
+using global::De.Openelp.Feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Threading.Tasks;
+using Moq;
 using Xunit;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Controller
+namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
     public class UsersControllerTests
     {
@@ -34,10 +35,13 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region GetAllUsers Tests
         /*
         [Fact]
+        /// <summary>
+        /// Gets the all Users Returns Ok Result With List Of Users.
+        /// </summary>
         public async Task GetAllUsers_ReturnsOkResult_WithListOfUsers()
         {
             // Arrange
-            var appUser = new ApplicationUser
+            ApplicationUser appUser = new ApplicationUser
             {
                 Id = "user-1",
                 Email = "test@example.com",
@@ -48,33 +52,36 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 CreatedAt = DateTime.UtcNow
             };
 
-            var userList = new List<ApplicationUser> { appUser }.AsQueryable();
+            IQueryable<ApplicationUser> userList = new List<ApplicationUser> { appUser }.AsQueryable();
             _mockUserManager.Setup(um => um.Users).Returns(userList);
             _mockUserManager.Setup(um => um.FindByIdAsync("user-1")).ReturnsAsync(appUser);
             _mockUserManager.Setup(um => um.GetRolesAsync(appUser)).ReturnsAsync(new List<string> { "Admin" });
 
             // Act
-            var result = await _controller.GetAllUsers();
+            IActionResult result = await _controller.GetAllUsers();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnedUsers = Assert.IsType<List<object>>(okResult.Value);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+            List<object> returnedUsers = Assert.IsType<List<object>>(okResult.Value);
             Assert.Single(returnedUsers);
         }
 
         [Fact]
+        /// <summary>
+        /// Gets the all Users Returns Empty List When No Users Exist.
+        /// </summary>
         public async Task GetAllUsers_ReturnsEmptyList_WhenNoUsersExist()
         {
             // Arrange
-            var emptyUserList = new List<ApplicationUser>().AsQueryable();
+            IQueryable<ApplicationUser> emptyUserList = new List<ApplicationUser>().AsQueryable();
             _mockUserManager.Setup(um => um.Users).Returns(emptyUserList);
 
             // Act
-            var result = await _controller.GetAllUsers();
+            IActionResult result = await _controller.GetAllUsers();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnedUsers = Assert.IsType<List<object>>(okResult.Value);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
+            List<object> returnedUsers = Assert.IsType<List<object>>(okResult.Value);
             Assert.Empty(returnedUsers);
         }
         */
@@ -83,11 +90,14 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region GetUser Tests
 
         [Fact]
+        /// <summary>
+        /// Gets the user Returns Ok Result With Valid User Id.
+        /// </summary>
         public async Task GetUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
-            var userId = "user-1";
-            var appUser = new ApplicationUser
+            string userId = "user-1";
+            ApplicationUser appUser = new ApplicationUser
             {
                 Id = userId,
                 Email = "test@example.com",
@@ -102,24 +112,27 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             _mockUserManager.Setup(um => um.GetRolesAsync(appUser)).ReturnsAsync(new List<string> { "Admin" });
 
             // Act
-            var result = await _controller.GetUser(userId);
+            IActionResult result = await _controller.GetUser(userId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Updates Email And Username.
+        /// </summary>
         public async Task UpdateUser_UpdatesEmailAndUsername()
         {
-            var user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
-            var request = new UpdateUserRequest { Email = "new@example.com" };
+            ApplicationUser user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
+            UpdateUserRequest request = new UpdateUserRequest { Email = "new@example.com" };
             _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync((ApplicationUser)null!);
             _mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
             _mockUserManager.Setup(um => um.GetRolesAsync(user)).ReturnsAsync(new List<string>());
 
-            var result = await _controller.UpdateUser(user.Id, request);
+            IActionResult result = await _controller.UpdateUser(user.Id, request);
 
             Assert.IsType<OkObjectResult>(result);
             Assert.Equal(request.Email, user.Email);
@@ -127,11 +140,14 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Clears Roles When Empty Role List Provided.
+        /// </summary>
         public async Task UpdateUser_ClearsRoles_WhenEmptyRoleListProvided()
         {
-            var user = new ApplicationUser { Id = "user-1" };
-            var currentRoles = new List<string> { "Admin" };
-            var request = new UpdateUserRequest { Roles = new List<string>() };
+            ApplicationUser user = new ApplicationUser { Id = "user-1" };
+            List<string> currentRoles = new List<string> { "Admin" };
+            UpdateUserRequest request = new UpdateUserRequest { Roles = new List<string>() };
             _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
             _mockUserManager.SetupSequence(um => um.GetRolesAsync(user))
@@ -139,40 +155,85 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 .ReturnsAsync(new List<string>());
             _mockUserManager.Setup(um => um.RemoveFromRolesAsync(user, currentRoles)).ReturnsAsync(IdentityResult.Success);
 
-            var result = await _controller.UpdateUser(user.Id, request);
+            IActionResult result = await _controller.UpdateUser(user.Id, request);
 
             Assert.IsType<OkObjectResult>(result);
             _mockUserManager.Verify(um => um.RemoveFromRolesAsync(user, currentRoles), Times.Once);
             _mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
         }
 
+        [Theory]
+        [InlineData(null, false, 1)]
+        [InlineData(2, false, 2)]
+        [InlineData(null, true, null)]
+        /// <summary>
+        /// Updates the user Preserves Changes Or Clears Fire Department Explicitly.
+        /// </summary>
+        /// <param name="departmentId">The department Id.</param>
+        /// <param name="clear">The clear.</param>
+        /// <param name="expected">The expected.</param>
+        public async Task UpdateUser_PreservesChangesOrClearsFireDepartmentExplicitly(int? departmentId, bool clear, int? expected)
+        {
+            ApplicationUser user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            _mockUserManager.Setup(manager => manager.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            _mockUserManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+
+            IActionResult result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = departmentId, ClearFireDepartment = clear });
+
+            Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(expected, user.FireDepartmentId);
+        }
+
         [Fact]
+        /// <summary>
+        /// Updates the user Rejects Conflicting Department Changes.
+        /// </summary>
+        public async Task UpdateUser_RejectsConflictingDepartmentChanges()
+        {
+            ApplicationUser user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+
+            IActionResult result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = 2, ClearFireDepartment = true });
+
+            Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(1, user.FireDepartmentId);
+            _mockUserManager.Verify(manager => manager.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+        }
+
+        [Fact]
+        /// <summary>
+        /// Updates the user Returns Bad Request When Email Belongs To Another User.
+        /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenEmailBelongsToAnotherUser()
         {
-            var user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
-            var existingUser = new ApplicationUser { Id = "user-2", Email = "taken@example.com" };
-            var request = new UpdateUserRequest { Email = existingUser.Email };
+            ApplicationUser user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
+            ApplicationUser existingUser = new ApplicationUser { Id = "user-2", Email = "taken@example.com" };
+            UpdateUserRequest request = new UpdateUserRequest { Email = existingUser.Email };
             _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync(existingUser);
 
-            var result = await _controller.UpdateUser(user.Id, request);
+            IActionResult result = await _controller.UpdateUser(user.Id, request);
 
             Assert.IsType<BadRequestObjectResult>(result);
             _mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
 
         [Fact]
+        /// <summary>
+        /// Gets the user Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task GetUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
-            var userId = "non-existent";
+            string userId = "non-existent";
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            var result = await _controller.GetUser(userId);
+            IActionResult result = await _controller.GetUser(userId);
 
             // Assert
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.NotNull(notFoundResult.Value);
         }
 
@@ -181,10 +242,13 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region CreateUser Tests
         /*
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Created At Action With Valid Request.
+        /// </summary>
         public async Task CreateUser_ReturnsCreatedAtAction_WithValidRequest()
         {
             // Arrange
-            var request = new RegisterUserRequest
+            RegisterUserRequest request = new RegisterUserRequest
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -194,7 +258,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "User" }
             };
 
-            var createdUser = new ApplicationUser
+            ApplicationUser createdUser = new ApplicationUser
             {
                 Id = "new-user-1",
                 Email = request.Email,
@@ -215,19 +279,22 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             _mockUserManager.Setup(um => um.GetRolesAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(request.Roles);
 
             // Act
-            var result = await _controller.CreateUser(request);
+            IActionResult result = await _controller.CreateUser(request);
 
             // Assert
-            var createdResult = Assert.IsType<CreatedAtActionResult>(result);
+            CreatedAtActionResult createdResult = Assert.IsType<CreatedAtActionResult>(result);
             Assert.Equal(nameof(_controller.GetUser), createdResult.ActionName);
             _mockInvitations.Verify(service => service.SendAsync(It.IsAny<ApplicationUser>()), Times.Once);
         }
         */
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Bad Request When User Email Already Exists.
+        /// </summary>
         public async Task CreateUser_ReturnsBadRequest_WhenUserEmailAlreadyExists()
         {
             // Arrange
-            var request = new RegisterUserRequest
+            RegisterUserRequest request = new RegisterUserRequest
             {
                 Email = "existing@example.com",
                 FirstName = "Jane",
@@ -237,22 +304,25 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "User" }
             };
 
-            var existingUser = new ApplicationUser { Email = request.Email };
+            ApplicationUser existingUser = new ApplicationUser { Email = request.Email };
             _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync(existingUser);
 
             // Act
-            var result = await _controller.CreateUser(request);
+            IActionResult result = await _controller.CreateUser(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Bad Request When Role Does Not Exist.
+        /// </summary>
         public async Task CreateUser_ReturnsBadRequest_WhenRoleDoesNotExist()
         {
             // Arrange
-            var request = new RegisterUserRequest
+            RegisterUserRequest request = new RegisterUserRequest
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -266,18 +336,21 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             _mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
 
             // Act
-            var result = await _controller.CreateUser(request);
+            IActionResult result = await _controller.CreateUser(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Creates the user Rolls Back User Creation When Role Assignment Fails.
+        /// </summary>
         public async Task CreateUser_RollsBackUserCreation_WhenRoleAssignmentFails()
         {
             // Arrange
-            var request = new RegisterUserRequest
+            RegisterUserRequest request = new RegisterUserRequest
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -287,7 +360,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "User" }
             };
 
-            var createdUser = new ApplicationUser
+            ApplicationUser createdUser = new ApplicationUser
             {
                 Id = "new-user-1",
                 Email = request.Email
@@ -304,18 +377,21 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await _controller.CreateUser(request);
+            IActionResult result = await _controller.CreateUser(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             _mockUserManager.Verify(um => um.DeleteAsync(It.IsAny<ApplicationUser>()), Times.Once);
         }
 
         [Fact]
+        /// <summary>
+        /// Creates the user Returns Bad Request When User Creation Fails.
+        /// </summary>
         public async Task CreateUser_ReturnsBadRequest_WhenUserCreationFails()
         {
             // Arrange
-            var request = new RegisterUserRequest
+            RegisterUserRequest request = new RegisterUserRequest
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -330,10 +406,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Password not strong enough" }));
 
             // Act
-            var result = await _controller.CreateUser(request);
+            IActionResult result = await _controller.CreateUser(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
@@ -342,11 +418,14 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region UpdateUser Tests
 
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Ok Result With Valid Request.
+        /// </summary>
         public async Task UpdateUser_ReturnsOkResult_WithValidRequest()
         {
             // Arrange
-            var userId = "user-1";
-            var existingUser = new ApplicationUser
+            string userId = "user-1";
+            ApplicationUser existingUser = new ApplicationUser
             {
                 Id = userId,
                 Email = "test@example.com",
@@ -356,7 +435,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 IsActive = true
             };
 
-            var request = new UpdateUserRequest
+            UpdateUserRequest request = new UpdateUserRequest
             {
                 FirstName = "Johnny",
                 LastName = "Smith",
@@ -375,36 +454,42 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
-            var result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await _controller.UpdateUser(userId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task UpdateUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
-            var userId = "non-existent";
-            var request = new UpdateUserRequest { FirstName = "Jane" };
+            string userId = "non-existent";
+            UpdateUserRequest request = new UpdateUserRequest { FirstName = "Jane" };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            var result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await _controller.UpdateUser(userId, request);
 
             // Assert
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.NotNull(notFoundResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Updates Only Provided Fields.
+        /// </summary>
         public async Task UpdateUser_UpdatesOnlyProvidedFields()
         {
             // Arrange
-            var userId = "user-1";
-            var existingUser = new ApplicationUser
+            string userId = "user-1";
+            ApplicationUser existingUser = new ApplicationUser
             {
                 Id = userId,
                 Email = "test@example.com",
@@ -414,27 +499,30 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 IsActive = true
             };
 
-            var request = new UpdateUserRequest { FirstName = "Johnny" };
+            UpdateUserRequest request = new UpdateUserRequest { FirstName = "Johnny" };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
             _mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
 
             // Act
-            var result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await _controller.UpdateUser(userId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Updates Password When New Password Provided.
+        /// </summary>
         public async Task UpdateUser_UpdatesPassword_WhenNewPasswordProvided()
         {
             // Arrange
-            var userId = "user-1";
-            var existingUser = new ApplicationUser { Id = userId };
-            var request = new UpdateUserRequest { NewPassword = "NewSecurePassword123!" };
+            string userId = "user-1";
+            ApplicationUser existingUser = new ApplicationUser { Id = userId };
+            UpdateUserRequest request = new UpdateUserRequest { NewPassword = "NewSecurePassword123!" };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _mockUserManager.Setup(um => um.UpdateAsync(existingUser)).ReturnsAsync(IdentityResult.Success);
@@ -444,48 +532,54 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             _mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
 
             // Act
-            var result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await _controller.UpdateUser(userId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
             _mockUserManager.Verify(um => um.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), request.NewPassword), Times.Once);
         }
 
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Bad Request When Update Fails.
+        /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenUpdateFails()
         {
             // Arrange
-            var userId = "user-1";
-            var existingUser = new ApplicationUser { Id = userId };
-            var request = new UpdateUserRequest { FirstName = "Jane" };
+            string userId = "user-1";
+            ApplicationUser existingUser = new ApplicationUser { Id = userId };
+            UpdateUserRequest request = new UpdateUserRequest { FirstName = "Jane" };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Update failed" }));
 
             // Act
-            var result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await _controller.UpdateUser(userId, request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
         [Fact]
+        /// <summary>
+        /// Updates the user Returns Bad Request When Invalid Role Provided.
+        /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenInvalidRoleProvided()
         {
             // Arrange
-            var userId = "user-1";
-            var existingUser = new ApplicationUser { Id = userId };
-            var request = new UpdateUserRequest { Roles = new List<string> { "InvalidRole" } };
+            string userId = "user-1";
+            ApplicationUser existingUser = new ApplicationUser { Id = userId };
+            UpdateUserRequest request = new UpdateUserRequest { Roles = new List<string> { "InvalidRole" } };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
 
             // Act
-            var result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await _controller.UpdateUser(userId, request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
             _mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
@@ -494,78 +588,90 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region DeleteUser Tests
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Ok Result With Valid User Id.
+        /// </summary>
         public async Task DeleteUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
-            var userId = "user-1";
-            var user = new ApplicationUser { Id = userId, IsActive = true };
+            string userId = "user-1";
+            ApplicationUser user = new ApplicationUser { Id = userId, IsActive = true };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
 
-            var controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
 
             // Act
-            var result = await controllerWithClaims.DeleteUser(userId);
+            IActionResult result = await controllerWithClaims.DeleteUser(userId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult.Value);
             Assert.False(user.IsActive);
         }
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task DeleteUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
-            var userId = "non-existent";
+            string userId = "non-existent";
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            var result = await _controller.DeleteUser(userId);
+            IActionResult result = await _controller.DeleteUser(userId);
 
             // Assert
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.NotNull(notFoundResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Bad Request When Trying To Delete Own Account.
+        /// </summary>
         public async Task DeleteUser_ReturnsBadRequest_WhenTryingToDeleteOwnAccount()
         {
             // Arrange
-            var userId = "user-1";
-            var user = new ApplicationUser { Id = userId };
+            string userId = "user-1";
+            ApplicationUser user = new ApplicationUser { Id = userId };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
 
-            var controllerWithClaims = SetupControllerWithClaims(userId);
+            UsersController controllerWithClaims = SetupControllerWithClaims(userId);
 
             // Act
-            var result = await controllerWithClaims.DeleteUser(userId);
+            IActionResult result = await controllerWithClaims.DeleteUser(userId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Deletes the user Returns Bad Request When Update Fails.
+        /// </summary>
         public async Task DeleteUser_ReturnsBadRequest_WhenUpdateFails()
         {
             // Arrange
-            var userId = "user-1";
-            var user = new ApplicationUser { Id = userId };
+            string userId = "user-1";
+            ApplicationUser user = new ApplicationUser { Id = userId };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Update failed" }));
 
-            var controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
 
             // Act
-            var result = await controllerWithClaims.DeleteUser(userId);
+            IActionResult result = await controllerWithClaims.DeleteUser(userId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
@@ -574,77 +680,89 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #region PermanentlyDeleteUser Tests
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Ok Result With Valid User Id.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
-            var userId = "user-1";
-            var user = new ApplicationUser { Id = userId };
+            string userId = "user-1";
+            ApplicationUser user = new ApplicationUser { Id = userId };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
 
-            var controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
 
             // Act
-            var result = await controllerWithClaims.PermanentlyDeleteUser(userId);
+            IActionResult result = await controllerWithClaims.PermanentlyDeleteUser(userId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
+            OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
             Assert.NotNull(okResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Not Found When User Does Not Exist.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
-            var userId = "non-existent";
+            string userId = "non-existent";
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            var result = await _controller.PermanentlyDeleteUser(userId);
+            IActionResult result = await _controller.PermanentlyDeleteUser(userId);
 
             // Assert
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.NotNull(notFoundResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Bad Request When Trying To Delete Own Account.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsBadRequest_WhenTryingToDeleteOwnAccount()
         {
             // Arrange
-            var userId = "user-1";
-            var user = new ApplicationUser { Id = userId };
+            string userId = "user-1";
+            ApplicationUser user = new ApplicationUser { Id = userId };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
 
-            var controllerWithClaims = SetupControllerWithClaims(userId);
+            UsersController controllerWithClaims = SetupControllerWithClaims(userId);
 
             // Act
-            var result = await controllerWithClaims.PermanentlyDeleteUser(userId);
+            IActionResult result = await controllerWithClaims.PermanentlyDeleteUser(userId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
         [Fact]
+        /// <summary>
+        /// Executes permanently Delete User Returns Bad Request When Delete Fails.
+        /// </summary>
         public async Task PermanentlyDeleteUser_ReturnsBadRequest_WhenDeleteFails()
         {
             // Arrange
-            var userId = "user-1";
-            var user = new ApplicationUser { Id = userId };
+            string userId = "user-1";
+            ApplicationUser user = new ApplicationUser { Id = userId };
 
             _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Delete failed" }));
 
-            var controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
 
             // Act
-            var result = await controllerWithClaims.PermanentlyDeleteUser(userId);
+            IActionResult result = await controllerWithClaims.PermanentlyDeleteUser(userId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
 
@@ -654,15 +772,15 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
 
         private UsersController SetupControllerWithClaims(string userId)
         {
-            var controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockInvitations.Object, NullLogger<UsersService>.Instance));
+            UsersController controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockInvitations.Object, NullLogger<UsersService>.Instance));
 
-            var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
+            List<Claim> claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
             {
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId)
             };
 
-            var identity = new System.Security.Claims.ClaimsIdentity(claims);
-            var principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            ClaimsIdentity identity = new System.Security.Claims.ClaimsIdentity(claims);
+            ClaimsPrincipal principal = new System.Security.Claims.ClaimsPrincipal(identity);
 
             controller.ControllerContext = new ControllerContext
             {
@@ -675,3 +793,4 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #endregion
     }
 }
+

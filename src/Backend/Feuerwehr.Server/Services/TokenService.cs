@@ -1,23 +1,13 @@
-using de.openelp.feuerwehr.Server.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using De.Openelp.Feuerwehr.Server.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace De.Openelp.Feuerwehr.Server.Services
 {
-    public interface ITokenService
-    {
-        Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles);
-        string GenerateRefreshToken();
-        Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken);
-        Task StoreRefreshTokenAsync(string userId, string refreshToken);
-        Task RevokeRefreshTokenAsync(string userId);
-        Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal);
-        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
-    }
 
     public class TokenService : ITokenService
     {
@@ -31,15 +21,20 @@ namespace de.openelp.feuerwehr.Server.Services
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Executes generate Access Token.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        /// <param name="roles">The roles.</param>
         public async Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
-            var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
-            var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
-            var expirationMinutes = int.Parse(jwtSettings["AccessTokenExpirationMinutes"] ?? "15");
+            IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
+            string secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
+            string issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
+            string audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
+            int expirationMinutes = int.Parse(jwtSettings["AccessTokenExpirationMinutes"] ?? "15");
 
-            var claims = new List<Claim>
+            List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
@@ -51,7 +46,7 @@ namespace de.openelp.feuerwehr.Server.Services
             };
 
             // Add roles as claims
-            foreach (var role in roles)
+            foreach (string role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
@@ -62,11 +57,11 @@ namespace de.openelp.feuerwehr.Server.Services
                 claims.Add(new Claim("departmentId", user.FireDepartmentId.Value.ToString()));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddMinutes(expirationMinutes);
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            DateTime expires = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
-            var token = new JwtSecurityToken(
+            JwtSecurityToken token = new JwtSecurityToken(
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
@@ -77,46 +72,63 @@ namespace de.openelp.feuerwehr.Server.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        /// <summary>
+        /// Executes generate Refresh Token.
+        /// </summary>
         public string GenerateRefreshToken()
         {
-            var randomNumber = new byte[64];
-            using var rng = RandomNumberGenerator.Create();
+            byte[] randomNumber = new byte[64];
+            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
 
+        /// <summary>
+        /// Determines whether access Token Valid.
+        /// </summary>
+        /// <param name="principal">The principal.</param>
         public async Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal)
         {
-            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-            var stamp = principal.FindFirstValue(SecurityStampClaim);
+            string? userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? stamp = principal.FindFirstValue(SecurityStampClaim);
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp)) return false;
-            var user = await _userManager.FindByIdAsync(userId);
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
             return user is { IsActive: true, PasswordResetRequired: false } &&
                 string.Equals(stamp, await _userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
         }
 
+        /// <summary>
+        /// Validates the refresh Token.
+        /// </summary>
+        /// <param name="userId">The user Id.</param>
+        /// <param name="refreshToken">The refresh Token.</param>
         public async Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
 
             // Get stored refresh token from Identity's token store
-            var storedToken = await _userManager.GetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
+            string? storedToken = await _userManager.GetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
 
             if (string.IsNullOrEmpty(storedToken)) return false;
 
             // Hash the provided token and compare with stored hash
-            var hashedProvidedToken = HashToken(refreshToken);
+            string hashedProvidedToken = HashToken(refreshToken);
             return storedToken == hashedProvidedToken;
         }
 
+        /// <summary>
+        /// Executes store Refresh Token.
+        /// </summary>
+        /// <param name="userId">The user Id.</param>
+        /// <param name="refreshToken">The refresh Token.</param>
         public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
             if (user == null) throw new InvalidOperationException("User not found");
 
             // Hash the refresh token before storing
-            var hashedToken = HashToken(refreshToken);
+            string hashedToken = HashToken(refreshToken);
 
             // Remove old token
             await _userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
@@ -125,20 +137,28 @@ namespace de.openelp.feuerwehr.Server.Services
             await _userManager.SetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken", hashedToken);
         }
 
+        /// <summary>
+        /// Executes revoke Refresh Token.
+        /// </summary>
+        /// <param name="userId">The user Id.</param>
         public async Task RevokeRefreshTokenAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
             if (user == null) return;
 
             await _userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
         }
 
+        /// <summary>
+        /// Gets the principal From Expired Token.
+        /// </summary>
+        /// <param name="token">The token.</param>
         public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
+            IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
+            string secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
 
-            var tokenValidationParameters = new TokenValidationParameters
+            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
@@ -149,10 +169,10 @@ namespace de.openelp.feuerwehr.Server.Services
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
             };
 
-            var tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             try
             {
-                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+                ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken? securityToken);
 
                 if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
@@ -170,8 +190,8 @@ namespace de.openelp.feuerwehr.Server.Services
 
         private string HashToken(string token)
         {
-            using var sha256 = SHA256.Create();
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
+            using SHA256 sha256 = SHA256.Create();
+            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));
             return Convert.ToBase64String(hashBytes);
         }
     }

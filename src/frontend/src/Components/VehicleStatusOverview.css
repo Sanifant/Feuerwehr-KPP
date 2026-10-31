@@ -1,0 +1,10 @@
+.vehicle-status-overview { min-width: 0; }
+.vehicle-status-overview > header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.vehicle-status-overview > header h2 { margin: 0; }
+.vehicle-status-overview__filters { display: flex; align-items: end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.vehicle-status-overview__filters label { display: grid; gap: .35rem; min-width: min(100%, 12rem); max-width: 100%; }
+.vehicle-status-overview__filters select { max-width: 100%; }
+.vehicle-status-overview__table { overflow-x: auto; }
+.vehicle-status-overview__table th, .vehicle-status-overview__table td { text-align: left; vertical-align: middle; }
+.vehicle-status-overview__row--deregistered > th, .vehicle-status-overview__row--deregistered > td { background: #fee2e2; color: #7f1d1d; }
+.vehicle-status-overview__row--maintenance > th, .vehicle-status-overview__row--maintenance > td { background: #fef3c7; color: #78350f; }

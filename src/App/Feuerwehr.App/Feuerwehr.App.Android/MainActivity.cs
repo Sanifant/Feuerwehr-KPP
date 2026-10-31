@@ -1,17 +1,17 @@
-using Android.App;
-using Android.Content.PM;
-using Android.OS;
-using Avalonia.Android;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Android.App;
+using Android.Content.PM;
+using Android.OS;
 using AndroidX.Core.Content;
+using Avalonia.Android;
 using Manifest = global::Android.Manifest;
 
-namespace de.openelp.feuerwehr.App.Android
+namespace De.Openelp.Feuerwehr.App.Android
 {
     [Activity(
-        Label = "de.openelp.feuerwehr.App.Android",
+        Label = "De.Openelp.Feuerwehr.App.Android",
         Theme = "@style/MyTheme.NoActionBar",
         Icon = "@drawable/icon",
         MainLauncher = true,
@@ -24,7 +24,7 @@ namespace de.openelp.feuerwehr.App.Android
         private TaskCompletionSource<bool>? locationPermissionRequest;
 
         internal static MainActivity? CurrentActivity =>
-            current is not null && current.TryGetTarget(out var activity)
+            current is not null && current.TryGetTarget(out MainActivity? activity)
                 && !activity.IsFinishing && !activity.IsDestroyed ? activity : null;
 
         internal CancellationToken DestroyedToken => destroyed.Token;
@@ -48,7 +48,7 @@ namespace de.openelp.feuerwehr.App.Android
             if (locationPermissionRequest is not null)
                 return locationPermissionRequest.Task;
 
-            var request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<bool> request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             locationPermissionRequest = request;
             RequestPermissions(
                 new[] { Manifest.Permission.AccessFineLocation, Manifest.Permission.AccessCoarseLocation },
@@ -56,12 +56,18 @@ namespace de.openelp.feuerwehr.App.Android
             return request.Task;
         }
 
+        /// <summary>
+        /// Executes on Request Permissions Result.
+        /// </summary>
+        /// <param name="requestCode">The request Code.</param>
+        /// <param name="permissions">The permissions.</param>
+        /// <param name="grantResults">The grant Results.</param>
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             if (requestCode == LocationPermissionRequestCode)
             {
-                var request = locationPermissionRequest;
+                TaskCompletionSource<bool>? request = locationPermissionRequest;
                 locationPermissionRequest = null;
                 request?.TrySetResult(HasLocationPermission);
             }
@@ -69,7 +75,7 @@ namespace de.openelp.feuerwehr.App.Android
 
         protected override void OnDestroy()
         {
-            if (current is not null && current.TryGetTarget(out var activity) && ReferenceEquals(activity, this))
+            if (current is not null && current.TryGetTarget(out MainActivity? activity) && ReferenceEquals(activity, this))
                 current = null;
 
             locationPermissionRequest?.TrySetResult(false);
@@ -80,3 +86,4 @@ namespace de.openelp.feuerwehr.App.Android
         }
     }
 }
+

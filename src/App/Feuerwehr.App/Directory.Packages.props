@@ -16,11 +16,12 @@
     <PackageVersion Include="Avalonia.Browser" Version="12.1.0" />
     <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.1.118" />
     <PackageVersion Include="ZXing.Net" Version="0.16.11" />
     <PackageVersion Include="Mapsui.Avalonia" Version="5.1.0" />
     <PackageVersion Include="Mapsui.Avalonia12" Version="5.1.0" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
-    <PackageVersion Include="Xamarin.AndroidX.Core" Version="1.19.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Core" Version="1.19.1" />
     <PackageVersion Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.19.0.1" />
     <!-- Lifecycle packages require matching minor versions across their dependencies. -->
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Common" Version="$(AndroidXLifecycleVersion)" />
@@ -33,8 +34,8 @@
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel.Android" Version="$(AndroidXLifecycleVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState" Version="$(AndroidXLifecycleVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModelSavedState.Android" Version="$(AndroidXLifecycleVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.13" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.23.0" />
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="12.0.7" />
     <!-- App test packages -->

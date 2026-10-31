@@ -1,67 +1,75 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
-
-[Collection(IntegrationTestCollection.Name)]
-public sealed class IncidentIntegrationTests(IntegrationTestFixture fixture)
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Fact]
-    public async Task IncidentLifecycle_CreateActiveCloseArchive_WorksEndToEnd()
+    [Collection(IntegrationTestCollection.Name)]
+    /// <summary>
+    /// Executes incident Integration Tests.
+    /// </summary>
+    /// <param name="fixture">The fixture.</param>
+    public sealed class IncidentIntegrationTests(IntegrationTestFixture fixture)
     {
-        var token = await fixture.LoginAsAdminAndGetAccessTokenAsync();
-        fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var createRequest = new CreateIncidentRequest
+        [Fact]
+        /// <summary>
+        /// Executes incident Lifecycle Create Active Close Archive Works End To End.
+        /// </summary>
+        public async Task IncidentLifecycle_CreateActiveCloseArchive_WorksEndToEnd()
         {
-            Name = "Container E2E Incident",
-            IncidentNumber = "IT-001",
-            Keyword = "B2",
-            OriginLatitude = 51.5,
-            OriginLongitude = 10.25,
-            AlarmedAtUtc = DateTimeOffset.UtcNow,
-            SessionId = "integration-session",
-            CommandId = Guid.NewGuid().ToString(),
-        };
+            string token = await fixture.LoginAsAdminAndGetAccessTokenAsync();
+            fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var createResponse = await fixture.Client.PostAsJsonAsync("/api/incidents", createRequest);
-        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+            CreateIncidentRequest createRequest = new CreateIncidentRequest
+            {
+                Name = "Container E2E Incident",
+                IncidentNumber = "IT-001",
+                Keyword = "B2",
+                OriginLatitude = 51.5,
+                OriginLongitude = 10.25,
+                AlarmedAtUtc = DateTimeOffset.UtcNow,
+                SessionId = "integration-session",
+                CommandId = Guid.NewGuid().ToString(),
+            };
 
-        var created = await createResponse.Content.ReadFromJsonAsync<IncidentCreatedResponse>();
-        Assert.NotNull(created);
-        Assert.Equal(createRequest.Name, created.Incident.Name);
-        Assert.False(string.IsNullOrWhiteSpace(created.Lease.LeaseToken));
+            HttpResponseMessage createResponse = await fixture.Client.PostAsJsonAsync("/api/incidents", createRequest);
+            Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
-        var activeResponse = await fixture.Client.GetAsync("/api/incidents/active");
-        Assert.Equal(HttpStatusCode.OK, activeResponse.StatusCode);
+            IncidentCreatedResponse? created = await createResponse.Content.ReadFromJsonAsync<IncidentCreatedResponse>();
+            Assert.NotNull(created);
+            Assert.Equal(createRequest.Name, created.Incident.Name);
+            Assert.False(string.IsNullOrWhiteSpace(created.Lease.LeaseToken));
 
-        var active = await activeResponse.Content.ReadFromJsonAsync<IncidentSummaryDto>();
-        Assert.NotNull(active);
-        Assert.Equal(created.Incident.Id, active.Id);
+            HttpResponseMessage activeResponse = await fixture.Client.GetAsync("/api/incidents/active");
+            Assert.Equal(HttpStatusCode.OK, activeResponse.StatusCode);
 
-        var closeResponse = await fixture.Client.PostAsJsonAsync($"/api/incidents/{created.Incident.Id}/close", new CloseIncidentRequest
-        {
-            SessionId = created.Lease.SessionId,
-            LeaseToken = created.Lease.LeaseToken,
-            CommandId = Guid.NewGuid().ToString(),
-        });
-        Assert.Equal(HttpStatusCode.OK, closeResponse.StatusCode);
+            IncidentSummaryDto? active = await activeResponse.Content.ReadFromJsonAsync<IncidentSummaryDto>();
+            Assert.NotNull(active);
+            Assert.Equal(created.Incident.Id, active.Id);
 
-        var closed = await closeResponse.Content.ReadFromJsonAsync<IncidentClosedResponse>();
-        Assert.NotNull(closed);
-        Assert.Equal(IncidentStatus.Closed, closed.Incident.Status);
+            HttpResponseMessage closeResponse = await fixture.Client.PostAsJsonAsync($"/api/incidents/{created.Incident.Id}/close", new CloseIncidentRequest
+            {
+                SessionId = created.Lease.SessionId,
+                LeaseToken = created.Lease.LeaseToken,
+                CommandId = Guid.NewGuid().ToString(),
+            });
+            Assert.Equal(HttpStatusCode.OK, closeResponse.StatusCode);
 
-        var activeAfterClose = await fixture.Client.GetAsync("/api/incidents/active");
-        Assert.Equal(HttpStatusCode.NotFound, activeAfterClose.StatusCode);
+            IncidentClosedResponse? closed = await closeResponse.Content.ReadFromJsonAsync<IncidentClosedResponse>();
+            Assert.NotNull(closed);
+            Assert.Equal(IncidentStatus.Closed, closed.Incident.Status);
 
-        var archiveResponse = await fixture.Client.GetAsync("/api/incidents/archive?page=1&pageSize=25");
-        Assert.Equal(HttpStatusCode.OK, archiveResponse.StatusCode);
-        var archive = await archiveResponse.Content.ReadFromJsonAsync<IReadOnlyCollection<IncidentSummaryDto>>();
-        Assert.NotNull(archive);
-        Assert.Contains(archive, item => item.Id == created.Incident.Id);
+            HttpResponseMessage activeAfterClose = await fixture.Client.GetAsync("/api/incidents/active");
+            Assert.Equal(HttpStatusCode.NotFound, activeAfterClose.StatusCode);
+
+            HttpResponseMessage archiveResponse = await fixture.Client.GetAsync("/api/incidents/archive?page=1&pageSize=25");
+            Assert.Equal(HttpStatusCode.OK, archiveResponse.StatusCode);
+            IReadOnlyCollection<IncidentSummaryDto>? archive = await archiveResponse.Content.ReadFromJsonAsync<IReadOnlyCollection<IncidentSummaryDto>>();
+            Assert.NotNull(archive);
+            Assert.Contains(archive, item => item.Id == created.Incident.Id);
+        }
     }
 }

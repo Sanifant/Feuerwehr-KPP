@@ -6,158 +6,184 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using Mapsui;
+using Mapsui.Layers;
 using Mapsui.Projections;
 using Mapsui.Tiling;
 
-namespace de.openelp.feuerwehr.App.ViewModels;
-
-public partial class SituationMapViewModel(ISituationMapService service, IAuthService authService) : ViewModelBase
+namespace De.Openelp.Feuerwehr.App.ViewModels
 {
-    private Guid? displayedIncidentId;
-    private double zoomFactor = 6;
-
-    [ObservableProperty]
-    private Map? map;
-
-    [ObservableProperty]
-    private bool _canZoomIn = true;
-
-    [ObservableProperty]
-    private string incidentTitle = "Lagekarte";
-
-    [ObservableProperty]
-    private string statusMessage = string.Empty;
-
-    [ObservableProperty]
-    private string lastUpdated = string.Empty;
-
-    public bool CanView => authService.IsAuthenticated && (authService.UserRoles.Contains("SituationMapViewer") || authService.UserRoles.Contains("SituationMapEditor"));
-
-    public void Activate()
+    /// <summary>
+    /// Executes situation Map View Model.
+    /// </summary>
+    /// <param name="service">The service.</param>
+    /// <param name="authService">The auth Service.</param>
+    public partial class SituationMapViewModel(ISituationMapService service, IAuthService authService) : ViewModelBase
     {
-        authService.AuthStateChanged += OnAuthStateChanged;
+        private Guid? displayedIncidentId;
+        private double zoomFactor = 6;
 
-        var currentMap = new Map();
-        currentMap.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
+        [ObservableProperty]
+        private Map? map;
 
-        currentMap.Navigator.ZoomTo(zoomFactor);
+        [ObservableProperty]
+        private bool _canZoomIn = true;
 
-        Map = currentMap;
-        }
+        [ObservableProperty]
+        private string incidentTitle = "Lagekarte";
 
-    public void Deactivate()
-    {
-        authService.AuthStateChanged -= OnAuthStateChanged;
-        RefreshCommand.Cancel();
-        Clear();
-    }
+        [ObservableProperty]
+        private string statusMessage = string.Empty;
 
-    private void OnAuthStateChanged(object? sender, EventArgs e)
-    {
-        OnPropertyChanged(nameof(CanView));
-        RefreshCommand.NotifyCanExecuteChanged();
-        if (!CanView)
+        [ObservableProperty]
+        private string lastUpdated = string.Empty;
+
+        public bool CanView => authService.IsAuthenticated && (authService.UserRoles.Contains("SituationMapViewer") || authService.UserRoles.Contains("SituationMapEditor"));
+
+        /// <summary>
+        /// Executes activate.
+        /// </summary>
+        public void Activate()
         {
+            authService.AuthStateChanged += OnAuthStateChanged;
+
+            Map currentMap = new Map();
+            currentMap.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
+
+            currentMap.Navigator.ZoomTo(zoomFactor);
+
+            Map = currentMap;
+            }
+
+        /// <summary>
+        /// Executes deactivate.
+        /// </summary>
+        public void Deactivate()
+        {
+            authService.AuthStateChanged -= OnAuthStateChanged;
             RefreshCommand.Cancel();
             Clear();
-            StatusMessage = "Keine Berechtigung für die Lagekarte.";
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(CanView))]
-    public async Task RefreshAsync(CancellationToken cancellationToken)
-    {
-        if (!CanView)
-        {
-            Clear();
-            StatusMessage = "Keine Berechtigung für die Lagekarte.";
-            return;
         }
 
-        try
+        private void OnAuthStateChanged(object? sender, EventArgs e)
         {
-            StatusMessage = "Lagekarte wird geladen …";
-            var incident = await service.GetActiveIncidentAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!CanView) return;
-            if (incident == null)
+            OnPropertyChanged(nameof(CanView));
+            RefreshCommand.NotifyCanExecuteChanged();
+            if (!CanView)
+            {
+                RefreshCommand.Cancel();
+                Clear();
+                StatusMessage = "Keine Berechtigung für die Lagekarte.";
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanView))]
+        /// <summary>
+        /// Executes refresh.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public async Task RefreshAsync(CancellationToken cancellationToken)
+        {
+            if (!CanView)
             {
                 Clear();
-                StatusMessage = "Kein aktiver Einsatz vorhanden.";
+                StatusMessage = "Keine Berechtigung für die Lagekarte.";
                 return;
             }
 
-            var state = await service.GetStateAsync(incident.Id, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!CanView) return;
-            var elements = SituationMapLayers.CreateElements(state.Elements);
-            var hydrants = SituationMapLayers.CreateHydrants(state.Hydrants);
-            var currentMap = Map;
-            if (currentMap != null && displayedIncidentId != incident.Id)
+            try
             {
-                var startPoint = new MPoint(incident.OriginLongitude, incident.OriginLatitude);
-                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                StatusMessage = "Lagekarte wird geladen â€¦";
+                IncidentSummaryDto? incident = await service.GetActiveIncidentAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!CanView) return;
+                if (incident == null)
+                {
+                    Clear();
+                    StatusMessage = "Kein aktiver Einsatz vorhanden.";
+                    return;
+                }
 
-                currentMap.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
-                currentMap.Navigator.ZoomTo(2);
+                MapStateResponse state = await service.GetStateAsync(incident.Id, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!CanView) return;
+                MemoryLayer elements = SituationMapLayers.CreateElements(state.Elements);
+                MemoryLayer hydrants = SituationMapLayers.CreateHydrants(state.Hydrants);
+                Map? currentMap = Map;
+                if (currentMap != null && displayedIncidentId != incident.Id)
+                {
+                    MPoint startPoint = new MPoint(incident.OriginLongitude, incident.OriginLatitude);
+                    (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
 
-                displayedIncidentId = incident.Id;
-            }
+                    currentMap.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+                    currentMap.Navigator.ZoomTo(2);
+
+                    displayedIncidentId = incident.Id;
+                }
             
-            foreach (var layer in currentMap.Layers.Where(layer => layer.Name is "Lage" or "Hydranten").ToArray())
+                foreach (ILayer? layer in currentMap.Layers.Where(layer => layer.Name is "Lage" or "Hydranten").ToArray())
+                {
+                    currentMap.Layers.Remove(layer);
+                    layer.Dispose();
+                }
+                currentMap.Layers.Add(hydrants);
+                currentMap.Layers.Add(elements);
+                currentMap.Refresh();
+                IncidentTitle = incident.Name;
+                LastUpdated = $"Stand: {state.ServerUtc.ToLocalTime():dd.MM.yyyy HH:mm:ss}";
+                StatusMessage = string.Empty;
+            
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+            catch (Exception exception)
             {
-                currentMap.Layers.Remove(layer);
-                layer.Dispose();
+                Clear();
+                StatusMessage = exception is HttpRequestException { StatusCode: HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized }
+                    ? "Keine Berechtigung für die Lagekarte. Bitte erneut anmelden."
+                    : "Die Lagekarte konnte nicht geladen werden. Bitte erneut aktualisieren.";
             }
-            currentMap.Layers.Add(hydrants);
-            currentMap.Layers.Add(elements);
-            currentMap.Refresh();
-            IncidentTitle = incident.Name;
-            LastUpdated = $"Stand: {state.ServerUtc.ToLocalTime():dd.MM.yyyy HH:mm:ss}";
-            StatusMessage = string.Empty;
-            
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
-        catch (Exception exception)
+
+
+
+        [RelayCommand]
+        /// <summary>
+        /// Executes zoom In.
+        /// </summary>
+        public void ZoomIn()
         {
-            Clear();
-            StatusMessage = exception is HttpRequestException { StatusCode: HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized }
-                ? "Keine Berechtigung für die Lagekarte. Bitte erneut anmelden."
-                : "Die Lagekarte konnte nicht geladen werden. Bitte erneut aktualisieren.";
+            if (zoomFactor == 1)
+            {
+                CanZoomIn = false;
+                return;
+            }
+            zoomFactor--;
+            Map?.Navigator.ZoomTo(zoomFactor);
         }
-    }
 
-
-
-    [RelayCommand]
-    public void ZoomIn()
-    {
-        if (zoomFactor == 1)
+        [RelayCommand]
+        /// <summary>
+        /// Executes zoom Out.
+        /// </summary>
+        public void ZoomOut()
         {
-            CanZoomIn = false;
-            return;
+            CanZoomIn = true;
+            zoomFactor++;
+            Map?.Navigator.ZoomTo(zoomFactor);
         }
-        zoomFactor--;
-        Map?.Navigator.ZoomTo(zoomFactor);
+
+        private void Clear()
+        {
+            Map? previousMap = Map;
+            Map = null;
+            previousMap?.Dispose();
+            displayedIncidentId = null;
+            IncidentTitle = "Lagekarte";
+            LastUpdated = string.Empty;
+        }
     }
 
-    [RelayCommand]
-    public void ZoomOut()
-    {
-        CanZoomIn = true;
-        zoomFactor++;
-        Map?.Navigator.ZoomTo(zoomFactor);
-    }
-
-    private void Clear()
-    {
-        var previousMap = Map;
-        Map = null;
-        previousMap?.Dispose();
-        displayedIncidentId = null;
-        IncidentTitle = "Lagekarte";
-        LastUpdated = string.Empty;
-    }
 }

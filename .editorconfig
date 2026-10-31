@@ -1,0 +1,136 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,md}]
+indent_size = 2
+
+[*.{js,jsx,ts,tsx}]
+indent_size = 2
+
+[*.cs]
+csharp_style_var_for_built_in_types = false:warning
+csharp_style_var_when_type_is_apparent = false:warning
+csharp_style_var_elsewhere = false:warning
+csharp_style_namespace_declarations = block_scoped:warning
+# Basic formatting
+indent_size = 4
+csharp_new_line_before_open_brace = all
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+# Readability
+stylecop.readability.allowBuiltInTypeAliases = false
+
+# Ordering
+stylecop.ordering.elementOrder = kind, accessibility, constant, static, readonly
+stylecop.ordering.accessibilityOrder = public, internal, protectedInternal, protected, privateProtected, private
+dotnet_sort_system_directives_first = true
+stylecop.ordering.usingDirectivesPlacement = insideNamespace   # insideNamespace | outsideNamespace | preserve
+stylecop.ordering.blankLinesBetweenUsingGroups = allow         # allow | require | omit
+
+# Naming
+stylecop.naming.allowCommonHungarianPrefixes = true
+stylecop.naming.allowedHungarianPrefixes =                     # comma-separated
+stylecop.naming.allowedNamespaceComponents =                   # comma-separated
+stylecop.naming.includeInferredTupleElementNames = false
+stylecop.naming.tupleElementNameCasing = pascalCase            # camelCase | pascalCase
+
+# Maintainability
+stylecop.maintainability.topLevelTypes = class                 # class, interface, struct, enum, delegate
+
+# Layout
+stylecop.layout.newlineAtEndOfFile = allow                     # allow | require | omit
+stylecop.layout.allowConsecutiveUsings = true
+stylecop.layout.allowBracelessIfStatements = off
+stylecop.layout.allowDoWhileOnClosingBrace = false
+
+# Documentation
+stylecop.documentation.documentExposedElements = true
+stylecop.documentation.documentInternalElements = true
+stylecop.documentation.documentPrivateElements = false
+stylecop.documentation.documentPrivateFields = false
+stylecop.documentation.documentInterfaces = all                # all | exposed | none
+stylecop.documentation.companyName = PlaceholderCompany
+stylecop.documentation.copyrightText = Copyright (c) {companyName}. All rights reserved.
+stylecop.documentation.variables.myvariable = value             # requires Roslyn 4.4 or newer
+stylecop.documentation.headerDecoration =
+stylecop.documentation.xmlHeader = true
+stylecop.documentation.fileNamingConvention = stylecop         # stylecop | metadata
+stylecop.documentation.documentationCulture = en-US
+stylecop.documentation.excludeFromPunctuationCheck = seealso   # comma-separated
+
+# Readability and clean code preferences
+csharp_prefer_braces = true:warning
+dotnet_style_require_accessibility_modifiers = always:warning
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
+dotnet_style_prefer_null_check_over_type_check = true:suggestion
+
+# Naming and structure
+dotnet_diagnostic.IDE1006.severity = none
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = warning
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_underscore
+
+dotnet_naming_rule.interfaces_should_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_should_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_should_start_with_i.style = interface_prefix_style
+
+dotnet_naming_rule.async_methods_should_end_with_async.severity = warning
+dotnet_naming_rule.async_methods_should_end_with_async.symbols = async_methods
+dotnet_naming_rule.async_methods_should_end_with_async.style = async_suffix_style
+
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.required_modifiers = async
+
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_style.camel_case_underscore.required_prefix = _
+dotnet_naming_style.camel_case_underscore.capitalization = camel_case
+
+dotnet_naming_style.interface_prefix_style.required_prefix = I
+dotnet_naming_style.interface_prefix_style.capitalization = pascal_case
+
+dotnet_naming_style.async_suffix_style.required_suffix = Async
+dotnet_naming_style.async_suffix_style.capitalization = pascal_case
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Analyzer severities
+dotnet_analyzer_diagnostic.category-Style.severity = warning
+dotnet_analyzer_diagnostic.category-Documentation.severity = warning
+dotnet_diagnostic.IDE0055.severity = warning
+dotnet_diagnostic.IDE0005.severity = warning
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.IDE0063.severity = warning
+
+# XML documentation on public API
+dotnet_diagnostic.CS1591.severity = warning
+
+# StyleCop - documentation focus
+dotnet_diagnostic.SA1600.severity = warning
+dotnet_diagnostic.SA1611.severity = warning
+dotnet_diagnostic.SA1615.severity = warning
+dotnet_diagnostic.SA1633.severity = none

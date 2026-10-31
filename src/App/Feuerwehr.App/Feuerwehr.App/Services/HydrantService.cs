@@ -1,12 +1,12 @@
-using de.openelp.feuerwehr.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using De.Openelp.Feuerwehr.Common.Models;
 
-namespace de.openelp.feuerwehr.App.Services
+namespace De.Openelp.Feuerwehr.App.Services
 {
     public class HydrantService : IHydrantService
     {
@@ -19,9 +19,12 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // GET: api/hydrant
+        /// <summary>
+        /// Gets the all.
+        /// </summary>
         public async Task<IEnumerable<Hydrant>> GetAllAsync()
         {
-            var response = await _httpClient.GetAsync(BaseUrl);
+            HttpResponseMessage response = await _httpClient.GetAsync(BaseUrl);
 
             if (response.IsSuccessStatusCode)
             {
@@ -33,9 +36,13 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // GET: api/hydrant/5
+        /// <summary>
+        /// Gets the by Id.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public async Task<Hydrant> GetByIdAsync(int id)
         {
-            var response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
+            HttpResponseMessage response = await _httpClient.GetAsync($"{BaseUrl}/{id}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -46,9 +53,13 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // POST: api/hydrant
+        /// <summary>
+        /// Creates the operation.
+        /// </summary>
+        /// <param name="hydrant">The hydrant.</param>
         public async Task<Hydrant> CreateAsync(Hydrant hydrant)
         {
-            var response = await _httpClient.PostAsync(BaseUrl, JsonContent.Create(hydrant));
+            HttpResponseMessage response = await _httpClient.PostAsync(BaseUrl, JsonContent.Create(hydrant));
 
             if (response.IsSuccessStatusCode)
             {
@@ -59,17 +70,27 @@ namespace de.openelp.feuerwehr.App.Services
         }
 
         // PUT: api/hydrant/5
+        /// <summary>
+        /// Updates the operation.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="hydrant">The hydrant.</param>
         public async Task<bool> UpdateAsync(int id, Hydrant hydrant)
         {
-            var response = await _httpClient.PutAsync($"{BaseUrl}/{id}", JsonContent.Create(hydrant));
+            HttpResponseMessage response = await _httpClient.PutAsync($"{BaseUrl}/{id}", JsonContent.Create(hydrant));
             return response.IsSuccessStatusCode;
         }
 
         // DELETE: api/hydrant/5
+        /// <summary>
+        /// Deletes the operation.
+        /// </summary>
+        /// <param name="id">The id.</param>
         public async Task<bool> DeleteAsync(int id)
         {
-            var response = await _httpClient.DeleteAsync($"{BaseUrl}/{id}");
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"{BaseUrl}/{id}");
             return response.IsSuccessStatusCode;
         }
     }
 }
+

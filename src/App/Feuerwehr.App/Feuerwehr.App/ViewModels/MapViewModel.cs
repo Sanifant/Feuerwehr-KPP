@@ -4,12 +4,13 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Models;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.Common.Models;
 using Mapsui;
 using Mapsui.Extensions;
 using Mapsui.Layers;
@@ -22,7 +23,7 @@ using Mapsui.UI;
 using Mapsui.UI.Avalonia;
 using Mapsui.Widgets.InfoWidgets;
 
-namespace de.openelp.feuerwehr.App.ViewModels
+namespace De.Openelp.Feuerwehr.App.ViewModels
 {
     public partial class MapViewModel : ViewModelBase
     {
@@ -68,14 +69,14 @@ namespace de.openelp.feuerwehr.App.ViewModels
             {
                 if (task.IsCompletedSuccessfully)
                 {
-                    var hydrants = task.Result.Select(h => new HydrantPin
+                    List<HydrantPin> hydrants = task.Result.Select(h => new HydrantPin
                     {
                         Diameter = h.DiameterDescription,
                         Latitude = h.Latitude,
                         Longitude = h.Longitude
                     }).ToList();
 
-                    var layers = HydrantLayer(hydrants);
+                    IEnumerable<ILayer> layers = HydrantLayer(hydrants);
 
                     Map.Layers.Add(layers);
                 }
@@ -83,6 +84,9 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes zoom In.
+        /// </summary>
         public void ZoomIn()
         {
             if(zoomFactor == 1)
@@ -95,6 +99,9 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes zoom Out.
+        /// </summary>
         public void ZoomOut()
         {
             CanZoomIn = true;
@@ -103,6 +110,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes center On Location.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task CenterOnLocationAsync(CancellationToken cancellationToken)
         {
             GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
@@ -110,8 +121,8 @@ namespace de.openelp.feuerwehr.App.ViewModels
             if (location != null)
             {
 
-                var startPoint = new MPoint(location.Longitude, location.Latitude);
-                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 Map?.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
                 zoomFactor = 10;
                 Map?.Navigator.ZoomTo(zoomFactor);
@@ -119,6 +130,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes settings.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task SettingsAsync(CancellationToken cancellationToken)
         {
             GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
@@ -126,7 +141,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
             if (location != null)
             {
                 IsAddVisible = true;
-                var startPoint = new MPoint(location.Longitude, location.Latitude);
+                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
 
                 NewHydrant = new Hydrant
                 {
@@ -142,7 +157,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         {
             try
             {
-                var location = await gpsService.GetCurrentLocationAsync(cancellationToken);
+                GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
                 return cancellationToken.IsCancellationRequested ? null : location;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -153,12 +168,19 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Adds the hydrant.
+        /// </summary>
         public void AddHydrant()
         {
             IsAddVisible = false;
         }
 
         [RelayCommand]
+        /// <summary>
+        /// Executes map Clicked.
+        /// </summary>
+        /// <param name="mapEventArgs">The map Event Args.</param>
         public void MapClicked(TappedEventArgs? mapEventArgs)
         {
             if (Map is null || mapEventArgs?.Source is not MapControl mapControl)
@@ -167,15 +189,15 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 return;
             }
 
-            var layer = Map.Layers.FirstOrDefault(l => l.Name == "Hydrants");
+            ILayer? layer = Map.Layers.FirstOrDefault(l => l.Name == "Hydrants");
             if (layer is null)
             {
                 IsFlyoutOpen = false;
                 return;
             }
 
-            var tapPosition = mapEventArgs.GetPosition(mapControl);
-            var mapInfo = mapControl.GetMapInfo(new ScreenPosition(tapPosition.X, tapPosition.Y), new[] { layer });
+            Point tapPosition = mapEventArgs.GetPosition(mapControl);
+            MapInfo mapInfo = mapControl.GetMapInfo(new ScreenPosition(tapPosition.X, tapPosition.Y), new[] { layer });
 
             if (mapInfo?.Feature is PointFeature clickedFeature && clickedFeature["Model"] is HydrantPin hydrantPin)
             {
@@ -197,21 +219,25 @@ namespace de.openelp.feuerwehr.App.ViewModels
             Map = map;
         }
 
+        /// <summary>
+        /// Initializes the location.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task InitializeLocationAsync(CancellationToken cancellationToken = default)
         {
             GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            var map = Map;
+            Map? map = Map;
 
             if (location != null && map != null)
             {
 
-                var startPoint = new MPoint(location.Longitude, location.Latitude);
-                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // --- 2. Einen Pin (Marker) hinzufügen
-                var pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+                PointFeature pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // Stylen des Pins (z.B. ein roter Punkt)
                 pinFeature.Styles.Add(new SymbolStyle
@@ -221,12 +247,12 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 });
 
                 // Layer für den Pin erstellen und der Karte hinzufügen
-                var memoryLayer = new MemoryLayer
+                MemoryLayer memoryLayer = new MemoryLayer
                 {
                     Name = "Pins",
                     Features = new List<IFeature> { pinFeature }
                 };
-                var previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
+                ILayer? previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
                 if (previousPins != null)
                     map.Layers.Remove(previousPins);
                 map.Layers.Add(memoryLayer);
@@ -235,12 +261,12 @@ namespace de.openelp.feuerwehr.App.ViewModels
 
         private IEnumerable<ILayer> HydrantLayer(List<HydrantPin> hydrants)
         {
-            var hydrantFeatures = new List<PointFeature>();
+            List<PointFeature> hydrantFeatures = new List<PointFeature>();
 
-            foreach (var hydrant in hydrants)
+            foreach (HydrantPin hydrant in hydrants)
             {
-                var mercatorCordinate = SphericalMercator.FromLonLat(hydrant.Longitude, hydrant.Latitude);
-                var hydrantFeature = new PointFeature(mercatorCordinate);
+                (double x, double y) mercatorCordinate = SphericalMercator.FromLonLat(hydrant.Longitude, hydrant.Latitude);
+                PointFeature hydrantFeature = new PointFeature(mercatorCordinate);
 
                 hydrantFeature["Model"] = hydrant;
 
@@ -254,7 +280,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 hydrantFeatures.Add(hydrantFeature);
             }
 
-            var hydrantLayer = new MemoryLayer
+            MemoryLayer hydrantLayer = new MemoryLayer
             {
                 Name = "Hydrants",
                 Features = hydrantFeatures
@@ -264,3 +290,4 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
     }
 }
+

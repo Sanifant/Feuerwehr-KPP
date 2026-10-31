@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-	<RootNamespace>de.openelp.feuerwehr.App.Android</RootNamespace>
+	<RootNamespace>De.Openelp.Feuerwehr.App.Android</RootNamespace>
 	<OutputType>Exe</OutputType>
 	<TargetFramework>net10.0-android</TargetFramework>
 	<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
@@ -34,6 +34,10 @@
 
   <ItemGroup>
 	<PackageReference Include="Avalonia.Android" />
+	<PackageReference Include="StyleCop.Analyzers">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
     <PackageReference Include="ZXing.Net" />
 	<PackageReference Include="Xamarin.AndroidX.Core" />
 	<PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />

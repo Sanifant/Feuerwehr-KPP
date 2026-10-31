@@ -1,10 +1,10 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Services;
 using System;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using De.Openelp.Feuerwehr.App.Services;
 
-namespace de.openelp.feuerwehr.App.ViewModels
+namespace De.Openelp.Feuerwehr.App.ViewModels
 {
     public partial class LoginViewModel : ViewModelBase
     {
@@ -46,7 +46,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
 
             try
             {
-                var success = await _authService.LoginAsync(Email, Password);
+                bool success = await _authService.LoginAsync(Email, Password);
 
                 if (success)
                 {
@@ -76,3 +76,4 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
     }
 }
+

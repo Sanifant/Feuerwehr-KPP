@@ -1,24 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Net;
 using System.Text;
 
-namespace de.openelp.feuerwehr.Common.Models
+namespace De.Openelp.Feuerwehr.Common.Models
 {
-
-    public class Address
-    {
-        public string Street { get; set; } = string.Empty;
-        public string HouseNumber { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string? AdditionalInfo { get; set; }
-
-        public string GetFormattedAddress() =>
-            $"{Street} {HouseNumber}, {PostalCode} {City}".Trim();
-    }
 
     public class Hydrant
     {

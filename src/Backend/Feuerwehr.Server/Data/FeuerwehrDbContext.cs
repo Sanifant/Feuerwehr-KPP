@@ -1,12 +1,12 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Data
+namespace De.Openelp.Feuerwehr.Server.Data
 {
     public class FeuerwehrDbContext : IdentityDbContext<ApplicationUser>
     {
@@ -38,11 +38,17 @@ namespace de.openelp.feuerwehr.Server.Data
         public DbSet<Equipment> Equipment { get; set; }
         public DbSet<EquipmentInspection> EquipmentInspections { get; set; }
         public DbSet<EquipmentReminderDelivery> EquipmentReminderDeliveries { get; set; }
+        public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<VehicleReservation> VehicleReservations { get; set; }
+        public DbSet<VehicleBookingDay> VehicleBookingDays { get; set; }
+        public DbSet<VehicleEvent> VehicleEvents { get; set; }
+        public DbSet<VehicleMailMessage> VehicleMailMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ConfigureInventory();
+            modelBuilder.ConfigureVehicles();
 
             modelBuilder.HasSequence<int>("Hydrants_Id_seq")
                 .StartsAt(1)
@@ -243,3 +249,4 @@ namespace de.openelp.feuerwehr.Server.Data
         }
     }
 }
+

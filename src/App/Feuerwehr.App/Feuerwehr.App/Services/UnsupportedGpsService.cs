@@ -1,15 +1,21 @@
 using System.Threading;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.App.Models;
+using De.Openelp.Feuerwehr.App.Models;
 
-namespace de.openelp.feuerwehr.App.Services;
-
-/// <summary>Used until the host registers a platform location implementation.</summary>
-public sealed class UnsupportedGpsService : IGpsService
+namespace De.Openelp.Feuerwehr.App.Services
 {
-    public Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
+    /// <summary>Used until the host registers a platform location implementation.</summary>
+    public sealed class UnsupportedGpsService : IGpsService
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult<GpsLocation?>(null);
+        /// <summary>
+        /// Gets the current Location.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<GpsLocation?>(null);
+        }
     }
+
 }

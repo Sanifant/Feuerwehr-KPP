@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<RootNamespace>de.openelp.feuerwehr.Tests.Backend.Integration</RootNamespace>
+	<RootNamespace>De.Openelp.Feuerwehr.Tests.Backend.Integration</RootNamespace>
 	<TargetFramework>net10.0</TargetFramework>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
@@ -9,8 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.13" />
+	<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
 	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+	<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
 	<PackageReference Include="Testcontainers.PostgreSql" Version="4.16.0" />
 	<PackageReference Include="Testcontainers.Redis" Version="4.16.0" />
 	<PackageReference Include="xunit" Version="2.9.3" />

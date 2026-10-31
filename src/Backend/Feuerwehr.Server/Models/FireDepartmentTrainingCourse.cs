@@ -1,14 +1,16 @@
-namespace de.openelp.feuerwehr.Server.Models;
-
-public class FireDepartmentTrainingCourse
+namespace De.Openelp.Feuerwehr.Server.Models
 {
-    public int FireDepartmentId { get; set; }
+    public class FireDepartmentTrainingCourse
+    {
+        public int FireDepartmentId { get; set; }
 
-    public FireDepartment FireDepartment { get; set; } = null!;
+        public FireDepartment FireDepartment { get; set; } = null!;
 
-    public int TrainingCourseId { get; set; }
+        public int TrainingCourseId { get; set; }
 
-    public TrainingCourse TrainingCourse { get; set; } = null!;
+        public TrainingCourse TrainingCourse { get; set; } = null!;
 
-    public int SeatsAssigned { get; set; }
+        public int SeatsAssigned { get; set; }
+    }
+
 }
