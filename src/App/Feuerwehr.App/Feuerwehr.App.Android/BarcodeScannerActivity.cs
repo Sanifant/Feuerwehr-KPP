@@ -25,7 +25,6 @@ namespace De.Openelp.Feuerwehr.App.Android
         private static TaskCompletionSource<string?>? pending;
         private static WeakReference<BarcodeScannerActivity>? current;
         private TextureView preview = null!;
-        private TextView hint = null!;
         private CameraDevice? camera;
         private CameraCaptureSession? session;
         private ImageReader? reader;
@@ -54,8 +53,14 @@ namespace De.Openelp.Feuerwehr.App.Android
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
+            TextView hint = null!;
             base.OnCreate(savedInstanceState);
-            if (pending is null) { Finish(); return; }
+            if (pending is null)
+            {
+                Finish();
+                return;
+            }
+
             current = new(this);
             LinearLayout layout = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
             hint = new TextView(this) { Text = "Barcode KPP-001 bis KPP-999 in die Kamera halten.", TextSize = 18 };
@@ -80,16 +85,32 @@ namespace De.Openelp.Feuerwehr.App.Android
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-            if (requestCode != 3050) return;
+            if (requestCode != 3050)
+            {
+                return;
+            }
+
             permissionPending = false;
             if (grantResults.FirstOrDefault() == Permission.Granted && grantResults.Length > 0)
-            { if (preview.IsAvailable) OpenCamera(); }
-            else Fail("Kamerazugriff wurde verweigert.");
+            { 
+                if (preview.IsAvailable)
+                {
+                    OpenCamera();
+                }
+                else
+                {
+                    Fail("Kamerazugriff wurde verweigert.");
+                }
+            }
         }
 
         private void OpenCamera()
         {
-            if (camera is not null || thread is not null || closing || ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted) return;
+            if (camera is not null || thread is not null || closing || ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted)
+            {
+                return;
+            }
+
             try
             {
                 CameraManager manager = (CameraManager)GetSystemService(CameraService)!;
@@ -107,7 +128,12 @@ namespace De.Openelp.Feuerwehr.App.Android
 
         private void StartPreview(CameraDevice device)
         {
-            if (closing) { device.Close(); return; }
+            if (closing)
+            {
+                device.Close();
+                return;
+            }
+
             camera = device;
             preview.SurfaceTexture!.SetDefaultBufferSize(640, 480);
             previewSurface = new Surface(preview.SurfaceTexture);

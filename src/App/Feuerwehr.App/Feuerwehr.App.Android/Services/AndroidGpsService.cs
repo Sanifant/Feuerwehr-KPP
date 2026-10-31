@@ -36,31 +36,45 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
         {
             cancellationToken.ThrowIfCancellationRequested();
             MainActivity? activity = MainActivity.CurrentActivity;
+
             if (activity is null)
+            {
                 return null;
+            }
 
             using CancellationTokenSource lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, activity.DestroyedToken);
             try
             {
                 if (!await activity.EnsureLocationPermissionAsync().WaitAsync(lifetime.Token))
+                {
                     return null;
+                }
 
                 lifetime.Token.ThrowIfCancellationRequested();
                 Context context = global::Android.App.Application.Context;
                 using LocationManager? manager = context.GetSystemService(Context.LocationService) as LocationManager;
                 if (manager is null || !LocationManagerCompat.IsLocationEnabled(manager))
+                {
                     return null;
+                }
 
                 bool hasFineLocation = ContextCompat.CheckSelfPermission(context, Manifest.Permission.AccessFineLocation)
                     == Permission.Granted;
                 string? provider = null;
+
                 if (hasFineLocation && manager.IsProviderEnabled(LocationManager.GpsProvider))
+                {
                     provider = LocationManager.GpsProvider;
+                }
                 else if (manager.IsProviderEnabled(LocationManager.NetworkProvider))
+                {
                     provider = LocationManager.NetworkProvider;
+                }
 
                 if (provider is null)
+                {
                     return null;
+                }
 
                 using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
                 timeout.CancelAfter(LocationTimeout);

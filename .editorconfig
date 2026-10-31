@@ -76,6 +76,7 @@ dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
 dotnet_style_prefer_null_check_over_type_check = true:suggestion
 
 # Naming and structure
+dotnet_diagnostic.IDE1006.severity = none
 dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = warning
 dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
 dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_underscore
