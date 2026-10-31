@@ -4,10 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using De.Openelp.Feuerwehr.Common.Models.Inventory;
 
-namespace De.Openelp.Feuerwehr.App.Services;
-
-public interface IInventoryService
+namespace De.Openelp.Feuerwehr.App.Services
 {
-    Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct);
-    Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct);
+    public interface IInventoryService
+    {
+        Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct);
+        Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct);
+    }
 }

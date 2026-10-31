@@ -1,16 +1,18 @@
+﻿using Aspire.Hosting.Docker;
+using Aspire.Hosting.JavaScript;
 using De.Openelp.Feuerwehr.Diagnostics;
 
-using var diagnostics = ProcessDiagnostics.Start("AppHost");
-var builder = DistributedApplication.CreateBuilder(args);
+using ProcessDiagnostics diagnostics = ProcessDiagnostics.Start("AppHost");
+IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-var seedAdminEmail = builder.AddParameterFromConfiguration(
+IResourceBuilder<ParameterResource> seedAdminEmail = builder.AddParameterFromConfiguration(
     "seed-admin-email", "SeedAdmin:Email");
-var seedAdminPassword = builder.AddParameterFromConfiguration(
+IResourceBuilder<ParameterResource> seedAdminPassword = builder.AddParameterFromConfiguration(
     "seed-admin-password", "SeedAdmin:Password", secret: true);
 
-var compose = builder.AddDockerComposeEnvironment("compose");
+IResourceBuilder<DockerComposeEnvironmentResource> compose = builder.AddDockerComposeEnvironment("compose");
 
-var postgres = builder.AddPostgres("postgres")
+IResourceBuilder<PostgresServerResource> postgres = builder.AddPostgres("postgres")
     .WithPgWeb()
     .PublishAsDockerComposeService((resource, service) =>
     {
@@ -18,15 +20,15 @@ var postgres = builder.AddPostgres("postgres")
     })
     .WithDataVolume(isReadOnly: false);
 
-var postgresdb = postgres.AddDatabase("postgresdb");
+IResourceBuilder<PostgresDatabaseResource> postgresdb = postgres.AddDatabase("postgresdb");
 
-var cache = builder.AddRedis("cache")
+IResourceBuilder<RedisResource> cache = builder.AddRedis("cache")
     .PublishAsDockerComposeService((resource, service) =>
     {
         service.Name = "cache";
     });
 
-var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
+IResourceBuilder<ProjectResource> server = builder.AddProject<Projects.Feuerwehr_Server>("server")
     .WithReference(cache)
     .WaitFor(cache)
     .WithReference(postgresdb)
@@ -45,7 +47,7 @@ var server = builder.AddProject<Projects.Feuerwehr_Server>("server")
 
 if (builder.ExecutionContext.IsRunMode)
 {
-    var mailpit = builder.AddMailPit("mail");
+    IResourceBuilder<MailPitContainerResource> mailpit = builder.AddMailPit("mail");
     server.WithReference(mailpit)
         .WaitFor(mailpit)
         // Override inherited provider settings: local debugging always delivers to Mailpit.
@@ -70,7 +72,7 @@ else
         .WithEnvironment("MAIL_TIMEOUT_SECONDS", builder.AddParameter("mail-timeout-seconds", builder.Configuration["MAIL_TIMEOUT_SECONDS"] ?? "30", publishValueAsDefault: true));
 }
 
-var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
+IResourceBuilder<JavaScriptAppResource> webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithHttpEndpoint(port: 54321, env: "PORT")
     .WithExternalHttpEndpoints()
     .WithReference(server)
@@ -91,7 +93,7 @@ server.PublishWithContainerFiles(webfrontend, "wwwroot");
 diagnostics.Record("AppHost.Build.Start");
 try
 {
-    var app = builder.Build();
+    DistributedApplication app = builder.Build();
     diagnostics.Record("AppHost.Run.Start");
     app.Run();
 }

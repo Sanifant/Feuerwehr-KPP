@@ -1,11 +1,12 @@
-namespace De.Openelp.Feuerwehr.Common.Models.Dto;
-
-public class FireDepartmentTrainingCourseDto
+namespace De.Openelp.Feuerwehr.Common.Models.Dto
 {
-    public int TrainingCourseId { get; set; }
+    public class FireDepartmentTrainingCourseDto
+    {
+        public int TrainingCourseId { get; set; }
 
-    public string TrainingCourseTitle { get; set; } = string.Empty;
+        public string TrainingCourseTitle { get; set; } = string.Empty;
 
-    public int AssignedSeats { get; set; }
+        public int AssignedSeats { get; set; }
+    }
+
 }
-

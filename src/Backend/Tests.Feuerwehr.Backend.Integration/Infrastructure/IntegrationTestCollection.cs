@@ -1,7 +1,8 @@
-namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
-
-[CollectionDefinition(Name, DisableParallelization = true)]
-public sealed class IntegrationTestCollection : ICollectionFixture<IntegrationTestFixture>
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
 {
-    public const string Name = "BackendIntegration";
+    [CollectionDefinition(Name, DisableParallelization = true)]
+    public sealed class IntegrationTestCollection : ICollectionFixture<IntegrationTestFixture>
+    {
+        public const string Name = "BackendIntegration";
+    }
 }

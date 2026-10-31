@@ -1,8 +1,8 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using De.Openelp.Feuerwehr.App.ViewModels;
-using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace De.Openelp.Feuerwehr.App
 {
@@ -23,8 +23,8 @@ namespace De.Openelp.Feuerwehr.App
             if (param is null)
                 return null;
 
-            var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-            var type = Type.GetType(name);
+            string name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
+            Type? type = Type.GetType(name);
 
             if (type != null)
             {

@@ -1,8 +1,8 @@
+using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using De.Openelp.Feuerwehr.App.Services;
-using System;
-using System.Threading.Tasks;
 
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {
@@ -46,7 +46,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
             try
             {
-                var success = await _authService.LoginAsync(Email, Password);
+                bool success = await _authService.LoginAsync(Email, Password);
 
                 if (success)
                 {

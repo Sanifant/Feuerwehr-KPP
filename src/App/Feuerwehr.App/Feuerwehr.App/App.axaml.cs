@@ -1,4 +1,8 @@
-﻿using Avalonia;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
@@ -9,10 +13,6 @@ using De.Openelp.Feuerwehr.App.ViewModels;
 using De.Openelp.Feuerwehr.App.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 
 namespace De.Openelp.Feuerwehr.App
 {
@@ -41,9 +41,9 @@ namespace De.Openelp.Feuerwehr.App
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var authService = Services.GetRequiredService<IAuthService>();
-                var mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
-                var loginViewModelFactory = new Func<LoginViewModel>(() => Services.GetRequiredService<LoginViewModel>());
+                IAuthService authService = Services.GetRequiredService<IAuthService>();
+                Func<MainViewModel> mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
+                Func<LoginViewModel> loginViewModelFactory = new Func<LoginViewModel>(() => Services.GetRequiredService<LoginViewModel>());
 
                 desktop.MainWindow = new MainWindow(authService, mainViewModelFactory, loginViewModelFactory);
             }
@@ -53,7 +53,7 @@ namespace De.Openelp.Feuerwehr.App
             }
             else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
-                var authService = Services.GetRequiredService<IAuthService>();
+                IAuthService authService = Services.GetRequiredService<IAuthService>();
                 // For single view platforms, check auth state
                 if (authService.IsAuthenticated)
                 {
@@ -76,8 +76,8 @@ namespace De.Openelp.Feuerwehr.App
 
         private Control CreateActivityView()
         {
-            var root = new ContentControl();
-            var authService = Services.GetRequiredService<IAuthService>();
+            ContentControl root = new ContentControl();
+            IAuthService authService = Services.GetRequiredService<IAuthService>();
 
             void ShowMainView()
             {
@@ -96,7 +96,7 @@ namespace De.Openelp.Feuerwehr.App
                 return root;
             }
 
-            var loginViewModel = Services.GetRequiredService<LoginViewModel>();
+            LoginViewModel loginViewModel = Services.GetRequiredService<LoginViewModel>();
 
             EventHandler? handler = null;
 
@@ -143,7 +143,7 @@ namespace De.Openelp.Feuerwehr.App
             collection.AddScoped<ISituationMapService, SituationMapService>();
             collection.AddScoped<IInventoryService, InventoryService>();
 
-            var baseUrl = Environment.GetEnvironmentVariable("webapi")
+            string? baseUrl = Environment.GetEnvironmentVariable("webapi")
                 ?? Environment.GetEnvironmentVariable("services__server__https__0")
                 ?? Environment.GetEnvironmentVariable("services__server__http__0");
             // Explicit override takes precedence over Aspire's server endpoint references.

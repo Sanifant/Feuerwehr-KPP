@@ -1,10 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace De.Openelp.Feuerwehr.App.Services;
-
-public interface IBarcodeScanner
+namespace De.Openelp.Feuerwehr.App.Services
 {
-    bool IsSupported { get; }
-    Task<string?> ScanAsync(CancellationToken cancellationToken);
+    public interface IBarcodeScanner
+    {
+        bool IsSupported { get; }
+        Task<string?> ScanAsync(CancellationToken cancellationToken);
+    }
 }

@@ -3,57 +3,58 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace De.Openelp.Feuerwehr.Server.Hubs;
-
-[Authorize]
-public sealed class IncidentHub : Hub<IIncidentClient>
+namespace De.Openelp.Feuerwehr.Server.Hubs
 {
-    /// <summary>
-    /// Executes subscribe Incident.
-    /// </summary>
-    /// <param name="incidentId">The incident Id.</param>
-    public async Task SubscribeIncident(string incidentId)
+    [Authorize]
+    public sealed class IncidentHub : Hub<IIncidentClient>
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"incident:{incidentId}");
-    }
-
-    /// <summary>
-    /// Executes subscribe Map.
-    /// </summary>
-    /// <param name="incidentId">The incident Id.</param>
-    public async Task SubscribeMap(string incidentId)
-    {
-        if (!CanViewMap())
+        /// <summary>
+        /// Executes subscribe Incident.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        public async Task SubscribeIncident(string incidentId)
         {
-            throw new HubException("Keine Berechtigung für Lagekarte.");
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"incident:{incidentId}");
         }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{incidentId}");
-    }
-
-    /// <summary>
-    /// Executes subscribe Diary.
-    /// </summary>
-    /// <param name="incidentId">The incident Id.</param>
-    public async Task SubscribeDiary(string incidentId)
-    {
-        if (!CanViewDiary())
+        /// <summary>
+        /// Executes subscribe Map.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        public async Task SubscribeMap(string incidentId)
         {
-            throw new HubException("Keine Berechtigung für Einsatztagebuch.");
+            if (!CanViewMap())
+            {
+                throw new HubException("Keine Berechtigung für Lagekarte.");
+            }
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{incidentId}");
         }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"diary:{incidentId}");
-    }
+        /// <summary>
+        /// Executes subscribe Diary.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        public async Task SubscribeDiary(string incidentId)
+        {
+            if (!CanViewDiary())
+            {
+                throw new HubException("Keine Berechtigung für Einsatztagebuch.");
+            }
 
-    private bool CanViewMap()
-    {
-        var roles = Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
-        return roles.Contains("SituationMapViewer") || roles.Contains("SituationMapEditor");
-    }
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"diary:{incidentId}");
+        }
 
-    private bool CanViewDiary()
-    {
-        var roles = Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
-        return roles.Contains("IncidentDiaryViewer") || roles.Contains("IncidentDiaryEditor");
+        private bool CanViewMap()
+        {
+            HashSet<string> roles = Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            return roles.Contains("SituationMapViewer") || roles.Contains("SituationMapEditor");
+        }
+
+        private bool CanViewDiary()
+        {
+            HashSet<string> roles = Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            return roles.Contains("IncidentDiaryViewer") || roles.Contains("IncidentDiaryEditor");
+        }
     }
 }

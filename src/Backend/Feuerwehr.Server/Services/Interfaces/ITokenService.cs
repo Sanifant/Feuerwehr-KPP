@@ -1,10 +1,10 @@
-using De.Openelp.Feuerwehr.Server.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using De.Openelp.Feuerwehr.Server.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {

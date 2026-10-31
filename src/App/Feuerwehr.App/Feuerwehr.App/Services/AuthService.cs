@@ -7,209 +7,210 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using De.Openelp.Feuerwehr.Common.Models.Auth;
 
-namespace De.Openelp.Feuerwehr.App.Services;
-
-public class AuthService : IAuthService
+namespace De.Openelp.Feuerwehr.App.Services
 {
-    private const string AccessTokenKey = "access_token";
-    private const string RefreshTokenKey = "refresh_token";
-
-    private const string emailClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
-
-    private const string nameClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
-
-    private const string roleClaim = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
-
-    private readonly HttpClient _httpClient;
-    private readonly ISecureStorage _secureStorage;
-    private readonly JwtSecurityTokenHandler _jwtHandler = new();
-
-    private string? _accessToken;
-    private string? _refreshToken;
-    private JwtSecurityToken? _decodedToken;
-
-    public bool IsAuthenticated => _decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow;
-
-    public string? UserEmail => _decodedToken?.Claims.FirstOrDefault(c => c.Type == emailClaim)?.Value;
-
-    public string? UserFullName => _decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
-
-    public IReadOnlyList<string> UserRoles
+    public class AuthService : IAuthService
     {
-        get
+        private const string AccessTokenKey = "access_token";
+        private const string RefreshTokenKey = "refresh_token";
+
+        private const string emailClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
+
+        private const string nameClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
+
+        private const string roleClaim = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
+        private readonly HttpClient _httpClient;
+        private readonly ISecureStorage _secureStorage;
+        private readonly JwtSecurityTokenHandler _jwtHandler = new();
+
+        private string? _accessToken;
+        private string? _refreshToken;
+        private JwtSecurityToken? _decodedToken;
+
+        public bool IsAuthenticated => _decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow;
+
+        public string? UserEmail => _decodedToken?.Claims.FirstOrDefault(c => c.Type == emailClaim)?.Value;
+
+        public string? UserFullName => _decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
+
+        public IReadOnlyList<string> UserRoles
         {
-            if (_decodedToken == null) return Array.Empty<string>();
-            return _decodedToken.Claims
-                .Where(c => c.Type == roleClaim)
-                .Select(c => c.Value)
-                .ToList();
-        }
-    }
-
-    public event EventHandler? AuthStateChanged;
-
-    public AuthService(HttpClient httpClient, ISecureStorage secureStorage)
-    {
-        _httpClient = httpClient;
-        _secureStorage = secureStorage;
-
-        // Load tokens on startup
-        _ = LoadStoredTokensAsync();
-    }
-
-    /// <summary>
-    /// Executes login.
-    /// </summary>
-    /// <param name="email">The email.</param>
-    /// <param name="password">The password.</param>
-    public async Task<bool> LoginAsync(string email, string password)
-    {
-        try
-        {
-            var request = new LoginRequest { Email = email, Password = password };
-            var response = await _httpClient.PostAsJsonAsync("/api/Auth/login", request);
-
-            if (!response.IsSuccessStatusCode)
-                return false;
-
-            var authResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (authResponse == null)
-                return false;
-
-            await StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Executes logout.
-    /// </summary>
-    public async Task LogoutAsync()
-    {
-        try
-        {
-            // Try to notify server (optional, may fail if offline)
-            if (!string.IsNullOrEmpty(_accessToken))
+            get
             {
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
-                await _httpClient.PostAsync("/api/Auth/logout", null);
+                if (_decodedToken == null) return Array.Empty<string>();
+                return _decodedToken.Claims
+                    .Where(c => c.Type == roleClaim)
+                    .Select(c => c.Value)
+                    .ToList();
             }
         }
-        catch
+
+        public event EventHandler? AuthStateChanged;
+
+        public AuthService(HttpClient httpClient, ISecureStorage secureStorage)
         {
-            // Ignore errors during logout
+            _httpClient = httpClient;
+            _secureStorage = secureStorage;
+
+            // Load tokens on startup
+            _ = LoadStoredTokensAsync();
         }
-        finally
+
+        /// <summary>
+        /// Executes login.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        /// <param name="password">The password.</param>
+        public async Task<bool> LoginAsync(string email, string password)
         {
-            await ClearTokensAsync();
+            try
+            {
+                LoginRequest request = new LoginRequest { Email = email, Password = password };
+                HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/Auth/login", request);
+
+                if (!response.IsSuccessStatusCode)
+                    return false;
+
+                LoginResponse? authResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (authResponse == null)
+                    return false;
+
+                await StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Executes refresh Token.
-    /// </summary>
-    public async Task<bool> RefreshTokenAsync()
-    {
-        if (string.IsNullOrEmpty(_refreshToken))
-            return false;
-
-        try
+        /// <summary>
+        /// Executes logout.
+        /// </summary>
+        public async Task LogoutAsync()
         {
-            var request = new RefreshTokenRequest { RefreshToken = _refreshToken };
-            var response = await _httpClient.PostAsJsonAsync("/api/Auth/refresh", request);
+            try
+            {
+                // Try to notify server (optional, may fail if offline)
+                if (!string.IsNullOrEmpty(_accessToken))
+                {
+                    _httpClient.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
+                    await _httpClient.PostAsync("/api/Auth/logout", null);
+                }
+            }
+            catch
+            {
+                // Ignore errors during logout
+            }
+            finally
+            {
+                await ClearTokensAsync();
+            }
+        }
 
-            if (!response.IsSuccessStatusCode)
+        /// <summary>
+        /// Executes refresh Token.
+        /// </summary>
+        public async Task<bool> RefreshTokenAsync()
+        {
+            if (string.IsNullOrEmpty(_refreshToken))
+                return false;
+
+            try
+            {
+                RefreshTokenRequest request = new RefreshTokenRequest { RefreshToken = _refreshToken };
+                HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/Auth/refresh", request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    await ClearTokensAsync();
+                    return false;
+                }
+
+                LoginResponse? authResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (authResponse == null)
+                    return false;
+
+                await StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
+                return true;
+            }
+            catch
             {
                 await ClearTokensAsync();
                 return false;
             }
-
-            var authResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (authResponse == null)
-                return false;
-
-            await StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
-            return true;
-        }
-        catch
-        {
-            await ClearTokensAsync();
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Gets the access Token.
-    /// </summary>
-    public async Task<string?> GetAccessTokenAsync()
-    {
-        // Check if token is still valid
-        if (_decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow.AddMinutes(1))
-        {
-            return _accessToken;
         }
 
-        // Try to refresh
-        if (await RefreshTokenAsync())
+        /// <summary>
+        /// Gets the access Token.
+        /// </summary>
+        public async Task<string?> GetAccessTokenAsync()
         {
-            return _accessToken;
-        }
-
-        return null;
-    }
-
-    private async Task StoreTokensAsync(string accessToken, string refreshToken)
-    {
-        _accessToken = accessToken;
-        _refreshToken = refreshToken;
-        _decodedToken = _jwtHandler.ReadJwtToken(accessToken);
-
-        await _secureStorage.SetAsync(AccessTokenKey, accessToken);
-        await _secureStorage.SetAsync(RefreshTokenKey, refreshToken);
-
-        AuthStateChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    private async Task ClearTokensAsync()
-    {
-        _accessToken = null;
-        _refreshToken = null;
-        _decodedToken = null;
-
-        await _secureStorage.RemoveAsync(AccessTokenKey);
-        await _secureStorage.RemoveAsync(RefreshTokenKey);
-
-        AuthStateChanged?.Invoke(this, EventArgs.Empty);
-    }
-
-    private async Task LoadStoredTokensAsync()
-    {
-        try
-        {
-            _accessToken = await _secureStorage.GetAsync(AccessTokenKey);
-            _refreshToken = await _secureStorage.GetAsync(RefreshTokenKey);
-
-            if (!string.IsNullOrEmpty(_accessToken))
+            // Check if token is still valid
+            if (_decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow.AddMinutes(1))
             {
-                _decodedToken = _jwtHandler.ReadJwtToken(_accessToken);
+                return _accessToken;
+            }
 
-                // If token is expired, try to refresh
-                if (_decodedToken.ValidTo <= DateTime.UtcNow)
+            // Try to refresh
+            if (await RefreshTokenAsync())
+            {
+                return _accessToken;
+            }
+
+            return null;
+        }
+
+        private async Task StoreTokensAsync(string accessToken, string refreshToken)
+        {
+            _accessToken = accessToken;
+            _refreshToken = refreshToken;
+            _decodedToken = _jwtHandler.ReadJwtToken(accessToken);
+
+            await _secureStorage.SetAsync(AccessTokenKey, accessToken);
+            await _secureStorage.SetAsync(RefreshTokenKey, refreshToken);
+
+            AuthStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private async Task ClearTokensAsync()
+        {
+            _accessToken = null;
+            _refreshToken = null;
+            _decodedToken = null;
+
+            await _secureStorage.RemoveAsync(AccessTokenKey);
+            await _secureStorage.RemoveAsync(RefreshTokenKey);
+
+            AuthStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private async Task LoadStoredTokensAsync()
+        {
+            try
+            {
+                _accessToken = await _secureStorage.GetAsync(AccessTokenKey);
+                _refreshToken = await _secureStorage.GetAsync(RefreshTokenKey);
+
+                if (!string.IsNullOrEmpty(_accessToken))
                 {
-                    await RefreshTokenAsync();
+                    _decodedToken = _jwtHandler.ReadJwtToken(_accessToken);
+
+                    // If token is expired, try to refresh
+                    if (_decodedToken.ValidTo <= DateTime.UtcNow)
+                    {
+                        await RefreshTokenAsync();
+                    }
                 }
             }
-        }
-        catch
-        {
-            // Failed to load tokens, clear everything
-            await ClearTokensAsync();
+            catch
+            {
+                // Failed to load tokens, clear everything
+                await ClearTokensAsync();
+            }
         }
     }
-}
 
+}

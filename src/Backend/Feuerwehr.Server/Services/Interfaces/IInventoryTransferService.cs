@@ -8,10 +8,11 @@ using De.Openelp.Feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace De.Openelp.Feuerwehr.Server.Services;
-
-public interface IInventoryTransferService
+namespace De.Openelp.Feuerwehr.Server.Services
 {
-    Task<ServiceResult> Export(InventoryTransferKind kind, CancellationToken ct);
-    Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct);
+    public interface IInventoryTransferService
+    {
+        Task<ServiceResult> Export(InventoryTransferKind kind, CancellationToken ct);
+        Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct);
+    }
 }

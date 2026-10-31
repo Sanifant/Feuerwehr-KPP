@@ -7,9 +7,10 @@ using De.Openelp.Feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace De.Openelp.Feuerwehr.Server.Services;
-
-public interface IInventoryReminderService
+namespace De.Openelp.Feuerwehr.Server.Services
 {
-    Task SendDueReminders(CancellationToken ct);
+    public interface IInventoryReminderService
+    {
+        Task SendDueReminders(CancellationToken ct);
+    }
 }

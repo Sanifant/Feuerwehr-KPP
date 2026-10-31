@@ -4,19 +4,20 @@ using Avalonia.Markup.Xaml;
 using De.Openelp.Feuerwehr.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace De.Openelp.Feuerwehr.App;
-
-public partial class LoginView : ContentPage
+namespace De.Openelp.Feuerwehr.App
 {
-    public LoginView()
+    public partial class LoginView : ContentPage
     {
-        InitializeComponent();
-
-        ViewModelBase vm = App.Services.GetService<LoginViewModel>();
-        if (vm is null)
+        public LoginView()
         {
-            throw new System.InvalidOperationException($"{nameof(LoginViewModel)} is not registered in the application service provider.");
+            InitializeComponent();
+
+            ViewModelBase vm = App.Services.GetService<LoginViewModel>();
+            if (vm is null)
+            {
+                throw new System.InvalidOperationException($"{nameof(LoginViewModel)} is not registered in the application service provider.");
+            }
+            DataContext = vm;
         }
-        DataContext = vm;
     }
 }

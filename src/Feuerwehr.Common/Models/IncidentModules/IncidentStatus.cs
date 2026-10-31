@@ -1,7 +1,8 @@
-namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-
-public enum IncidentStatus
+namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules
 {
-    Active = 1,
-    Closed = 2,
+    public enum IncidentStatus
+    {
+        Active = 1,
+        Closed = 2,
+    }
 }

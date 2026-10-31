@@ -1,12 +1,13 @@
 using De.Openelp.Feuerwehr.Common.Models.Vehicles;
 
-namespace De.Openelp.Feuerwehr.Server.Models.Vehicles;
-
-public sealed class VehicleType
+namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = "";
-    public string NormalizedName { get; set; } = "";
-    public bool IsActive { get; set; } = true;
-    public int Version { get; set; } = 1;
+    public sealed class VehicleType
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string NormalizedName { get; set; } = "";
+        public bool IsActive { get; set; } = true;
+        public int Version { get; set; } = 1;
+    }
 }

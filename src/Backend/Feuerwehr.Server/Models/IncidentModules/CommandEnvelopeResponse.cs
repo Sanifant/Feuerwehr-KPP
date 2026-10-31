@@ -1,9 +1,10 @@
-namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules;
-
-public class CommandEnvelopeResponse
+namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules
 {
-    public int StatusCode { get; set; }
+    public class CommandEnvelopeResponse
+    {
+        public int StatusCode { get; set; }
 
-    public string JsonPayload { get; set; } = "{}";
+        public string JsonPayload { get; set; } = "{}";
+    }
+
 }
-

@@ -4,43 +4,44 @@ using System.Net.Http.Json;
 using De.Openelp.Feuerwehr.Common.Models.Dto;
 using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Integration;
-
-[Collection(IntegrationTestCollection.Name)]
-/// <summary>
-/// Executes users Integration Tests.
-/// </summary>
-/// <param name="fixture">The fixture.</param>
-public sealed class UsersIntegrationTests(IntegrationTestFixture fixture)
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Fact]
+    [Collection(IntegrationTestCollection.Name)]
     /// <summary>
-    /// Gets the all Users Without Token Returns Unauthorized.
+    /// Executes users Integration Tests.
     /// </summary>
-    public async Task GetAllUsers_WithoutToken_ReturnsUnauthorized()
+    /// <param name="fixture">The fixture.</param>
+    public sealed class UsersIntegrationTests(IntegrationTestFixture fixture)
     {
-        fixture.Client.DefaultRequestHeaders.Authorization = null;
+        [Fact]
+        /// <summary>
+        /// Gets the all Users Without Token Returns Unauthorized.
+        /// </summary>
+        public async Task GetAllUsers_WithoutToken_ReturnsUnauthorized()
+        {
+            fixture.Client.DefaultRequestHeaders.Authorization = null;
 
-        var response = await fixture.Client.GetAsync("/api/users");
+            HttpResponseMessage response = await fixture.Client.GetAsync("/api/users");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
 
-    [Fact]
-    /// <summary>
-    /// Gets the all Users With Admin Token Returns Users.
-    /// </summary>
-    public async Task GetAllUsers_WithAdminToken_ReturnsUsers()
-    {
-        var token = await fixture.LoginAsAdminAndGetAccessTokenAsync();
-        fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        [Fact]
+        /// <summary>
+        /// Gets the all Users With Admin Token Returns Users.
+        /// </summary>
+        public async Task GetAllUsers_WithAdminToken_ReturnsUsers()
+        {
+            string token = await fixture.LoginAsAdminAndGetAccessTokenAsync();
+            fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await fixture.Client.GetAsync("/api/users");
+            HttpResponseMessage response = await fixture.Client.GetAsync("/api/users");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var users = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<UserSummaryDto>>();
-        Assert.NotNull(users);
-        Assert.NotEmpty(users);
-        Assert.Contains(users, user => string.Equals(user.Email, IntegrationTestFixture.SeedAdminEmail, StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            IReadOnlyCollection<UserSummaryDto>? users = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<UserSummaryDto>>();
+            Assert.NotNull(users);
+            Assert.NotEmpty(users);
+            Assert.Contains(users, user => string.Equals(user.Email, IntegrationTestFixture.SeedAdminEmail, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

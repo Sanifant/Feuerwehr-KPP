@@ -68,6 +68,9 @@
 - Fuer alle Aenderungen im Repository ist die `.editorconfig` im Repository-Root verbindlich.
 - Formatierung, Einrueckung, Zeilenenden und C#-Code-Style sind nach `.editorconfig` umzusetzen.
 - Bei Konflikten mit Standard-Tooling oder persoenlichen Defaults hat `.editorconfig` Vorrang.
+- C#: Immer explizite Typen statt `var` verwenden (IDE0008, in `.editorconfig` als Warnung erzwungen). Ausnahme: anonyme Typen, bei denen `var` technisch erforderlich ist.
+- C#: Namespaces immer block-scoped (`namespace X { ... }`), keine file-scoped Namespaces (IDE0160).
+- C#: Pro Datei genau ein Typ (Klasse, Record, Enum); Interfaces liegen in einem Unterordner `Interfaces`.
 
 ## Konfiguration und Integrationen
 - API-Konfiguration: `src/Backend/Feuerwehr.Server/appsettings.json` und `appsettings.Development.json`.

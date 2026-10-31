@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -68,14 +69,14 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             {
                 if (task.IsCompletedSuccessfully)
                 {
-                    var hydrants = task.Result.Select(h => new HydrantPin
+                    List<HydrantPin> hydrants = task.Result.Select(h => new HydrantPin
                     {
                         Diameter = h.DiameterDescription,
                         Latitude = h.Latitude,
                         Longitude = h.Longitude
                     }).ToList();
 
-                    var layers = HydrantLayer(hydrants);
+                    IEnumerable<ILayer> layers = HydrantLayer(hydrants);
 
                     Map.Layers.Add(layers);
                 }
@@ -120,8 +121,8 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             if (location != null)
             {
 
-                var startPoint = new MPoint(location.Longitude, location.Latitude);
-                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 Map?.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
                 zoomFactor = 10;
                 Map?.Navigator.ZoomTo(zoomFactor);
@@ -140,7 +141,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             if (location != null)
             {
                 IsAddVisible = true;
-                var startPoint = new MPoint(location.Longitude, location.Latitude);
+                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
 
                 NewHydrant = new Hydrant
                 {
@@ -156,7 +157,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         {
             try
             {
-                var location = await gpsService.GetCurrentLocationAsync(cancellationToken);
+                GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
                 return cancellationToken.IsCancellationRequested ? null : location;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -188,15 +189,15 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 return;
             }
 
-            var layer = Map.Layers.FirstOrDefault(l => l.Name == "Hydrants");
+            ILayer? layer = Map.Layers.FirstOrDefault(l => l.Name == "Hydrants");
             if (layer is null)
             {
                 IsFlyoutOpen = false;
                 return;
             }
 
-            var tapPosition = mapEventArgs.GetPosition(mapControl);
-            var mapInfo = mapControl.GetMapInfo(new ScreenPosition(tapPosition.X, tapPosition.Y), new[] { layer });
+            Point tapPosition = mapEventArgs.GetPosition(mapControl);
+            MapInfo mapInfo = mapControl.GetMapInfo(new ScreenPosition(tapPosition.X, tapPosition.Y), new[] { layer });
 
             if (mapInfo?.Feature is PointFeature clickedFeature && clickedFeature["Model"] is HydrantPin hydrantPin)
             {
@@ -226,17 +227,17 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         {
             GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            var map = Map;
+            Map? map = Map;
 
             if (location != null && map != null)
             {
 
-                var startPoint = new MPoint(location.Longitude, location.Latitude);
-                var spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
+                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // --- 2. Einen Pin (Marker) hinzufügen
-                var pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+                PointFeature pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // Stylen des Pins (z.B. ein roter Punkt)
                 pinFeature.Styles.Add(new SymbolStyle
@@ -246,12 +247,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 });
 
                 // Layer für den Pin erstellen und der Karte hinzufügen
-                var memoryLayer = new MemoryLayer
+                MemoryLayer memoryLayer = new MemoryLayer
                 {
                     Name = "Pins",
                     Features = new List<IFeature> { pinFeature }
                 };
-                var previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
+                ILayer? previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
                 if (previousPins != null)
                     map.Layers.Remove(previousPins);
                 map.Layers.Add(memoryLayer);
@@ -260,12 +261,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         private IEnumerable<ILayer> HydrantLayer(List<HydrantPin> hydrants)
         {
-            var hydrantFeatures = new List<PointFeature>();
+            List<PointFeature> hydrantFeatures = new List<PointFeature>();
 
-            foreach (var hydrant in hydrants)
+            foreach (HydrantPin hydrant in hydrants)
             {
-                var mercatorCordinate = SphericalMercator.FromLonLat(hydrant.Longitude, hydrant.Latitude);
-                var hydrantFeature = new PointFeature(mercatorCordinate);
+                (double x, double y) mercatorCordinate = SphericalMercator.FromLonLat(hydrant.Longitude, hydrant.Latitude);
+                PointFeature hydrantFeature = new PointFeature(mercatorCordinate);
 
                 hydrantFeature["Model"] = hydrant;
 
@@ -279,7 +280,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 hydrantFeatures.Add(hydrantFeature);
             }
 
-            var hydrantLayer = new MemoryLayer
+            MemoryLayer hydrantLayer = new MemoryLayer
             {
                 Name = "Hydrants",
                 Features = hydrantFeatures

@@ -1,8 +1,9 @@
-namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-
-public enum DiaryRevisionType
+namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules
 {
-    Created = 1,
-    Edited = 2,
-    Canceled = 3,
+    public enum DiaryRevisionType
+    {
+        Created = 1,
+        Edited = 2,
+        Canceled = 3,
+    }
 }

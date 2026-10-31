@@ -1,15 +1,16 @@
-namespace De.Openelp.Feuerwehr.Common.Models.Dto;
-
-public class FireDepartmentDto
+namespace De.Openelp.Feuerwehr.Common.Models.Dto
 {
-    public int Id { get; set; }
+    public class FireDepartmentDto
+    {
+        public int Id { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
-    public string? ContactPersonName { get; set; }
+        public string? ContactPersonName { get; set; }
 
-    public string? ContactPersonEmail { get; set; }
+        public string? ContactPersonEmail { get; set; }
 
-    public ICollection<FireDepartmentTrainingCourseDto> TrainingCourses { get; set; } = new List<FireDepartmentTrainingCourseDto>();
+        public ICollection<FireDepartmentTrainingCourseDto> TrainingCourses { get; set; } = new List<FireDepartmentTrainingCourseDto>();
+    }
+
 }
-

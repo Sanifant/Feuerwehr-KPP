@@ -1,7 +1,7 @@
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +15,11 @@ namespace De.Openelp.Feuerwehr.Server.Data
         /// <param name="serviceProvider">The service Provider.</param>
         public static async Task SeedDataAsync(IServiceProvider serviceProvider)
         {
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var dbContext = serviceProvider.GetRequiredService<FeuerwehrDbContext>();
-            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            RoleManager<IdentityRole> roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            UserManager<ApplicationUser> userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            FeuerwehrDbContext dbContext = serviceProvider.GetRequiredService<FeuerwehrDbContext>();
+            ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+            IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
             try
             {
@@ -41,11 +41,11 @@ namespace De.Openelp.Feuerwehr.Server.Data
         {
             logger.LogInformation("Seeding roles...");
 
-            foreach (var roleName in Roles.AllRoles)
+            foreach (string roleName in Roles.AllRoles)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+                    IdentityResult result = await roleManager.CreateAsync(new IdentityRole(roleName));
                     if (result.Succeeded)
                     {
                         logger.LogInformation($"Role '{roleName}' created successfully");
@@ -76,7 +76,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
 
             foreach (var cat in defaults)
             {
-                var existing = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == cat.Code);
+                DiaryCategory? existing = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == cat.Code);
                 if (existing is null)
                 {
                     dbContext.DiaryCategories.Add(new DiaryCategory
@@ -100,16 +100,16 @@ namespace De.Openelp.Feuerwehr.Server.Data
         {
             logger.LogInformation("Seeding default admin user...");
 
-            var adminEmail = configuration["SeedAdmin:Email"]?.Trim();
+            string? adminEmail = configuration["SeedAdmin:Email"]?.Trim();
             if (string.IsNullOrWhiteSpace(adminEmail))
             {
                 adminEmail = "admin@feuerwehr.local";
             }
 
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            ApplicationUser? adminUser = await userManager.FindByEmailAsync(adminEmail);
             if (adminUser == null)
             {
-                var adminPassword = configuration["SeedAdmin:Password"];
+                string? adminPassword = configuration["SeedAdmin:Password"];
                 if (string.IsNullOrWhiteSpace(adminPassword))
                 {
                     throw new InvalidOperationException(
@@ -127,7 +127,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await userManager.CreateAsync(adminUser, adminPassword);
+                IdentityResult result = await userManager.CreateAsync(adminUser, adminPassword);
                 if (!result.Succeeded)
                 {
                     throw new InvalidOperationException(
@@ -141,11 +141,11 @@ namespace De.Openelp.Feuerwehr.Server.Data
                 logger.LogInformation("Admin user already exists: {AdminEmail}", adminEmail);
             }
 
-            foreach (var role in new[] { Roles.Admin, Roles.IncidentDiaryEditor, Roles.SituationMapEditor })
+            foreach (string? role in new[] { Roles.Admin, Roles.IncidentDiaryEditor, Roles.SituationMapEditor })
             {
                 if (!await userManager.IsInRoleAsync(adminUser, role))
                 {
-                    var result = await userManager.AddToRoleAsync(adminUser, role);
+                    IdentityResult result = await userManager.AddToRoleAsync(adminUser, role);
                     if (!result.Succeeded)
                     {
                         throw new InvalidOperationException(

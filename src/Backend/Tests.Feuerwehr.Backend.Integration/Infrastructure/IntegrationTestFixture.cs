@@ -3,87 +3,88 @@ using De.Openelp.Feuerwehr.Common.Models.Auth;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
-
-public sealed class IntegrationTestFixture : IAsyncLifetime
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
 {
-    public const string SeedAdminEmail = "integration-admin@feuerwehr.local";
-    public const string SeedAdminPassword = "IntegrationAdmin123";
-
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
-        .WithDatabase("postgresdb")
-        .WithUsername("postgres")
-        .WithPassword("postgres")
-        .Build();
-
-    private readonly RedisContainer _redis = new RedisBuilder("redis:7-alpine")
-        .Build();
-
-    private ApiWebApplicationFactory? _factory;
-
-    public HttpClient Client { get; private set; } = default!;
-
-    /// <summary>
-    /// Initializes the operation.
-    /// </summary>
-    public async Task InitializeAsync()
+    public sealed class IntegrationTestFixture : IAsyncLifetime
     {
-        await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
+        public const string SeedAdminEmail = "integration-admin@feuerwehr.local";
+        public const string SeedAdminPassword = "IntegrationAdmin123";
 
-        Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", _postgres.GetConnectionString());
-        Environment.SetEnvironmentVariable("ConnectionStrings__cache", _redis.GetConnectionString());
-        Environment.SetEnvironmentVariable("SeedAdmin__Email", SeedAdminEmail);
-        Environment.SetEnvironmentVariable("SeedAdmin__Password", SeedAdminPassword);
-        Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!");
+        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
+            .WithDatabase("postgresdb")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .Build();
 
-        _factory = new ApiWebApplicationFactory(
-            _postgres.GetConnectionString(),
-            _redis.GetConnectionString(),
-            SeedAdminEmail,
-            SeedAdminPassword);
+        private readonly RedisContainer _redis = new RedisBuilder("redis:7-alpine")
+            .Build();
 
-        Client = _factory.CreateClient(new()
+        private ApiWebApplicationFactory? _factory;
+
+        public HttpClient Client { get; private set; } = default!;
+
+        /// <summary>
+        /// Initializes the operation.
+        /// </summary>
+        public async Task InitializeAsync()
         {
-            AllowAutoRedirect = false,
-        });
-    }
+            await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
 
-    /// <summary>
-    /// Executes login As Admin And Get Access Token.
-    /// </summary>
-    public async Task<string> LoginAsAdminAndGetAccessTokenAsync()
-    {
-        var response = await Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
-        {
-            Email = SeedAdminEmail,
-            Password = SeedAdminPassword,
-        });
+            Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", _postgres.GetConnectionString());
+            Environment.SetEnvironmentVariable("ConnectionStrings__cache", _redis.GetConnectionString());
+            Environment.SetEnvironmentVariable("SeedAdmin__Email", SeedAdminEmail);
+            Environment.SetEnvironmentVariable("SeedAdmin__Password", SeedAdminPassword);
+            Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!");
 
-        response.EnsureSuccessStatusCode();
-        var login = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        return login?.AccessToken ?? throw new InvalidOperationException("Login response did not contain an access token.");
-    }
+            _factory = new ApiWebApplicationFactory(
+                _postgres.GetConnectionString(),
+                _redis.GetConnectionString(),
+                SeedAdminEmail,
+                SeedAdminPassword);
 
-    /// <summary>
-    /// Executes dispose.
-    /// </summary>
-    public async Task DisposeAsync()
-    {
-        Client.Dispose();
-
-        if (_factory is not null)
-        {
-            await _factory.DisposeAsync();
+            Client = _factory.CreateClient(new()
+            {
+                AllowAutoRedirect = false,
+            });
         }
 
-        Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", null);
-        Environment.SetEnvironmentVariable("ConnectionStrings__cache", null);
-        Environment.SetEnvironmentVariable("SeedAdmin__Email", null);
-        Environment.SetEnvironmentVariable("SeedAdmin__Password", null);
-        Environment.SetEnvironmentVariable("JwtSettings__SecretKey", null);
+        /// <summary>
+        /// Executes login As Admin And Get Access Token.
+        /// </summary>
+        public async Task<string> LoginAsAdminAndGetAccessTokenAsync()
+        {
+            HttpResponseMessage response = await Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+            {
+                Email = SeedAdminEmail,
+                Password = SeedAdminPassword,
+            });
 
-        await _redis.DisposeAsync();
-        await _postgres.DisposeAsync();
+            response.EnsureSuccessStatusCode();
+            LoginResponse? login = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            return login?.AccessToken ?? throw new InvalidOperationException("Login response did not contain an access token.");
+        }
+
+        /// <summary>
+        /// Executes dispose.
+        /// </summary>
+        public async Task DisposeAsync()
+        {
+            Client.Dispose();
+
+            if (_factory is not null)
+            {
+                await _factory.DisposeAsync();
+            }
+
+            Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", null);
+            Environment.SetEnvironmentVariable("ConnectionStrings__cache", null);
+            Environment.SetEnvironmentVariable("SeedAdmin__Email", null);
+            Environment.SetEnvironmentVariable("SeedAdmin__Password", null);
+            Environment.SetEnvironmentVariable("JwtSettings__SecretKey", null);
+
+            await _redis.DisposeAsync();
+            await _postgres.DisposeAsync();
+        }
     }
-}
 
+}

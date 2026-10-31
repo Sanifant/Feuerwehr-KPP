@@ -4,55 +4,56 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using ClientApp = De.Openelp.Feuerwehr.App.App;
 
-namespace De.Openelp.Feuerwehr.Tests.App;
-
-public class GpsServiceRegistrationTests
+namespace De.Openelp.Feuerwehr.Tests.App
 {
-    [Fact]
-    /// <summary>
-    /// Executes default Registration Does Not Invent A Location.
-    /// </summary>
-    public async Task DefaultRegistration_DoesNotInventALocation()
+    public class GpsServiceRegistrationTests
     {
-        var app = new ClientApp();
-        app.ReloadServices();
-
-        var service = ClientApp.Services.GetRequiredService<IGpsService>();
-
-        Assert.IsType<UnsupportedGpsService>(service);
-        Assert.Null(await service.GetCurrentLocationAsync());
-    }
-
-    [Fact]
-    /// <summary>
-    /// Executes platform Registration Is Preserved When Services Are Reloaded.
-    /// </summary>
-    public void PlatformRegistration_IsPreservedWhenServicesAreReloaded()
-    {
-        var gps = Mock.Of<IGpsService>();
-        var app = new ClientApp
+        [Fact]
+        /// <summary>
+        /// Executes default Registration Does Not Invent A Location.
+        /// </summary>
+        public async Task DefaultRegistration_DoesNotInventALocation()
         {
-            ConfigurePlatformServices = services => services.Replace(ServiceDescriptor.Singleton(gps))
-        };
+            ClientApp app = new ClientApp();
+            app.ReloadServices();
 
-        app.ReloadServices();
-        Assert.Same(gps, ClientApp.Services.GetRequiredService<IGpsService>());
+            IGpsService service = ClientApp.Services.GetRequiredService<IGpsService>();
 
-        app.ReloadServices();
-        Assert.Same(gps, Assert.Single(ClientApp.Services.GetServices<IGpsService>()));
+            Assert.IsType<UnsupportedGpsService>(service);
+            Assert.Null(await service.GetCurrentLocationAsync());
+        }
+
+        [Fact]
+        /// <summary>
+        /// Executes platform Registration Is Preserved When Services Are Reloaded.
+        /// </summary>
+        public void PlatformRegistration_IsPreservedWhenServicesAreReloaded()
+        {
+            IGpsService gps = Mock.Of<IGpsService>();
+            ClientApp app = new ClientApp
+            {
+                ConfigurePlatformServices = services => services.Replace(ServiceDescriptor.Singleton(gps))
+            };
+
+            app.ReloadServices();
+            Assert.Same(gps, ClientApp.Services.GetRequiredService<IGpsService>());
+
+            app.ReloadServices();
+            Assert.Same(gps, Assert.Single(ClientApp.Services.GetServices<IGpsService>()));
+        }
+
+        [Fact]
+        /// <summary>
+        /// Executes unsupported Service Respects Caller Cancellation.
+        /// </summary>
+        public async Task UnsupportedService_RespectsCallerCancellation()
+        {
+            using CancellationTokenSource cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                new UnsupportedGpsService().GetCurrentLocationAsync(cancellation.Token));
+        }
     }
 
-    [Fact]
-    /// <summary>
-    /// Executes unsupported Service Respects Caller Cancellation.
-    /// </summary>
-    public async Task UnsupportedService_RespectsCallerCancellation()
-    {
-        using var cancellation = new CancellationTokenSource();
-        cancellation.Cancel();
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            new UnsupportedGpsService().GetCurrentLocationAsync(cancellation.Token));
-    }
 }
-
