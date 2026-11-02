@@ -72,6 +72,12 @@ dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
 dotnet_style_prefer_null_check_over_type_check = true:suggestion
 
 # Naming and structure
+# Namespaces are the only deliberate exception: they always start with de.openelp.feuerwehr and
+# every subsequent segment must be PascalCase to match the folder hierarchy.
+dotnet_naming_rule.namespaces_should_start_with_de_openelp_feuerwehr.severity = warning
+dotnet_naming_rule.namespaces_should_start_with_de_openelp_feuerwehr.symbols = namespaces
+dotnet_naming_rule.namespaces_should_start_with_de_openelp_feuerwehr.style = namespace_prefix_style
+
 dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = warning
 dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
 dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_underscore
@@ -87,6 +93,9 @@ dotnet_naming_rule.async_methods_should_end_with_async.style = async_suffix_styl
 dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
 dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
 dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.namespaces.applicable_kinds = namespace
+dotnet_naming_symbols.namespaces.applicable_accessibilities = *
 
 dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
@@ -111,15 +120,32 @@ dotnet_naming_style.interface_prefix_style.capitalization = pascal_case
 dotnet_naming_style.async_suffix_style.required_suffix = Async
 dotnet_naming_style.async_suffix_style.capitalization = pascal_case
 
+dotnet_naming_style.namespace_prefix_style.required_prefix = de.openelp.feuerwehr.
+dotnet_naming_style.namespace_prefix_style.capitalization = pascal_case
+
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
 # Analyzer severities
+# Keep the standard Microsoft/StyleCop rules, but disable the folder-to-namespace rule because the
+# repository intentionally uses a rooted namespace prefix and PascalCase namespace segments.
 dotnet_analyzer_diagnostic.category-Style.severity = warning
+dotnet_analyzer_diagnostic.category-Design.severity = warning
+dotnet_analyzer_diagnostic.category-Performance.severity = warning
+dotnet_analyzer_diagnostic.category-Quality.severity = warning
 dotnet_analyzer_diagnostic.category-Documentation.severity = warning
-dotnet_diagnostic.IDE0055.severity = warning
+
 dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.IDE0055.severity = warning
 dotnet_diagnostic.IDE0063.severity = warning
+dotnet_diagnostic.IDE0130.severity = none
+
+dotnet_diagnostic.CA1000.severity = warning
+dotnet_diagnostic.CA1016.severity = warning
+dotnet_diagnostic.CA1062.severity = warning
+dotnet_diagnostic.CA1508.severity = warning
+dotnet_diagnostic.CA1822.severity = warning
+dotnet_diagnostic.CA1852.severity = warning
 
 # XML documentation on public API
 dotnet_diagnostic.CS1591.severity = warning

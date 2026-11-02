@@ -13,6 +13,9 @@
 - Das React-/TypeScript-Frontend liegt in `src/frontend/`.
 - Avalonia-Clients liegen in `src/App/Feuerwehr.App/` (Desktop, Android und iOS).
 - Der .NET-Aspire-AppHost liegt in `src/Feuerwehr.AppHost/AppHost.cs` und verdrahtet API, Frontend, Desktop-App, PostgreSQL mit PgWeb, Redis und Mailpit.
+-Interfaces sollen immer im Unterordner Interfaces/platziert werden.
+-Pro Klasse soll jeweils eine eigene Datei erstellt werden.
+-Alle öffentlichen Klassen und Funktionen sollen einen XMLDOC Header haben der die Funktion beschreibt, die Parameter beschreibt und die Rückgabewerte
 
 ## Projekte und Abhaengigkeiten
 - `Feuerwehr.Common`: unabhaengige Vertragsbibliothek fuer .NET 10.
