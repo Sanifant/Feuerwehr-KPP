@@ -1,6 +1,5 @@
 using de.openelp.feuerwehr.Common.Models.Auth;
 using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,7 +17,8 @@ public class AuthController(IAuthService service) : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         return this.ToActionResult(await service.Login(request));
     }
 
@@ -29,7 +29,8 @@ public class AuthController(IAuthService service) : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<TokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         return this.ToActionResult(await service.RefreshToken(request, Request.Headers["Authorization"].ToString().Replace("Bearer ", "")));
     }
 
@@ -37,7 +38,8 @@ public class AuthController(IAuthService service) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetRequest request)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         return this.ToActionResult(await service.ResetPassword(request));
     }
 
@@ -45,7 +47,8 @@ public class AuthController(IAuthService service) : ControllerBase
     [Authorize]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         return this.ToActionResult(await service.ChangePassword(request,
             User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
     }

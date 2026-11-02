@@ -1,4 +1,3 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.Globalization;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -268,7 +267,7 @@ public static class MinimalPdfBuilder
     public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
     {
         var pages = Paginate(lines.SelectMany(WrapLine));
-        var fontId = 3 + pages.Count * 2;
+        var fontId = 3 + (pages.Count * 2);
         using var ms = new MemoryStream();
         using var writer = new StreamWriter(ms, Encoding.ASCII, leaveOpen: true);
         writer.Write("%PDF-1.4\n");
@@ -282,11 +281,11 @@ public static class MinimalPdfBuilder
         }
 
         WriteObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
-        var pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
+        var pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + (index * 2)} 0 R"));
         WriteObject(2, $"<< /Type /Pages /Kids [{pageReferences}] /Count {pages.Count} >>");
         for (var index = 0; index < pages.Count; index++)
         {
-            var pageId = 3 + index * 2;
+            var pageId = 3 + (index * 2);
             var contentId = pageId + 1;
             var content = new StringBuilder();
             content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");
@@ -341,16 +340,21 @@ public static class MinimalPdfBuilder
                 page.Add(line);
             }
             block.Clear();
-            if (separator && page.Count is > 0 and < 56 && page[^1] != "") page.Add("");
+            if (separator && page.Count is > 0 and < 56 && page[^1] != "")
+                page.Add("");
         }
         foreach (var line in lines)
         {
-            if (line.Length == 0) FlushBlock(true);
-            else block.Add(line);
+            if (line.Length == 0)
+                FlushBlock(true);
+            else
+                block.Add(line);
         }
         FlushBlock(false);
-        if (page.Count > 0) pages.Add(page.ToArray());
-        if (pages.Count == 0) pages.Add([]);
+        if (page.Count > 0)
+            pages.Add(page.ToArray());
+        if (pages.Count == 0)
+            pages.Add([]);
         return pages;
     }
 
@@ -362,7 +366,8 @@ public static class MinimalPdfBuilder
             while (remaining.Length > 86)
             {
                 var split = remaining.LastIndexOf(' ', 86, 87);
-                if (split <= 0) split = 86;
+                if (split <= 0)
+                    split = 86;
                 yield return remaining[..split];
                 remaining = remaining[split..].TrimStart();
             }
@@ -377,9 +382,12 @@ public static class MinimalPdfBuilder
         var result = new StringBuilder();
         foreach (var value in bytes)
         {
-            if (value is (byte)'\\' or (byte)'(' or (byte)')') result.Append('\\').Append((char)value);
-            else if (value is < 32 or > 126) result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
-            else result.Append((char)value);
+            if (value is (byte)'\\' or (byte)'(' or (byte)')')
+                result.Append('\\').Append((char)value);
+            else if (value is < 32 or > 126)
+                result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
+            else
+                result.Append((char)value);
         }
         return result.ToString();
     }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,16 +10,12 @@ using de.openelp.feuerwehr.App.Models;
 using de.openelp.feuerwehr.App.Services;
 using de.openelp.feuerwehr.Common.Models;
 using Mapsui;
-using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Manipulations;
 using Mapsui.Projections;
-using Mapsui.Rendering;
 using Mapsui.Styles;
 using Mapsui.Tiling;
-using Mapsui.UI;
 using Mapsui.UI.Avalonia;
-using Mapsui.Widgets.InfoWidgets;
 
 namespace de.openelp.feuerwehr.App.ViewModels
 {
@@ -85,7 +80,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         [RelayCommand]
         public void ZoomIn()
         {
-            if(zoomFactor == 1)
+            if (zoomFactor == 1)
             {
                 CanZoomIn = false;
                 return;

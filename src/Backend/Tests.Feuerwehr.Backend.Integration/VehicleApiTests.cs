@@ -21,7 +21,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var vehicle = await CreateVehicle(officer);
         var booking = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
-            { CommandId = Guid.NewGuid(), From = fixture.Today.AddDays(5), To = fixture.Today.AddDays(6) });
+        { CommandId = Guid.NewGuid(), From = fixture.Today.AddDays(5), To = fixture.Today.AddDays(6) });
         booking.EnsureSuccessStatusCode();
         var initialStatusChange = (await admin.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!.Single(x => x.Id == vehicle.Id).StatusChangedAtUtc;
         Assert.NotNull(initialStatusChange);
@@ -79,28 +79,36 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         if (mtw is null)
         {
             var created = await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = "MTW" });
-            created.EnsureSuccessStatusCode(); mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
+            created.EnsureSuccessStatusCode();
+            mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
         }
         var changed = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
         {
-            RadioCallSign = vehicle.RadioCallSign, FireDepartmentId = vehicle.FireDepartmentId, EquipmentOfficerId = vehicle.EquipmentOfficerId,
-            ExpectedVersion = vehicle.Version, VehicleTypeId = mtw.Id, VehicleStatusId = status.Id
+            RadioCallSign = vehicle.RadioCallSign,
+            FireDepartmentId = vehicle.FireDepartmentId,
+            EquipmentOfficerId = vehicle.EquipmentOfficerId,
+            ExpectedVersion = vehicle.Version,
+            VehicleTypeId = mtw.Id,
+            VehicleStatusId = status.Id
         });
         changed.EnsureSuccessStatusCode();
         var updated = (await changed.Content.ReadFromJsonAsync<VehicleDto>())!;
-        Assert.Equal(statusName, updated.VehicleStatusName); Assert.False(updated.AllowsBooking);
+        Assert.Equal(statusName, updated.VehicleStatusName);
+        Assert.False(updated.AllowsBooking);
         Assert.NotNull(updated.StatusChangedAtUtc);
         var from = fixture.Today.AddDays(2);
         var calendar = (await officer.GetFromJsonAsync<VehicleAvailabilityDto[]>($"/api/vehicles/availability?from={from:yyyy-MM-dd}&to={from.AddDays(2):yyyy-MM-dd}&vehicleType=MTW"))!;
         Assert.All(calendar, x => Assert.Equal("MTW", x.Vehicle.VehicleTypeName));
         Assert.All(calendar.Single(x => x.Vehicle.Id == vehicle.Id).Days, day => Assert.Equal(VehicleDayStatus.Unavailable, day.Status));
         Assert.Equal(HttpStatusCode.Conflict, (await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
-            { CommandId = Guid.NewGuid(), From = from, To = from })).StatusCode);
+        { CommandId = Guid.NewGuid(), From = from, To = from })).StatusCode);
     }
 
     private static MultipartFormDataContent Upload(byte[] content, string name)
     {
-        var form = new MultipartFormDataContent(); form.Add(new ByteArrayContent(content), "file", name); return form;
+        var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(content), "file", name);
+        return form;
     }
 
     [Fact]
@@ -117,8 +125,11 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         var vehicle = await CreateVehicle(officer);
         var assigned = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
         {
-            FireDepartmentId = vehicle.FireDepartmentId, EquipmentOfficerId = vehicle.EquipmentOfficerId,
-            RadioCallSign = vehicle.RadioCallSign, ExpectedVersion = vehicle.Version, VehicleTypeId = type.Id
+            FireDepartmentId = vehicle.FireDepartmentId,
+            EquipmentOfficerId = vehicle.EquipmentOfficerId,
+            RadioCallSign = vehicle.RadioCallSign,
+            ExpectedVersion = vehicle.Version,
+            VehicleTypeId = type.Id
         });
         assigned.EnsureSuccessStatusCode();
         Assert.Equal(name, (await assigned.Content.ReadFromJsonAsync<VehicleDto>())!.VehicleTypeName);
@@ -195,13 +206,13 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         var vehicle = await CreateVehicle(officer);
         var start = fixture.Today.AddDays(10);
         var request = await member.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
-            { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
+        { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
         request.EnsureSuccessStatusCode();
         var reservation = (await request.Content.ReadFromJsonAsync<VehicleReservationDto>())!;
         var results = await Task.WhenAll(
             officer.PostAsJsonAsync($"/api/vehicles/reservations/{reservation.Id}/approve", new DecideVehicleReservationRequest { ExpectedVersion = 1 }),
             officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
-                { CommandId = Guid.NewGuid(), From = start.AddDays(1), To = start.AddDays(3) }));
+            { CommandId = Guid.NewGuid(), From = start.AddDays(1), To = start.AddDays(3) }));
         Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
         Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
         using var scope = fixture.Factory.Services.CreateScope();
@@ -222,9 +233,9 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         var start = fixture.Today.AddDays(20);
         Assert.Equal(HttpStatusCode.Conflict, (await admin.DeleteAsync($"/api/Users/{vehicle.EquipmentOfficerId}/permanent")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await viewer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
-            { CommandId = Guid.NewGuid(), From = start, To = start })).StatusCode);
+        { CommandId = Guid.NewGuid(), From = start, To = start })).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await member.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}/active", new SetVehicleActiveRequest
-            { IsActive = false, ExpectedVersion = vehicle.Version })).StatusCode);
+        { IsActive = false, ExpectedVersion = vehicle.Version })).StatusCode);
         var command = new CreateVehicleReservationRequest { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(1) };
         var created = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", command);
         created.EnsureSuccessStatusCode();
@@ -248,7 +259,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         var vehicle = await CreateVehicle(officer);
         var start = fixture.Today.AddDays(30);
         var response = await member.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
-            { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
+        { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
         response.EnsureSuccessStatusCode();
         var reservation = (await response.Content.ReadFromJsonAsync<VehicleReservationDto>())!;
         var results = await Task.WhenAll(
@@ -270,8 +281,10 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         if (!officer.FireDepartmentId.HasValue)
         {
             var department = new FireDepartment { Name = "MTW Integration" };
-            db.FireDepartments.Add(department); await db.SaveChangesAsync();
-            officer.FireDepartmentId = department.Id; await db.SaveChangesAsync();
+            db.FireDepartments.Add(department);
+            await db.SaveChangesAsync();
+            officer.FireDepartmentId = department.Id;
+            await db.SaveChangesAsync();
         }
         var response = await client.PostAsJsonAsync("/api/vehicles", new SaveVehicleRequest
         { FireDepartmentId = officer.FireDepartmentId.Value, EquipmentOfficerId = officer.Id, RadioCallSign = $"Florian {Guid.NewGuid():N}" });

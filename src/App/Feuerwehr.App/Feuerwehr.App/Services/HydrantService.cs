@@ -1,10 +1,7 @@
-using de.openelp.feuerwehr.Common.Models;
-using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using System.Threading.Tasks;
+using de.openelp.feuerwehr.Common.Models;
 
 namespace de.openelp.feuerwehr.App.Services
 {

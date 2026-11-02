@@ -1,7 +1,6 @@
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
-using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +29,8 @@ public class IncidentDiaryController(IIncidentDiaryService service) : Controller
     [Authorize(Policy = PolicyNames.CanEditIncidentDiary)]
     public async Task<IActionResult> CreateEntry(Guid incidentId, [FromBody] CreateDiaryEntryRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.CreateEntry(incidentId, request, cancellationToken));
     }
 
@@ -38,7 +38,8 @@ public class IncidentDiaryController(IIncidentDiaryService service) : Controller
     [Authorize(Policy = PolicyNames.CanEditIncidentDiary)]
     public async Task<IActionResult> UpdateEntry(Guid incidentId, Guid entryId, [FromBody] UpdateDiaryEntryRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.UpdateEntry(incidentId, entryId, request, cancellationToken));
     }
 
@@ -46,7 +47,8 @@ public class IncidentDiaryController(IIncidentDiaryService service) : Controller
     [Authorize(Policy = PolicyNames.CanEditIncidentDiary)]
     public async Task<IActionResult> CancelEntry(Guid incidentId, Guid entryId, [FromBody] CancelDiaryEntryRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.CancelEntry(incidentId, entryId, request, cancellationToken));
     }
 

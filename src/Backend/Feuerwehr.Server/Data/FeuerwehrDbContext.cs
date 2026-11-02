@@ -1,7 +1,5 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-
-using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using de.openelp.feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using de.openelp.feuerwehr.Server.Models.Inventory;
 using de.openelp.feuerwehr.Server.Models.Vehicles;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -18,7 +16,7 @@ namespace de.openelp.feuerwehr.Server.Data
 
         public DbSet<Hydrant> Hydrants { get; set; }
 
-        public DbSet<FireDepartment>  FireDepartments { get; set; }
+        public DbSet<FireDepartment> FireDepartments { get; set; }
 
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 

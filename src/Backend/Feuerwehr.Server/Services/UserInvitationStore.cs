@@ -21,7 +21,8 @@ public sealed class UserInvitationStore(IConnectionMultiplexer redis) : IUserInv
     public async Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
     {
         var stored = await redis.GetDatabase().StringSetAsync(Key(id), JsonSerializer.Serialize(invitation), lifetime);
-        if (!stored) throw new InvalidOperationException("Einladung konnte nicht gespeichert werden.");
+        if (!stored)
+            throw new InvalidOperationException("Einladung konnte nicht gespeichert werden.");
     }
 
     public async Task<UserInvitation?> FindAsync(Guid id)

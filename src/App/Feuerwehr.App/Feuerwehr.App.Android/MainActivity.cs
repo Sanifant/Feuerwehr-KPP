@@ -1,11 +1,11 @@
-using Android.App;
-using Android.Content.PM;
-using Android.OS;
-using Avalonia.Android;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Android.App;
+using Android.Content.PM;
+using Android.OS;
 using AndroidX.Core.Content;
+using Avalonia.Android;
 using Manifest = global::Android.Manifest;
 
 namespace de.openelp.feuerwehr.App.Android

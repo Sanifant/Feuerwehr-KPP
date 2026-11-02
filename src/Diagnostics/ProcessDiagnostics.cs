@@ -25,12 +25,15 @@ internal sealed class ProcessDiagnostics : IDisposable
     public void Record(string step, string? details = null, Exception? exception = null)
     {
         var text = $"{DateTime.UtcNow:O} [{_name}] {step}: {details}";
-        if (exception is not null) text += Environment.NewLine + exception;
+        if (exception is not null)
+            text += Environment.NewLine + exception;
         try
         {
             Debug.WriteLine(text);
-            if (exception is null) Console.WriteLine(text);
-            else Console.Error.WriteLine(text);
+            if (exception is null)
+                Console.WriteLine(text);
+            else
+                Console.Error.WriteLine(text);
         }
         catch (Exception) { /* Diagnostics must not terminate a process with a closed output stream. */ }
         try

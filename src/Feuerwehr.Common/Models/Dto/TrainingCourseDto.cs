@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace de.openelp.feuerwehr.Common.Models.Dto
 {
     public class TrainingCourseDto

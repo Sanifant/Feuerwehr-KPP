@@ -38,7 +38,8 @@ public class AuthService : IAuthService
     {
         get
         {
-            if (_decodedToken == null) return Array.Empty<string>();
+            if (_decodedToken == null)
+                return Array.Empty<string>();
             return _decodedToken.Claims
                 .Where(c => c.Type == roleClaim)
                 .Select(c => c.Value)

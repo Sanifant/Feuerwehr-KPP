@@ -40,34 +40,47 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
     {
         lookupVersion++;
         auth.AuthStateChanged -= AuthChanged;
-        LookupCommand.Cancel(); ScanCommand.Cancel(); SaveInspectionCommand.Cancel();
+        LookupCommand.Cancel();
+        ScanCommand.Cancel();
+        SaveInspectionCommand.Cancel();
     }
     private void AuthChanged(object? sender, EventArgs e)
     {
         lookupVersion++;
-        LookupCommand.Cancel(); ScanCommand.Cancel(); SaveInspectionCommand.Cancel();
-        Detail = null; History.Clear(); Comment = "";
-        OnPropertyChanged(nameof(CanView)); OnPropertyChanged(nameof(CanScan));
-        LookupCommand.NotifyCanExecuteChanged(); ScanCommand.NotifyCanExecuteChanged();
+        LookupCommand.Cancel();
+        ScanCommand.Cancel();
+        SaveInspectionCommand.Cancel();
+        Detail = null;
+        History.Clear();
+        Comment = "";
+        OnPropertyChanged(nameof(CanView));
+        OnPropertyChanged(nameof(CanScan));
+        LookupCommand.NotifyCanExecuteChanged();
+        ScanCommand.NotifyCanExecuteChanged();
         Message = "Die Anmeldung wurde geändert. Bitte das Gerät erneut laden.";
     }
     partial void OnDetailChanged(EquipmentDetailDto? value)
     {
-        foreach (var name in new[] { nameof(CanInspect), nameof(DeviceTitle), nameof(DeviceDescription), nameof(DeviceStatus), nameof(NextInspection), nameof(LastInspection), nameof(Instructions) }) OnPropertyChanged(name);
+        foreach (var name in new[] { nameof(CanInspect), nameof(DeviceTitle), nameof(DeviceDescription), nameof(DeviceStatus), nameof(NextInspection), nameof(LastInspection), nameof(Instructions) })
+            OnPropertyChanged(name);
         SaveInspectionCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanView), IncludeCancelCommand = true)]
     public async Task LookupAsync(CancellationToken ct)
     {
-        if (!CanView) return;
+        if (!CanView)
+            return;
         var version = ++lookupVersion;
-        Detail = null; History.Clear(); Message = "";
+        Detail = null;
+        History.Clear();
+        Message = "";
         try
         {
             var result = await service.FindBarcodeAsync(Barcode.Trim().ToUpperInvariant(), ct);
             ct.ThrowIfCancellationRequested();
-            if (!CanView || version != lookupVersion) return;
+            if (!CanView || version != lookupVersion)
+                return;
             SetDetail(result);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
@@ -77,12 +90,14 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
     [RelayCommand(CanExecute = nameof(CanScan), IncludeCancelCommand = true)]
     public async Task ScanAsync(CancellationToken ct)
     {
-        if (!CanScan) return;
+        if (!CanScan)
+            return;
         try
         {
             var value = await scanner.ScanAsync(ct);
             ct.ThrowIfCancellationRequested();
-            if (!CanView || value is null) return;
+            if (!CanView || value is null)
+                return;
             Barcode = value;
             await LookupAsync(ct);
         }
@@ -94,7 +109,8 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
     public async Task SaveInspectionAsync(CancellationToken ct)
     {
         var equipment = Detail?.Equipment;
-        if (!CanInspect || equipment is null) return;
+        if (!CanInspect || equipment is null)
+            return;
         if (InspectedOn is null || SelectedStatus is < 0 or > 2 || Comment.Length > 4000)
         { Message = "Bitte Prüfdatum, Status und einen Kommentar mit höchstens 4000 Zeichen angeben."; return; }
         var date = DateOnly.FromDateTime(InspectedOn.Value.Date);
@@ -104,11 +120,17 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
         {
             var result = await service.InspectAsync(equipment.Id, new RecordEquipmentInspectionRequest
             {
-                CommandId = commandId, InspectedOn = date, Comment = Comment, Status = (EquipmentStatus)SelectedStatus, ExpectedVersion = equipment.Version,
+                CommandId = commandId,
+                InspectedOn = date,
+                Comment = Comment,
+                Status = (EquipmentStatus)SelectedStatus,
+                ExpectedVersion = equipment.Version,
             }, ct);
             ct.ThrowIfCancellationRequested();
-            if (!CanView || Detail?.Equipment.Id != equipment.Id) return;
-            SetDetail(result); Message = "Prüfung dokumentiert.";
+            if (!CanView || Detail?.Equipment.Id != equipment.Id)
+                return;
+            SetDetail(result);
+            Message = "Prüfung dokumentiert.";
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception ex) { Message = ErrorMessage(ex); }
@@ -116,8 +138,14 @@ public partial class InventoryViewModel(IInventoryService service, IAuthService 
 
     private void SetDetail(EquipmentDetailDto result)
     {
-        Detail = result; History.Clear(); foreach (var entry in result.Inspections) History.Add(entry);
-        Comment = ""; SelectedStatus = (int)result.Equipment.Status; InspectedOn = DateTimeOffset.UtcNow; commandId = Guid.NewGuid();
+        Detail = result;
+        History.Clear();
+        foreach (var entry in result.Inspections)
+            History.Add(entry);
+        Comment = "";
+        SelectedStatus = (int)result.Equipment.Status;
+        InspectedOn = DateTimeOffset.UtcNow;
+        commandId = Guid.NewGuid();
     }
     private static string ErrorMessage(Exception exception) => exception switch
     {

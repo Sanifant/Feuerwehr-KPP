@@ -1,6 +1,6 @@
 using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,7 +23,7 @@ public class HydrantController(IHydrantService service) : ControllerBase
     [HttpPost("import")]
     [Authorize(Policy = PolicyNames.RequireAdmin)]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(MaximumImportBytes + 64 * 1024)]
+    [RequestSizeLimit(MaximumImportBytes + (64 * 1024))]
     public async Task<IActionResult> Import([FromForm] IFormFile? file, CancellationToken cancellationToken)
     {
         if (file is null || file.Length == 0)

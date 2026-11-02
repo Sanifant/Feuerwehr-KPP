@@ -1,21 +1,15 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Services;
-using Mapsui;
-using Mapsui.Tiling;
-using Mapsui.Projections;
-using Mapsui.Layers;
-using Mapsui.Styles;
-using System.Collections.Generic;
-using System;
-using System.Reflection;
-using System.Linq;
-using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using System.Collections.ObjectModel;
 using de.openelp.feuerwehr.App.Models;
 using de.openelp.feuerwehr.App.Pages;
-using Avalonia.Controls;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 
 namespace de.openelp.feuerwehr.App.ViewModels
 {
@@ -73,7 +67,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         public bool CanViewInventory => IsAuthenticated && _authService.UserRoles.Any(role => role is "Admin" or "EquipmentOfficer" or "InventoryViewer");
 
         public MainViewModel(IAuthService authService)
-        { 
+        {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _authService.AuthStateChanged += OnAuthStateChanged;
             OnPropertyChanged(nameof(Incident));
@@ -91,11 +85,11 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
 
         private void PreparePages()
-        {  
+        {
             Pages.Add(new PageItem("Hydranten", () => new MapView()));
             Pages.Add(new PageItem("Einsatzkarte", () => new SituationMapView(), "M 0,0 L 1,0 L 1,1 L 0,1 Z", () => CanViewSituationMap));
             Pages.Add(new PageItem("Inventar / Geräteprüfung", () => new InventoryView(), isVisible: () => CanViewInventory));
-            this.SelectedPageIndex = 0;
+            SelectedPageIndex = 0;
         }
 
         private Task NavigateTo(int selectedIndex)
@@ -105,11 +99,11 @@ namespace de.openelp.feuerwehr.App.ViewModels
 
             var item = Pages[selectedIndex];
 
-            if(item != null)
+            if (item != null)
             {
 
                 var view = item.Factory();
-                if(view is Page page)
+                if (view is Page page)
                     return Navigation.ReplaceAsync(page);
             }
 

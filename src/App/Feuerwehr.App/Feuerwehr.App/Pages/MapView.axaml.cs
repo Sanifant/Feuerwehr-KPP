@@ -1,11 +1,10 @@
-using Avalonia;
+using System;
+using System.Threading;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using de.openelp.feuerwehr.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
-using Avalonia.Interactivity;
-using System;
-using System.Threading;
 
 namespace de.openelp.feuerwehr.App.Pages;
 

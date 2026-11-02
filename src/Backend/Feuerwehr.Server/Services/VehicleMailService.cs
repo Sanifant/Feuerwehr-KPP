@@ -19,7 +19,8 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
         var dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschließlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
         var lines = $"Fahrzeug: {reservation.RadioCallSign}\nFeuerwehr: {reservation.FireDepartmentName}\n" +
             $"Anfragende Person: {reservation.RequesterName}\nZeitraum: {dates}\nBuchungsnummer: {reservation.Id}\n";
-        if (reservation.Comment is not null) lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
+        if (reservation.Comment is not null)
+            lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
         var instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Übersicht prüfen und bestätigen oder ablehnen." :
             "Die Buchung ist verbindlich bestätigt.";
         var link = "";
@@ -36,9 +37,15 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
         var now = clock.GetUtcNow().UtcDateTime;
         return new VehicleMailMessage
         {
-            Id = Guid.NewGuid(), ReservationId = reservation.Id, Kind = request ? "Requested" : "Confirmed", Recipient = recipient,
-            Subject = $"{title}: {reservation.RadioCallSign}", TextBody = $"{title}\n\n{instruction}\n\n{lines}\n{link}",
-            HtmlBody = html, CreatedAtUtc = now, NextAttemptAtUtc = now
+            Id = Guid.NewGuid(),
+            ReservationId = reservation.Id,
+            Kind = request ? "Requested" : "Confirmed",
+            Recipient = recipient,
+            Subject = $"{title}: {reservation.RadioCallSign}",
+            TextBody = $"{title}\n\n{instruction}\n\n{lines}\n{link}",
+            HtmlBody = html,
+            CreatedAtUtc = now,
+            NextAttemptAtUtc = now
         };
     }
 }
@@ -66,7 +73,8 @@ public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailServic
                 var claimed = await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.SentAtUtc == null && x.NextAttemptAtUtc <= now &&
                     (x.LeaseUntilUtc == null || x.LeaseUntilUtc < now)).ExecuteUpdateAsync(update => update
                         .SetProperty(x => x.LeaseUntilUtc, leaseUntil).SetProperty(x => x.Attempts, x => x.Attempts + 1), ct);
-                if (claimed == 0) continue;
+                if (claimed == 0)
+                    continue;
             }
             else
             {
@@ -95,7 +103,10 @@ public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailServic
                     .SetProperty(x => x.NextAttemptAtUtc, next).SetProperty(x => x.LeaseUntilUtc, (DateTime?)null), ct);
             else
             {
-                message.SentAtUtc = sent; message.LastError = error; message.NextAttemptAtUtc = next; message.LeaseUntilUtc = null;
+                message.SentAtUtc = sent;
+                message.LastError = error;
+                message.NextAttemptAtUtc = next;
+                message.LeaseUntilUtc = null;
                 await db.SaveChangesAsync(ct);
             }
         }
@@ -115,7 +126,8 @@ public sealed class VehicleMailWorker(IServiceScopeFactory scopes, ILogger<Vehic
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception exception) { logger.LogError(exception, "MTW-Mailversand fehlgeschlagen."); }
-            try { await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); }
+            try
+            { await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
         }
     }

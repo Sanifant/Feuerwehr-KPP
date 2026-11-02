@@ -3,8 +3,8 @@ using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
 using Microsoft.EntityFrameworkCore;
-using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant;
 using AddressEntity = de.openelp.feuerwehr.Server.Models.Address;
+using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant;
 
 namespace de.openelp.feuerwehr.Server.Services;
 
@@ -50,8 +50,8 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
         value ??= "";
         // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
         var trimmed = value.TrimStart();
-        if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
-            || value.Length > 0 && "\t\r\n".Contains(value[0]))
+        if ((trimmed.Length > 0 && "=+-@".Contains(trimmed[0]))
+            || (value.Length > 0 && "\t\r\n".Contains(value[0])))
             value = "'" + value;
         return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
@@ -59,7 +59,8 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
     public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
     {
         var (hydrants, errors) = HydrantCsvImport.Read(csv, cancellationToken);
-        if (errors.Count > 0) return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
+        if (errors.Count > 0)
+            return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
 
         var entities = hydrants.Select(dto =>
         {
@@ -94,7 +95,8 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
     public ServiceResult Put(int id, Hydrant value)
     {
         var entity = context.Hydrants.Find(id);
-        if (entity is null) return ServiceResult.NotFound();
+        if (entity is null)
+            return ServiceResult.NotFound();
         Apply(entity, value);
         context.SaveChanges();
         return ServiceResult.NoContent();
@@ -103,7 +105,8 @@ public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
     public ServiceResult Delete(int id)
     {
         var entity = context.Hydrants.Find(id);
-        if (entity is null) return ServiceResult.NotFound();
+        if (entity is null)
+            return ServiceResult.NotFound();
         context.Hydrants.Remove(entity);
         context.SaveChanges();
         return ServiceResult.NoContent();

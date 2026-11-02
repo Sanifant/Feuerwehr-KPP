@@ -1,7 +1,6 @@
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
-using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +29,8 @@ public class IncidentController(IIncidentService service) : ControllerBase
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> CreateIncident([FromBody] CreateIncidentRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.CreateIncident(request, cancellationToken));
     }
 
@@ -38,7 +38,8 @@ public class IncidentController(IIncidentService service) : ControllerBase
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> CloseIncident(Guid incidentId, [FromBody] CloseIncidentRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.CloseIncident(incidentId, request, cancellationToken));
     }
 }

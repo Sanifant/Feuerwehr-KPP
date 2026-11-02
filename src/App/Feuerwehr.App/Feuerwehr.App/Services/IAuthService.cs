@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.Auth;
 
 namespace de.openelp.feuerwehr.App.Services;
 

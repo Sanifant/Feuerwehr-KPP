@@ -36,7 +36,8 @@ public sealed class InventoryTransferTests
         var response = await service.Import(InventoryTransferKind.Categories, stream, CancellationToken.None);
         Assert.Equal(400, response.Code);
         var error = Assert.Single(Assert.IsType<InventoryImportResponse>(response.Value).Errors);
-        Assert.Equal(2, error.LineNumber); Assert.Contains("Kategoriename", error.Description);
+        Assert.Equal(2, error.LineNumber);
+        Assert.Contains("Kategoriename", error.Description);
         Assert.Empty(db.InventoryCategories);
     }
 

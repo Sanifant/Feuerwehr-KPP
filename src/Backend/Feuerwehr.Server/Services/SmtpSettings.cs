@@ -56,8 +56,13 @@ public sealed class SmtpSettings
 
         return new SmtpSettings
         {
-            Host = host, Port = port, Security = security, Username = username, Password = password,
-            From = sender.Address, FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? "",
+            Host = host,
+            Port = port,
+            Security = security,
+            Username = username,
+            Password = password,
+            From = sender.Address,
+            FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? "",
             TimeoutMilliseconds = 1000 * ReadPositiveInteger(NonBlank(configuration["MAIL_TIMEOUT_SECONDS"]),
                 "MAIL_TIMEOUT_SECONDS", 30, int.MaxValue / 1000),
         };
@@ -65,7 +70,8 @@ public sealed class SmtpSettings
 
     private static int ReadPositiveInteger(string? value, string name, int fallback, int maximum)
     {
-        if (value is null) return fallback;
+        if (value is null)
+            return fallback;
         if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0 && number <= maximum)
             return number;
         throw new InvalidOperationException($"{name} muss eine ganze Zahl zwischen 1 und {maximum} sein.");
@@ -73,7 +79,8 @@ public sealed class SmtpSettings
 
     private static Uri? ReadEndpoint(string? connection)
     {
-        if (string.IsNullOrWhiteSpace(connection)) return null;
+        if (string.IsNullOrWhiteSpace(connection))
+            return null;
         try
         {
             if (!Uri.TryCreate(connection, UriKind.Absolute, out var endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))

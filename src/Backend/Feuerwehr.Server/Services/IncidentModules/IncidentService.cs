@@ -1,13 +1,9 @@
+using System.Text.Json;
 using de.openelp.feuerwehr.Common.Models.Dto;
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using System.Text.Json;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
-
-using de.openelp.feuerwehr.Server.Services;
 
 namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
 
@@ -35,7 +31,8 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
     {
-        if (!userContext.IsAdmin) return ServiceResult.Forbid();
+        if (!userContext.IsAdmin)
+            return ServiceResult.Forbid();
 
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);

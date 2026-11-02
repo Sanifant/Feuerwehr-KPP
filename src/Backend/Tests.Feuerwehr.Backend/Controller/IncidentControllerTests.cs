@@ -30,10 +30,14 @@ public sealed class IncidentControllerTests : IDisposable
 
     private static CreateIncidentRequest Request() => new()
     {
-        Name = "Wohnungsbrand", Keyword = "B3", IncidentNumber = "123",
-        OriginLatitude = 51.5, OriginLongitude = 10.25,
+        Name = "Wohnungsbrand",
+        Keyword = "B3",
+        IncidentNumber = "123",
+        OriginLatitude = 51.5,
+        OriginLongitude = 10.25,
         AlarmedAtUtc = DateTimeOffset.Parse("2026-10-26T09:15:00+01:00"),
-        CommandId = Guid.NewGuid().ToString(), SessionId = "session-1",
+        CommandId = Guid.NewGuid().ToString(),
+        SessionId = "session-1",
     };
 
     [Fact]
@@ -105,7 +109,9 @@ public sealed class IncidentControllerTests : IDisposable
         var created = Assert.IsType<IncidentCreatedResponse>((await _service.CreateIncident(Request(), default)).Value);
         var closed = await _service.CloseIncident(created.Incident.Id, new CloseIncidentRequest
         {
-            SessionId = created.Lease.SessionId, LeaseToken = created.Lease.LeaseToken, CommandId = Guid.NewGuid().ToString(),
+            SessionId = created.Lease.SessionId,
+            LeaseToken = created.Lease.LeaseToken,
+            CommandId = Guid.NewGuid().ToString(),
         }, default);
         var response = Assert.IsType<IncidentClosedResponse>(closed.Value);
         Assert.Equal(created.Incident.AlarmedAtUtc, response.Incident.AlarmedAtUtc);

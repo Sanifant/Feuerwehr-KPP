@@ -1,8 +1,6 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace de.openelp.feuerwehr.Server.Services;
@@ -151,9 +149,11 @@ public sealed class AuthService : IAuthService
 
     public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
     {
-        if (string.IsNullOrWhiteSpace(currentUserId)) return ServiceResult.Unauthorized();
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            return ServiceResult.Unauthorized();
         var user = await _userManager.FindByIdAsync(currentUserId);
-        if (user is null || !user.IsActive || user.PasswordResetRequired) return ServiceResult.Unauthorized();
+        if (user is null || !user.IsActive || user.PasswordResetRequired)
+            return ServiceResult.Unauthorized();
 
         // Share the login attempt counter and honor existing account lockouts, including
         // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.

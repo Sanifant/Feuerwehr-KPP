@@ -1,10 +1,10 @@
-using de.openelp.feuerwehr.Server.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using de.openelp.feuerwehr.Server.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace de.openelp.feuerwehr.Server.Services
 {
@@ -89,7 +89,8 @@ namespace de.openelp.feuerwehr.Server.Services
         {
             var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
             var stamp = principal.FindFirstValue(SecurityStampClaim);
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp)) return false;
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp))
+                return false;
             var user = await _userManager.FindByIdAsync(userId);
             return user is { IsActive: true, PasswordResetRequired: false } &&
                 string.Equals(stamp, await _userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
@@ -98,12 +99,14 @@ namespace de.openelp.feuerwehr.Server.Services
         public async Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
+            if (user == null)
+                return false;
 
             // Get stored refresh token from Identity's token store
             var storedToken = await _userManager.GetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
 
-            if (string.IsNullOrEmpty(storedToken)) return false;
+            if (string.IsNullOrEmpty(storedToken))
+                return false;
 
             // Hash the provided token and compare with stored hash
             var hashedProvidedToken = HashToken(refreshToken);
@@ -113,7 +116,8 @@ namespace de.openelp.feuerwehr.Server.Services
         public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) throw new InvalidOperationException("User not found");
+            if (user == null)
+                throw new InvalidOperationException("User not found");
 
             // Hash the refresh token before storing
             var hashedToken = HashToken(refreshToken);
@@ -128,7 +132,8 @@ namespace de.openelp.feuerwehr.Server.Services
         public async Task RevokeRefreshTokenAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return;
+            if (user == null)
+                return;
 
             await _userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
         }

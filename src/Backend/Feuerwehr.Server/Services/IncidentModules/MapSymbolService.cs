@@ -21,7 +21,8 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
 
     public async Task<ServiceResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken)
     {
-        if (!user.IsAdmin) return ServiceResult.Forbid();
+        if (!user.IsAdmin)
+            return ServiceResult.Forbid();
         var name = request.Name?.Trim();
         if (string.IsNullOrWhiteSpace(name) || name.Length > 40)
             return ServiceResult.Problem(400, "Bitte einen Kategorienamen mit höchstens 40 Zeichen angeben.");
@@ -69,7 +70,8 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
         var categoryForLog = category.Replace("\r", string.Empty).Replace("\n", string.Empty);
         logger.LogInformation("Map symbol save started. SymbolId: {SymbolId}, Category: {Category}, SvgCharacters: {Length}", id, categoryForLog, content.Length);
         string svg;
-        try { svg = SvgSymbolValidator.Validate(content); }
+        try
+        { svg = SvgSymbolValidator.Validate(content); }
         catch (Exception error) when (error is XmlException or ArgumentException)
         {
             logger.LogWarning("Map symbol SVG validation rejected. SymbolId: {SymbolId}, ErrorType: {ErrorType}", id, error.GetType().Name);
@@ -92,9 +94,11 @@ public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextA
         symbol.IsActive = request.IsActive;
         symbol.IsVehicle = request.IsVehicle;
         symbol.UpdatedAtUtc = DateTime.UtcNow;
-        if (created) dbContext.MapSymbols.Add(symbol);
+        if (created)
+            dbContext.MapSymbols.Add(symbol);
         logger.LogDebug("Map symbol database save started. SymbolId: {SymbolId}", symbol.Id);
-        try { await dbContext.SaveChangesAsync(cancellationToken); }
+        try
+        { await dbContext.SaveChangesAsync(cancellationToken); }
         catch (Exception error) when (error is not OperationCanceledException)
         {
             logger.LogError(error, "Map symbol database save failed. SymbolId: {SymbolId}", symbol.Id);

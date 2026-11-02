@@ -1,13 +1,9 @@
+using System.Text.Json;
 using de.openelp.feuerwehr.Common.Models.Dto;
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using System.Text.Json;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
-
-using de.openelp.feuerwehr.Server.Services;
 
 namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
 
@@ -20,8 +16,10 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
     public async Task<ServiceResult> GetEntries(Guid incidentId, CancellationToken cancellationToken)
     {
         var incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
-        if (incident is null) return ServiceResult.NotFound();
-        if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin) return ServiceResult.Forbid();
+        if (incident is null)
+            return ServiceResult.NotFound();
+        if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin)
+            return ServiceResult.Forbid();
 
         var entries = await dbContext.DiaryEntries.AsNoTracking()
             .Where(x => x.IncidentId == incidentId)
@@ -319,10 +317,12 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
             return ServiceResult.NotFound();
         }
 
-        if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin) return ServiceResult.Forbid();
+        if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin)
+            return ServiceResult.Forbid();
 
         var diary = await GetEntries(incidentId, cancellationToken);
-        if (diary.Code != StatusCodes.Status200OK) return diary;
+        if (diary.Code != StatusCodes.Status200OK)
+            return diary;
         var entries = (IReadOnlyCollection<DiaryEntryDto>)diary.Value!;
 
         var lines = new List<string>
@@ -352,7 +352,8 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
             }
             lines.Add("");
         }
-        if (entries.Count == 0) lines.Add("Keine Tagebucheinträge vorhanden.");
+        if (entries.Count == 0)
+            lines.Add("Keine Tagebucheinträge vorhanden.");
 
         var pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Einsatztagebuch", lines);
         return ServiceResult.File(pdfBytes, "application/pdf", $"einsatztagebuch-{incidentId:N}.pdf");
@@ -365,7 +366,8 @@ public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         lines.Add($"Kategorie: {revision.CategoryNameSnapshot} | Übermittlung: {revision.TransmissionType ?? "-"}");
         lines.Add($"Absender: {revision.Sender ?? "-"} | Empfänger: {revision.Recipient ?? "-"}");
         lines.Add(revision.Text);
-        if (!string.IsNullOrWhiteSpace(revision.CancellationReason)) lines.Add($"Grund: {revision.CancellationReason}");
+        if (!string.IsNullOrWhiteSpace(revision.CancellationReason))
+            lines.Add($"Grund: {revision.CancellationReason}");
         lines.Add($"Erfasst UTC: {revision.CreatedAtUtc:dd.MM.yyyy HH:mm:ss} durch {revision.CreatedByDisplayName}");
     }
 

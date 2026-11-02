@@ -23,11 +23,18 @@ public class HydrantExportTests
             Id = 2,
             Address = new Address
             {
-                Street = "Dorfstraße; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                Street = "Dorfstraße; Süd",
+                HouseNumber = "12a",
+                PostalCode = "02361",
+                City = "Lübeck",
                 AdditionalInfo = "Tor \"links\"",
             },
-            Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 80,
-            Type = HydrantType.Underground, WaterSource = WaterSource.WaterGrid, Status = HydrantStatus.Operational,
+            Latitude = 53.929134,
+            Longitude = -10.638436,
+            NominalDiameter = 80,
+            Type = HydrantType.Underground,
+            WaterSource = WaterSource.WaterGrid,
+            Status = HydrantStatus.Operational,
             Notes = "Erste Zeile\r\nZweite Zeile; \"frei\"",
         });
         service.Post(new Hydrant { Id = 1, Notes = "=1+1" });
@@ -72,11 +79,18 @@ public class HydrantExportTests
             Id = 42,
             Address = new Address
             {
-                Street = "Dorfstraße; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                Street = "Dorfstraße; Süd",
+                HouseNumber = "12a",
+                PostalCode = "02361",
+                City = "Lübeck",
                 AdditionalInfo = "Nicht Bestandteil des Importformats",
             },
-            Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 100,
-            Type = HydrantType.AbovegroundWithJack, WaterSource = WaterSource.Cistern, Status = HydrantStatus.UnderMaintenance,
+            Latitude = 53.929134,
+            Longitude = -10.638436,
+            NominalDiameter = 100,
+            Type = HydrantType.AbovegroundWithJack,
+            WaterSource = WaterSource.Cistern,
+            Status = HydrantStatus.UnderMaintenance,
             Notes = notes,
         };
         service.Post(original);

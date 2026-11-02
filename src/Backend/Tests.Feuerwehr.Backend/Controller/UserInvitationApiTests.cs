@@ -76,7 +76,10 @@ public sealed class UserInvitationApiTests : IDisposable
             Assert.True((await _roles.CreateAsync(new IdentityRole("Viewer"))).Succeeded);
         var response = await _usersApi.CreateUser(new RegisterUserRequest
         {
-            Email = "new.user@example.com", FirstName = "Ada", LastName = "Muster", Roles = ["Viewer"],
+            Email = "new.user@example.com",
+            FirstName = "Ada",
+            LastName = "Muster",
+            Roles = ["Viewer"],
         });
         Assert.IsType<CreatedAtActionResult>(response);
         var user = await _users.FindByEmailAsync("new.user@example.com");
@@ -118,8 +121,11 @@ public sealed class UserInvitationApiTests : IDisposable
 
         var response = Assert.IsType<CreatedAtActionResult>(await _usersApi.CreateUser(new RegisterUserRequest
         {
-            Email = "officer@example.com", FirstName = "Ada", LastName = "Muster",
-            Roles = ["EquipmentOfficer"], FireDepartmentId = first.Id
+            Email = "officer@example.com",
+            FirstName = "Ada",
+            LastName = "Muster",
+            Roles = ["EquipmentOfficer"],
+            FireDepartmentId = first.Id
         }));
         var created = Assert.IsType<UserSummaryDto>(response.Value);
         Assert.Equal(first.Id, created.FireDepartmentId);
@@ -214,7 +220,9 @@ public sealed class UserInvitationApiTests : IDisposable
     {
         Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(new ResetRequest
         {
-            Token = token, Email = "new.user@example.com", NewPassword = "MyNewPassword123",
+            Token = token,
+            Email = "new.user@example.com",
+            NewPassword = "MyNewPassword123",
         }));
     }
 
@@ -236,9 +244,12 @@ public sealed class UserInvitationApiTests : IDisposable
     public async Task ResetPassword_RejectsChangedOrUnavailableAccount(string change)
     {
         var (user, id) = await CreateInvitedUser();
-        if (change == "deleted") await _users.DeleteAsync(user);
-        else if (change == "changed-email") await _users.SetEmailAsync(user, "changed@example.com");
-        else { user.IsActive = false; await _users.UpdateAsync(user); }
+        if (change == "deleted")
+            await _users.DeleteAsync(user);
+        else if (change == "changed-email")
+            await _users.SetEmailAsync(user, "changed@example.com");
+        else
+        { user.IsActive = false; await _users.UpdateAsync(user); }
         Assert.IsType<BadRequestObjectResult>(await _authApi.ResetPassword(Request(id)));
     }
 
@@ -248,7 +259,10 @@ public sealed class UserInvitationApiTests : IDisposable
         _mail.Fail = true;
         var result = Assert.IsType<ObjectResult>(await _usersApi.CreateUser(new RegisterUserRequest
         {
-            Email = "new.user@example.com", FirstName = "Ada", LastName = "Muster", Roles = [],
+            Email = "new.user@example.com",
+            FirstName = "Ada",
+            LastName = "Muster",
+            Roles = [],
         }));
         Assert.Equal(503, result.StatusCode);
         Assert.Null(await _users.FindByEmailAsync("new.user@example.com"));
@@ -334,7 +348,8 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.Equal(423, Assert.IsType<ObjectResult>(await _authApi.ChangePassword(request)).StatusCode);
         Assert.Equal(423, Assert.IsType<ObjectResult>((await _authApi.Login(new LoginRequest
         {
-            Email = user.Email!, Password = request.CurrentPassword,
+            Email = user.Email!,
+            Password = request.CurrentPassword,
         })).Result).StatusCode);
         Assert.True(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
         Assert.False(await _users.CheckPasswordAsync(user, "ChangedPassword123"));
@@ -351,7 +366,8 @@ public sealed class UserInvitationApiTests : IDisposable
         {
             Assert.IsType<UnauthorizedObjectResult>((await _authApi.Login(new LoginRequest
             {
-                Email = user.Email!, Password = "WrongPassword123",
+                Email = user.Email!,
+                Password = "WrongPassword123",
             })).Result);
         }
         Assert.Equal(3, await _users.GetAccessFailedCountAsync(user));
@@ -383,12 +399,14 @@ public sealed class UserInvitationApiTests : IDisposable
         SignInAs(user.Id);
         await _authApi.ChangePassword(new ChangePasswordRequest
         {
-            CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123",
+            CurrentPassword = "WrongPassword123",
+            NewPassword = "ChangedPassword123",
         });
         Assert.Equal(1, await _users.GetAccessFailedCountAsync(user));
         Assert.IsType<BadRequestObjectResult>(await _authApi.ChangePassword(new ChangePasswordRequest
         {
-            CurrentPassword = "MyNewPassword123", NewPassword = "weak",
+            CurrentPassword = "MyNewPassword123",
+            NewPassword = "weak",
         }));
         Assert.Equal(0, await _users.GetAccessFailedCountAsync(user));
         Assert.False(await _users.IsLockedOutAsync(user));
@@ -416,12 +434,14 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.True(details.PasswordResetRequired);
         Assert.Equal(423, Assert.IsType<ObjectResult>((await _authApi.Login(new LoginRequest
         {
-            Email = user.Email!, Password = "MyNewPassword123",
+            Email = user.Email!,
+            Password = "MyNewPassword123",
         })).Result).StatusCode);
         SignInAs(user.Id);
         Assert.IsType<UnauthorizedResult>(await _authApi.ChangePassword(new ChangePasswordRequest
         {
-            CurrentPassword = "MyNewPassword123", NewPassword = "ChangedPassword123",
+            CurrentPassword = "MyNewPassword123",
+            NewPassword = "ChangedPassword123",
         }));
         Assert.IsType<BadRequestObjectResult>(await _usersApi.UpdateUser(user.Id, new UpdateUserRequest
         {
@@ -443,7 +463,8 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.False(user.PasswordResetRequired);
         Assert.IsType<OkObjectResult>((await _authApi.Login(new LoginRequest
         {
-            Email = user.Email!, Password = "ChangedPassword123",
+            Email = user.Email!,
+            Password = "ChangedPassword123",
         })).Result);
         Assert.False(await _users.CheckPasswordAsync(user, "MyNewPassword123"));
     }
@@ -497,7 +518,8 @@ public sealed class UserInvitationApiTests : IDisposable
     public async Task ResendInvitation_MailFailureRestoresPreviousLockAndInvitation(bool alreadyInvited)
     {
         var (user, id) = await CreateInvitedUser();
-        if (!alreadyInvited) await _authApi.ResetPassword(Request(id));
+        if (!alreadyInvited)
+            await _authApi.ResetPassword(Request(id));
         var stamp = user.SecurityStamp;
         _mail.Fail = true;
         Assert.Equal(503, Assert.IsType<ObjectResult>(await _usersApi.ResendInvitation(user.Id)).StatusCode);
@@ -515,7 +537,8 @@ public sealed class UserInvitationApiTests : IDisposable
             Assert.Empty(_store.Entries);
             Assert.IsType<OkObjectResult>((await _authApi.Login(new LoginRequest
             {
-                Email = user.Email!, Password = "MyNewPassword123",
+                Email = user.Email!,
+                Password = "MyNewPassword123",
             })).Result);
         }
     }
@@ -541,7 +564,8 @@ public sealed class UserInvitationApiTests : IDisposable
         Assert.Equal(0, await _users.GetAccessFailedCountAsync(user));
         Assert.IsType<OkObjectResult>((await _authApi.Login(new LoginRequest
         {
-            Email = user.Email!, Password = "MyNewPassword123",
+            Email = user.Email!,
+            Password = "MyNewPassword123",
         })).Result);
     }
 
@@ -570,13 +594,16 @@ public sealed class UserInvitationApiTests : IDisposable
         public Action? BeforeRemove { get; set; }
         public Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
         {
-            Entries[id] = invitation; StoredLifetime = lifetime; return Task.CompletedTask;
+            Entries[id] = invitation;
+            StoredLifetime = lifetime;
+            return Task.CompletedTask;
         }
         public Task<UserInvitation?> FindAsync(Guid id) => Task.FromResult(Entries.GetValueOrDefault(id));
         public Task RemoveAsync(Guid id)
         {
             BeforeRemove?.Invoke();
-            if (FailRemoval) throw new TimeoutException("Redis unavailable");
+            if (FailRemoval)
+                throw new TimeoutException("Redis unavailable");
             Entries.Remove(id);
             return Task.CompletedTask;
         }
@@ -588,8 +615,10 @@ public sealed class UserInvitationApiTests : IDisposable
         public bool Fail { get; set; }
         public Task SendAsync(string recipient, string subject, string body)
         {
-            if (Fail) throw new System.Net.Mail.SmtpException("SMTP unavailable");
-            Messages.Add((recipient, subject, body)); return Task.CompletedTask;
+            if (Fail)
+                throw new System.Net.Mail.SmtpException("SMTP unavailable");
+            Messages.Add((recipient, subject, body));
+            return Task.CompletedTask;
         }
     }
 }

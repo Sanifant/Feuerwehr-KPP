@@ -1,10 +1,10 @@
 
+using System;
 using Avalonia;
 using de.openelp.feuerwehr.App.Desktop.Services;
 using de.openelp.feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System;
 
 namespace de.openelp.feuerwehr.App.Desktop
 {

@@ -26,15 +26,21 @@ public sealed class VehicleServiceTests
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
         var renamed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
         {
-            FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-            Name = "Neuer Name", ExpectedVersion = vehicle.Version
+            FireDepartmentId = 1,
+            EquipmentOfficerId = "officer",
+            RadioCallSign = vehicle.RadioCallSign,
+            Name = "Neuer Name",
+            ExpectedVersion = vehicle.Version
         }, default)).Value);
         Assert.Equal(initial, renamed.StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
         var changed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
         {
-            FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-            VehicleStatusId = VehicleStatusDefaults.MaintenanceId, ExpectedVersion = renamed.Version
+            FireDepartmentId = 1,
+            EquipmentOfficerId = "officer",
+            RadioCallSign = vehicle.RadioCallSign,
+            VehicleStatusId = VehicleStatusDefaults.MaintenanceId,
+            ExpectedVersion = renamed.Version
         }, default)).Value);
         var changedAt = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(changedAt, changed.StatusChangedAtUtc);
@@ -54,8 +60,11 @@ public sealed class VehicleServiceTests
         await fixture.Db.SaveChangesAsync();
         var updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
         {
-            FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-            Name = "Name geändert", ExpectedVersion = vehicle.Version
+            FireDepartmentId = 1,
+            EquipmentOfficerId = "officer",
+            RadioCallSign = vehicle.RadioCallSign,
+            Name = "Name geändert",
+            ExpectedVersion = vehicle.Version
         }, default)).Value);
         Assert.Null(updated.StatusChangedAtUtc);
     }
@@ -77,8 +86,14 @@ public sealed class VehicleServiceTests
         var pending = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
         fixture.As("officer", Roles.EquipmentOfficer);
         var current = Assert.Single(Assert.IsType<List<VehicleDto>>((await fixture.Service.List(false, default)).Value));
-        var changed = await fixture.Service.Save(vehicle.Id, new() { FireDepartmentId = 1, RadioCallSign = current.RadioCallSign,
-            EquipmentOfficerId = "officer", ExpectedVersion = current.Version, VehicleStatusId = VehicleStatusDefaults.MaintenanceId }, default);
+        var changed = await fixture.Service.Save(vehicle.Id, new()
+        {
+            FireDepartmentId = 1,
+            RadioCallSign = current.RadioCallSign,
+            EquipmentOfficerId = "officer",
+            ExpectedVersion = current.Version,
+            VehicleStatusId = VehicleStatusDefaults.MaintenanceId
+        }, default);
         Assert.Equal("Wartung", Assert.IsType<VehicleDto>(changed.Value).VehicleStatusName);
         Assert.Equal(409, (await fixture.Service.Reserve(vehicle.Id, fixture.Request(), true, default)).Code);
         Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new() { ExpectedVersion = pending.Version }, VehicleReservationStatus.Confirmed, default)).Code);
@@ -114,7 +129,7 @@ public sealed class VehicleServiceTests
         Assert.Equal(409, (await fixture.Service.SaveType(null, new() { Name = "mtw" }, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
         var vehicle = Assert.IsType<VehicleDto>((await fixture.Service.Save(null, new()
-            { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Value);
+        { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Value);
         Assert.Equal(type.Id, vehicle.VehicleTypeId);
         Assert.Equal(type.Name, vehicle.VehicleTypeName);
         fixture.As("admin", Roles.Admin);
@@ -127,14 +142,17 @@ public sealed class VehicleServiceTests
         Assert.Equal(403, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = 3, IsActive = true }, default)).Code);
         var retained = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
         {
-            FireDepartmentId = 1, RadioCallSign = vehicle.RadioCallSign, EquipmentOfficerId = "officer",
-            VehicleTypeId = type.Id, ExpectedVersion = vehicle.Version
+            FireDepartmentId = 1,
+            RadioCallSign = vehicle.RadioCallSign,
+            EquipmentOfficerId = "officer",
+            VehicleTypeId = type.Id,
+            ExpectedVersion = vehicle.Version
         }, default)).Value);
         Assert.Equal("Mannschaftstransportwagen", retained.VehicleTypeName);
         Assert.Equal(400, (await fixture.Service.Save(null, new()
-            { FireDepartmentId = 1, RadioCallSign = "Florian 19-02", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Code);
+        { FireDepartmentId = 1, RadioCallSign = "Florian 19-02", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Code);
         Assert.Equal(400, (await fixture.Service.Save(null, new()
-            { FireDepartmentId = 1, RadioCallSign = "Florian 19-03", EquipmentOfficerId = "officer", VehicleTypeId = Guid.NewGuid() }, default)).Code);
+        { FireDepartmentId = 1, RadioCallSign = "Florian 19-03", EquipmentOfficerId = "officer", VehicleTypeId = Guid.NewGuid() }, default)).Code);
     }
 
     [Theory]
@@ -248,11 +266,14 @@ public sealed class VehicleServiceTests
         Assert.Equal(400, (await fixture.Service.Save(null, new() { FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "   " }, default)).Code);
         Assert.Equal(403, (await fixture.Service.Save(null, new() { FireDepartmentId = 2, EquipmentOfficerId = "other", RadioCallSign = "Fremd" }, default)).Code);
         var vehicle = await fixture.Vehicle();
-        var backwards = fixture.Request(); backwards.To = backwards.From.AddDays(-1);
+        var backwards = fixture.Request();
+        backwards.To = backwards.From.AddDays(-1);
         Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, backwards, true, default)).Code);
-        var tooLong = fixture.Request(); tooLong.Comment = new string('x', 2001);
+        var tooLong = fixture.Request();
+        tooLong.Comment = new string('x', 2001);
         Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, tooLong, true, default)).Code);
-        var past = fixture.Request(); past.From = past.To = new DateOnly(2026, 10, 29);
+        var past = fixture.Request();
+        past.From = past.To = new DateOnly(2026, 10, 29);
         Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, past, true, default)).Code);
     }
 
@@ -289,7 +310,8 @@ public sealed class VehicleServiceTests
             Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
             foreach (var id in new[] { "officer", "other", "member", "admin" })
                 Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, FirstName = id, IsActive = true, FireDepartmentId = id == "other" ? 2 : 1 });
-            foreach (var id in new[] { "officer", "other" }) Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+            foreach (var id in new[] { "officer", "other" })
+                Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
             Db.SaveChanges();
             Service = new VehicleService(Db, http, Clock, new VehicleMailComposer(new ConfigurationBuilder().AddInMemoryCollection(
                 new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), Clock));
@@ -298,9 +320,9 @@ public sealed class VehicleServiceTests
         public void As(string id, string role) => http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
             [new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
         public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await Service.Save(null, new()
-            { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
+        { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
         public CreateVehicleReservationRequest Request(string? comment = null) => new()
-            { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
+        { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
         public ValueTask DisposeAsync() => Db.DisposeAsync();
     }
     private sealed class TestClock : TimeProvider

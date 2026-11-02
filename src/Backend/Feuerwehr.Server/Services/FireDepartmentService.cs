@@ -1,10 +1,7 @@
 using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models;
 using Microsoft.EntityFrameworkCore;
-
-using de.openelp.feuerwehr.Server.Services;
 
 namespace de.openelp.feuerwehr.Server.Services;
 

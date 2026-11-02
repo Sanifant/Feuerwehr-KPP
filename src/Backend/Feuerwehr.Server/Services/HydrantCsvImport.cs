@@ -51,9 +51,11 @@ internal static class HydrantCsvImport
                     errors.Add(new(1, $"Unbekannte Spalte '{headers[index]}'."));
             }
             foreach (var required in RequiredColumns)
-                if (!columns.ContainsKey(required)) errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
+                if (!columns.ContainsKey(required))
+                    errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
 
-            if (errors.Count > 0) return (hydrants, errors);
+            if (errors.Count > 0)
+                return (hydrants, errors);
 
             var rowCount = 0;
             while (!parser.EndOfData && errors.Count < 100)
@@ -98,15 +100,22 @@ internal static class HydrantCsvImport
                 {
                     Address = new Address
                     {
-                        Street = Field("street"), HouseNumber = Field("houseNumber"),
-                        PostalCode = Field("postalCode"), City = Field("city"),
+                        Street = Field("street"),
+                        HouseNumber = Field("houseNumber"),
+                        PostalCode = Field("postalCode"),
+                        City = Field("city"),
                     },
-                    Latitude = latitude, Longitude = longitude, NominalDiameter = diameter,
-                    Type = (HydrantType)type, WaterSource = (WaterSource)source, Status = (HydrantStatus)status,
+                    Latitude = latitude,
+                    Longitude = longitude,
+                    NominalDiameter = diameter,
+                    Type = (HydrantType)type,
+                    WaterSource = (WaterSource)source,
+                    Status = (HydrantStatus)status,
                     Notes = string.IsNullOrWhiteSpace(Field("notes")) ? null : Field("notes"),
                 });
             }
-            if (rowCount == 0) errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
+            if (rowCount == 0)
+                errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
         }
         catch (MalformedLineException)
         {

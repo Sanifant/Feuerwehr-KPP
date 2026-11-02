@@ -1,10 +1,7 @@
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using Microsoft.EntityFrameworkCore;
-
-using de.openelp.feuerwehr.Server.Services;
 
 namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
 

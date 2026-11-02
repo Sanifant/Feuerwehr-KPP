@@ -1,8 +1,6 @@
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
-using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +22,8 @@ public class SituationMapController(ISituationMapService service) : ControllerBa
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> AcquireLease(Guid incidentId, [FromBody] AcquireLeaseRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.AcquireLease(incidentId, request, cancellationToken));
     }
 
@@ -32,7 +31,8 @@ public class SituationMapController(ISituationMapService service) : ControllerBa
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> Heartbeat(Guid incidentId, [FromBody] LeaseHeartbeatRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.Heartbeat(incidentId, request, cancellationToken));
     }
 
@@ -40,7 +40,8 @@ public class SituationMapController(ISituationMapService service) : ControllerBa
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> Release(Guid incidentId, [FromBody] ReleaseLeaseRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.Release(incidentId, request, cancellationToken));
     }
 
@@ -48,7 +49,8 @@ public class SituationMapController(ISituationMapService service) : ControllerBa
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> UpsertElement(Guid incidentId, [FromBody] UpsertMapElementRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.UpsertElement(incidentId, request, cancellationToken));
     }
 
@@ -56,7 +58,8 @@ public class SituationMapController(ISituationMapService service) : ControllerBa
     [Authorize(Policy = PolicyNames.CanEditSituationMap)]
     public async Task<IActionResult> DeleteElement(Guid incidentId, Guid elementId, [FromBody] DeleteMapElementRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
         return this.ToActionResult(await service.DeleteElement(incidentId, elementId, request, cancellationToken));
     }
 

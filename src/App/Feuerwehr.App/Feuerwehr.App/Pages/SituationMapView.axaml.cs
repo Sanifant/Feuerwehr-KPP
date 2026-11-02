@@ -25,7 +25,8 @@ public partial class SituationMapView : ContentPage
 
     protected override void OnUnloaded(RoutedEventArgs e)
     {
-        if (DataContext is SituationMapViewModel viewModel) viewModel.Deactivate();
+        if (DataContext is SituationMapViewModel viewModel)
+            viewModel.Deactivate();
         base.OnUnloaded(e);
     }
 }

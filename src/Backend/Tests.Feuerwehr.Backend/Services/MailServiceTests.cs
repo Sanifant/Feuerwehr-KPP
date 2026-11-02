@@ -16,7 +16,9 @@ public class MailServiceTests
         Security = authenticate ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None,
         Username = authenticate ? "mail@example.org" : null,
         Password = authenticate ? "test-only-password" : null,
-        From = "mail@example.org", FromName = "Feuerwehr Übung", TimeoutMilliseconds = 45000,
+        From = "mail@example.org",
+        FromName = "Feuerwehr Übung",
+        TimeoutMilliseconds = 45000,
     };
 
     [Theory]
@@ -79,7 +81,8 @@ public class MailServiceTests
 
         Assert.Same(failure, exception);
         client.Verify(c => c.DisconnectAsync(true, default), failingStep == "connect" ? Times.Never() : Times.Once());
-        if (failingStep != "send") client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Never);
+        if (failingStep != "send")
+            client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Never);
     }
 
     [Fact]

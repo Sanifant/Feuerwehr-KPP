@@ -1,13 +1,8 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.Net.Mail;
-
-using de.openelp.feuerwehr.Server.Services;
 
 namespace de.openelp.feuerwehr.Server.Services;
 
@@ -145,7 +140,8 @@ public sealed class UsersService : IUsersService
     public async Task<ServiceResult> ResendInvitation(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user is null) return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
+        if (user is null)
+            return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
         if (!user.IsActive)
             return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
 
@@ -307,9 +303,10 @@ public sealed class UsersService : IUsersService
         }
 
         IdentityResult result;
-        try { result = await _userManager.DeleteAsync(user); }
+        try
+        { result = await _userManager.DeleteAsync(user); }
         catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
-            { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
+        { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
         {
             return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als Gerätewart Fahrzeugen zugeordnet. Bitte die Zuständigkeit vor dem endgültigen Löschen übertragen."));
         }

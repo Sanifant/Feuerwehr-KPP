@@ -1,8 +1,8 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using de.openelp.feuerwehr.App.ViewModels;
-using System;
-using System.Diagnostics.CodeAnalysis;
 
 namespace de.openelp.feuerwehr.App
 {

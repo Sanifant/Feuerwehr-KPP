@@ -16,8 +16,11 @@ public class HydrantServiceTests
         var request = new Hydrant
         {
             Address = new Address { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
-            Latitude = 53.9, Longitude = 10.7, NominalDiameter = 100,
-            Status = HydrantStatus.Operational, Type = HydrantType.Underground,
+            Latitude = 53.9,
+            Longitude = 10.7,
+            NominalDiameter = 100,
+            Status = HydrantStatus.Operational,
+            Type = HydrantType.Underground,
         };
 
         var created = service.Post(request);
@@ -30,9 +33,14 @@ public class HydrantServiceTests
 
         var update = new Hydrant
         {
-            Id = response.Id, Address = new Address { Street = "Neue Straße", City = "Stockelsdorf" },
-            Latitude = 54, Longitude = 11, NominalDiameter = 150,
-            Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "Geprüft",
+            Id = response.Id,
+            Address = new Address { Street = "Neue Straße", City = "Stockelsdorf" },
+            Latitude = 54,
+            Longitude = 11,
+            NominalDiameter = 150,
+            Status = HydrantStatus.Operational,
+            Type = HydrantType.Underground,
+            Notes = "Geprüft",
         };
         Assert.Equal(204, service.Put(response.Id, update).Code);
         Assert.Same(entity, Assert.Single(db.Hydrants));

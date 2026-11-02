@@ -40,10 +40,17 @@ public sealed class IncidentArchiveTests : IDisposable
     {
         var incident = new Incident
         {
-            Id = Guid.NewGuid(), Name = "Brand Gerätehaus", Keyword = "B3", IncidentNumber = "2026-123",
-            Description = "Löschzug Straße", Status = status, CreatedAtUtc = DateTime.UtcNow.AddHours(-6),
-            AlarmedAtUtc = DateTime.UtcNow.AddHours(-7), ClosedAtUtc = status == IncidentStatus.Closed ? DateTime.UtcNow.AddHours(-closedHoursAgo) : null,
-            ClosedByDisplayName = "Ada Muster", Revision = 3,
+            Id = Guid.NewGuid(),
+            Name = "Brand Gerätehaus",
+            Keyword = "B3",
+            IncidentNumber = "2026-123",
+            Description = "Löschzug Straße",
+            Status = status,
+            CreatedAtUtc = DateTime.UtcNow.AddHours(-6),
+            AlarmedAtUtc = DateTime.UtcNow.AddHours(-7),
+            ClosedAtUtc = status == IncidentStatus.Closed ? DateTime.UtcNow.AddHours(-closedHoursAgo) : null,
+            ClosedByDisplayName = "Ada Muster",
+            Revision = 3,
         };
         _db.Incidents.Add(incident);
         return incident;
@@ -53,27 +60,50 @@ public sealed class IncidentArchiveTests : IDisposable
     {
         var entry = new DiaryEntry
         {
-            Id = Guid.NewGuid(), IncidentId = incident.Id, EntryNumber = number, CurrentRevision = canceled ? 2 : 1,
-            IsCanceled = canceled, CancellationReason = canceled ? "Doppelte Meldung" : null,
-            CreatedAtUtc = incident.CreatedAtUtc, UpdatedAtUtc = incident.CreatedAtUtc,
+            Id = Guid.NewGuid(),
+            IncidentId = incident.Id,
+            EntryNumber = number,
+            CurrentRevision = canceled ? 2 : 1,
+            IsCanceled = canceled,
+            CancellationReason = canceled ? "Doppelte Meldung" : null,
+            CreatedAtUtc = incident.CreatedAtUtc,
+            UpdatedAtUtc = incident.CreatedAtUtc,
         };
         _db.DiaryEntries.Add(entry);
         var revision = new DiaryEntryRevision
         {
-            Id = Guid.NewGuid(), DiaryEntryId = entry.Id, RevisionNumber = 1, RevisionType = DiaryRevisionType.Created,
-            EventTimestampUtc = incident.CreatedAtUtc, CategoryCode = "meldung", CategoryNameSnapshot = "Meldung",
+            Id = Guid.NewGuid(),
+            DiaryEntryId = entry.Id,
+            RevisionNumber = 1,
+            RevisionType = DiaryRevisionType.Created,
+            EventTimestampUtc = incident.CreatedAtUtc,
+            CategoryCode = "meldung",
+            CategoryNameSnapshot = "Meldung",
             Text = number == 70 ? "LetzteMeldung" : "Löschzug Straße: Wasser am Rohr. " + new string('X', 180) + "\nWeitere Informationen zur Einsatzlage.",
-            Sender = "Florian 1", Recipient = "Einsatzleitung", TransmissionType = "Funk",
-            CreatedAtUtc = incident.CreatedAtUtc, CreatedByUserId = "admin-1", CreatedByDisplayName = "Ada Muster",
+            Sender = "Florian 1",
+            Recipient = "Einsatzleitung",
+            TransmissionType = "Funk",
+            CreatedAtUtc = incident.CreatedAtUtc,
+            CreatedByUserId = "admin-1",
+            CreatedByDisplayName = "Ada Muster",
         };
         _db.DiaryEntryRevisions.Add(revision);
-        if (canceled) _db.DiaryEntryRevisions.Add(new DiaryEntryRevision
-        {
-            Id = Guid.NewGuid(), DiaryEntryId = entry.Id, RevisionNumber = 2, RevisionType = DiaryRevisionType.Canceled,
-            EventTimestampUtc = revision.EventTimestampUtc, CategoryCode = revision.CategoryCode, CategoryNameSnapshot = revision.CategoryNameSnapshot,
-            Text = "Stornierte Meldung", CancellationReason = "Doppelte Meldung", CreatedAtUtc = revision.CreatedAtUtc,
-            CreatedByUserId = "admin-1", CreatedByDisplayName = "Ada Muster",
-        });
+        if (canceled)
+            _db.DiaryEntryRevisions.Add(new DiaryEntryRevision
+            {
+                Id = Guid.NewGuid(),
+                DiaryEntryId = entry.Id,
+                RevisionNumber = 2,
+                RevisionType = DiaryRevisionType.Canceled,
+                EventTimestampUtc = revision.EventTimestampUtc,
+                CategoryCode = revision.CategoryCode,
+                CategoryNameSnapshot = revision.CategoryNameSnapshot,
+                Text = "Stornierte Meldung",
+                CancellationReason = "Doppelte Meldung",
+                CreatedAtUtc = revision.CreatedAtUtc,
+                CreatedByUserId = "admin-1",
+                CreatedByDisplayName = "Ada Muster",
+            });
     }
 
     [Fact]
@@ -167,7 +197,8 @@ public sealed class IncidentArchiveTests : IDisposable
     public async Task PdfIncludesAllEntriesWithPageBreaksUmlautsAndRevisionHistory()
     {
         var incident = AddIncident();
-        for (var number = 1; number <= 70; number++) AddEntry(incident, number, canceled: number == 1);
+        for (var number = 1; number <= 70; number++)
+            AddEntry(incident, number, canceled: number == 1);
         await _db.SaveChangesAsync();
         var result = await _archive.ExportPdf(incident.Id, default);
         Assert.Equal("application/pdf", result.ContentType);
@@ -181,7 +212,8 @@ public sealed class IncidentArchiveTests : IDisposable
         Assert.Contains("L\\366schzug Stra\\337e", pdf);
         Assert.True(int.Parse(Regex.Match(pdf, @"/Count (\d+)").Groups[1].Value) > 1);
         var preview = Environment.GetEnvironmentVariable("FEUERWEHR_PDF_PREVIEW");
-        if (!string.IsNullOrWhiteSpace(preview)) await File.WriteAllBytesAsync(preview, bytes);
+        if (!string.IsNullOrWhiteSpace(preview))
+            await File.WriteAllBytesAsync(preview, bytes);
     }
 
     public void Dispose() => _db.Dispose();

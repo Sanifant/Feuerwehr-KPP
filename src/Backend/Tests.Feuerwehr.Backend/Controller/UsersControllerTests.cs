@@ -1,15 +1,11 @@
 using de.openelp.feuerwehr.Server.Services;
+using global::de.openelp.feuerwehr.Common.Models.Auth;
 using global::de.openelp.feuerwehr.Server.Controller;
 using global::de.openelp.feuerwehr.Server.Models;
-using global::de.openelp.feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Threading.Tasks;
-using Xunit;
+using Moq;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Controller
 {

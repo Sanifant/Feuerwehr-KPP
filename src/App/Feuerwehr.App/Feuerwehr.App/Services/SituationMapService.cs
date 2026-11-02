@@ -21,7 +21,8 @@ public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : IS
     public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
     {
         using var response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
-        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return null;
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IncidentSummaryDto>(JsonOptions, cancellationToken)
             ?? throw new JsonException("Die Einsatzantwort ist leer.");

@@ -1,10 +1,5 @@
-using de.openelp.feuerwehr.Common.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Net;
-using System.Text;
+using de.openelp.feuerwehr.Common.Models;
 
 namespace de.openelp.feuerwehr.Server.Models
 {

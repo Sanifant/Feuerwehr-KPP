@@ -19,7 +19,9 @@ internal static class SvgSymbolValidator
             throw new ArgumentException("Bitte eine SVG-Datei mit höchstens 256 KB hochladen.");
         using var reader = XmlReader.Create(new StringReader(content), new XmlReaderSettings
         {
-            DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 262144,
+            DtdProcessing = DtdProcessing.Prohibit,
+            XmlResolver = null,
+            MaxCharactersInDocument = 262144,
         });
         var document = XDocument.Load(reader);
         var root = document.Root;
@@ -44,10 +46,12 @@ internal static class SvgSymbolValidator
             foreach (var attribute in node.Attributes().ToList())
             {
                 var name = attribute.Name.LocalName;
-                if (attribute.IsNamespaceDeclaration) continue;
+                if (attribute.IsNamespaceDeclaration)
+                    continue;
                 if (name.StartsWith("on", StringComparison.OrdinalIgnoreCase) || attribute.Name == XNamespace.Xml + "base")
                     throw new ArgumentException("Skripte und Ereignisbehandlung sind in SVG-Bildern nicht erlaubt.");
-                if (!Attributes.Contains(name)) { attribute.Remove(); continue; }
+                if (!Attributes.Contains(name))
+                { attribute.Remove(); continue; }
                 if (name == "href")
                 {
                     if (node.Name.LocalName == "image")
@@ -59,9 +63,11 @@ internal static class SvgSymbolValidator
                         throw new ArgumentException("SVG-Bilder dürfen nur interne Verweise enthalten.");
                 }
                 ValidateValue(attribute.Value);
-                if (name == "style") ValidateDeclarations(attribute.Value);
+                if (name == "style")
+                    ValidateDeclarations(attribute.Value);
             }
-            if (node.Name.LocalName == "style") ValidateStylesheet(node.Value);
+            if (node.Name.LocalName == "style")
+                ValidateStylesheet(node.Value);
         }
 
         var viewBox = root.Attribute("viewBox")?.Value;
@@ -92,7 +98,8 @@ internal static class SvgSymbolValidator
 
     private static string ValidateImageReference(string value)
     {
-        if (Regex.IsMatch(value, @"^#[A-Za-z_][\w:.-]*$")) return value;
+        if (Regex.IsMatch(value, @"^#[A-Za-z_][\w:.-]*$"))
+            return value;
         var separator = value.IndexOf(',');
         var header = separator < 0 ? string.Empty : value[..separator];
         var png = header.Equals("data:image/png;base64", StringComparison.OrdinalIgnoreCase);
@@ -101,7 +108,8 @@ internal static class SvgSymbolValidator
             throw new ArgumentException("Bilder im SVG müssen als PNG oder JPEG eingebettet sein (data:image/png;base64 oder data:image/jpeg;base64). Bitte externe Bilder im SVG-Editor einbetten.");
 
         byte[] bytes;
-        try { bytes = Convert.FromBase64String(value[(separator + 1)..]); }
+        try
+        { bytes = Convert.FromBase64String(value[(separator + 1)..]); }
         catch (FormatException)
         {
             throw new ArgumentException("Ein eingebettetes Bild enthält ungültige Base64-Daten.");
@@ -142,7 +150,8 @@ internal static class SvgSymbolValidator
         var remaining = Regex.Replace(value, @"/\*.*?\*/", "", RegexOptions.Singleline);
         foreach (Match rule in Regex.Matches(remaining, @"([^{}]+)\{([^{}]*)\}"))
         {
-            if (!Regex.IsMatch(rule.Groups[1].Value, @"^[\w\s.#,>:+*-]+$")) throw new ArgumentException("Nicht unterstützter SVG-CSS-Selektor.");
+            if (!Regex.IsMatch(rule.Groups[1].Value, @"^[\w\s.#,>:+*-]+$"))
+                throw new ArgumentException("Nicht unterstützter SVG-CSS-Selektor.");
             ValidateDeclarations(rule.Groups[2].Value);
         }
         if (!string.IsNullOrWhiteSpace(Regex.Replace(remaining, @"[^{}]+\{[^{}]*\}", "")))

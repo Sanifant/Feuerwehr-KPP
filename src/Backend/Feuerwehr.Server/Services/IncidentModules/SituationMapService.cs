@@ -1,14 +1,9 @@
+using System.Text.Json;
 using de.openelp.feuerwehr.Common.Models.Dto;
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
-
-using de.openelp.feuerwehr.Server.Services;
 
 namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
 
@@ -212,7 +207,8 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         {
             // A rolled-back attempt may have accepted tracked changes already. Reload
             // entities and recheck CommandId so retries cannot duplicate committed work.
-            if (attempt++ > 0) dbContext.ChangeTracker.Clear();
+            if (attempt++ > 0)
+                dbContext.ChangeTracker.Clear();
             return await UpsertElementAttempt(incidentId, request, token);
         }, cancellationToken);
     }
@@ -304,7 +300,8 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                     if (!Guid.TryParse(request.SymbolId, out var symbolId))
                         return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
                     var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
-                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                    if (symbol is null)
+                        return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
                     if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
                         return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
                     element.IsVehicle = symbol.IsVehicle;

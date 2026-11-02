@@ -45,7 +45,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
         currentMap.Navigator.ZoomTo(zoomFactor);
 
         Map = currentMap;
-        }
+    }
 
     public void Deactivate()
     {
@@ -81,7 +81,8 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
             StatusMessage = "Lagekarte wird geladen …";
             var incident = await service.GetActiveIncidentAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            if (!CanView) return;
+            if (!CanView)
+                return;
             if (incident == null)
             {
                 Clear();
@@ -91,7 +92,8 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
 
             var state = await service.GetStateAsync(incident.Id, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            if (!CanView) return;
+            if (!CanView)
+                return;
             var elements = SituationMapLayers.CreateElements(state.Elements);
             var hydrants = SituationMapLayers.CreateHydrants(state.Hydrants);
             var currentMap = Map;
@@ -105,7 +107,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
 
                 displayedIncidentId = incident.Id;
             }
-            
+
             foreach (var layer in currentMap.Layers.Where(layer => layer.Name is "Lage" or "Hydranten").ToArray())
             {
                 currentMap.Layers.Remove(layer);
@@ -117,7 +119,7 @@ public partial class SituationMapViewModel(ISituationMapService service, IAuthSe
             IncidentTitle = incident.Name;
             LastUpdated = $"Stand: {state.ServerUtc.ToLocalTime():dd.MM.yyyy HH:mm:ss}";
             StatusMessage = string.Empty;
-            
+
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception exception)

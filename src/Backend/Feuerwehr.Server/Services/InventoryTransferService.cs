@@ -60,7 +60,8 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
         if (kind == InventoryTransferKind.Equipment)
         {
             var (rows, errors) = InventoryCsv.Read(stream, ct);
-            if (errors.Count > 0) return Invalid(errors);
+            if (errors.Count > 0)
+                return Invalid(errors);
             return await InTransaction(kind, () => ImportEquipment(rows, ct), ct);
         }
         try
@@ -83,12 +84,15 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
 
     private static List<InventoryImportError> Validate<T>(List<T>? rows) where T : class
     {
-        if (rows is null || rows.Count == 0) return [new(null, "Die JSON-Datei muss eine nicht leere Liste enthalten.")];
-        if (rows.Count > 10_000) return [new(null, "Pro Import sind höchstens 10.000 Einträge erlaubt.")];
+        if (rows is null || rows.Count == 0)
+            return [new(null, "Die JSON-Datei muss eine nicht leere Liste enthalten.")];
+        if (rows.Count > 10_000)
+            return [new(null, "Pro Import sind höchstens 10.000 Einträge erlaubt.")];
         List<InventoryImportError> errors = [];
         for (var i = 0; i < rows.Count && errors.Count < 100; i++)
         {
-            if (rows[i] is not { } row) { errors.Add(new(i + 1, "Der Eintrag darf nicht null sein.")); continue; }
+            if (rows[i] is not { } row)
+            { errors.Add(new(i + 1, "Der Eintrag darf nicht null sein.")); continue; }
             List<ValidationResult> validation = [];
             Validator.TryValidateObject(row, new ValidationContext(row), validation, validateAllProperties: true);
             errors.AddRange(validation.Select(x => new InventoryImportError(i + 1, x.ErrorMessage ?? "Ungültiger Eintrag.")));
@@ -117,7 +121,8 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
                     await db.Database.ExecuteSqlRawAsync(sql, ct);
                 }
                 var result = await apply();
-                if (result.Code >= 400) { db.ChangeTracker.Clear(); return result; }
+                if (result.Code >= 400)
+                { db.ChangeTracker.Clear(); return result; }
                 await db.SaveChangesAsync(ct);
                 if (kind == InventoryTransferKind.Equipment && db.Database.IsNpgsql())
                 {
@@ -125,7 +130,8 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
                     // rewinds an already issued number and never makes a duplicate possible.
                     await db.Database.ExecuteSqlRawAsync("SELECT setval('\"InventoryBarcodeSequence\"', GREATEST((SELECT last_value FROM \"InventoryBarcodeSequence\"), (SELECT MAX(\"BarcodeNumber\") FROM \"Equipment\")), true)", ct);
                 }
-                if (transaction is not null) await transaction.CommitAsync(ct);
+                if (transaction is not null)
+                    await transaction.CommitAsync(ct);
                 return result;
             });
         }
@@ -139,13 +145,19 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
         var existing = await db.InventoryCategories.ToListAsync(ct);
         var byIds = existing.ToDictionary(x => x.Id);
         var byNames = existing.ToDictionary(x => x.NormalizedName);
-        var ids = new HashSet<Guid>(); var names = new HashSet<string>(); var targets = new HashSet<Guid>();
-        List<InventoryImportError> errors = []; var created = 0; var updated = 0;
+        var ids = new HashSet<Guid>();
+        var names = new HashSet<string>();
+        var targets = new HashSet<Guid>();
+        List<InventoryImportError> errors = [];
+        var created = 0;
+        var updated = 0;
         for (var i = 0; i < rows.Count && errors.Count < 100; i++)
         {
             ct.ThrowIfCancellationRequested();
-            var row = rows[i]; var name = row.Name.Trim(); var normalized = Normalize(name);
-            if (name.Length == 0 || !names.Add(normalized) || row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
+            var row = rows[i];
+            var name = row.Name.Trim();
+            var normalized = Normalize(name);
+            if (name.Length == 0 || !names.Add(normalized) || (row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId))))
             { errors.Add(new(i + 1, "Kategoriename/ID ist leer, ungültig oder in der Datei mehrfach vorhanden.")); continue; }
             var byId = row.Id is { } id ? byIds.GetValueOrDefault(id) : null;
             var byName = byNames.GetValueOrDefault(normalized);
@@ -154,11 +166,16 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
             var category = byId ?? byName;
             if (category is null)
             {
-                category = new InventoryCategory { Id = row.Id ?? Guid.NewGuid() }; db.InventoryCategories.Add(category); created++;
+                category = new InventoryCategory { Id = row.Id ?? Guid.NewGuid() };
+                db.InventoryCategories.Add(category);
+                created++;
             }
-            else updated++;
-            if (!targets.Add(category.Id)) { errors.Add(new(i + 1, "Dieselbe Kategorie würde mehrfach ersetzt werden.")); continue; }
-            category.Name = name; category.NormalizedName = normalized;
+            else
+                updated++;
+            if (!targets.Add(category.Id))
+            { errors.Add(new(i + 1, "Dieselbe Kategorie würde mehrfach ersetzt werden.")); continue; }
+            category.Name = name;
+            category.NormalizedName = normalized;
         }
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
     }
@@ -171,34 +188,47 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
         var categoriesByName = categories.ToDictionary(x => x.NormalizedName);
         var typesById = existing.ToDictionary(x => x.Id);
         var typesByName = existing.GroupBy(x => (x.CategoryId, Name: Normalize(x.Name))).ToDictionary(x => x.Key, x => x.ToList());
-        var ids = new HashSet<Guid>(); var keys = new HashSet<string>(); var targets = new HashSet<Guid>();
-        List<InventoryImportError> errors = []; var created = 0; var updated = 0;
+        var ids = new HashSet<Guid>();
+        var keys = new HashSet<string>();
+        var targets = new HashSet<Guid>();
+        List<InventoryImportError> errors = [];
+        var created = 0;
+        var updated = 0;
         for (var i = 0; i < rows.Count && errors.Count < 100; i++)
         {
             ct.ThrowIfCancellationRequested();
             var row = rows[i];
             var category = (row.CategoryId is { } categoryId ? categoriesById.GetValueOrDefault(categoryId) : null)
                 ?? categoriesByName.GetValueOrDefault(Normalize(row.CategoryName ?? ""));
-            if (category is null) { errors.Add(new(i + 1, "Die Kategorie existiert nicht. Bitte zuerst die Kategorien importieren.")); continue; }
+            if (category is null)
+            { errors.Add(new(i + 1, "Die Kategorie existiert nicht. Bitte zuerst die Kategorien importieren.")); continue; }
             if (!string.IsNullOrWhiteSpace(row.CategoryName) && Normalize(row.CategoryName) != category.NormalizedName)
             { errors.Add(new(i + 1, "Kategorie-ID und Kategoriename passen nicht zusammen.")); continue; }
             var name = row.Name.Trim();
             if (name.Length == 0 || string.IsNullOrWhiteSpace(row.InspectionInstructions) ||
-                row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
+                (row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId))))
             { errors.Add(new(i + 1, "Typname/Prüfanweisung ist leer oder Gerätetyp/ID in der Datei mehrfach vorhanden.")); continue; }
             var type = row.Id is { } id ? typesById.GetValueOrDefault(id) : null;
             if (type is null)
             {
-                if (!keys.Add($"{category.Id}/{Normalize(name)}")) { errors.Add(new(i + 1, "Der Gerätetyp ist in der Datei mehrfach vorhanden.")); continue; }
+                if (!keys.Add($"{category.Id}/{Normalize(name)}"))
+                { errors.Add(new(i + 1, "Der Gerätetyp ist in der Datei mehrfach vorhanden.")); continue; }
                 var matches = typesByName.GetValueOrDefault((category.Id, Normalize(name))) ?? [];
-                if (matches.Count > 1) { errors.Add(new(i + 1, "Der Gerätetyp ist nicht eindeutig. Bitte seine bestehende ID angeben.")); continue; }
+                if (matches.Count > 1)
+                { errors.Add(new(i + 1, "Der Gerätetyp ist nicht eindeutig. Bitte seine bestehende ID angeben.")); continue; }
                 type = matches.SingleOrDefault();
             }
-            if (type is null) { type = new EquipmentType { Id = row.Id ?? Guid.NewGuid() }; db.EquipmentTypes.Add(type); created++; }
-            else { type.Version++; updated++; }
-            if (!targets.Add(type.Id)) { errors.Add(new(i + 1, "Derselbe Gerätetyp würde mehrfach ersetzt werden.")); continue; }
-            type.Category = category; type.CategoryId = category.Id; type.Name = name;
-            type.InspectionIntervalMonths = row.InspectionIntervalMonths; type.InspectionInstructions = row.InspectionInstructions.Trim();
+            if (type is null)
+            { type = new EquipmentType { Id = row.Id ?? Guid.NewGuid() }; db.EquipmentTypes.Add(type); created++; }
+            else
+            { type.Version++; updated++; }
+            if (!targets.Add(type.Id))
+            { errors.Add(new(i + 1, "Derselbe Gerätetyp würde mehrfach ersetzt werden.")); continue; }
+            type.Category = category;
+            type.CategoryId = category.Id;
+            type.Name = name;
+            type.InspectionIntervalMonths = row.InspectionIntervalMonths;
+            type.InspectionInstructions = row.InspectionInstructions.Trim();
         }
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
     }
@@ -210,39 +240,54 @@ public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider
         var typesById = types.ToDictionary(x => x.Id);
         var typesByName = types.GroupBy(x => Normalize(x.Name)).ToDictionary(x => x.Key, x => x.ToList());
         var typesByCategory = types.GroupBy(x => (Name: Normalize(x.Name), Category: x.Category.NormalizedName)).ToDictionary(x => x.Key, x => x.ToList());
-        List<InventoryImportError> errors = []; var created = 0; var updated = 0;
+        List<InventoryImportError> errors = [];
+        var created = 0;
+        var updated = 0;
         foreach (var row in rows)
         {
             ct.ThrowIfCancellationRequested();
-            if (errors.Count >= 100) break;
+            if (errors.Count >= 100)
+                break;
             var type = row.TypeId is { } typeId ? typesById.GetValueOrDefault(typeId) : null;
-            if (type is not null && (row.TypeName.Length > 0 && Normalize(row.TypeName) != Normalize(type.Name) ||
-                row.Category.Length > 0 && Normalize(row.Category) != type.Category.NormalizedName))
+            if (type is not null && ((row.TypeName.Length > 0 && Normalize(row.TypeName) != Normalize(type.Name)) ||
+                (row.Category.Length > 0 && Normalize(row.Category) != type.Category.NormalizedName)))
             { errors.Add(new(row.Line, "Gerätetyp-ID und Typname/Kategorie passen nicht zusammen.")); continue; }
             if (type is null)
             {
                 var matches = (row.Category.Length == 0 ? typesByName.GetValueOrDefault(Normalize(row.TypeName))
                     : typesByCategory.GetValueOrDefault((Normalize(row.TypeName), Normalize(row.Category)))) ?? [];
-                if (matches.Count != 1) { errors.Add(new(row.Line, "Gerätetyp nicht gefunden oder nicht eindeutig. Bitte vorhandene ID oder Typname und Kategorie angeben.")); continue; }
+                if (matches.Count != 1)
+                { errors.Add(new(row.Line, "Gerätetyp nicht gefunden oder nicht eindeutig. Bitte vorhandene ID oder Typname und Kategorie angeben.")); continue; }
                 type = matches[0];
             }
             if (existing.TryGetValue(row.BarcodeNumber, out var item))
             {
                 // A replacement updates the master data in place; identity, inspection state and
                 // historical evidence are retained, including the state of deactivated equipment.
-                item.Version++; updated++;
+                item.Version++;
+                updated++;
             }
             else
             {
                 var createdOn = row.CreatedOn ?? Today;
                 if (createdOn > Today || row.LastInspectedOn > Today || row.LastInspectedOn < createdOn)
                 { errors.Add(new(row.Line, "Bei neuen Geräten darf das Datum nicht in der Zukunft liegen; die letzte Prüfung darf nicht vor der Anlage liegen.")); continue; }
-                item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = row.BarcodeNumber, CreatedOn = createdOn,
-                    LastInspectedOn = row.LastInspectedOn, Status = row.Status, IsActive = row.IsActive };
-                db.Equipment.Add(item); created++;
+                item = new Equipment
+                {
+                    Id = Guid.NewGuid(),
+                    BarcodeNumber = row.BarcodeNumber,
+                    CreatedOn = createdOn,
+                    LastInspectedOn = row.LastInspectedOn,
+                    Status = row.Status,
+                    IsActive = row.IsActive
+                };
+                db.Equipment.Add(item);
+                created++;
             }
-            item.EquipmentType = type; item.EquipmentTypeId = type.Id;
-            item.SerialNumber = row.SerialNumber; item.Manufacturer = row.Manufacturer;
+            item.EquipmentType = type;
+            item.EquipmentTypeId = type.Id;
+            item.SerialNumber = row.SerialNumber;
+            item.Manufacturer = row.Manufacturer;
         }
         return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
     }

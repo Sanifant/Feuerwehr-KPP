@@ -1,19 +1,17 @@
+using System.Text;
+using de.openelp.feuerwehr.Diagnostics;
 using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Hubs;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
-using MailKit.Net.Smtp;
-using System.Text;
-using de.openelp.feuerwehr.Diagnostics;
 
 namespace de.openelp.feuerwehr.Server;
 
@@ -22,7 +20,8 @@ public partial class Program
     private static async Task Main(string[] args)
     {
         using var diagnostics = ProcessDiagnostics.Start("Server");
-        try { await RunAsync(args, diagnostics); }
+        try
+        { await RunAsync(args, diagnostics); }
         catch (Exception error)
         {
             diagnostics.Record("Server.FatalException", exception: error);

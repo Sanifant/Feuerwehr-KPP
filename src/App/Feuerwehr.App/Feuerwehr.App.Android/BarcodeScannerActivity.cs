@@ -39,29 +39,37 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
 
     internal static void Begin(Activity owner, TaskCompletionSource<string?> completion)
     {
-        if (pending is not null) throw new InvalidOperationException("Ein Kamerascan läuft bereits.");
+        if (pending is not null)
+            throw new InvalidOperationException("Ein Kamerascan läuft bereits.");
         pending = completion;
-        try { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
+        try
+        { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
         catch { pending = null; throw; }
     }
     internal static void Cancel(TaskCompletionSource<string?> completion)
     {
-        if (!ReferenceEquals(pending, completion)) return;
-        if (current is not null && current.TryGetTarget(out var activity)) activity.Finish();
-        else { pending = null; completion.TrySetResult(null); }
+        if (!ReferenceEquals(pending, completion))
+            return;
+        if (current is not null && current.TryGetTarget(out var activity))
+            activity.Finish();
+        else
+        { pending = null; completion.TrySetResult(null); }
     }
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
-        if (pending is null) { Finish(); return; }
+        if (pending is null)
+        { Finish(); return; }
         current = new(this);
         var layout = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
         hint = new TextView(this) { Text = "Barcode KPP-001 bis KPP-999 in die Kamera halten.", TextSize = 18 };
         layout.AddView(hint);
         preview = new TextureView(this) { SurfaceTextureListener = this };
         layout.AddView(preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1));
-        var cancel = new Button(this) { Text = "Abbrechen" }; cancel.Click += (_, _) => Finish(); layout.AddView(cancel);
+        var cancel = new Button(this) { Text = "Abbrechen" };
+        cancel.Click += (_, _) => Finish();
+        layout.AddView(cancel);
         SetContentView(layout);
         if (ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted)
         {
@@ -73,23 +81,28 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
     public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
     {
         base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode != 3050) return;
+        if (requestCode != 3050)
+            return;
         permissionPending = false;
         if (grantResults.FirstOrDefault() == Permission.Granted && grantResults.Length > 0)
         { if (preview.IsAvailable) OpenCamera(); }
-        else Fail("Kamerazugriff wurde verweigert.");
+        else
+            Fail("Kamerazugriff wurde verweigert.");
     }
 
     private void OpenCamera()
     {
-        if (camera is not null || thread is not null || closing || ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted) return;
+        if (camera is not null || thread is not null || closing || ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted)
+            return;
         try
         {
             var manager = (CameraManager)GetSystemService(CameraService)!;
             var id = manager.GetCameraIdList().FirstOrDefault(id =>
                 (manager.GetCameraCharacteristics(id).Get(CameraCharacteristics.LensFacing) as Java.Lang.Integer)?.IntValue() == (int)LensFacing.Back)
                 ?? manager.GetCameraIdList().FirstOrDefault() ?? throw new InvalidOperationException("Keine Kamera verfügbar.");
-            thread = new HandlerThread("InventoryBarcode"); thread.Start(); handler = new Handler(thread.Looper!);
+            thread = new HandlerThread("InventoryBarcode");
+            thread.Start();
+            handler = new Handler(thread.Looper!);
             reader = ImageReader.NewInstance(640, 480, ImageFormatType.Yuv420888, 2);
             reader.SetOnImageAvailableListener(this, handler);
             cameraState = new CameraState(this);
@@ -100,7 +113,8 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
 
     private void StartPreview(CameraDevice device)
     {
-        if (closing) { device.Close(); return; }
+        if (closing)
+        { device.Close(); return; }
         camera = device;
         preview.SurfaceTexture!.SetDefaultBufferSize(640, 480);
         previewSurface = new Surface(preview.SurfaceTexture);
@@ -120,22 +134,28 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
 
     public void OnImageAvailable(ImageReader? imageReader)
     {
-        if (closing) return;
+        if (closing)
+            return;
         try
         {
             using var image = imageReader?.AcquireLatestImage();
-            if (image is null || closing) return;
+            if (image is null || closing)
+                return;
             var plane = image.GetPlanes()![0];
             var buffer = plane.Buffer!;
-            var raw = new byte[buffer.Remaining()]; buffer.Get(raw);
+            var raw = new byte[buffer.Remaining()];
+            buffer.Get(raw);
             var luminance = new byte[image.Width * image.Height];
             for (var y = 0; y < image.Height; y++)
-                for (var x = 0; x < image.Width; x++) luminance[y * image.Width + x] = raw[y * plane.RowStride + x * plane.PixelStride];
+                for (var x = 0; x < image.Width; x++)
+                    luminance[(y * image.Width) + x] = raw[(y * plane.RowStride) + (x * plane.PixelStride)];
             var source = new PlanarYUVLuminanceSource(luminance, image.Width, image.Height, 0, 0, image.Width, image.Height, false);
             var result = decoder.Decode(source);
-            if (result is null) return;
+            if (result is null)
+                return;
             var code = result.Text.Trim().ToUpperInvariant();
-            if (code.Length != 7 || !code.StartsWith("KPP-", StringComparison.Ordinal) || !int.TryParse(code.AsSpan(4), out var number) || number is < 1 or > 999) return;
+            if (code.Length != 7 || !code.StartsWith("KPP-", StringComparison.Ordinal) || !int.TryParse(code.AsSpan(4), out var number) || number is < 1 or > 999)
+                return;
             RunOnUiThread(() => { pending?.TrySetResult(code); Finish(); });
         }
         catch (Exception) { /* Einzelne unlesbare Frames überspringen. */ }
@@ -144,24 +164,39 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
     private void Fail(string message) => RunOnUiThread(() => { pending?.TrySetException(new InvalidOperationException(message)); Finish(); });
     protected override void OnPause()
     {
-        if (permissionPending) { base.OnPause(); return; }
+        if (permissionPending)
+        { base.OnPause(); return; }
         closing = true;
-        session?.Close(); camera?.Close(); reader?.Close(); previewSurface?.Dispose();
-        session = null; camera = null; reader = null;
-        thread?.QuitSafely(); thread?.Join(); handler?.Dispose(); thread?.Dispose(); handler = null; thread = null;
+        session?.Close();
+        camera?.Close();
+        reader?.Close();
+        previewSurface?.Dispose();
+        session = null;
+        camera = null;
+        reader = null;
+        thread?.QuitSafely();
+        thread?.Join();
+        handler?.Dispose();
+        thread?.Dispose();
+        handler = null;
+        thread = null;
         base.OnPause();
         // Auch bei App-Wechsel wird die Kamera freigegeben und der Scan beendet.
-        if (!IsFinishing) Finish();
+        if (!IsFinishing)
+            Finish();
     }
     protected override void OnResume()
     {
         base.OnResume();
         closing = false;
-        if (preview is not null && preview.IsAvailable && !permissionPending) OpenCamera();
+        if (preview is not null && preview.IsAvailable && !permissionPending)
+            OpenCamera();
     }
     protected override void OnDestroy()
     {
-        pending?.TrySetResult(null); pending = null; current = null;
+        pending?.TrySetResult(null);
+        pending = null;
+        current = null;
         base.OnDestroy();
     }
     public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) => OpenCamera();
@@ -179,12 +214,14 @@ public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextu
     {
         public override void OnConfigured(CameraCaptureSession session)
         {
-            if (owner.closing) { session.Close(); return; }
+            if (owner.closing)
+            { session.Close(); return; }
             try
             {
                 owner.session = session;
                 using var request = owner.camera!.CreateCaptureRequest(CameraTemplate.Preview);
-                request.AddTarget(owner.previewSurface!); request.AddTarget(owner.reader!.Surface!);
+                request.AddTarget(owner.previewSurface!);
+                request.AddTarget(owner.reader!.Surface!);
                 request.Set(CaptureRequest.ControlAfMode!, (int)ControlAFMode.ContinuousPicture);
                 session.SetRepeatingRequest(request.Build(), null, owner.handler);
             }

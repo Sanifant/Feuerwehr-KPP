@@ -8,7 +8,7 @@ namespace de.openelp.feuerwehr.Server.Controller;
 
 [ApiController, Route("api/inventory")]
 [Authorize(Policy = PolicyNames.CanViewInventory)]
-[RequestSizeLimit(MaximumImportBytes + 64 * 1024)]
+[RequestSizeLimit(MaximumImportBytes + (64 * 1024))]
 public sealed class InventoryTransferController(IInventoryTransferService service) : ControllerBase
 {
     public const long MaximumImportBytes = 5 * 1024 * 1024;
@@ -29,8 +29,10 @@ public sealed class InventoryTransferController(IInventoryTransferService servic
 
     private async Task<IActionResult> Import(InventoryTransferKind kind, IFormFile? file, CancellationToken ct)
     {
-        if (file is null || file.Length == 0) return BadRequest(new InventoryImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
-        if (file.Length > MaximumImportBytes) return BadRequest(new InventoryImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groß sein.")]));
+        if (file is null || file.Length == 0)
+            return BadRequest(new InventoryImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
+        if (file.Length > MaximumImportBytes)
+            return BadRequest(new InventoryImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groß sein.")]));
         await using var stream = file.OpenReadStream();
         return this.ToActionResult(await service.Import(kind, stream, ct));
     }

@@ -28,9 +28,14 @@ public class SmtpSettingsTests
         var settings = Read(new()
         {
             ["ConnectionStrings:mail"] = "invalid obsolete connection",
-            ["MAIL_HOST"] = "smtp.strato.de", ["MAIL_PORT"] = "465", ["MAIL_SECURITY"] = "SslOnConnect",
-            ["MAIL_USERNAME"] = "mail@example.org", ["MAIL_PASSWORD"] = " password with spaces ",
-            ["MAIL_FROM"] = "sender@example.org", ["MAIL_FROM_NAME"] = "Feuerwehr Übung", ["MAIL_TIMEOUT_SECONDS"] = "45",
+            ["MAIL_HOST"] = "smtp.strato.de",
+            ["MAIL_PORT"] = "465",
+            ["MAIL_SECURITY"] = "SslOnConnect",
+            ["MAIL_USERNAME"] = "mail@example.org",
+            ["MAIL_PASSWORD"] = " password with spaces ",
+            ["MAIL_FROM"] = "sender@example.org",
+            ["MAIL_FROM_NAME"] = "Feuerwehr Übung",
+            ["MAIL_TIMEOUT_SECONDS"] = "45",
             ["Mail:From"] = "old@example.org",
         });
         Assert.Equal("smtp.strato.de", settings.Host);
@@ -72,8 +77,13 @@ public class SmtpSettingsTests
     {
         var settings = Read(new()
         {
-            ["ConnectionStrings:mail"] = "smtp://mailpit:32781", ["MAIL_HOST"] = "", ["MAIL_PORT"] = "",
-            ["MAIL_USERNAME"] = "", ["MAIL_PASSWORD"] = "", ["MAIL_SECURITY"] = "None", ["MAIL_FROM"] = "noreply@localhost.de",
+            ["ConnectionStrings:mail"] = "smtp://mailpit:32781",
+            ["MAIL_HOST"] = "",
+            ["MAIL_PORT"] = "",
+            ["MAIL_USERNAME"] = "",
+            ["MAIL_PASSWORD"] = "",
+            ["MAIL_SECURITY"] = "None",
+            ["MAIL_FROM"] = "noreply@localhost.de",
         });
         Assert.Equal("mailpit", settings.Host);
         Assert.Equal(32781, settings.Port);
@@ -105,7 +115,9 @@ public class SmtpSettingsTests
     {
         var exception = Assert.Throws<InvalidOperationException>(() => Read(new()
         {
-            ["MAIL_USERNAME"] = username, ["MAIL_PASSWORD"] = password, ["MAIL_SECURITY"] = security,
+            ["MAIL_USERNAME"] = username,
+            ["MAIL_PASSWORD"] = password,
+            ["MAIL_SECURITY"] = security,
         }));
         Assert.DoesNotContain("secret-value", exception.ToString());
     }

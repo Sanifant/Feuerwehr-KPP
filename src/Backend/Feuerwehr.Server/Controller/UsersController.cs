@@ -1,6 +1,5 @@
 using de.openelp.feuerwehr.Common.Models.Auth;
 using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,7 +35,8 @@ public class UsersController(IUsersService service) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         return this.ToActionResult(await service.CreateUser(request));
     }
 
@@ -52,7 +52,8 @@ public class UsersController(IUsersService service) : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         return this.ToActionResult(await service.UpdateUser(id, request));
     }
 
