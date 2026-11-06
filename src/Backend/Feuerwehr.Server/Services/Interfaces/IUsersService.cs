@@ -1,12 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.Net.Mail;
 using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {

@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Net;
-using System.Text;
-
 namespace De.Openelp.Feuerwehr.Common.Models
 {
     public class Address

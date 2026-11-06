@@ -1,6 +1,5 @@
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services;
 using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

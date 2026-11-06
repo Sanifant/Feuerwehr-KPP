@@ -1,17 +1,12 @@
 using System;
-using System.IO;
-using System.Linq;
 using System.Net.Http;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using De.Openelp.Feuerwehr.App.Services;
 using De.Openelp.Feuerwehr.App.ViewModels;
 using De.Openelp.Feuerwehr.App.Views;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace De.Openelp.Feuerwehr.App

@@ -10,10 +10,8 @@ using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
-using OpenTelemetry.Metrics;
 using Scalar.AspNetCore;
 
 namespace De.Openelp.Feuerwehr.Server

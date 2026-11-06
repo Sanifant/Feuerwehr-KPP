@@ -1,16 +1,4 @@
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
 using De.Openelp.Feuerwehr.Common.Models.Vehicles;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Models.Vehicles;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {

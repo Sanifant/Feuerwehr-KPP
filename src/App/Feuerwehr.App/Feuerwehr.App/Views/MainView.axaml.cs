@@ -1,7 +1,5 @@
 using System;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
-using De.Openelp.Feuerwehr.App.Pages;
 using De.Openelp.Feuerwehr.App.ViewModels;
 
 namespace De.Openelp.Feuerwehr.App.Views

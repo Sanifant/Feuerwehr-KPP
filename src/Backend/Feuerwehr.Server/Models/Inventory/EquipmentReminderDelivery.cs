@@ -1,5 +1,3 @@
-using De.Openelp.Feuerwehr.Common.Models.Inventory;
-
 namespace De.Openelp.Feuerwehr.Server.Models.Inventory
 {
     public sealed class EquipmentReminderDelivery

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
 namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules
 {

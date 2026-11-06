@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -11,11 +10,6 @@ using De.Openelp.Feuerwehr.App.Models;
 using De.Openelp.Feuerwehr.App.Pages;
 using De.Openelp.Feuerwehr.App.Services;
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using Mapsui;
-using Mapsui.Layers;
-using Mapsui.Projections;
-using Mapsui.Styles;
-using Mapsui.Tiling;
 
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {

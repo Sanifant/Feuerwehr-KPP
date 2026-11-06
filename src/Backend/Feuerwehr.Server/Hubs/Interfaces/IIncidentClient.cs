@@ -1,7 +1,4 @@
-using System.Security.Claims;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
 
 namespace De.Openelp.Feuerwehr.Server.Hubs
 {

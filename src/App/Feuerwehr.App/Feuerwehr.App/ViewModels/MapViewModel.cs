@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,16 +11,12 @@ using De.Openelp.Feuerwehr.App.Models;
 using De.Openelp.Feuerwehr.App.Services;
 using De.Openelp.Feuerwehr.Common.Models;
 using Mapsui;
-using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Manipulations;
 using Mapsui.Projections;
-using Mapsui.Rendering;
 using Mapsui.Styles;
 using Mapsui.Tiling;
-using Mapsui.UI;
 using Mapsui.UI.Avalonia;
-using Mapsui.Widgets.InfoWidgets;
 
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {

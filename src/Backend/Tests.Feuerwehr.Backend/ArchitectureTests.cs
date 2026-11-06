@@ -1,11 +1,9 @@
 using System.Reflection;
 using System.Text.Json;
-using De.Openelp.Feuerwehr.Common.Models;
 using De.Openelp.Feuerwehr.Common.Models.Auth;
 using De.Openelp.Feuerwehr.Common.Models.Dto;
 using De.Openelp.Feuerwehr.Server.Controller;
 using De.Openelp.Feuerwehr.Server.Data;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

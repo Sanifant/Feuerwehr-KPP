@@ -1,5 +1,4 @@
 using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Server.Authorization;
 using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

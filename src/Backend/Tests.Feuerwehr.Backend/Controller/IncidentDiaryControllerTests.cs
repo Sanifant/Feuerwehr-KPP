@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using global::De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
@@ -7,7 +6,6 @@ using global::De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 using global::De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 

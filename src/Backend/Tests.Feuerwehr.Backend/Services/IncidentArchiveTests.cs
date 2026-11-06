@@ -1,7 +1,5 @@
 using System.Reflection;
 using System.Security.Claims;
-using System.Text;
-using System.Text.RegularExpressions;
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using De.Openelp.Feuerwehr.Server.Authorization;
 using De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
