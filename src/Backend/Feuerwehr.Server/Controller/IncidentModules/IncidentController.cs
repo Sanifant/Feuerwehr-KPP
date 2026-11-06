@@ -1,11 +1,10 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services;
-using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
+namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
 {
     [Route("api/incidents")]
     [ApiController]
@@ -38,30 +37,20 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
 
         [HttpPost]
         [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-        /// <summary>
-        /// Creates the incident.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> CreateIncident([FromBody] CreateIncidentRequest request, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
             return this.ToActionResult(await service.CreateIncident(request, cancellationToken));
         }
 
         [HttpPost("{incidentId:guid}/close")]
         [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-        /// <summary>
-        /// Executes close Incident.
-        /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> CloseIncident(Guid incidentId, [FromBody] CloseIncidentRequest request, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
             return this.ToActionResult(await service.CloseIncident(incidentId, request, cancellationToken));
         }
     }
-
 }

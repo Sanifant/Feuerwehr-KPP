@@ -1,17 +1,15 @@
-﻿using System.Text;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.Text.Json;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using global::De.Openelp.Feuerwehr.Server.Controller.IncidentModules;
-using global::De.Openelp.Feuerwehr.Server.Data;
-using global::De.Openelp.Feuerwehr.Server.Models.IncidentModules;
-using global::De.Openelp.Feuerwehr.Server.Services.IncidentModules;
+using global::de.openelp.feuerwehr.Server.Controller.IncidentModules;
+using global::de.openelp.feuerwehr.Server.Data;
+using global::de.openelp.feuerwehr.Server.Models.IncidentModules;
+using global::de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
+namespace de.openelp.feuerwehr.Tests.Backend.Controller
 {
     public class IncidentDiaryControllerTests
     {
@@ -95,7 +93,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="status">The status.</param>
         /// <param name="revision">The revision.</param>
         public static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
-            => new()
+        {
+            return new()
             {
                 Id = incidentId,
                 Name = name,
@@ -103,6 +102,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Revision = revision,
                 CreatedAtUtc = DateTime.UtcNow.AddHours(-2),
             };
+        }
 
         /// <summary>
         /// Creates the category.
@@ -111,7 +111,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="name">The name.</param>
         /// <param name="isActive">The is Active.</param>
         public static DiaryCategory CreateCategory(string code, string name, bool isActive = true)
-            => new()
+        {
+            return new()
             {
                 Id = Guid.NewGuid(),
                 Code = code,
@@ -120,6 +121,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreatedAtUtc = DateTime.UtcNow.AddDays(-5),
                 UpdatedAtUtc = DateTime.UtcNow.AddDays(-1),
             };
+        }
 
         /// <summary>
         /// Creates the entry.
@@ -130,7 +132,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="isCanceled">The is Canceled.</param>
         /// <param name="cancellationReason">The cancellation Reason.</param>
         public static DiaryEntry CreateEntry(Guid incidentId, long entryNumber = 1, int currentRevision = 1, bool isCanceled = false, string? cancellationReason = null)
-            => new()
+        {
+            return new()
             {
                 Id = Guid.NewGuid(),
                 IncidentId = incidentId,
@@ -141,6 +144,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreatedAtUtc = DateTime.UtcNow.AddMinutes(-30),
                 UpdatedAtUtc = DateTime.UtcNow.AddMinutes(-5),
             };
+        }
 
         /// <summary>
         /// Creates the revision.
@@ -160,7 +164,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string categoryName = "Radio",
             string text = "Initial entry",
             string? cancellationReason = null)
-            => new()
+        {
+            return new()
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,
@@ -179,6 +184,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreatedByUserId = "user-1",
                 CreatedByDisplayName = "Ada Admin",
             };
+        }
 
         [Fact]
         /// <summary>
@@ -549,7 +555,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         /// <param name="value">The value.</param>
         public static JsonElement ToJsonElement(object value)
-            => JsonSerializer.SerializeToElement(value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        {
+            return JsonSerializer.SerializeToElement(value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        }
     }
 
 }

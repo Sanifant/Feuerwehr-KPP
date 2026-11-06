@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
-using De.Openelp.Feuerwehr.App.Services;
-using De.Openelp.Feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.ViewModels;
 
-namespace De.Openelp.Feuerwehr.App.Views
+namespace de.openelp.feuerwehr.App.Views
 {
     public partial class MainWindow : Window
     {
@@ -16,73 +16,73 @@ namespace De.Openelp.Feuerwehr.App.Views
             Func<MainViewModel> mainViewModelFactory,
             Func<LoginViewModel> loginViewModelFactory)
         {
-            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
-            _mainViewModelFactory = mainViewModelFactory ?? throw new ArgumentNullException(nameof(mainViewModelFactory));
-            _loginViewModelFactory = loginViewModelFactory ?? throw new ArgumentNullException(nameof(loginViewModelFactory));
+            this._authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            this._mainViewModelFactory = mainViewModelFactory ?? throw new ArgumentNullException(nameof(mainViewModelFactory));
+            this._loginViewModelFactory = loginViewModelFactory ?? throw new ArgumentNullException(nameof(loginViewModelFactory));
 
-            InitializeComponent();
+            this.InitializeComponent();
 
             // Subscribe to auth state changes
-            _authService.AuthStateChanged += OnAuthStateChanged;
+            this._authService.AuthStateChanged += OnAuthStateChanged;
 
             // Set initial view based on authentication state
-            UpdateView();
+            this.UpdateView();
         }
 
         private void OnAuthStateChanged(object? sender, EventArgs e)
         {
-            UpdateView();
+            this.UpdateView();
         }
 
         private void UpdateView()
         {
-            if (_authService.IsAuthenticated)
+            if (this._authService.IsAuthenticated)
             {
-                ShowMainView();
+                this.ShowMainView();
             }
             else
             {
-                ShowLoginView();
+                this.ShowLoginView();
             }
         }
 
         private void ShowLoginView()
         {
-            LoginViewModel loginViewModel = _loginViewModelFactory();
-            loginViewModel.LoginSuccessful += OnLoginSuccessful;
+            LoginViewModel loginViewModel = this._loginViewModelFactory();
+            loginViewModel.LoginSuccessful += this.OnLoginSuccessful;
 
             LoginView loginView = new LoginView
             {
                 DataContext = loginViewModel
             };
 
-            Content = loginView;
+            this.Content = loginView;
         }
 
         private void ShowMainView()
         {
-            MainViewModel mainViewModel = _mainViewModelFactory();
+            MainViewModel mainViewModel = this._mainViewModelFactory();
 
             MainView mainView = new MainView
             {
                 DataContext = mainViewModel
             };
 
-            Content = mainView;
+            this.Content = mainView;
         }
 
         private void OnLoginSuccessful(object? sender, EventArgs e)
         {
             if (sender is LoginViewModel loginViewModel)
             {
-                loginViewModel.LoginSuccessful -= OnLoginSuccessful;
+                loginViewModel.LoginSuccessful -= this.OnLoginSuccessful;
             }
-            UpdateView();
+            this.UpdateView();
         }
 
         protected override void OnClosed(EventArgs e)
         {
-            _authService.AuthStateChanged -= OnAuthStateChanged;
+            this._authService.AuthStateChanged -= OnAuthStateChanged;
             base.OnClosed(e);
         }
     }

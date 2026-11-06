@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,22 +7,18 @@ using Avalonia;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using De.Openelp.Feuerwehr.App.Models;
-using De.Openelp.Feuerwehr.App.Services;
-using De.Openelp.Feuerwehr.Common.Models;
+using de.openelp.feuerwehr.App.Models;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.Common.Models;
 using Mapsui;
-using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Manipulations;
 using Mapsui.Projections;
-using Mapsui.Rendering;
 using Mapsui.Styles;
 using Mapsui.Tiling;
-using Mapsui.UI;
 using Mapsui.UI.Avalonia;
-using Mapsui.Widgets.InfoWidgets;
 
-namespace De.Openelp.Feuerwehr.App.ViewModels
+namespace de.openelp.feuerwehr.App.ViewModels
 {
     public partial class MapViewModel : ViewModelBase
     {
@@ -56,16 +51,16 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         public MapViewModel(IHydrantService service, IGpsService gpsService)
         {
 
-            hydrantService = service;
+            this.hydrantService = service;
             this.gpsService = gpsService;
 
-            InitializeMap();
-            DrawHydrants();
+            this.InitializeMap();
+            this.DrawHydrants();
         }
 
         private void DrawHydrants()
         {
-            hydrantService.GetAllAsync().ContinueWith(task =>
+            this.hydrantService.GetAllAsync().ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully)
                 {
@@ -76,9 +71,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                         Longitude = h.Longitude
                     }).ToList();
 
-                    IEnumerable<ILayer> layers = HydrantLayer(hydrants);
+                    IEnumerable<ILayer> layers = this.HydrantLayer(hydrants);
 
-                    Map.Layers.Add(layers);
+                    this.Map.Layers.Add(layers);
                 }
             });
         }
@@ -89,13 +84,13 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// </summary>
         public void ZoomIn()
         {
-            if(zoomFactor == 1)
+            if (this.zoomFactor == 1)
             {
-                CanZoomIn = false;
+                this.CanZoomIn = false;
                 return;
             }
-            zoomFactor--;
-            Map?.Navigator.ZoomTo(zoomFactor);
+            this.zoomFactor--;
+            this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }
 
         [RelayCommand]
@@ -104,9 +99,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// </summary>
         public void ZoomOut()
         {
-            CanZoomIn = true;
-            zoomFactor++;
-            Map?.Navigator.ZoomTo(zoomFactor);
+            this.CanZoomIn = true;
+            this.zoomFactor++;
+            this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }
 
         [RelayCommand]
@@ -116,16 +111,16 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task CenterOnLocationAsync(CancellationToken cancellationToken)
         {
-            GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
+            GpsLocation? location = await this.GetLocationForCommandAsync(cancellationToken);
 
             if (location != null)
             {
 
                 MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
                 (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
-                Map?.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
-                zoomFactor = 10;
-                Map?.Navigator.ZoomTo(zoomFactor);
+                this.Map?.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+                this.zoomFactor = 10;
+                this.Map?.Navigator.ZoomTo(this.zoomFactor);
             }
         }
 
@@ -136,14 +131,14 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task SettingsAsync(CancellationToken cancellationToken)
         {
-            GpsLocation? location = await GetLocationForCommandAsync(cancellationToken);
+            GpsLocation? location = await this.GetLocationForCommandAsync(cancellationToken);
 
             if (location != null)
             {
-                IsAddVisible = true;
+                this.IsAddVisible = true;
                 MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
 
-                NewHydrant = new Hydrant
+                this.NewHydrant = new Hydrant
                 {
                     Latitude = startPoint.Y,
                     Longitude = startPoint.X,
@@ -157,7 +152,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         {
             try
             {
-                GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
+                GpsLocation? location = await this.gpsService.GetCurrentLocationAsync(cancellationToken);
                 return cancellationToken.IsCancellationRequested ? null : location;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -173,7 +168,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// </summary>
         public void AddHydrant()
         {
-            IsAddVisible = false;
+            this.IsAddVisible = false;
         }
 
         [RelayCommand]
@@ -183,16 +178,16 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// <param name="mapEventArgs">The map Event Args.</param>
         public void MapClicked(TappedEventArgs? mapEventArgs)
         {
-            if (Map is null || mapEventArgs?.Source is not MapControl mapControl)
+            if (this.Map is null || mapEventArgs?.Source is not MapControl mapControl)
             {
-                IsFlyoutOpen = false;
+                this.IsFlyoutOpen = false;
                 return;
             }
 
-            ILayer? layer = Map.Layers.FirstOrDefault(l => l.Name == "Hydrants");
+            ILayer? layer = this.Map.Layers.FirstOrDefault(l => l.Name == "Hydrants");
             if (layer is null)
             {
-                IsFlyoutOpen = false;
+                this.IsFlyoutOpen = false;
                 return;
             }
 
@@ -201,12 +196,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
             if (mapInfo?.Feature is PointFeature clickedFeature && clickedFeature["Model"] is HydrantPin hydrantPin)
             {
-                SelectedHydrant = hydrantPin;
-                IsFlyoutOpen = true;
+                this.SelectedHydrant = hydrantPin;
+                this.IsFlyoutOpen = true;
             }
             else
             {
-                IsFlyoutOpen = false;
+                this.IsFlyoutOpen = false;
             }
         }
 
@@ -215,8 +210,8 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             Map map = new Map();
             map.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
 
-            map.Navigator.ZoomTo(zoomFactor);
-            Map = map;
+            map.Navigator.ZoomTo(this.zoomFactor);
+            this.Map = map;
         }
 
         /// <summary>
@@ -225,9 +220,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task InitializeLocationAsync(CancellationToken cancellationToken = default)
         {
-            GpsLocation? location = await gpsService.GetCurrentLocationAsync(cancellationToken);
+            GpsLocation? location = await this.gpsService.GetCurrentLocationAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            Map? map = Map;
+            Map? map = this.Map;
 
             if (location != null && map != null)
             {

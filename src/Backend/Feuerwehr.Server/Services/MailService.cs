@@ -1,7 +1,7 @@
 using MailKit.Net.Smtp;
 using MimeKit;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
 
     /// <summary>
@@ -18,8 +18,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="recipient">The recipient.</param>
         /// <param name="subject">The subject.</param>
         /// <param name="body">The body.</param>
-        public Task SendAsync(string recipient, string subject, string body) =>
-            SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
+        public Task SendAsync(string recipient, string subject, string body)
+        {
+            return this.SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
+        }
 
         /// <summary>
         /// Sends the html.
@@ -31,11 +33,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody)
         {
             BodyBuilder builder = new BodyBuilder { TextBody = textBody, HtmlBody = htmlBody };
-            using Stream logoStream = typeof(MailService).Assembly.GetManifestResourceStream("De.Openelp.Feuerwehr.Server.MailLogo.png")
+            using Stream logoStream = typeof(MailService).Assembly.GetManifestResourceStream("de.openelp.feuerwehr.Server.MailLogo.png")
                 ?? throw new InvalidOperationException("Das eingebettete E-Mail-Logo fehlt.");
             MimeEntity logo = builder.LinkedResources.Add("feuerwehr.png", logoStream, new ContentType("image", "png"));
             logo.ContentId = "feuerwehr-logo";
-            await SendMessageAsync(recipient, subject, builder.ToMessageBody());
+            await this.SendMessageAsync(recipient, subject, builder.ToMessageBody());
         }
 
         private async Task SendMessageAsync(string recipient, string subject, MimeEntity body)
@@ -57,7 +59,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 if (client.IsConnected)
                 {
-                    try { await client.DisconnectAsync(true); }
+                    try
+                    { await client.DisconnectAsync(true); }
                     catch (Exception exception)
                     {
                         // A cleanup error must not roll back an invitation whose email was already accepted.

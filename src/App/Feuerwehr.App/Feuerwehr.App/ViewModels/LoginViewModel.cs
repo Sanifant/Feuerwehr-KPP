@@ -2,9 +2,9 @@ using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using De.Openelp.Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Services;
 
-namespace De.Openelp.Feuerwehr.App.ViewModels
+namespace de.openelp.feuerwehr.App.ViewModels
 {
     public partial class LoginViewModel : ViewModelBase
     {
@@ -29,50 +29,50 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         public LoginViewModel(IAuthService authService)
         {
-            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            this._authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
 
         [RelayCommand]
         private async Task LoginAsync()
         {
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(this.Email) || string.IsNullOrWhiteSpace(this.Password))
             {
-                ErrorMessage = "Bitte E-Mail und Passwort eingeben.";
+                this.ErrorMessage = "Bitte E-Mail und Passwort eingeben.";
                 return;
             }
 
-            IsLoggingIn = true;
-            ErrorMessage = null;
+            this.IsLoggingIn = true;
+            this.ErrorMessage = null;
 
             try
             {
-                bool success = await _authService.LoginAsync(Email, Password);
+                bool success = await this._authService.LoginAsync(this.Email, this.Password);
 
                 if (success)
                 {
                     // Clear password for security
-                    Password = string.Empty;
-                    LoginSuccessful?.Invoke(this, EventArgs.Empty);
+                    this.Password = string.Empty;
+                    this.LoginSuccessful?.Invoke(this, EventArgs.Empty);
                 }
                 else
                 {
-                    ErrorMessage = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.";
+                    this.ErrorMessage = "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.";
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Fehler bei der Anmeldung: {ex.Message}";
+                this.ErrorMessage = $"Fehler bei der Anmeldung: {ex.Message}";
             }
             finally
             {
-                IsLoggingIn = false;
+                this.IsLoggingIn = false;
             }
         }
 
         [RelayCommand]
         private void ClearError()
         {
-            ErrorMessage = null;
+            this.ErrorMessage = null;
         }
     }
 }

@@ -1,12 +1,6 @@
-using System.Globalization;
-using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Server.Data;
-using Microsoft.EntityFrameworkCore;
-using AddressEntity = De.Openelp.Feuerwehr.Server.Models.Address;
-using HydrantEntity = De.Openelp.Feuerwehr.Server.Models.Hydrant;
+using de.openelp.feuerwehr.Common.Models;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public interface IHydrantService
     {

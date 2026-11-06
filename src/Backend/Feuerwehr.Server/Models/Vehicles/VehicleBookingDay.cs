@@ -1,6 +1,4 @@
-using De.Openelp.Feuerwehr.Common.Models.Vehicles;
-
-namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
+namespace de.openelp.feuerwehr.Server.Models.Vehicles
 {
     public sealed class VehicleBookingDay
     {

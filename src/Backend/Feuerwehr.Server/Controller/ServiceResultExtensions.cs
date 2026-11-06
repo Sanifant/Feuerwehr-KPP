@@ -1,7 +1,7 @@
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller
+namespace de.openelp.feuerwehr.Server.Controller
 {
     internal static class ServiceResultExtensions
     {

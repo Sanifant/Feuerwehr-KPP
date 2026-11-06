@@ -1,10 +1,10 @@
-﻿using De.Openelp.Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
-using ClientApp = De.Openelp.Feuerwehr.App.App;
+using ClientApp = de.openelp.feuerwehr.App.App;
 
-namespace De.Openelp.Feuerwehr.Tests.App
+namespace de.openelp.feuerwehr.Tests.App
 {
     public class GpsServiceRegistrationTests
     {

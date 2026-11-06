@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace De.Openelp.Feuerwehr.Common.Models.Auth
+namespace de.openelp.feuerwehr.Common.Models.Auth
 {
     public class ChangePasswordRequest
     {

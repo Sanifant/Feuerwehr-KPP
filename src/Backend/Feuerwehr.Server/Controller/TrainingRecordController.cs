@@ -1,10 +1,10 @@
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller
+namespace de.openelp.feuerwehr.Server.Controller
 {
     [Route("api/[controller]")]
     [ApiController]

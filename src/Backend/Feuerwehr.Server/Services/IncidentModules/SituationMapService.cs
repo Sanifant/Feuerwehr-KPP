@@ -1,25 +1,14 @@
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.Text.Json;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Services;
-using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
+namespace de.openelp.feuerwehr.Server.Services.IncidentModules
 {
-    /// <summary>
-    /// Executes situation Map Service.
-    /// </summary>
-    /// <param name="dbContext">The db Context.</param>
-    /// <param name="userContext">The user Context.</param>
-    /// <param name="idempotency">The idempotency.</param>
-    /// <param name="outboxService">The outbox Service.</param>
-    /// <param name="leaseService">The lease Service.</param>
+
     public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         IUserContextAccessor userContext,
         ICommandIdempotencyService idempotency,
@@ -235,22 +224,17 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
         }
 
-        /// <summary>
-        /// Executes upsert Element.
-        /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
-            IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
-            int attempt = 0;
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            var attempt = 0;
             return await strategy.ExecuteAsync(async token =>
             {
                 // A rolled-back attempt may have accepted tracked changes already. Reload
                 // entities and recheck CommandId so retries cannot duplicate committed work.
-                if (attempt++ > 0) dbContext.ChangeTracker.Clear();
-                return await UpsertElementAttempt(incidentId, request, token);
+                if (attempt++ > 0)
+                    dbContext.ChangeTracker.Clear();
+                return await this.UpsertElementAttempt(incidentId, request, token);
             }, cancellationToken);
         }
 
@@ -338,10 +322,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     };
                     if (request.ElementType == MapElementType.Symbol)
                     {
-                        if (!Guid.TryParse(request.SymbolId, out Guid symbolId))
+                        if (!Guid.TryParse(request.SymbolId, out var symbolId))
                             return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
-                        MapSymbol? symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
-                        if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                        var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
+                        if (symbol is null)
+                            return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
                         if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
                             return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
                         element.IsVehicle = symbol.IsVehicle;
@@ -594,7 +579,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 $"Status: {incident.Status}",
                 $"Stand UTC: {DateTime.UtcNow:O}",
                 "Kartenquelle: OpenStreetMap contributors (https://www.openstreetmap.org/copyright)",
-                ""
+                string.Empty
             };
 
             if (elements.Count == 0)
@@ -643,7 +628,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     double lat = coordinates[1].GetDouble();
                     if (lon is < -180 or > 180 || lat is < -90 or > 90)
                     {
-                        error = "Point-Koordinaten sind auÃŸerhalb von WGS84.";
+                        error = "Point-Koordinaten sind außerhalb von WGS84.";
                         return false;
                     }
                 }
@@ -663,7 +648,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                             double lat = coordinate[1].GetDouble();
                             if (lon is < -180 or > 180 || lat is < -90 or > 90)
                             {
-                                error = "Polygon-Koordinaten sind auÃŸerhalb von WGS84.";
+                                error = "Polygon-Koordinaten sind außerhalb von WGS84.";
                                 return false;
                             }
                         }
@@ -704,11 +689,15 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             };
         }
 
-        private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now) =>
-            new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
+        private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now)
+        {
+            return new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
+        }
 
         private static MapElementDto ToMapElementDto(MapElement x)
-            => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
+        {
+            return new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
+        }
 
         private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =
             x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);

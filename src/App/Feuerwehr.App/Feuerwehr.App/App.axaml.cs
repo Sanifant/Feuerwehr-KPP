@@ -1,20 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+using System;
 using System.Net.Http;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using De.Openelp.Feuerwehr.App.Services;
-using De.Openelp.Feuerwehr.App.ViewModels;
-using De.Openelp.Feuerwehr.App.Views;
-using Microsoft.Extensions.Configuration;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.App.Views;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace De.Openelp.Feuerwehr.App
+namespace de.openelp.feuerwehr.App
 {
     public partial class App : Application
     {
@@ -37,9 +32,9 @@ namespace De.Openelp.Feuerwehr.App
         public override void OnFrameworkInitializationCompleted()
         {
             //var appConfiguration = AppConfiguration.Current;
-            ReloadServices();
+            this.ReloadServices();
 
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 IAuthService authService = Services.GetRequiredService<IAuthService>();
                 Func<MainViewModel> mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
@@ -47,11 +42,11 @@ namespace De.Openelp.Feuerwehr.App
 
                 desktop.MainWindow = new MainWindow(authService, mainViewModelFactory, loginViewModelFactory);
             }
-            else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
+            else if (this.ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
             {
-                singleViewFactoryApplicationLifetime.MainViewFactory = CreateActivityView;
+                singleViewFactoryApplicationLifetime.MainViewFactory = this.CreateActivityView;
             }
-            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+            else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
                 IAuthService authService = Services.GetRequiredService<IAuthService>();
                 // For single view platforms, check auth state
@@ -156,7 +151,7 @@ namespace De.Openelp.Feuerwehr.App
 
             collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 
-            ConfigurePlatformServices?.Invoke(collection);
+            this.ConfigurePlatformServices?.Invoke(collection);
             Services = collection.BuildServiceProvider();
         }
     }

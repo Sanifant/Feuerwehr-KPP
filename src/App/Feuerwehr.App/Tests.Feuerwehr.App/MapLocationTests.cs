@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.Input;
-using De.Openelp.Feuerwehr.App.Models;
-using De.Openelp.Feuerwehr.App.Services;
-using De.Openelp.Feuerwehr.App.ViewModels;
-using De.Openelp.Feuerwehr.Common.Models;
+using de.openelp.feuerwehr.App.Models;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.Common.Models;
 using Moq;
 
-namespace De.Openelp.Feuerwehr.Tests.App
+namespace de.openelp.feuerwehr.Tests.App
 {
     public class MapLocationTests
     {

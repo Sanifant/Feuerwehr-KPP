@@ -1,11 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Services;
-using Microsoft.AspNetCore.Identity;
+using de.openelp.feuerwehr.Common.Models.Auth;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public interface IAuthService
     {

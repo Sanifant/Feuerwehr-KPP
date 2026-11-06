@@ -4,14 +4,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Hubs;
-using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Hubs;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
+namespace de.openelp.feuerwehr.Server.Services.IncidentModules
 {
     public static class IncidentModuleTime
     {
@@ -205,7 +204,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     {
                         try
                         {
-                            await PublishMessageAsync(message, stoppingToken);
+                            await this.PublishMessageAsync(message, stoppingToken);
                             message.ProcessedAtUtc = DateTime.UtcNow;
                             message.DeliveryAttempts += 1;
                             message.LastError = null;
@@ -301,15 +300,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
     public static class MinimalPdfBuilder
     {
-        /// <summary>
-        /// Builds the simple Pdf.
-        /// </summary>
-        /// <param name="title">The title.</param>
-        /// <param name="lines">The lines.</param>
         public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
         {
-            List<string[]> pages = Paginate(lines.SelectMany(WrapLine));
-            int fontId = 3 + pages.Count * 2;
+            var pages = Paginate(lines.SelectMany(WrapLine));
+            var fontId = 3 + pages.Count * 2;
             using MemoryStream ms = new MemoryStream();
             using StreamWriter writer = new StreamWriter(ms, Encoding.ASCII, leaveOpen: true);
             writer.Write("%PDF-1.4\n");
@@ -323,22 +317,22 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
 
             WriteObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
-            string pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
+            var pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
             WriteObject(2, $"<< /Type /Pages /Kids [{pageReferences}] /Count {pages.Count} >>");
-            for (int index = 0; index < pages.Count; index++)
+            for (var index = 0; index < pages.Count; index++)
             {
-                int pageId = 3 + index * 2;
-                int contentId = pageId + 1;
+                var pageId = 3 + index * 2;
+                var contentId = pageId + 1;
                 StringBuilder content = new StringBuilder();
                 content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");
-                int y = 760;
-                foreach (string line in pages[index])
+                var y = 760;
+                foreach (var line in pages[index])
                 {
                     content.Append($"BT /F1 9.5 Tf 50 {y} Td ({Escape(line)}) Tj ET\n");
                     y -= 12;
                 }
                 content.Append($"BT /F1 9 Tf 50 32 Td (Seite {index + 1} / {pages.Count}) Tj ET\n");
-                string contentText = content.ToString();
+                var contentText = content.ToString();
                 WriteObject(pageId, $"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents {contentId} 0 R /Resources << /Font << /F1 {fontId} 0 R >> >> >>");
                 WriteObject(contentId, $"<< /Length {Encoding.ASCII.GetByteCount(contentText)} >>\nstream\n{contentText}endstream");
             }
@@ -372,7 +366,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     pages.Add(page.ToArray());
                     page.Clear();
                 }
-                foreach (string line in block)
+                foreach (var line in block)
                 {
                     if (page.Count == 56)
                     {
@@ -382,28 +376,34 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     page.Add(line);
                 }
                 block.Clear();
-                if (separator && page.Count is > 0 and < 56 && page[^1] != "") page.Add("");
+                if (separator && page.Count is > 0 and < 56 && page[^1] != string.Empty)
+                    page.Add(string.Empty);
             }
-            foreach (string line in lines)
+            foreach (var line in lines)
             {
-                if (line.Length == 0) FlushBlock(true);
-                else block.Add(line);
+                if (line.Length == 0)
+                    FlushBlock(true);
+                else
+                    block.Add(line);
             }
             FlushBlock(false);
-            if (page.Count > 0) pages.Add(page.ToArray());
-            if (pages.Count == 0) pages.Add([]);
+            if (page.Count > 0)
+                pages.Add(page.ToArray());
+            if (pages.Count == 0)
+                pages.Add([]);
             return pages;
         }
 
         private static IEnumerable<string> WrapLine(string input)
         {
-            foreach (string paragraph in (input ?? string.Empty).Replace("\r\n", "\n").Replace('\r', '\n').Replace("\t", "    ").Split('\n'))
+            foreach (var paragraph in (input ?? string.Empty).Replace("\r\n", "\n").Replace('\r', '\n').Replace("\t", "    ").Split('\n'))
             {
-                string remaining = paragraph;
+                var remaining = paragraph;
                 while (remaining.Length > 86)
                 {
-                    int split = remaining.LastIndexOf(' ', 86, 87);
-                    if (split <= 0) split = 86;
+                    var split = remaining.LastIndexOf(' ', 86, 87);
+                    if (split <= 0)
+                        split = 86;
                     yield return remaining[..split];
                     remaining = remaining[split..].TrimStart();
                 }
@@ -414,16 +414,18 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         private static string Escape(string input)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            byte[] bytes = Encoding.GetEncoding(1252).GetBytes(input);
+            var bytes = Encoding.GetEncoding(1252).GetBytes(input);
             StringBuilder result = new StringBuilder();
-            foreach (byte value in bytes)
+            foreach (var value in bytes)
             {
-                if (value is (byte)'\\' or (byte)'(' or (byte)')') result.Append('\\').Append((char)value);
-                else if (value is < 32 or > 126) result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
-                else result.Append((char)value);
+                if (value is (byte)'\\' or (byte)'(' or (byte)')')
+                    result.Append('\\').Append((char)value);
+                else if (value is < 32 or > 126)
+                    result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
+                else
+                    result.Append((char)value);
             }
             return result.ToString();
         }
     }
-
 }

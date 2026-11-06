@@ -1,12 +1,12 @@
 using System.Globalization;
 using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Server.Data;
 using Microsoft.EntityFrameworkCore;
-using AddressEntity = De.Openelp.Feuerwehr.Server.Models.Address;
-using HydrantEntity = De.Openelp.Feuerwehr.Server.Models.Hydrant;
+using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant;
+using AddressEntity = de.openelp.feuerwehr.Server.Models.Address;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     /// <summary>
     /// Executes hydrant Service.
@@ -44,24 +44,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         private static string CsvText(string? value)
         {
-            value ??= "";
+            value ??= string.Empty;
             // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
-            string trimmed = value.TrimStart();
+            var trimmed = value.TrimStart();
             if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
                 || value.Length > 0 && "\t\r\n".Contains(value[0]))
                 value = "'" + value;
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
-        /// <summary>
-        /// Executes import.
-        /// </summary>
-        /// <param name="csv">The csv.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
         {
-            (List<Hydrant>? hydrants, List<HydrantImportError>? errors) = HydrantCsvImport.Read(csv, cancellationToken);
-            if (errors.Count > 0) return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
+            var (hydrants, errors) = HydrantCsvImport.Read(csv, cancellationToken);
+            if (errors.Count > 0)
+                return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
 
             List<HydrantEntity> entities = hydrants.Select(dto =>
             {
@@ -78,7 +74,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Gets the operation.
         /// </summary>
-        public ServiceResult Get() => ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
+        public ServiceResult Get()
+        {
+            return ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
+        }
 
         /// <summary>
         /// Gets the operation.
@@ -104,28 +103,21 @@ namespace De.Openelp.Feuerwehr.Server.Services
             return ServiceResult.CreatedAtAction("Get", new { id = dto.Id }, dto);
         }
 
-        /// <summary>
-        /// Executes put.
-        /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="value">The value.</param>
         public ServiceResult Put(int id, Hydrant value)
         {
-            HydrantEntity? entity = context.Hydrants.Find(id);
-            if (entity is null) return ServiceResult.NotFound();
+            var entity = context.Hydrants.Find(id);
+            if (entity is null)
+                return ServiceResult.NotFound();
             Apply(entity, value);
             context.SaveChanges();
             return ServiceResult.NoContent();
         }
 
-        /// <summary>
-        /// Deletes the operation.
-        /// </summary>
-        /// <param name="id">The id.</param>
         public ServiceResult Delete(int id)
         {
-            HydrantEntity? entity = context.Hydrants.Find(id);
-            if (entity is null) return ServiceResult.NotFound();
+            var entity = context.Hydrants.Find(id);
+            if (entity is null)
+                return ServiceResult.NotFound();
             context.Hydrants.Remove(entity);
             context.SaveChanges();
             return ServiceResult.NoContent();
@@ -150,24 +142,27 @@ namespace De.Openelp.Feuerwehr.Server.Services
             entity.Notes = dto.Notes;
         }
 
-        private static Hydrant ToDto(HydrantEntity entity) => new()
+        private static Hydrant ToDto(HydrantEntity entity)
         {
-            Id = entity.Id,
-            Address = new Address
+            return new()
             {
-                Street = entity.Address.Street,
-                HouseNumber = entity.Address.HouseNumber,
-                PostalCode = entity.Address.PostalCode,
-                City = entity.Address.City,
-                AdditionalInfo = entity.Address.AdditionalInfo,
-            },
-            Latitude = entity.Latitude,
-            Longitude = entity.Longitude,
-            NominalDiameter = entity.NominalDiameter,
-            Type = entity.Type,
-            WaterSource = entity.WaterSource,
-            Status = entity.Status,
-            Notes = entity.Notes,
-        };
+                Id = entity.Id,
+                Address = new Address
+                {
+                    Street = entity.Address.Street,
+                    HouseNumber = entity.Address.HouseNumber,
+                    PostalCode = entity.Address.PostalCode,
+                    City = entity.Address.City,
+                    AdditionalInfo = entity.Address.AdditionalInfo,
+                },
+                Latitude = entity.Latitude,
+                Longitude = entity.Longitude,
+                NominalDiameter = entity.NominalDiameter,
+                Type = entity.Type,
+                WaterSource = entity.WaterSource,
+                Status = entity.Status,
+                Notes = entity.Notes,
+            };
+        }
     }
 }

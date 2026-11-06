@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using De.Openelp.Feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Common.Models.Auth;
 
-namespace De.Openelp.Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     public class AuthService : IAuthService
     {
@@ -28,18 +28,19 @@ namespace De.Openelp.Feuerwehr.App.Services
         private string? _refreshToken;
         private JwtSecurityToken? _decodedToken;
 
-        public bool IsAuthenticated => _decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow;
+        public bool IsAuthenticated => this._decodedToken != null && this._decodedToken.ValidTo > DateTime.UtcNow;
 
-        public string? UserEmail => _decodedToken?.Claims.FirstOrDefault(c => c.Type == emailClaim)?.Value;
+        public string? UserEmail => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == emailClaim)?.Value;
 
-        public string? UserFullName => _decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
+        public string? UserFullName => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
 
         public IReadOnlyList<string> UserRoles
         {
             get
             {
-                if (_decodedToken == null) return Array.Empty<string>();
-                return _decodedToken.Claims
+                if (this._decodedToken == null)
+                    return Array.Empty<string>();
+                return this._decodedToken.Claims
                     .Where(c => c.Type == roleClaim)
                     .Select(c => c.Value)
                     .ToList();
@@ -50,11 +51,11 @@ namespace De.Openelp.Feuerwehr.App.Services
 
         public AuthService(HttpClient httpClient, ISecureStorage secureStorage)
         {
-            _httpClient = httpClient;
-            _secureStorage = secureStorage;
+            this._httpClient = httpClient;
+            this._secureStorage = secureStorage;
 
             // Load tokens on startup
-            _ = LoadStoredTokensAsync();
+            _ = this.LoadStoredTokensAsync();
         }
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace De.Openelp.Feuerwehr.App.Services
             try
             {
                 LoginRequest request = new LoginRequest { Email = email, Password = password };
-                HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/Auth/login", request);
+                HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("/api/Auth/login", request);
 
                 if (!response.IsSuccessStatusCode)
                     return false;
@@ -76,7 +77,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 if (authResponse == null)
                     return false;
 
-                await StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
+                await this.StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
                 return true;
             }
             catch
@@ -93,11 +94,11 @@ namespace De.Openelp.Feuerwehr.App.Services
             try
             {
                 // Try to notify server (optional, may fail if offline)
-                if (!string.IsNullOrEmpty(_accessToken))
+                if (!string.IsNullOrEmpty(this._accessToken))
                 {
-                    _httpClient.DefaultRequestHeaders.Authorization =
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _accessToken);
-                    await _httpClient.PostAsync("/api/Auth/logout", null);
+                    this._httpClient.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this._accessToken);
+                    await this._httpClient.PostAsync("/api/Auth/logout", null);
                 }
             }
             catch
@@ -106,7 +107,7 @@ namespace De.Openelp.Feuerwehr.App.Services
             }
             finally
             {
-                await ClearTokensAsync();
+                await this.ClearTokensAsync();
             }
         }
 
@@ -115,17 +116,17 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         public async Task<bool> RefreshTokenAsync()
         {
-            if (string.IsNullOrEmpty(_refreshToken))
+            if (string.IsNullOrEmpty(this._refreshToken))
                 return false;
 
             try
             {
-                RefreshTokenRequest request = new RefreshTokenRequest { RefreshToken = _refreshToken };
-                HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/Auth/refresh", request);
+                RefreshTokenRequest request = new RefreshTokenRequest { RefreshToken = this._refreshToken };
+                HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("/api/Auth/refresh", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    await ClearTokensAsync();
+                    await this.ClearTokensAsync();
                     return false;
                 }
 
@@ -133,12 +134,12 @@ namespace De.Openelp.Feuerwehr.App.Services
                 if (authResponse == null)
                     return false;
 
-                await StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
+                await this.StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
                 return true;
             }
             catch
             {
-                await ClearTokensAsync();
+                await this.ClearTokensAsync();
                 return false;
             }
         }
@@ -149,15 +150,15 @@ namespace De.Openelp.Feuerwehr.App.Services
         public async Task<string?> GetAccessTokenAsync()
         {
             // Check if token is still valid
-            if (_decodedToken != null && _decodedToken.ValidTo > DateTime.UtcNow.AddMinutes(1))
+            if (this._decodedToken != null && this._decodedToken.ValidTo > DateTime.UtcNow.AddMinutes(1))
             {
-                return _accessToken;
+                return this._accessToken;
             }
 
             // Try to refresh
-            if (await RefreshTokenAsync())
+            if (await this.RefreshTokenAsync())
             {
-                return _accessToken;
+                return this._accessToken;
             }
 
             return null;
@@ -165,50 +166,50 @@ namespace De.Openelp.Feuerwehr.App.Services
 
         private async Task StoreTokensAsync(string accessToken, string refreshToken)
         {
-            _accessToken = accessToken;
-            _refreshToken = refreshToken;
-            _decodedToken = _jwtHandler.ReadJwtToken(accessToken);
+            this._accessToken = accessToken;
+            this._refreshToken = refreshToken;
+            this._decodedToken = this._jwtHandler.ReadJwtToken(accessToken);
 
-            await _secureStorage.SetAsync(AccessTokenKey, accessToken);
-            await _secureStorage.SetAsync(RefreshTokenKey, refreshToken);
+            await this._secureStorage.SetAsync(AccessTokenKey, accessToken);
+            await this._secureStorage.SetAsync(RefreshTokenKey, refreshToken);
 
-            AuthStateChanged?.Invoke(this, EventArgs.Empty);
+            this.AuthStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private async Task ClearTokensAsync()
         {
-            _accessToken = null;
-            _refreshToken = null;
-            _decodedToken = null;
+            this._accessToken = null;
+            this._refreshToken = null;
+            this._decodedToken = null;
 
-            await _secureStorage.RemoveAsync(AccessTokenKey);
-            await _secureStorage.RemoveAsync(RefreshTokenKey);
+            await this._secureStorage.RemoveAsync(AccessTokenKey);
+            await this._secureStorage.RemoveAsync(RefreshTokenKey);
 
-            AuthStateChanged?.Invoke(this, EventArgs.Empty);
+            this.AuthStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private async Task LoadStoredTokensAsync()
         {
             try
             {
-                _accessToken = await _secureStorage.GetAsync(AccessTokenKey);
-                _refreshToken = await _secureStorage.GetAsync(RefreshTokenKey);
+                this._accessToken = await this._secureStorage.GetAsync(AccessTokenKey);
+                this._refreshToken = await this._secureStorage.GetAsync(RefreshTokenKey);
 
-                if (!string.IsNullOrEmpty(_accessToken))
+                if (!string.IsNullOrEmpty(this._accessToken))
                 {
-                    _decodedToken = _jwtHandler.ReadJwtToken(_accessToken);
+                    this._decodedToken = this._jwtHandler.ReadJwtToken(this._accessToken);
 
                     // If token is expired, try to refresh
-                    if (_decodedToken.ValidTo <= DateTime.UtcNow)
+                    if (this._decodedToken.ValidTo <= DateTime.UtcNow)
                     {
-                        await RefreshTokenAsync();
+                        await this.RefreshTokenAsync();
                     }
                 }
             }
             catch
             {
                 // Failed to load tokens, clear everything
-                await ClearTokensAsync();
+                await this.ClearTokensAsync();
             }
         }
     }

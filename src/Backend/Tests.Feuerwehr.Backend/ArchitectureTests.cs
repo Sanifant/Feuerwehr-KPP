@@ -1,15 +1,13 @@
 using System.Reflection;
 using System.Text.Json;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Server.Controller;
-using De.Openelp.Feuerwehr.Server.Data;
-using Microsoft.AspNetCore.Identity;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Server.Controller;
+using de.openelp.feuerwehr.Server.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend
+namespace de.openelp.feuerwehr.Tests.Backend
 {
     public class ArchitectureTests
     {
@@ -25,7 +23,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
             {
                 Type dependency = Assert.Single(Assert.Single(controller.GetConstructors()).GetParameters()).ParameterType;
                 Assert.True(dependency.IsInterface, controller.FullName);
-                Assert.StartsWith("De.Openelp.Feuerwehr.Server.Services", dependency.Namespace);
+                Assert.StartsWith("de.openelp.feuerwehr.Server.Services", dependency.Namespace);
             }
         }
 

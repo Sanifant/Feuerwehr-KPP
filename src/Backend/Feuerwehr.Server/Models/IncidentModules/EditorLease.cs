@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
-namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules
+namespace de.openelp.feuerwehr.Server.Models.IncidentModules
 {
     public class EditorLease
     {

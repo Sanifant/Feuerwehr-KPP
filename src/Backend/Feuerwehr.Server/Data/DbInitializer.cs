@@ -1,11 +1,10 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public static class DbInitializer
     {

@@ -3,7 +3,7 @@ using System.Globalization;
 using MailKit.Security;
 using MimeKit;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public sealed class SmtpSettings
     {
@@ -60,8 +60,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             return new SmtpSettings
             {
-                Host = host, Port = port, Security = security, Username = username, Password = password,
-                From = sender.Address, FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? "",
+                Host = host,
+                Port = port,
+                Security = security,
+                Username = username,
+                Password = password,
+                From = sender.Address,
+                FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? string.Empty,
                 TimeoutMilliseconds = 1000 * ReadPositiveInteger(NonBlank(configuration["MAIL_TIMEOUT_SECONDS"]),
                     "MAIL_TIMEOUT_SECONDS", 30, int.MaxValue / 1000),
             };
@@ -69,18 +74,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         private static int ReadPositiveInteger(string? value, string name, int fallback, int maximum)
         {
-            if (value is null) return fallback;
-            if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int number) && number > 0 && number <= maximum)
+            if (value is null)
+                return fallback;
+            if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0 && number <= maximum)
                 return number;
             throw new InvalidOperationException($"{name} muss eine ganze Zahl zwischen 1 und {maximum} sein.");
         }
 
         private static Uri? ReadEndpoint(string? connection)
         {
-            if (string.IsNullOrWhiteSpace(connection)) return null;
+            if (string.IsNullOrWhiteSpace(connection))
+                return null;
             try
             {
-                if (!Uri.TryCreate(connection, UriKind.Absolute, out Uri? endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))
+                if (!Uri.TryCreate(connection, UriKind.Absolute, out var endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))
                 {
                     DbConnectionStringBuilder builder = new DbConnectionStringBuilder { ConnectionString = connection };
                     endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
@@ -96,5 +103,4 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
         }
     }
-
 }

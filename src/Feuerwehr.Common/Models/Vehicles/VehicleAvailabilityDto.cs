@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
-namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
+namespace de.openelp.feuerwehr.Common.Models.Vehicles
 {
     /// <summary>
     /// Executes vehicle Availability Dto.

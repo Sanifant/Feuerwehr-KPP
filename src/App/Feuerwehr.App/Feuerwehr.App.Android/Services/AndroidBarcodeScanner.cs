@@ -1,11 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.Content;
 using Avalonia.Threading;
-using De.Openelp.Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Services;
 
-namespace De.Openelp.Feuerwehr.App.Android.Services
+namespace de.openelp.feuerwehr.App.Android.Services
 {
     public sealed class AndroidBarcodeScanner : IBarcodeScanner
     {

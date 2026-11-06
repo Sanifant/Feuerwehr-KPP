@@ -1,4 +1,4 @@
-namespace De.Openelp.Feuerwehr.App.Models
+namespace de.openelp.feuerwehr.App.Models
 {
     /// <summary>A device location in WGS84 coordinates (degrees).</summary>
     public sealed class GpsLocation

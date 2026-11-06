@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+using de.openelp.feuerwehr.Common.Models;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Net;
-using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
 
-namespace De.Openelp.Feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models
 {
-
     public class Hydrant
     {
         [Key]
@@ -34,9 +28,9 @@ namespace De.Openelp.Feuerwehr.Server.Models
         public string? Notes { get; set; }
 
         // Computed Read-Only Properties (Excluded from Database Mapping)
-        public bool IsUnderground => Type == HydrantType.Underground;
-        public bool IsOperational => Status == HydrantStatus.Operational;
+        public bool IsUnderground => this.Type == HydrantType.Underground;
+        public bool IsOperational => this.Status == HydrantStatus.Operational;
 
-        public string DiameterDescription => $"DIN {NominalDiameter}";
+        public string DiameterDescription => $"DIN {this.NominalDiameter}";
     }
 }

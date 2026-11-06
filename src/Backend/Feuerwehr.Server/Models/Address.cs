@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Net;
-using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
-
-namespace De.Openelp.Feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models
 {
     public class Address
     {
@@ -19,7 +11,9 @@ namespace De.Openelp.Feuerwehr.Server.Models
         /// <summary>
         /// Gets the formatted Address.
         /// </summary>
-        public string GetFormattedAddress() =>
-            $"{Street} {HouseNumber}, {PostalCode} {City}".Trim();
+        public string GetFormattedAddress()
+        {
+            return $"{Street} {HouseNumber}, {PostalCode} {City}".Trim();
+        }
     }
 }

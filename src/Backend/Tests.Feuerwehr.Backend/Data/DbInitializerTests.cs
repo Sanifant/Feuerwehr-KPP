@@ -1,10 +1,10 @@
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Server;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Controller;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Server.Controller;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Data
+namespace de.openelp.feuerwehr.Tests.Backend.Data
 {
     public sealed class DbInitializerTests : IDisposable
     {
@@ -27,11 +27,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
 
         public DbInitializerTests()
         {
-            _configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
+            this._configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
             ServiceCollection services = new ServiceCollection();
             services.AddLogging();
-            services.AddSingleton<IConfiguration>(_configuration);
-            services.AddSingleton<ILogger<Program>>(_logger);
+            services.AddSingleton<IConfiguration>(this._configuration);
+            services.AddSingleton<ILogger<Program>>(this._logger);
             services.AddDbContext<FeuerwehrDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
             services.AddIdentityCore<ApplicationUser>(options =>
             {
@@ -39,8 +39,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
                 options.Password.RequireNonAlphanumeric = false;
                 options.User.RequireUniqueEmail = true;
             }).AddRoles<IdentityRole>().AddEntityFrameworkStores<FeuerwehrDbContext>();
-            _provider = services.BuildServiceProvider();
-            _users = _provider.GetRequiredService<UserManager<ApplicationUser>>();
+            this._provider = services.BuildServiceProvider();
+            this._users = this._provider.GetRequiredService<UserManager<ApplicationUser>>();
         }
 
         [Theory]
@@ -64,25 +64,25 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             try
             {
                 IConfigurationRoot environmentConfiguration = new ConfigurationBuilder().AddEnvironmentVariables(prefix).Build();
-                _configuration["SeedAdmin:Password"] = environmentConfiguration["SeedAdmin:Password"];
-                _configuration["SeedAdmin:Email"] = environmentConfiguration["SeedAdmin:Email"];
+                this._configuration["SeedAdmin:Password"] = environmentConfiguration["SeedAdmin:Password"];
+                this._configuration["SeedAdmin:Email"] = environmentConfiguration["SeedAdmin:Email"];
 
-                await DbInitializer.SeedDataAsync(_provider);
+                await DbInitializer.SeedDataAsync(this._provider);
 
                 string expectedEmail = string.IsNullOrWhiteSpace(configuredEmail) ? AdminEmail : configuredEmail.Trim();
-                ApplicationUser? admin = await _users.FindByEmailAsync(expectedEmail);
+                ApplicationUser? admin = await this._users.FindByEmailAsync(expectedEmail);
                 Assert.NotNull(admin);
                 Assert.Equal(expectedEmail, admin.Email);
                 Assert.Equal(expectedEmail, admin.UserName);
-                Assert.Single(await _users.Users.ToListAsync());
-                Assert.True(await _users.CheckPasswordAsync(admin, InitialPassword));
+                Assert.Single(await this._users.Users.ToListAsync());
+                Assert.True(await this._users.CheckPasswordAsync(admin, InitialPassword));
                 Assert.True(admin.EmailConfirmed);
                 Assert.True(admin.IsActive);
                 Assert.Equal(
                     new[] { Roles.Admin, Roles.IncidentDiaryEditor, Roles.SituationMapEditor }.Order(),
-                    (await _users.GetRolesAsync(admin)).Order());
-                Assert.Equal(6, await _provider.GetRequiredService<FeuerwehrDbContext>().DiaryCategories.CountAsync());
-                Assert.DoesNotContain(InitialPassword, string.Join("\n", _logger.Messages));
+                    (await this._users.GetRolesAsync(admin)).Order());
+                Assert.Equal(6, await this._provider.GetRequiredService<FeuerwehrDbContext>().DiaryCategories.CountAsync());
+                Assert.DoesNotContain(InitialPassword, string.Join("\n", this._logger.Messages));
             }
             finally
             {
@@ -101,12 +101,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         /// <param name="password">The password.</param>
         public async Task SeedData_MissingPasswordFailsWithoutCreatingAdmin(string? password)
         {
-            _configuration["SeedAdmin:Password"] = password;
+            this._configuration["SeedAdmin:Password"] = password;
 
-            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => DbInitializer.SeedDataAsync(_provider));
+            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => DbInitializer.SeedDataAsync(this._provider));
 
             Assert.Contains("SeedAdmin__Password", error.Message);
-            Assert.Null(await _users.FindByEmailAsync(AdminEmail));
+            Assert.Null(await this._users.FindByEmailAsync(AdminEmail));
         }
 
         [Fact]
@@ -116,15 +116,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         public async Task SeedData_InvalidPasswordFailsWithoutCreatingAdminOrLoggingPassword()
         {
             const string invalidPassword = "weak-secret";
-            _configuration["SeedAdmin:Password"] = invalidPassword;
+            this._configuration["SeedAdmin:Password"] = invalidPassword;
 
-            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => DbInitializer.SeedDataAsync(_provider));
+            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => DbInitializer.SeedDataAsync(this._provider));
 
             Assert.Contains("SeedAdmin__Password", error.Message);
             Assert.Contains("PasswordRequiresDigit", error.Message);
-            Assert.Null(await _users.FindByEmailAsync(AdminEmail));
+            Assert.Null(await this._users.FindByEmailAsync(AdminEmail));
             Assert.DoesNotContain(invalidPassword, error.ToString());
-            Assert.DoesNotContain(invalidPassword, string.Join("\n", _logger.Messages));
+            Assert.DoesNotContain(invalidPassword, string.Join("\n", this._logger.Messages));
         }
 
         [Theory]
@@ -140,20 +140,20 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         public async Task SeedData_ExistingAdminKeepsPasswordAndRepairsMissingRoles(string email, string? configuredPassword)
         {
             ApplicationUser admin = new ApplicationUser { UserName = email, Email = email };
-            Assert.True((await _users.CreateAsync(admin, InitialPassword)).Succeeded);
+            Assert.True((await this._users.CreateAsync(admin, InitialPassword)).Succeeded);
             string? passwordHash = admin.PasswordHash;
-            _configuration["SeedAdmin:Password"] = configuredPassword;
-            _configuration["SeedAdmin:Email"] = email;
+            this._configuration["SeedAdmin:Password"] = configuredPassword;
+            this._configuration["SeedAdmin:Email"] = email;
 
-            await DbInitializer.SeedDataAsync(_provider);
-            await DbInitializer.SeedDataAsync(_provider);
+            await DbInitializer.SeedDataAsync(this._provider);
+            await DbInitializer.SeedDataAsync(this._provider);
 
             Assert.Equal(passwordHash, admin.PasswordHash);
-            Assert.True(await _users.CheckPasswordAsync(admin, InitialPassword));
-            Assert.Equal(3, (await _users.GetRolesAsync(admin)).Count);
-            Assert.Single(await _users.Users.ToListAsync());
-            Assert.Equal(6, await _provider.GetRequiredService<FeuerwehrDbContext>().DiaryCategories.CountAsync());
-            Assert.DoesNotContain(InitialPassword, string.Join("\n", _logger.Messages));
+            Assert.True(await this._users.CheckPasswordAsync(admin, InitialPassword));
+            Assert.Equal(3, (await this._users.GetRolesAsync(admin)).Count);
+            Assert.Single(await this._users.Users.ToListAsync());
+            Assert.Equal(6, await this._provider.GetRequiredService<FeuerwehrDbContext>().DiaryCategories.CountAsync());
+            Assert.DoesNotContain(InitialPassword, string.Join("\n", this._logger.Messages));
         }
 
         [Theory]
@@ -167,7 +167,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         /// <param name="moduleRole">The module Role.</param>
         public async Task SeedData_ExistingDatabaseAddsModuleRolesAndAllowsUserRoleUpdates(string moduleRole)
         {
-            RoleManager<IdentityRole> roles = _provider.GetRequiredService<RoleManager<IdentityRole>>();
+            RoleManager<IdentityRole> roles = this._provider.GetRequiredService<RoleManager<IdentityRole>>();
             Dictionary<string, string> originalRoleIds = new Dictionary<string, string>();
             foreach (string? name in new[] { Roles.Admin, Roles.Commander, Roles.Firefighter, Roles.Viewer })
             {
@@ -177,25 +177,25 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             }
 
             ApplicationUser admin = new ApplicationUser { UserName = AdminEmail, Email = AdminEmail };
-            Assert.True((await _users.CreateAsync(admin, InitialPassword)).Succeeded);
-            Assert.True((await _users.AddToRoleAsync(admin, Roles.Admin)).Succeeded);
+            Assert.True((await this._users.CreateAsync(admin, InitialPassword)).Succeeded);
+            Assert.True((await this._users.AddToRoleAsync(admin, Roles.Admin)).Succeeded);
             ApplicationUser user = new ApplicationUser { UserName = "viewer@example.org", Email = "viewer@example.org" };
-            Assert.True((await _users.CreateAsync(user)).Succeeded);
-            Assert.True((await _users.AddToRoleAsync(user, Roles.Viewer)).Succeeded);
+            Assert.True((await this._users.CreateAsync(user)).Succeeded);
+            Assert.True((await this._users.AddToRoleAsync(user, Roles.Viewer)).Succeeded);
             Assert.False(await roles.RoleExistsAsync(moduleRole));
 
-            await DbInitializer.SeedDataAsync(_provider);
-            await DbInitializer.SeedDataAsync(_provider);
+            await DbInitializer.SeedDataAsync(this._provider);
+            await DbInitializer.SeedDataAsync(this._provider);
 
             Assert.Equal(Roles.AllRoles.Order(), (await roles.Roles.Select(role => role.Name!).ToListAsync()).Order());
             foreach ((string? name, string? id) in originalRoleIds)
             {
                 Assert.Equal(id, (await roles.FindByNameAsync(name))!.Id);
             }
-            Assert.Equal(new[] { Roles.Viewer }, await _users.GetRolesAsync(user));
+            Assert.Equal(new[] { Roles.Viewer }, await this._users.GetRolesAsync(user));
 
             UsersController controller = new UsersController(new UsersService(
-                _users,
+                this._users,
                 roles,
                 Mock.Of<IUserInvitationService>(),
                 NullLogger<UsersService>.Instance));
@@ -205,7 +205,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             });
 
             Assert.IsType<OkObjectResult>(response);
-            Assert.Equal(new[] { Roles.Viewer, moduleRole }.Order(), (await _users.GetRolesAsync(user)).Order());
+            Assert.Equal(new[] { Roles.Viewer, moduleRole }.Order(), (await this._users.GetRolesAsync(user)).Order());
         }
 
         [Fact]
@@ -214,15 +214,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         /// </summary>
         public async Task SeedData_InvalidEmailFailsWithoutCreatingAdmin()
         {
-            _configuration["SeedAdmin:Email"] = "not-an-email";
-            _configuration["SeedAdmin:Password"] = InitialPassword;
+            this._configuration["SeedAdmin:Email"] = "not-an-email";
+            this._configuration["SeedAdmin:Password"] = InitialPassword;
 
-            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => DbInitializer.SeedDataAsync(_provider));
+            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => DbInitializer.SeedDataAsync(this._provider));
 
             Assert.Contains("SeedAdmin__Email", error.Message);
             Assert.Contains("InvalidEmail", error.Message);
-            Assert.Empty(await _users.Users.ToListAsync());
-            Assert.DoesNotContain(InitialPassword, string.Join("\n", _logger.Messages));
+            Assert.Empty(await this._users.Users.ToListAsync());
+            Assert.DoesNotContain(InitialPassword, string.Join("\n", this._logger.Messages));
         }
 
         /// <summary>
@@ -230,8 +230,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         /// </summary>
         public void Dispose()
         {
-            _provider.Dispose();
-            (_configuration as IDisposable)?.Dispose();
+            this._provider.Dispose();
+            (this._configuration as IDisposable)?.Dispose();
         }
 
         private sealed class CapturingLogger : ILogger<Program>
@@ -240,16 +240,24 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
 
             public IDisposable? BeginScope<TState>(TState state)
                 where TState : notnull
-                => null;
+            {
+                return null;
+            }
 
             /// <summary>
             /// Determines whether enabled.
             /// </summary>
             /// <param name="logLevel">The log Level.</param>
-            public bool IsEnabled(LogLevel logLevel) => true;
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
-                Func<TState, Exception?, string> formatter) => Messages.Add(formatter(state, exception) + exception);
+                Func<TState, Exception?, string> formatter)
+            {
+                this.Messages.Add(formatter(state, exception) + exception);
+            }
         }
     }
 

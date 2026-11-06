@@ -1,7 +1,7 @@
-using De.Openelp.Feuerwehr.Server.Models.Vehicles;
+using de.openelp.feuerwehr.Server.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public static class VehicleModelConfiguration
     {

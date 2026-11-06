@@ -1,12 +1,11 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Models.Inventory;
-using De.Openelp.Feuerwehr.Server.Models.Vehicles;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Server.Models.Inventory;
+using de.openelp.feuerwehr.Server.Models.Vehicles;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public class FeuerwehrDbContext : IdentityDbContext<ApplicationUser>
     {
@@ -17,7 +16,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
 
         public DbSet<Hydrant> Hydrants { get; set; }
 
-        public DbSet<FireDepartment>  FireDepartments { get; set; }
+        public DbSet<FireDepartment> FireDepartments { get; set; }
 
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 

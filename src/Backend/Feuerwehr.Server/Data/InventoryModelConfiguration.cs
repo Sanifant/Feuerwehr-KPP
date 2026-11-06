@@ -1,7 +1,7 @@
-using De.Openelp.Feuerwehr.Server.Models.Inventory;
+using de.openelp.feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     internal static class InventoryModelConfiguration
     {

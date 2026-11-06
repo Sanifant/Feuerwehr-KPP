@@ -1,6 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using de.openelp.feuerwehr.Common.Models.Inventory;
 
-namespace De.Openelp.Feuerwehr.Server.Models.Inventory
+namespace de.openelp.feuerwehr.Server.Models.Inventory
 {
     public sealed class EquipmentInspection
     {
@@ -10,12 +10,12 @@ namespace De.Openelp.Feuerwehr.Server.Models.Inventory
         public Guid CommandId { get; set; }
         public DateOnly InspectedOn { get; set; }
         public DateTime RecordedAtUtc { get; set; }
-        public string InspectorId { get; set; } = "";
-        public string InspectorName { get; set; } = "";
+        public string InspectorId { get; set; } = string.Empty;
+        public string InspectorName { get; set; } = string.Empty;
         public string? Comment { get; set; }
         public EquipmentStatus Status { get; set; }
-        public string EquipmentTypeName { get; set; } = "";
+        public string EquipmentTypeName { get; set; } = string.Empty;
         public int InspectionIntervalMonths { get; set; }
-        public string InspectionInstructions { get; set; } = "";
+        public string InspectionInstructions { get; set; } = string.Empty;
     }
 }

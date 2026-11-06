@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
+namespace de.openelp.feuerwehr.Tests.Backend.Integration
 {
     [Collection(IntegrationTestCollection.Name)]
     /// <summary>

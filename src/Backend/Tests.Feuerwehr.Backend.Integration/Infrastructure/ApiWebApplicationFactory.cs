@@ -1,10 +1,10 @@
-using De.Openelp.Feuerwehr.Server;
+using de.openelp.feuerwehr.Server;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
+namespace de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure
 {
     public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
     {
@@ -19,10 +19,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
             string seedAdminEmail,
             string seedAdminPassword)
         {
-            _postgresConnectionString = postgresConnectionString;
-            _redisConnectionString = redisConnectionString;
-            _seedAdminEmail = seedAdminEmail;
-            _seedAdminPassword = seedAdminPassword;
+            this._postgresConnectionString = postgresConnectionString;
+            this._redisConnectionString = redisConnectionString;
+            this._seedAdminEmail = seedAdminEmail;
+            this._seedAdminPassword = seedAdminPassword;
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -33,10 +33,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
             {
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:postgresdb"] = _postgresConnectionString,
-                    ["ConnectionStrings:cache"] = _redisConnectionString,
-                    ["SeedAdmin:Email"] = _seedAdminEmail,
-                    ["SeedAdmin:Password"] = _seedAdminPassword,
+                    ["ConnectionStrings:postgresdb"] = this._postgresConnectionString,
+                    ["ConnectionStrings:cache"] = this._redisConnectionString,
+                    ["SeedAdmin:Email"] = this._seedAdminEmail,
+                    ["SeedAdmin:Password"] = this._seedAdminPassword,
                     ["JwtSettings:SecretKey"] = "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!"
                 });
             });

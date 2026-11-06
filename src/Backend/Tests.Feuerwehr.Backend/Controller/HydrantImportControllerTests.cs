@@ -1,16 +1,16 @@
 using System.Reflection;
 using System.Security.Claims;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Controller;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Controller;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
+namespace de.openelp.feuerwehr.Tests.Backend.Controller
 {
     public class HydrantImportControllerTests
     {

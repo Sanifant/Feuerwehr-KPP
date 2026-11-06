@@ -1,10 +1,9 @@
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller
+namespace de.openelp.feuerwehr.Server.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -41,13 +40,10 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Create new user (Admin only)
         /// </summary>
         [HttpPost]
-        /// <summary>
-        /// Creates the user.
-        /// </summary>
-        /// <param name="request">The request.</param>
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+                return this.BadRequest(this.ModelState);
             return this.ToActionResult(await service.CreateUser(request));
         }
 
@@ -65,14 +61,10 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Update user (Admin only)
         /// </summary>
         [HttpPut("{id}")]
-        /// <summary>
-        /// Updates the user.
-        /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+                return this.BadRequest(this.ModelState);
             return this.ToActionResult(await service.UpdateUser(id, request));
         }
 
@@ -86,7 +78,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         public async Task<IActionResult> DeleteUser(string id)
         {
-            return this.ToActionResult(await service.DeleteUser(id, User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.DeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
         /// <summary>
@@ -99,7 +91,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         public async Task<IActionResult> PermanentlyDeleteUser(string id)
         {
-            return this.ToActionResult(await service.PermanentlyDeleteUser(id, User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.PermanentlyDeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
     }

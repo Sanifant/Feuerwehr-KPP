@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using De.Openelp.Feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Common.Models;
 
-namespace De.Openelp.Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     public interface IHydrantService
     {

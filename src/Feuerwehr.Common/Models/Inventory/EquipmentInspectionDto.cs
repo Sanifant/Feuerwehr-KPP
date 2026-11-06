@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
-namespace De.Openelp.Feuerwehr.Common.Models.Inventory
+namespace de.openelp.feuerwehr.Common.Models.Inventory
 {
     /// <summary>
     /// Executes equipment Inspection Dto.

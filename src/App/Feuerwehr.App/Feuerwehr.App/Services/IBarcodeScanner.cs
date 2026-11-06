@@ -1,7 +1,7 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace De.Openelp.Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     public sealed class UnsupportedBarcodeScanner : IBarcodeScanner
     {
@@ -9,6 +9,9 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <summary>
         /// Executes scan.
         /// </summary>
-        public Task<string?> ScanAsync(CancellationToken cancellationToken) => Task.FromResult<string?>(null);
+        public Task<string?> ScanAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<string?>(null);
+        }
     }
 }

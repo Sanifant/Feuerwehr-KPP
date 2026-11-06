@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace De.Openelp.Feuerwehr.Common.Models.Inventory
+namespace de.openelp.feuerwehr.Common.Models.Inventory
 {
     /// <summary>
     /// Executes inventory Import Error.

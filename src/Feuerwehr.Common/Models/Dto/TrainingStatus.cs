@@ -1,4 +1,4 @@
-namespace De.Openelp.Feuerwehr.Common.Models.Dto
+namespace de.openelp.feuerwehr.Common.Models.Dto
 {
     public enum TrainingStatus
     {

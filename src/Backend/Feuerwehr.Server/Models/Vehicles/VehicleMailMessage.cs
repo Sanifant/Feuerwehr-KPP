@@ -1,16 +1,14 @@
-using De.Openelp.Feuerwehr.Common.Models.Vehicles;
-
-namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
+namespace de.openelp.feuerwehr.Server.Models.Vehicles
 {
     public sealed class VehicleMailMessage
     {
         public Guid Id { get; set; }
         public Guid ReservationId { get; set; }
-        public string Kind { get; set; } = "";
-        public string Recipient { get; set; } = "";
-        public string Subject { get; set; } = "";
-        public string TextBody { get; set; } = "";
-        public string HtmlBody { get; set; } = "";
+        public string Kind { get; set; } = string.Empty;
+        public string Recipient { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+        public string TextBody { get; set; } = string.Empty;
+        public string HtmlBody { get; set; } = string.Empty;
         public DateTime CreatedAtUtc { get; set; }
         public DateTime NextAttemptAtUtc { get; set; }
         public DateTime? LeaseUntilUtc { get; set; }

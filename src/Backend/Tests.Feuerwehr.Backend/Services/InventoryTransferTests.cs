@@ -1,10 +1,10 @@
 using System.Text;
-using De.Openelp.Feuerwehr.Common.Models.Inventory;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models.Inventory;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Services
+namespace de.openelp.feuerwehr.Tests.Backend.Services
 {
     public sealed class InventoryTransferTests
     {
@@ -33,22 +33,23 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         }
 
         [Fact]
-        /// <summary>
-        /// Executes category Batch Is Atomic And Invalid Json Entries Have Readable Errors.
-        /// </summary>
         public async Task CategoryBatchIsAtomicAndInvalidJsonEntriesHaveReadableErrors()
         {
-            await using FeuerwehrDbContext db = Database();
+            await using var db = Database();
             InventoryTransferService service = new InventoryTransferService(db, TimeProvider.System);
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes("[{\"name\":\"Neu\"},{\"name\":\" \"}]"));
-            ServiceResult response = await service.Import(InventoryTransferKind.Categories, stream, CancellationToken.None);
+            var response = await service.Import(InventoryTransferKind.Categories, stream, CancellationToken.None);
             Assert.Equal(400, response.Code);
-            InventoryImportError error = Assert.Single(Assert.IsType<InventoryImportResponse>(response.Value).Errors);
-            Assert.Equal(2, error.LineNumber); Assert.Contains("Kategoriename", error.Description);
+            var error = Assert.Single(Assert.IsType<InventoryImportResponse>(response.Value).Errors);
+            Assert.Equal(2, error.LineNumber);
+            Assert.Contains("Kategoriename", error.Description);
             Assert.Empty(db.InventoryCategories);
         }
 
-        private static FeuerwehrDbContext Database() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        private static FeuerwehrDbContext Database()
+        {
+            return new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        }
     }
 
 }

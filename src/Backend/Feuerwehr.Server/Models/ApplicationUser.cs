@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace De.Openelp.Feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models
 {
     public class ApplicationUser : IdentityUser
     {
@@ -15,7 +15,7 @@ namespace De.Openelp.Feuerwehr.Server.Models
         // Navigation property
         public FireDepartment? FireDepartment { get; set; }
 
-        public string FullName => $"{FirstName} {LastName}".Trim();
+        public string FullName => $"{this.FirstName} {this.LastName}".Trim();
     }
 }
 

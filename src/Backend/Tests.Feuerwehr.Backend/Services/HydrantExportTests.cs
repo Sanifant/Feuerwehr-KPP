@@ -1,36 +1,43 @@
 using System.Globalization;
 using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Services
+namespace de.openelp.feuerwehr.Tests.Backend.Services
 {
     public class HydrantExportTests
     {
-        private static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        private static FeuerwehrDbContext CreateDatabase()
+        {
+            return new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        }
 
         [Fact]
-        /// <summary>
-        /// Executes export Matches Import Example And Preserves Csv Escaping Regardless Of Culture.
-        /// </summary>
         public async Task Export_MatchesImportExampleAndPreservesCsvEscapingRegardlessOfCulture()
         {
-            using FeuerwehrDbContext db = CreateDatabase();
+            using var db = CreateDatabase();
             HydrantService service = new HydrantService(db);
             service.Post(new Hydrant
             {
                 Id = 2,
                 Address = new Address
                 {
-                    Street = "DorfstraÃŸe; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                    Street = "Dorfstraße; Süd",
+                    HouseNumber = "12a",
+                    PostalCode = "02361",
+                    City = "Lübeck",
                     AdditionalInfo = "Tor \"links\"",
                 },
-                Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 80,
-                Type = HydrantType.Underground, WaterSource = WaterSource.WaterGrid, Status = HydrantStatus.Operational,
+                Latitude = 53.929134,
+                Longitude = -10.638436,
+                NominalDiameter = 80,
+                Type = HydrantType.Underground,
+                WaterSource = WaterSource.WaterGrid,
+                Status = HydrantStatus.Operational,
                 Notes = "Erste Zeile\r\nZweite Zeile; \"frei\"",
             });
             service.Post(new Hydrant { Id = 1, Notes = "=1+1" });
@@ -55,9 +62,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(example[0].Split(';'), parser.ReadFields());
             string[] first = parser.ReadFields()!;
             Assert.Equal(11, first.Length);
-            Assert.Equal("", first[0]);
+            Assert.Equal(string.Empty, first[0]);
             Assert.Equal("'=1+1", first[10]);
-            Assert.Equal(new[] { "DorfstraÃŸe; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
+            Assert.Equal(new[] { "Dorfstraße; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
                 "80", "1", "1", "1", "Erste Zeile\r\nZweite Zeile; \"frei\"" }, parser.ReadFields());
             Assert.True(parser.EndOfData);
             Assert.Equal(2, await db.Hydrants.CountAsync());
@@ -66,29 +73,32 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [Theory]
         [InlineData(null)]
         [InlineData("Beim Tor; Hinweis: \"frei\"\r\nZweite Zeile")]
-        /// <summary>
-        /// Executes export Can Be Imported Without Changing The Csv.
-        /// </summary>
-        /// <param name="notes">The notes.</param>
         public async Task Export_CanBeImportedWithoutChangingTheCsv(string? notes)
         {
-            using FeuerwehrDbContext source = CreateDatabase();
+            using var source = CreateDatabase();
             HydrantService service = new HydrantService(source);
             Hydrant original = new Hydrant
             {
                 Id = 42,
                 Address = new Address
                 {
-                    Street = "DorfstraÃŸe; Süd", HouseNumber = "12a", PostalCode = "02361", City = "Lübeck",
+                    Street = "Dorfstraße; Süd",
+                    HouseNumber = "12a",
+                    PostalCode = "02361",
+                    City = "Lübeck",
                     AdditionalInfo = "Nicht Bestandteil des Importformats",
                 },
-                Latitude = 53.929134, Longitude = -10.638436, NominalDiameter = 100,
-                Type = HydrantType.AbovegroundWithJack, WaterSource = WaterSource.Cistern, Status = HydrantStatus.UnderMaintenance,
+                Latitude = 53.929134,
+                Longitude = -10.638436,
+                NominalDiameter = 100,
+                Type = HydrantType.AbovegroundWithJack,
+                WaterSource = WaterSource.Cistern,
+                Status = HydrantStatus.UnderMaintenance,
                 Notes = notes,
             };
             service.Post(original);
             using MemoryStream csv = new MemoryStream(await service.ExportAsync());
-            using FeuerwehrDbContext target = CreateDatabase();
+            using var target = CreateDatabase();
 
             ServiceResult result = await new HydrantService(target).ImportAsync(csv);
 

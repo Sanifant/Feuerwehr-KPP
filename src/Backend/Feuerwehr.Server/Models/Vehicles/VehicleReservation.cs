@@ -1,6 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using de.openelp.feuerwehr.Common.Models.Vehicles;
 
-namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
+namespace de.openelp.feuerwehr.Server.Models.Vehicles
 {
     public sealed class VehicleReservation
     {
@@ -8,13 +8,13 @@ namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
         public Guid VehicleId { get; set; }
         public Vehicle Vehicle { get; set; } = null!;
         public Guid CommandId { get; set; }
-        public string PayloadHash { get; set; } = "";
+        public string PayloadHash { get; set; } = string.Empty;
         // Snapshot identifiers and names preserve history when an account is removed or renamed.
-        public string RequesterId { get; set; } = "";
-        public string RequesterName { get; set; } = "";
-        public string RequesterEmail { get; set; } = "";
-        public string RadioCallSign { get; set; } = "";
-        public string FireDepartmentName { get; set; } = "";
+        public string RequesterId { get; set; } = string.Empty;
+        public string RequesterName { get; set; } = string.Empty;
+        public string RequesterEmail { get; set; } = string.Empty;
+        public string RadioCallSign { get; set; } = string.Empty;
+        public string FireDepartmentName { get; set; } = string.Empty;
         public DateOnly From { get; set; }
         public DateOnly To { get; set; }
         public string? Comment { get; set; }
