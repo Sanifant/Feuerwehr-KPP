@@ -32,7 +32,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             TaskCompletionSource<GpsLocation?> completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
             Mock<IGpsService> gps = new Mock<IGpsService>();
             using CancellationTokenSource cancellation = new CancellationTokenSource();
-            gps.Setup(service => service.GetCurrentLocationAsync(cancellation.Token)).Returns(completion.Task);
+            _ = gps.Setup(service => service.GetCurrentLocationAsync(cancellation.Token)).Returns(completion.Task);
             MapViewModel viewModel = CreateViewModel(gps.Object);
 
             Task pending = viewModel.SettingsAsync(cancellation.Token);
@@ -54,7 +54,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task UnavailableLocation_DoesNotCreateAPinOrOpenHydrantCreation()
         {
             Mock<IGpsService> gps = new Mock<IGpsService>();
-            gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
+            _ = gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GpsLocation?)null);
             MapViewModel viewModel = CreateViewModel(gps.Object);
 
@@ -73,14 +73,14 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task Initialization_ReplacesExistingLocationPin()
         {
             Mock<IGpsService> gps = new Mock<IGpsService>();
-            gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
+            _ = gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GpsLocation { Latitude = 53.9, Longitude = 10.6 });
             MapViewModel viewModel = CreateViewModel(gps.Object);
 
             await viewModel.InitializeLocationAsync();
             await viewModel.InitializeLocationAsync();
 
-            Assert.Single(viewModel.Map!.Layers, layer => layer.Name == "Pins");
+            _ = Assert.Single(viewModel.Map!.Layers, layer => layer.Name == "Pins");
         }
 
         [Theory]
@@ -95,7 +95,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             TaskCompletionSource<GpsLocation?> completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
             Mock<IGpsService> gps = new Mock<IGpsService>();
             using CancellationTokenSource cancellation = new CancellationTokenSource();
-            gps.Setup(service => service.GetCurrentLocationAsync(cancellation.Token)).Returns(completion.Task);
+            _ = gps.Setup(service => service.GetCurrentLocationAsync(cancellation.Token)).Returns(completion.Task);
             MapViewModel viewModel = CreateViewModel(gps.Object);
             Task pending = initialize
                 ? viewModel.InitializeLocationAsync(cancellation.Token)
@@ -106,7 +106,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
             if (initialize)
             {
-                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
+                _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
             }
             else
             {
@@ -128,7 +128,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         {
             Mock<IGpsService> gps = new Mock<IGpsService>();
             TaskCompletionSource requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
+            _ = gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
                 .Returns(async (CancellationToken token) =>
                 {
                     requested.SetResult();
@@ -151,7 +151,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         {
             Mock<IHydrantService> hydrants = new Mock<IHydrantService>();
             // Hydrant loading is unrelated to these tests and must not mutate map layers concurrently.
-            hydrants.Setup(service => service.GetAllAsync()).Returns(Task.FromCanceled<IEnumerable<Hydrant>>(new CancellationToken(true)));
+            _ = hydrants.Setup(service => service.GetAllAsync()).Returns(Task.FromCanceled<IEnumerable<Hydrant>>(new CancellationToken(true)));
             return new MapViewModel(hydrants.Object, gps);
         }
     }

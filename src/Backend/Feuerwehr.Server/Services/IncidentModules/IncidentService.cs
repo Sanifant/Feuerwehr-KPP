@@ -138,12 +138,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 ExpiresAtUtc = now.Add(IncidentModuleTime.LeaseDuration),
             };
 
-            dbContext.Incidents.Add(incident);
-            dbContext.EditorLeases.Add(lease);
+            _ = dbContext.Incidents.Add(incident);
+            _ = dbContext.EditorLeases.Add(lease);
 
             IncidentCreatedResponse response = new IncidentCreatedResponse(ToSummary(incident), ToLeaseDto(lease), now);
 
-            dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+            _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "incident.create",
                 "active",
@@ -154,7 +154,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             outboxService.AddMessage("incident", "incident.created", incident.Id.ToString(), new IncidentChangedEvent(incident.Id, incident.Revision, now));
             outboxService.AddMessage("map", "map.lease.changed", incident.Id.ToString(), new InitialLeaseChangedEvent(incident.Id, userContext.DisplayName, lease.ExpiresAtUtc, now));
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             return ServiceResult.StatusCode(StatusCodes.Status201Created, response);
         }
@@ -208,10 +208,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 incident.ClosedByDisplayName = userContext.DisplayName;
                 incident.Revision += 1;
 
-                dbContext.EditorLeases.Remove(lease);
+                _ = dbContext.EditorLeases.Remove(lease);
 
                 IncidentClosedResponse response = new IncidentClosedResponse(ToSummary(incident), now);
-                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "incident.close",
                     incidentId.ToString(),
@@ -221,7 +221,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 outboxService.AddMessage("incident", "incident.closed", incident.Id.ToString(), new IncidentChangedEvent(incident.Id, incident.Revision, now));
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
 
                 return ServiceResult.Ok(response);
             }

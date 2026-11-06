@@ -67,7 +67,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             await using Fixture fixture = new Fixture();
             VehicleDto vehicle = await fixture.Vehicle();
             (await fixture.Db.Vehicles.FindAsync(vehicle.Id))!.StatusChangedAtUtc = null;
-            await fixture.Db.SaveChangesAsync();
+            _ = await fixture.Db.SaveChangesAsync();
             VehicleDto updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(
                 vehicle.Id,
                 new SaveVehicleRequest
@@ -132,8 +132,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             VehicleType elw = new VehicleType { Id = Guid.NewGuid(), Name = "ELW", NormalizedName = "ELW" };
             fixture.Db.Set<VehicleType>().AddRange(mtw, elw);
             (await fixture.Db.Vehicles.FindAsync(vehicle.Id))!.VehicleTypeId = mtw.Id;
-            fixture.Db.Vehicles.Add(new Vehicle { Id = Guid.NewGuid(), FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "ELW 01", VehicleTypeId = elw.Id });
-            await fixture.Db.SaveChangesAsync();
+            _ = fixture.Db.Vehicles.Add(new Vehicle { Id = Guid.NewGuid(), FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "ELW 01", VehicleTypeId = elw.Id });
+            _ = await fixture.Db.SaveChangesAsync();
             List<VehicleAvailabilityDto> filtered = Assert.IsType<List<VehicleAvailabilityDto>>((await fixture.Service.Availability(fixture.Request().From, fixture.Request().To, default, " mtw ")).Value);
             Assert.Equal(vehicle.Id, Assert.Single(filtered).Vehicle.Id);
         }
@@ -162,7 +162,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             VehicleTypeDto renamed = Assert.IsType<VehicleTypeDto>((await fixture.Service.SaveType(type.Id, new() { Name = "Mannschaftstransportwagen", ExpectedVersion = type.Version }, default)).Value);
             Assert.Equal(200, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = renamed.Version, IsActive = false }, default)).Code);
             Assert.Empty(Assert.IsType<List<VehicleTypeDto>>((await fixture.Service.Types(false, default)).Value));
-            Assert.Single(Assert.IsType<List<VehicleTypeDto>>((await fixture.Service.Types(true, default)).Value));
+            _ = Assert.Single(Assert.IsType<List<VehicleTypeDto>>((await fixture.Service.Types(true, default)).Value));
             fixture.As("officer", Roles.EquipmentOfficer);
             Assert.Equal(403, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = 3, IsActive = true }, default)).Code);
             VehicleDto retained = Assert.IsType<VehicleDto>((await fixture.Service.Save(
@@ -257,13 +257,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             VehicleReservationDto first = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, request, false, default)).Value);
             VehicleReservationDto retry = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, request, false, default)).Value);
             Assert.Equal(first.Id, retry.Id);
-            Assert.Single(fixture.Db.VehicleReservations);
-            Assert.Single(fixture.Db.VehicleMailMessages);
+            _ = Assert.Single(fixture.Db.VehicleReservations);
+            _ = Assert.Single(fixture.Db.VehicleMailMessages);
             request.Comment = "Andere Nutzlast";
             Assert.Equal(409, (await fixture.Service.Reserve(vehicle.Id, request, false, default)).Code);
             fixture.As("officer", Roles.EquipmentOfficer);
-            await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
-            await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
+            _ = await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
+            _ = await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
             Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
             Assert.Equal(2, fixture.Db.VehicleMailMessages.Count());
         }
@@ -286,7 +286,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(200, (await fixture.Service.SetActive(vehicle.Id, new() { IsActive = false, ExpectedVersion = 2 }, default)).Code);
             fixture.As("officer", Roles.EquipmentOfficer);
             Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
-            Assert.Single(fixture.Db.VehicleReservations);
+            _ = Assert.Single(fixture.Db.VehicleReservations);
             Assert.Empty(fixture.Db.VehicleBookingDays);
         }
 
@@ -304,7 +304,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
             Assert.Equal(200, (await fixture.Service.Decide(reservation.Id, new() { ExpectedVersion = reservation.Version }, VehicleReservationStatus.Cancelled, default)).Code);
             Assert.Empty(fixture.Db.VehicleBookingDays);
-            Assert.Single(fixture.Db.VehicleReservations);
+            _ = Assert.Single(fixture.Db.VehicleReservations);
             Assert.Equal(VehicleReservationStatus.Cancelled, fixture.Db.VehicleReservations.Single().Status);
             Assert.Contains(fixture.Db.VehicleEvents, x => x.Action == "Cancelled");
         }
@@ -338,18 +338,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             await using Fixture fixture = new Fixture();
             VehicleDto vehicle = await fixture.Vehicle();
-            await fixture.Service.Reserve(vehicle.Id, fixture.Request("Fahrt"), true, default);
+            _ = await fixture.Service.Reserve(vehicle.Id, fixture.Request("Fahrt"), true, default);
             Mock<IHtmlMailService> mail = new Mock<IHtmlMailService>();
-            mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new IOException("offline"));
+            _ = mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new IOException("offline"));
             VehicleMailDispatcher worker = new VehicleMailDispatcher(fixture.Db, mail.Object, fixture.Clock, NullLogger<VehicleMailDispatcher>.Instance);
             await worker.Dispatch(default);
             Assert.Null(fixture.Db.VehicleMailMessages.Single().SentAtUtc);
             Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-            mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            _ = mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
             await worker.Dispatch(default);
             await worker.Dispatch(default);
-            Assert.NotNull(fixture.Db.VehicleMailMessages.Single().SentAtUtc);
+            _ = Assert.NotNull(fixture.Db.VehicleMailMessages.Single().SentAtUtc);
             mail.Verify(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(2));
         }
 
@@ -365,20 +365,20 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
             public Fixture()
             {
-                this.Db.Database.EnsureCreated();
+                _ = this.Db.Database.EnsureCreated();
                 this.Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
-                this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
+                _ = this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
                 foreach (string? id in new[] { "officer", "other", "member", "admin" })
                 {
-                    this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, FirstName = id, IsActive = true, FireDepartmentId = id == "other" ? 2 : 1 });
+                    _ = this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, FirstName = id, IsActive = true, FireDepartmentId = id == "other" ? 2 : 1 });
                 }
 
                 foreach (string? id in new[] { "officer", "other" })
                 {
-                    this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                    _ = this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
                 }
 
-                this.Db.SaveChanges();
+                _ = this.Db.SaveChanges();
                 this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailComposer(
                     new ConfigurationBuilder().AddInMemoryCollection(
                     new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), this.Clock));

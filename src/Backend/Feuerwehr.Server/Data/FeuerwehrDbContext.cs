@@ -71,200 +71,200 @@ namespace De.Openelp.Feuerwehr.Server.Data
             modelBuilder.ConfigureInventory();
             modelBuilder.ConfigureVehicles();
 
-            modelBuilder.HasSequence<int>("Hydrants_Id_seq")
+            _ = modelBuilder.HasSequence<int>("Hydrants_Id_seq")
                 .StartsAt(1)
                 .IncrementsBy(1);
 
-            modelBuilder.Entity<Hydrant>(entity =>
+            _ = modelBuilder.Entity<Hydrant>(entity =>
             {
-                entity.ToTable("Hydrants");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Hydrants_Id_seq\"')");
+                _ = entity.ToTable("Hydrants");
+                _ = entity.HasKey(e => e.Id);
+                _ = entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Hydrants_Id_seq\"')");
 
-                entity.OwnsOne(e => e.Address, address =>
+                _ = entity.OwnsOne(e => e.Address, address =>
                 {
-                    address.Property(a => a.Street).HasColumnName("Street").IsRequired();
-                    address.Property(a => a.HouseNumber).HasColumnName("HouseNumber").IsRequired();
-                    address.Property(a => a.PostalCode).HasColumnName("PostalCode").IsRequired();
-                    address.Property(a => a.City).HasColumnName("City").IsRequired();
-                    address.Property(a => a.AdditionalInfo).HasColumnName("AdditionalInfo");
+                    _ = address.Property(a => a.Street).HasColumnName("Street").IsRequired();
+                    _ = address.Property(a => a.HouseNumber).HasColumnName("HouseNumber").IsRequired();
+                    _ = address.Property(a => a.PostalCode).HasColumnName("PostalCode").IsRequired();
+                    _ = address.Property(a => a.City).HasColumnName("City").IsRequired();
+                    _ = address.Property(a => a.AdditionalInfo).HasColumnName("AdditionalInfo");
                 });
 
                 // Spatial Data Mapping
-                entity.Property(e => e.Longitude)
+                _ = entity.Property(e => e.Longitude)
                     .IsRequired();
-                entity.Property(e => e.Latitude)
+                _ = entity.Property(e => e.Latitude)
                     .IsRequired();
 
                 // Structural Properties
-                entity.Property(e => e.NominalDiameter)
+                _ = entity.Property(e => e.NominalDiameter)
                     .IsRequired()
                     .HasColumnName("DN_Diameter");
 
                 // Map Enums as Strings for readability in SQL
-                entity.Property(e => e.Type)
+                _ = entity.Property(e => e.Type)
                     .HasConversion<string>()
                     .HasMaxLength(50)
                     .IsRequired();
 
-                entity.Property(e => e.WaterSource)
+                _ = entity.Property(e => e.WaterSource)
                     .HasConversion<string>()
                     .HasMaxLength(50)
                     .IsRequired();
 
-                entity.Property(e => e.Status)
+                _ = entity.Property(e => e.Status)
                     .HasConversion<string>()
                     .HasMaxLength(30)
                     .IsRequired();
 
-                entity.Property(e => e.Notes)
+                _ = entity.Property(e => e.Notes)
                     .HasMaxLength(1000);
             });
-            modelBuilder.Entity<FireDepartment>(entity =>
+            _ = modelBuilder.Entity<FireDepartment>(entity =>
                 {
-                    entity.ToTable("FireDepartment");
-                    entity.HasKey(e => e.Id);
-                    entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                    _ = entity.ToTable("FireDepartment");
+                    _ = entity.HasKey(e => e.Id);
+                    _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 }
             );
 
-            modelBuilder.Entity<TrainingCourse>(entity =>
+            _ = modelBuilder.Entity<TrainingCourse>(entity =>
                 {
-                    entity.ToTable("TrainingCourse");
-                    entity.HasKey(e => e.Id);
-                    entity.Property(e => e.Id).ValueGeneratedOnAdd();
+                    _ = entity.ToTable("TrainingCourse");
+                    _ = entity.HasKey(e => e.Id);
+                    _ = entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 }
             );
 
-            modelBuilder.Entity<FireDepartmentTrainingCourse>(entity =>
+            _ = modelBuilder.Entity<FireDepartmentTrainingCourse>(entity =>
             {
-                entity.ToTable("FireDepartmentTrainingCourses");
-                entity.HasKey(e => new { e.FireDepartmentId, e.TrainingCourseId });
+                _ = entity.ToTable("FireDepartmentTrainingCourses");
+                _ = entity.HasKey(e => new { e.FireDepartmentId, e.TrainingCourseId });
 
-                entity.Property(e => e.SeatsAssigned)
+                _ = entity.Property(e => e.SeatsAssigned)
                     .IsRequired();
 
-                entity.HasOne(e => e.FireDepartment)
+                _ = entity.HasOne(e => e.FireDepartment)
                     .WithMany(fd => fd.FireDepartmentTrainingCourses)
                     .HasForeignKey(e => e.FireDepartmentId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(e => e.TrainingCourse)
+                _ = entity.HasOne(e => e.TrainingCourse)
                     .WithMany(tc => tc.FireDepartmentTrainingCourses)
                     .HasForeignKey(e => e.TrainingCourseId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configure ApplicationUser relationship with FireDepartment
-            modelBuilder.Entity<ApplicationUser>(entity =>
+            _ = modelBuilder.Entity<ApplicationUser>(entity =>
             {
-                entity.HasOne(u => u.FireDepartment)
+                _ = entity.HasOne(u => u.FireDepartment)
                     .WithMany()
                     .HasForeignKey(u => u.FireDepartmentId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            modelBuilder.HasSequence<long>("MapAuditSequence").StartsAt(1).IncrementsBy(1);
-            modelBuilder.HasSequence<long>("DiaryEntryNumberSeq").StartsAt(1).IncrementsBy(1);
+            _ = modelBuilder.HasSequence<long>("MapAuditSequence").StartsAt(1).IncrementsBy(1);
+            _ = modelBuilder.HasSequence<long>("DiaryEntryNumberSeq").StartsAt(1).IncrementsBy(1);
 
-            modelBuilder.Entity<Incident>(entity =>
+            _ = modelBuilder.Entity<Incident>(entity =>
             {
-                entity.ToTable("Incidents");
-                entity.HasKey(x => x.Id);
-                entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
-                entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
-                entity.HasIndex(x => x.Status).HasDatabaseName("IX_Incidents_Status");
-                entity.HasIndex(x => x.Status).IsUnique().HasFilter("\"Status\" = 'Active'").HasDatabaseName("UX_Incidents_OnlyOneActive");
+                _ = entity.ToTable("Incidents");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+                _ = entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                _ = entity.HasIndex(x => x.Status).HasDatabaseName("IX_Incidents_Status");
+                _ = entity.HasIndex(x => x.Status).IsUnique().HasFilter("\"Status\" = 'Active'").HasDatabaseName("UX_Incidents_OnlyOneActive");
             });
 
-            modelBuilder.Entity<MapElement>(entity =>
+            _ = modelBuilder.Entity<MapElement>(entity =>
             {
-                entity.ToTable("MapElements");
-                entity.HasKey(x => x.Id);
-                entity.Property(x => x.ElementType).HasConversion<string>().HasMaxLength(20);
-                entity.Property(x => x.GeometryJson).IsRequired();
-                entity.HasIndex(x => new { x.IncidentId, x.UpdatedAtUtc });
-                entity.HasOne(x => x.Incident)
+                _ = entity.ToTable("MapElements");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.Property(x => x.ElementType).HasConversion<string>().HasMaxLength(20);
+                _ = entity.Property(x => x.GeometryJson).IsRequired();
+                _ = entity.HasIndex(x => new { x.IncidentId, x.UpdatedAtUtc });
+                _ = entity.HasOne(x => x.Incident)
                     .WithMany()
                     .HasForeignKey(x => x.IncidentId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<MapSymbol>(entity =>
+            _ = modelBuilder.Entity<MapSymbol>(entity =>
             {
-                entity.ToTable("MapSymbols");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => new { x.Category, x.IsActive });
+                _ = entity.ToTable("MapSymbols");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => new { x.Category, x.IsActive });
             });
 
-            modelBuilder.Entity<MapSymbolCategory>(entity =>
+            _ = modelBuilder.Entity<MapSymbolCategory>(entity =>
             {
-                entity.ToTable("MapSymbolCategories");
-                entity.HasKey(x => x.Name);
-                entity.HasData(Common.Models.IncidentModules.MapSymbolCategories.All.Select(name => new MapSymbolCategory { Name = name }));
+                _ = entity.ToTable("MapSymbolCategories");
+                _ = entity.HasKey(x => x.Name);
+                _ = entity.HasData(Common.Models.IncidentModules.MapSymbolCategories.All.Select(name => new MapSymbolCategory { Name = name }));
             });
 
-            modelBuilder.Entity<MapAuditEvent>(entity =>
+            _ = modelBuilder.Entity<MapAuditEvent>(entity =>
             {
-                entity.ToTable("MapAuditEvents");
-                entity.HasKey(x => x.Id);
-                entity.Property(x => x.SequenceNumber).HasDefaultValueSql("nextval('\"MapAuditSequence\"')");
-                entity.HasIndex(x => new { x.IncidentId, x.SequenceNumber }).IsUnique();
+                _ = entity.ToTable("MapAuditEvents");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.Property(x => x.SequenceNumber).HasDefaultValueSql("nextval('\"MapAuditSequence\"')");
+                _ = entity.HasIndex(x => new { x.IncidentId, x.SequenceNumber }).IsUnique();
             });
 
-            modelBuilder.Entity<EditorLease>(entity =>
+            _ = modelBuilder.Entity<EditorLease>(entity =>
             {
-                entity.ToTable("EditorLeases");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => x.IncidentId).IsUnique();
-                entity.HasOne(x => x.Incident)
+                _ = entity.ToTable("EditorLeases");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => x.IncidentId).IsUnique();
+                _ = entity.HasOne(x => x.Incident)
                     .WithMany()
                     .HasForeignKey(x => x.IncidentId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<DiaryCategory>(entity =>
+            _ = modelBuilder.Entity<DiaryCategory>(entity =>
             {
-                entity.ToTable("DiaryCategories");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => x.Code).IsUnique();
-                entity.Property(x => x.Code).HasMaxLength(120).IsRequired();
-                entity.Property(x => x.Name).HasMaxLength(120).IsRequired();
+                _ = entity.ToTable("DiaryCategories");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => x.Code).IsUnique();
+                _ = entity.Property(x => x.Code).HasMaxLength(120).IsRequired();
+                _ = entity.Property(x => x.Name).HasMaxLength(120).IsRequired();
             });
 
-            modelBuilder.Entity<DiaryEntry>(entity =>
+            _ = modelBuilder.Entity<DiaryEntry>(entity =>
             {
-                entity.ToTable("DiaryEntries");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => new { x.IncidentId, x.EntryNumber }).IsUnique();
-                entity.Property(x => x.EntryNumber).HasDefaultValueSql("nextval('\"DiaryEntryNumberSeq\"')");
+                _ = entity.ToTable("DiaryEntries");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => new { x.IncidentId, x.EntryNumber }).IsUnique();
+                _ = entity.Property(x => x.EntryNumber).HasDefaultValueSql("nextval('\"DiaryEntryNumberSeq\"')");
             });
 
-            modelBuilder.Entity<DiaryEntryRevision>(entity =>
+            _ = modelBuilder.Entity<DiaryEntryRevision>(entity =>
             {
-                entity.ToTable("DiaryEntryRevisions");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => new { x.DiaryEntryId, x.RevisionNumber }).IsUnique();
-                entity.Property(x => x.RevisionType).HasConversion<string>().HasMaxLength(20);
-                entity.HasOne(x => x.DiaryEntry)
+                _ = entity.ToTable("DiaryEntryRevisions");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => new { x.DiaryEntryId, x.RevisionNumber }).IsUnique();
+                _ = entity.Property(x => x.RevisionType).HasConversion<string>().HasMaxLength(20);
+                _ = entity.HasOne(x => x.DiaryEntry)
                     .WithMany()
                     .HasForeignKey(x => x.DiaryEntryId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<ProcessedCommand>(entity =>
+            _ = modelBuilder.Entity<ProcessedCommand>(entity =>
             {
-                entity.ToTable("ProcessedCommands");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => x.CommandId).IsUnique();
-                entity.HasIndex(x => new { x.UserId, x.Scope, x.TargetId });
+                _ = entity.ToTable("ProcessedCommands");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => x.CommandId).IsUnique();
+                _ = entity.HasIndex(x => new { x.UserId, x.Scope, x.TargetId });
             });
 
-            modelBuilder.Entity<OutboxMessage>(entity =>
+            _ = modelBuilder.Entity<OutboxMessage>(entity =>
             {
-                entity.ToTable("OutboxMessages");
-                entity.HasKey(x => x.Id);
-                entity.HasIndex(x => new { x.ProcessedAtUtc, x.CreatedAtUtc });
+                _ = entity.ToTable("OutboxMessages");
+                _ = entity.HasKey(x => x.Id);
+                _ = entity.HasIndex(x => new { x.ProcessedAtUtc, x.CreatedAtUtc });
             });
         }
     }

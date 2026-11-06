@@ -25,7 +25,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 .Options;
 
             FeuerwehrDbContext context = new FeuerwehrDbContext(options);
-            context.Database.EnsureCreated();
+            _ = context.Database.EnsureCreated();
             return context;
         }
 
@@ -37,8 +37,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public static Mock<IUserContextAccessor> CreateUserContextMock(string userId = "user-1", string displayName = "Ada Admin")
         {
             Mock<IUserContextAccessor> mock = new Mock<IUserContextAccessor>();
-            mock.SetupGet(x => x.UserId).Returns(userId);
-            mock.SetupGet(x => x.DisplayName).Returns(displayName);
+            _ = mock.SetupGet(x => x.UserId).Returns(userId);
+            _ = mock.SetupGet(x => x.DisplayName).Returns(displayName);
             return mock;
         }
 
@@ -48,9 +48,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public static Mock<ICommandIdempotencyService> CreateIdempotencyMock()
         {
             Mock<ICommandIdempotencyService> mock = new Mock<ICommandIdempotencyService>();
-            mock.Setup(x => x.FindExistingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            _ = mock.Setup(x => x.FindExistingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(((ProcessedCommand?)null, "payload-hash")));
-            mock.Setup(x => x.BuildStoredCommand(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<CommandEnvelopeResponse>(), It.IsAny<string>()))
+            _ = mock.Setup(x => x.BuildStoredCommand(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<CommandEnvelopeResponse>(), It.IsAny<string>()))
                 .Returns<string, string, string?, string, CommandEnvelopeResponse, string>((commandId, scope, targetId, payloadHash, response, userId) => new ProcessedCommand
                 {
                     Id = Guid.NewGuid(),
@@ -189,7 +189,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             await using FeuerwehrDbContext dbContext = CreateDbContext();
             Guid incidentId = Guid.NewGuid();
             DiaryEntry firstEntry = CreateEntry(incidentId, entryNumber: 2, currentRevision: 2);
-            dbContext.Incidents.Add(CreateIncident(incidentId));
+            _ = dbContext.Incidents.Add(CreateIncident(incidentId));
             DiaryEntry secondEntry = CreateEntry(incidentId, entryNumber: 1, currentRevision: 1);
             DiaryEntry entryWithoutRevision = CreateEntry(incidentId, entryNumber: 3, currentRevision: 1);
 
@@ -198,7 +198,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreateRevision(firstEntry, 1, DiaryRevisionType.Created, text: "Initial note"),
                 CreateRevision(firstEntry, 2, DiaryRevisionType.Edited, text: "Updated note"),
                 CreateRevision(secondEntry, 1, DiaryRevisionType.Created, text: "First chronological note"));
-            await dbContext.SaveChangesAsync();
+            _ = await dbContext.SaveChangesAsync();
 
             IncidentDiaryController controller = CreateController(dbContext);
 
@@ -213,7 +213,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                     Assert.Equal(secondEntry.Id, entry.Id);
                     Assert.Equal(1, entry.CurrentRevisionData.RevisionNumber);
                     Assert.Equal("First chronological note", entry.CurrentRevisionData.Text);
-                    Assert.Single(entry.Revisions);
+                    _ = Assert.Single(entry.Revisions);
                 },
                 entry =>
                 {
@@ -236,7 +236,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreateCategory("STATUS", "Statusmeldung"),
                 CreateCategory("ALARM", "Alarmierung"),
                 CreateCategory("ZUSATZ", "Zusatzinfo", isActive: false));
-            await dbContext.SaveChangesAsync();
+            _ = await dbContext.SaveChangesAsync();
 
             IncidentDiaryController controller = CreateController(dbContext);
 
@@ -294,7 +294,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             };
 
             Mock<ICommandIdempotencyService> idempotencyMock = new Mock<ICommandIdempotencyService>();
-            idempotencyMock
+            _ = idempotencyMock
                 .Setup(x => x.FindExistingAsync(It.IsAny<string>(), "diary.entry.create", It.IsAny<string?>(), It.IsAny<object>(), "user-1", It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult((existingResponse, "payload-hash")));
 
@@ -328,9 +328,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Guid incidentId = Guid.NewGuid();
             Incident incident = CreateIncident(incidentId, revision: 4);
             DiaryEntry entry = CreateEntry(incidentId, entryNumber: 7, currentRevision: 2);
-            dbContext.Incidents.Add(incident);
-            dbContext.DiaryEntries.Add(entry);
-            await dbContext.SaveChangesAsync();
+            _ = dbContext.Incidents.Add(incident);
+            _ = dbContext.DiaryEntries.Add(entry);
+            _ = await dbContext.SaveChangesAsync();
 
             IncidentDiaryController controller = CreateController(dbContext);
 
@@ -366,11 +366,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             DiaryEntry entry = CreateEntry(incidentId, entryNumber: 5, currentRevision: 1);
             DiaryEntryRevision existingRevision = CreateRevision(entry, 1, DiaryRevisionType.Created, categoryCode: category.Code, categoryName: category.Name, text: "Initial note");
 
-            dbContext.Incidents.Add(incident);
-            dbContext.DiaryCategories.Add(category);
-            dbContext.DiaryEntries.Add(entry);
-            dbContext.DiaryEntryRevisions.Add(existingRevision);
-            await dbContext.SaveChangesAsync();
+            _ = dbContext.Incidents.Add(incident);
+            _ = dbContext.DiaryCategories.Add(category);
+            _ = dbContext.DiaryEntries.Add(entry);
+            _ = dbContext.DiaryEntryRevisions.Add(existingRevision);
+            _ = await dbContext.SaveChangesAsync();
 
             Mock<IOutboxService> outboxMock = new Mock<IOutboxService>();
             IncidentDiaryController controller = CreateController(dbContext, outboxMock: outboxMock);
@@ -404,7 +404,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal("Corrected note", newRevision.Text);
             Assert.Equal("Control", newRevision.Sender);
             Assert.Equal("Phone", newRevision.TransmissionType);
-            Assert.Single(dbContext.ProcessedCommands);
+            _ = Assert.Single(dbContext.ProcessedCommands);
             outboxMock.Verify(x => x.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), It.IsAny<object>()), Times.Once);
         }
 
@@ -441,10 +441,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             DiaryEntry entry = CreateEntry(incidentId, entryNumber: 9, currentRevision: 1);
             DiaryEntryRevision previousRevision = CreateRevision(entry, 1, DiaryRevisionType.Created, categoryCode: "RADIO", categoryName: "Radio", text: "Original note");
 
-            dbContext.Incidents.Add(incident);
-            dbContext.DiaryEntries.Add(entry);
-            dbContext.DiaryEntryRevisions.Add(previousRevision);
-            await dbContext.SaveChangesAsync();
+            _ = dbContext.Incidents.Add(incident);
+            _ = dbContext.DiaryEntries.Add(entry);
+            _ = dbContext.DiaryEntryRevisions.Add(previousRevision);
+            _ = await dbContext.SaveChangesAsync();
 
             Mock<IOutboxService> outboxMock = new Mock<IOutboxService>();
             IncidentDiaryController controller = CreateController(dbContext, outboxMock: outboxMock);
@@ -476,7 +476,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(2, cancellationRevision.RevisionNumber);
             Assert.Equal("Original note", cancellationRevision.Text);
             Assert.Equal("Duplicate entry", cancellationRevision.CancellationReason);
-            Assert.Single(dbContext.ProcessedCommands);
+            _ = Assert.Single(dbContext.ProcessedCommands);
             outboxMock.Verify(x => x.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), It.IsAny<object>()), Times.Once);
         }
 
@@ -491,7 +491,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
             IActionResult result = await controller.ExportDiaryPdf(Guid.NewGuid(), CancellationToken.None);
 
-            Assert.IsType<NotFoundResult>(result);
+            _ = Assert.IsType<NotFoundResult>(result);
         }
 
         /*

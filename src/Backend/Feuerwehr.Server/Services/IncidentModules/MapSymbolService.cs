@@ -45,8 +45,8 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 return ServiceResult.Problem(409, "Diese Symbolkategorie existiert bereits.");
             }
 
-            dbContext.MapSymbolCategories.Add(new MapSymbolCategory { Name = name });
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = dbContext.MapSymbolCategories.Add(new MapSymbolCategory { Name = name });
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.StatusCode(201, name);
         }
 
@@ -124,13 +124,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             symbol.UpdatedAtUtc = DateTime.UtcNow;
             if (created)
             {
-                dbContext.MapSymbols.Add(symbol);
+                _ = dbContext.MapSymbols.Add(symbol);
             }
 
             logger.LogDebug("Map symbol database save started. SymbolId: {SymbolId}", symbol.Id);
             try
             {
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {

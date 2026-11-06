@@ -57,8 +57,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 ContactPersonEmail = fireDepartmentDto.ContactPersonEmail
             };
 
-            this._db.FireDepartments.Add(entity);
-            await this._db.SaveChangesAsync();
+            _ = this._db.FireDepartments.Add(entity);
+            _ = await this._db.SaveChangesAsync();
 
             FireDepartmentDto createdDto = new FireDepartmentDto
             {

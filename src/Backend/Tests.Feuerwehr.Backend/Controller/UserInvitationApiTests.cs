@@ -35,11 +35,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public UserInvitationApiTests()
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
-            services.AddAuthentication();
-            services.AddDbContext<FeuerwehrDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-            services.AddDataProtection().UseEphemeralDataProtectionProvider();
-            services.AddIdentityCore<ApplicationUser>(options =>
+            _ = services.AddLogging();
+            _ = services.AddAuthentication();
+            _ = services.AddDbContext<FeuerwehrDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+            _ = services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            _ = services.AddIdentityCore<ApplicationUser>(options =>
             {
                 options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = false;
@@ -49,7 +49,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 options.Lockout.AllowedForNewUsers = true;
             }).AddRoles<IdentityRole>().AddEntityFrameworkStores<FeuerwehrDbContext>().AddDefaultTokenProviders().AddSignInManager();
             this._provider = services.BuildServiceProvider();
-            this._provider.GetRequiredService<FeuerwehrDbContext>().Database.EnsureCreated();
+            _ = this._provider.GetRequiredService<FeuerwehrDbContext>().Database.EnsureCreated();
             this._users = this._provider.GetRequiredService<UserManager<ApplicationUser>>();
             this._roles = this._provider.GetRequiredService<RoleManager<IdentityRole>>();
             IConfigurationRoot config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
@@ -60,9 +60,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 ["JwtSettings:Audience"] = "invitation-tests",
             }).Build();
             this._realTokens = new TokenService(config, this._users);
-            this._tokens.Setup(tokens => tokens.GenerateAccessTokenAsync(It.IsAny<ApplicationUser>(), It.IsAny<IList<string>>()))
+            _ = this._tokens.Setup(tokens => tokens.GenerateAccessTokenAsync(It.IsAny<ApplicationUser>(), It.IsAny<IList<string>>()))
                 .ReturnsAsync("test-access-token");
-            this._tokens.Setup(tokens => tokens.GenerateRefreshToken()).Returns("test-refresh-token");
+            _ = this._tokens.Setup(tokens => tokens.GenerateRefreshToken()).Returns("test-refresh-token");
             UserInvitationService invitations = new UserInvitationService(
                 this._users,
                 this._store,
@@ -112,7 +112,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             FireDepartment first = new FireDepartment { Name = "Feuerwehr A" };
             FireDepartment second = new FireDepartment { Name = "Feuerwehr B" };
             db.FireDepartments.AddRange(first, second);
-            await db.SaveChangesAsync();
+            _ = await db.SaveChangesAsync();
             Assert.True((await this._roles.CreateAsync(new IdentityRole("EquipmentOfficer"))).Succeeded);
 
             CreatedAtActionResult response = Assert.IsType<CreatedAtActionResult>(await this._usersApi.CreateUser(new RegisterUserRequest
@@ -129,12 +129,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             List<UserDetailsDto> listed = Assert.IsType<List<UserDetailsDto>>(Assert.IsType<OkObjectResult>(await this._usersApi.GetAllUsers()).Value);
             Assert.Equal(first.Id, Assert.Single(listed).FireDepartmentId);
 
-            Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { FireDepartmentId = second.Id }));
+            _ = Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { FireDepartmentId = second.Id }));
             Assert.Equal(second.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
             // Existing clients can still update unrelated fields without removing the assignment.
-            Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { FirstName = "Bea" }));
+            _ = Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { FirstName = "Bea" }));
             Assert.Equal(second.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
-            Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { ClearFireDepartment = true }));
+            _ = Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { ClearFireDepartment = true }));
             Assert.Null((await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
         }
 
@@ -146,14 +146,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             UserInvitation staleInvitation = this._store.Entries[id];
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id, " NEW.USER@EXAMPLE.COM ")));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id, " NEW.USER@EXAMPLE.COM ")));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
             Assert.Empty(this._store.Entries);
             this._tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
             // Even a stale cache copy cannot replay the underlying Identity token.
             this._store.Entries[id] = staleInvitation;
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "AnotherPassword123")));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "AnotherPassword123")));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
@@ -166,11 +166,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             ApplicationUser other = new ApplicationUser { UserName = "other@example.com", Email = "other@example.com" };
             Assert.True((await this._users.CreateAsync(other, "OtherPassword123")).Succeeded);
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, other.Email!)));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, other.Email!)));
             Assert.False(await this._users.HasPasswordAsync(user));
             Assert.True(await this._users.CheckPasswordAsync(other, "OtherPassword123"));
             Assert.Contains(id, this._store.Entries.Keys);
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
         [Fact]
@@ -181,7 +181,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             this._clock.Now = this._clock.Now.AddMinutes(60);
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
             Assert.False(await this._users.HasPasswordAsync(user));
         }
 
@@ -193,7 +193,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             this._clock.Now = this._clock.Now.AddMinutes(60).AddSeconds(-1);
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
@@ -206,12 +206,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             bool revoked = false;
             bool revokedBeforeCleanup = false;
-            this._tokens.Setup(tokens => tokens.RevokeRefreshTokenAsync(user.Id))
+            _ = this._tokens.Setup(tokens => tokens.RevokeRefreshTokenAsync(user.Id))
                 .Callback(() => revoked = true).Returns(Task.CompletedTask);
             this._store.BeforeRemove = () => revokedBeforeCleanup = revoked;
             this._store.FailRemoval = true;
 
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
             Assert.True(revokedBeforeCleanup);
             this._tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
@@ -219,7 +219,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             // Failed cleanup leaves the entry with its original expiry, but Identity prevents replay.
             UserInvitation staleInvitation = Assert.Single(this._store.Entries).Value;
             Assert.Equal(this._clock.GetUtcNow().AddMinutes(60), staleInvitation.ExpiresAtUtc);
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "AnotherPassword123")));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "AnotherPassword123")));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
@@ -233,7 +233,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="token">The token.</param>
         public async Task ResetPassword_InvalidOrUnknownUuidIsRejected(string token)
         {
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(new ResetRequest
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(new ResetRequest
             {
                 Token = token,
                 Email = "new.user@example.com",
@@ -252,7 +252,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotEmpty(Assert.IsType<IdentityErrorResponse>(failure.Value).Errors);
             Assert.False(await this._users.HasPasswordAsync(user));
             Assert.Contains(id, this._store.Entries.Keys);
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
         [Theory]
@@ -267,15 +267,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             if (change == "deleted")
-                await this._users.DeleteAsync(user);
+                _ = await this._users.DeleteAsync(user);
             else if (change == "changed-email")
-                await this._users.SetEmailAsync(user, "changed@example.com");
+                _ = await this._users.SetEmailAsync(user, "changed@example.com");
             else
             {
                 user.IsActive = false;
-                await this._users.UpdateAsync(user);
+                _ = await this._users.UpdateAsync(user);
             }
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
         [Fact]
@@ -304,7 +304,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ResetPassword_InvalidModelIsRejectedAtApiBoundary()
         {
             this._authApi.ModelState.AddModelError("Email", "Eine E-Mail-Adresse ist erforderlich.");
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(new ResetRequest()));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(new ResetRequest()));
             List<ValidationResult> validation = new List<ValidationResult>();
             ResetRequest request = new ResetRequest();
             Assert.False(Validator.TryValidateObject(request, new ValidationContext(request), validation, true));
@@ -323,13 +323,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ChangePassword_UsesSignedInUserAndRequiresCurrentPassword()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             this.SignInAs(user.Id);
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123" };
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
             request.CurrentPassword = "MyNewPassword123";
-            Assert.IsType<OkObjectResult>(await this._authApi.ChangePassword(request));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ChangePassword(request));
             Assert.True(await this._users.CheckPasswordAsync(user, "ChangedPassword123"));
             Assert.False(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
             this._tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(3));
@@ -342,11 +342,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ChangePassword_RejectsMissingUserOrInvalidModel()
         {
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "CurrentPassword123", NewPassword = "ChangedPassword123" };
-            Assert.IsType<UnauthorizedResult>(await this._authApi.ChangePassword(request));
+            _ = Assert.IsType<UnauthorizedResult>(await this._authApi.ChangePassword(request));
             this.SignInAs("unknown");
-            Assert.IsType<UnauthorizedResult>(await this._authApi.ChangePassword(request));
+            _ = Assert.IsType<UnauthorizedResult>(await this._authApi.ChangePassword(request));
             this._authApi.ModelState.AddModelError("CurrentPassword", "Required");
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
         }
 
         [Fact]
@@ -356,13 +356,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ChangePassword_FiveWrongCurrentPasswordsLockAccountAndPreventChanges()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             this.SignInAs(user.Id);
             this._tokens.Invocations.Clear();
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123" };
             for (int attempt = 1; attempt < 5; attempt++)
             {
-                Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
+                _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
                 Assert.Equal(attempt, await this._users.GetAccessFailedCountAsync(user));
             }
 
@@ -371,7 +371,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(423, locked.StatusCode);
             Assert.True(await this._users.IsLockedOutAsync(user));
             DateTimeOffset? lockoutEnd = await this._users.GetLockoutEndDateAsync(user);
-            Assert.NotNull(lockoutEnd);
+            _ = Assert.NotNull(lockoutEnd);
             Assert.InRange(lockoutEnd.Value, beforeLockout.AddMinutes(15), DateTimeOffset.UtcNow.AddMinutes(15));
 
             // The valid bearer token and even the correct password cannot bypass the lockout.
@@ -395,11 +395,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ChangePassword_SharesFailedAttemptCounterWithLogin()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             this.SignInAs(user.Id);
             for (int attempt = 1; attempt <= 3; attempt++)
             {
-                Assert.IsType<UnauthorizedObjectResult>((await this._authApi.Login(new LoginRequest
+                _ = Assert.IsType<UnauthorizedObjectResult>((await this._authApi.Login(new LoginRequest
                 {
                     Email = user.Email!,
                     Password = "WrongPassword123",
@@ -407,7 +407,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             }
             Assert.Equal(3, await this._users.GetAccessFailedCountAsync(user));
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123" };
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
             Assert.Equal(4, await this._users.GetAccessFailedCountAsync(user));
             Assert.Equal(423, Assert.IsType<ObjectResult>(await this._authApi.ChangePassword(request)).StatusCode);
         }
@@ -419,13 +419,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ChangePassword_RejectsPreexistingLockoutAndAllowsChangeAfterExpiry()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             this.SignInAs(user.Id);
-            await this._users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddMinutes(15));
+            _ = await this._users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddMinutes(15));
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "MyNewPassword123", NewPassword = "ChangedPassword123" };
             Assert.Equal(423, Assert.IsType<ObjectResult>(await this._authApi.ChangePassword(request)).StatusCode);
-            await this._users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddSeconds(-1));
-            Assert.IsType<OkObjectResult>(await this._authApi.ChangePassword(request));
+            _ = await this._users.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddSeconds(-1));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ChangePassword(request));
             Assert.True(await this._users.CheckPasswordAsync(user, request.NewPassword));
         }
 
@@ -436,15 +436,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ChangePassword_CorrectCurrentPasswordResetsFailuresEvenWhenNewPasswordIsWeak()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             this.SignInAs(user.Id);
-            await this._authApi.ChangePassword(new ChangePasswordRequest
+            _ = await this._authApi.ChangePassword(new ChangePasswordRequest
             {
                 CurrentPassword = "WrongPassword123",
                 NewPassword = "ChangedPassword123",
             });
             Assert.Equal(1, await this._users.GetAccessFailedCountAsync(user));
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(new ChangePasswordRequest
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(new ChangePasswordRequest
             {
                 CurrentPassword = "MyNewPassword123",
                 NewPassword = "weak",
@@ -461,9 +461,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ResendInvitation_LocksExistingAccountUntilSuccessfulPasswordReset()
         {
             (ApplicationUser? user, Guid firstId) = await this.CreateInvitedUser();
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(firstId)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(firstId)));
             this._tokens.Invocations.Clear();
-            Assert.IsType<OkObjectResult>(await this._usersApi.ResendInvitation(user.Id));
+            _ = Assert.IsType<OkObjectResult>(await this._usersApi.ResendInvitation(user.Id));
             Guid id = Assert.Single(this._store.Entries).Key;
             Assert.NotEqual(firstId, id);
             Assert.Equal(2, this._mail.Messages.Count);
@@ -483,30 +483,30 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             })).Result);
             Assert.Equal(423, lockedLogin.StatusCode);
             this.SignInAs(user.Id);
-            Assert.IsType<UnauthorizedResult>(await this._authApi.ChangePassword(new ChangePasswordRequest
+            _ = Assert.IsType<UnauthorizedResult>(await this._authApi.ChangePassword(new ChangePasswordRequest
             {
                 CurrentPassword = "MyNewPassword123",
                 NewPassword = "ChangedPassword123",
             }));
-            Assert.IsType<BadRequestObjectResult>(await this._usersApi.UpdateUser(user.Id, new UpdateUserRequest
+            _ = Assert.IsType<BadRequestObjectResult>(await this._usersApi.UpdateUser(user.Id, new UpdateUserRequest
             {
                 NewPassword = "ChangedPassword123",
             }));
             this._authApi.Request.Headers.Authorization = "Bearer previous-access-token";
-            this._tokens.Setup(tokens => tokens.GetPrincipalFromExpiredToken("previous-access-token")).Returns(this._authApi.User);
-            this._tokens.Setup(tokens => tokens.ValidateRefreshTokenAsync(user.Id, "previous-refresh-token")).ReturnsAsync(true);
-            Assert.IsType<UnauthorizedObjectResult>((await this._authApi.RefreshToken(new RefreshTokenRequest
+            _ = this._tokens.Setup(tokens => tokens.GetPrincipalFromExpiredToken("previous-access-token")).Returns(this._authApi.User);
+            _ = this._tokens.Setup(tokens => tokens.ValidateRefreshTokenAsync(user.Id, "previous-refresh-token")).ReturnsAsync(true);
+            _ = Assert.IsType<UnauthorizedObjectResult>((await this._authApi.RefreshToken(new RefreshTokenRequest
             {
                 RefreshToken = "previous-refresh-token",
             })).Result);
 
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "weak")));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "weak")));
             Assert.True(user.PasswordResetRequired);
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, "wrong@example.com")));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, "wrong@example.com")));
             Assert.True(user.PasswordResetRequired);
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id, password: "ChangedPassword123")));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id, password: "ChangedPassword123")));
             Assert.False(user.PasswordResetRequired);
-            Assert.IsType<OkObjectResult>((await this._authApi.Login(new LoginRequest
+            _ = Assert.IsType<OkObjectResult>((await this._authApi.Login(new LoginRequest
             {
                 Email = user.Email!,
                 Password = "ChangedPassword123",
@@ -521,17 +521,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ResendInvitation_InvalidatesPreviousLinksAndKeepsLockAfterExpiry()
         {
             (ApplicationUser? user, Guid oldId) = await this.CreateInvitedUser();
-            Assert.IsType<OkObjectResult>(await this._usersApi.ResendInvitation(user.Id));
+            _ = Assert.IsType<OkObjectResult>(await this._usersApi.ResendInvitation(user.Id));
             Guid id = this._store.Entries.Keys.Single(key => key != oldId);
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(oldId)));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(oldId)));
             Assert.True(user.PasswordResetRequired);
             this._clock.Now = this._clock.Now.AddMinutes(60);
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
             Assert.True(user.PasswordResetRequired);
 
-            Assert.IsType<OkObjectResult>(await this._usersApi.ResendInvitation(user.Id));
+            _ = Assert.IsType<OkObjectResult>(await this._usersApi.ResendInvitation(user.Id));
             Guid freshId = this._store.Entries.Keys.Single(key => key != oldId && key != id);
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(freshId)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(freshId)));
             Assert.False(user.PasswordResetRequired);
         }
 
@@ -542,21 +542,21 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ResendInvitation_RevokesExistingAccessTokensIncludingAfterUnlock()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             string jwt = await this._realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
             ClaimsPrincipal principal = Assert.IsType<ClaimsPrincipal>(this._realTokens.GetPrincipalFromExpiredToken(jwt));
             Assert.True(await this._realTokens.IsAccessTokenValidAsync(principal));
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(new ClaimsPrincipal(new ClaimsIdentity(
                 [new Claim(ClaimTypes.NameIdentifier, user.Id)]))));
 
-            await this._usersApi.ResendInvitation(user.Id);
+            _ = await this._usersApi.ResendInvitation(user.Id);
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(principal));
             // Even a token with the current stamp cannot bypass the persisted invitation lock.
             string pendingJwt = await this._realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
             ClaimsPrincipal pendingPrincipal = this._realTokens.GetPrincipalFromExpiredToken(pendingJwt)!;
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(pendingPrincipal));
             Guid newId = Assert.Single(this._store.Entries).Key;
-            await this._authApi.ResetPassword(Request(newId));
+            _ = await this._authApi.ResetPassword(Request(newId));
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(principal));
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(pendingPrincipal));
             string newJwt = await this._realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
@@ -575,7 +575,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             if (!alreadyInvited)
             {
-                await this._authApi.ResetPassword(Request(id));
+                _ = await this._authApi.ResetPassword(Request(id));
             }
 
             string? stamp = user.SecurityStamp;
@@ -588,12 +588,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             if (alreadyInvited)
             {
                 Assert.Equal(id, Assert.Single(this._store.Entries).Key);
-                Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
+                _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
             }
             else
             {
                 Assert.Empty(this._store.Entries);
-                Assert.IsType<OkObjectResult>((await this._authApi.Login(new LoginRequest
+                _ = Assert.IsType<OkObjectResult>((await this._authApi.Login(new LoginRequest
                 {
                     Email = user.Email!,
                     Password = "MyNewPassword123",
@@ -608,25 +608,25 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task ResendInvitation_PasswordResetAlsoClearsExistingFailedLoginLockout()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
-            await this._authApi.ResetPassword(Request(id));
+            _ = await this._authApi.ResetPassword(Request(id));
             for (int attempt = 0; attempt < 5; attempt++)
             {
-                await this._authApi.Login(new LoginRequest { Email = user.Email!, Password = "WrongPassword123" });
+                _ = await this._authApi.Login(new LoginRequest { Email = user.Email!, Password = "WrongPassword123" });
             }
 
             Assert.True(await this._users.IsLockedOutAsync(user));
-            await this._usersApi.ResendInvitation(user.Id);
+            _ = await this._usersApi.ResendInvitation(user.Id);
             Guid newId = Assert.Single(this._store.Entries).Key;
-            Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(newId, password: "weak")));
+            _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(newId, password: "weak")));
             Assert.True(await this._users.IsLockedOutAsync(user));
             Assert.True(user.PasswordResetRequired);
-            Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(newId)));
+            _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(newId)));
             this._provider.GetRequiredService<FeuerwehrDbContext>().ChangeTracker.Clear();
             user = (await this._users.FindByIdAsync(user.Id))!;
             Assert.False(user.PasswordResetRequired);
             Assert.False(await this._users.IsLockedOutAsync(user));
             Assert.Equal(0, await this._users.GetAccessFailedCountAsync(user));
-            Assert.IsType<OkObjectResult>((await this._authApi.Login(new LoginRequest
+            _ = Assert.IsType<OkObjectResult>((await this._authApi.Login(new LoginRequest
             {
                 Email = user.Email!,
                 Password = "MyNewPassword123",
@@ -639,12 +639,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task ResendInvitation_RejectsUnknownAndInactiveUsers()
         {
-            Assert.IsType<NotFoundObjectResult>(await this._usersApi.ResendInvitation("missing"));
-            (ApplicationUser? user, Guid _) = await this.CreateInvitedUser();
+            _ = Assert.IsType<NotFoundObjectResult>(await this._usersApi.ResendInvitation("missing"));
+            (ApplicationUser? user, _) = await this.CreateInvitedUser();
             user.IsActive = false;
-            await this._users.UpdateAsync(user);
-            Assert.IsType<BadRequestObjectResult>(await this._usersApi.ResendInvitation(user.Id));
-            Assert.Single(this._mail.Messages);
+            _ = await this._users.UpdateAsync(user);
+            _ = Assert.IsType<BadRequestObjectResult>(await this._usersApi.ResendInvitation(user.Id));
+            _ = Assert.Single(this._mail.Messages);
         }
 
         private async Task<(ApplicationUser User, Guid Id)> CreateInvitedUser()
@@ -661,7 +661,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 LastName = "Muster",
                 Roles = ["Viewer"],
             });
-            Assert.IsType<CreatedAtActionResult>(response);
+            _ = Assert.IsType<CreatedAtActionResult>(response);
             ApplicationUser? user = await this._users.FindByEmailAsync("new.user@example.com");
             Assert.NotNull(user);
             return (user, Assert.Single(this._store.Entries).Key);
@@ -732,7 +732,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                     throw new TimeoutException("Redis unavailable");
                 }
 
-                this.Entries.Remove(id);
+                _ = this.Entries.Remove(id);
                 return Task.CompletedTask;
             }
         }

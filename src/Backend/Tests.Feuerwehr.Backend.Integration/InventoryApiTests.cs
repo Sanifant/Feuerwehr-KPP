@@ -94,7 +94,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Contains(item.Barcode, label.Content.Headers.ContentDisposition!.ToString());
             RecordEquipmentInspectionRequest request = new RecordEquipmentInspectionRequest { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, Status = EquipmentStatus.Defective, Comment = "Dichtung undicht", ExpectedVersion = item.Version };
             HttpResponseMessage response = await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", request);
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             EquipmentDetailDto result = (await response.Content.ReadFromJsonAsync<EquipmentDetailDto>())!;
             Assert.Equal(EquipmentStatus.Defective, result.Equipment.Status);
             EquipmentInspectionDto entry = Assert.Single(result.Inspections);
@@ -108,7 +108,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", request)).StatusCode);
             HttpResponseMessage changed = await client.PutAsJsonAsync($"/api/inventory/types/{type.Id}", new SaveEquipmentTypeRequest
             { CategoryId = type.CategoryId, Name = type.Name, InspectionIntervalMonths = 6, InspectionInstructions = "Neue Anweisung", ExpectedVersion = type.Version });
-            changed.EnsureSuccessStatusCode();
+            _ = changed.EnsureSuccessStatusCode();
             found = await client.GetFromJsonAsync<EquipmentDetailDto>($"/api/inventory/{item.Id}");
             Assert.Equal(fixture.Today.AddMonths(6), found!.Equipment.NextInspectionOn);
             Assert.Equal(type.InspectionInstructions, Assert.Single(found.Inspections).InspectionInstructions);
@@ -125,7 +125,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             EquipmentTypeDto type = await fixture.CreateType(client);
             EquipmentDto item = await fixture.CreateEquipment(client, type.Id);
             HttpResponseMessage result = await client.PutAsJsonAsync($"/api/inventory/{item.Id}/active", new SetEquipmentActiveRequest { IsActive = false, ExpectedVersion = item.Version });
-            result.EnsureSuccessStatusCode();
+            _ = result.EnsureSuccessStatusCode();
             Assert.DoesNotContain((await client.GetFromJsonAsync<EquipmentDto[]>("/api/inventory"))!, x => x.Id == item.Id);
             Assert.Contains((await client.GetFromJsonAsync<EquipmentDto[]>("/api/inventory?includeInactive=true"))!, x => x.Id == item.Id);
             EquipmentDetailDto detail = (await result.Content.ReadFromJsonAsync<EquipmentDetailDto>())!;
@@ -152,10 +152,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             RecordEquipmentInspectionRequest[] requests = Enumerable.Range(0, 2).Select(_ => new RecordEquipmentInspectionRequest
             { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, ExpectedVersion = item.Version, Status = EquipmentStatus.InRepair }).ToArray();
             HttpResponseMessage[] results = await Task.WhenAll(requests.Select(x => client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", x)));
-            Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
-            Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
+            _ = Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
+            _ = Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
             EquipmentDetailDto? detail = await client.GetFromJsonAsync<EquipmentDetailDto>($"/api/inventory/{item.Id}");
-            Assert.Single(detail!.Inspections);
+            _ = Assert.Single(detail!.Inspections);
         }
 
         [Fact]
@@ -170,14 +170,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             await connection.OpenAsync();
             await using NpgsqlCommand read = new NpgsqlCommand("SELECT last_value, is_called FROM \"InventoryBarcodeSequence\"", connection);
             await using NpgsqlDataReader reader = await read.ExecuteReaderAsync();
-            await reader.ReadAsync();
+            _ = await reader.ReadAsync();
             long value = reader.GetInt64(0);
             bool called = reader.GetBoolean(1);
             await reader.CloseAsync();
             try
             {
                 await using NpgsqlCommand advance = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', 998, true)", connection);
-                await advance.ExecuteNonQueryAsync();
+                _ = await advance.ExecuteNonQueryAsync();
                 Assert.Equal("KPP-999", (await fixture.CreateEquipment(client, type.Id)).Barcode);
                 HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type.Id, SerialNumber = "Limit", Manufacturer = "Test" });
                 Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -186,9 +186,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             finally
             {
                 await using NpgsqlCommand restore = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', @value, @called)", connection);
-                restore.Parameters.AddWithValue("value", value);
-                restore.Parameters.AddWithValue("called", called);
-                await restore.ExecuteNonQueryAsync();
+                _ = restore.Parameters.AddWithValue("value", value);
+                _ = restore.Parameters.AddWithValue("called", called);
+                _ = await restore.ExecuteNonQueryAsync();
             }
         }
 
@@ -216,7 +216,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             }
 
             (await db.Equipment.FindAsync(inactive.Id))!.IsActive = false;
-            await db.SaveChangesAsync();
+            _ = await db.SaveChangesAsync();
             IInventoryReminderService reminders = scope.ServiceProvider.GetRequiredService<IInventoryReminderService>();
             await reminders.SendDueReminders(Ct);
             await reminders.SendDueReminders(Ct);
@@ -315,7 +315,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             HttpClient client = this.Factory.CreateClient();
             HttpResponseMessage login = await client.PostAsJsonAsync("/api/Auth/login", new LoginRequest { Email = role == Roles.Admin ? "admin@integration.test" : $"{role}@integration.test", Password = Password });
-            login.EnsureSuccessStatusCode();
+            _ = login.EnsureSuccessStatusCode();
             LoginResponse? tokens = await login.Content.ReadFromJsonAsync<LoginResponse>();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken);
             return client;
@@ -331,7 +331,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             InventoryCategoryDto[]? categories = await client.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories");
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory/types", new SaveEquipmentTypeRequest
             { CategoryId = categories![0].Id, Name = $"Typ {Guid.NewGuid()}", InspectionInstructions = "Sicht- und Funktionsprüfung nach Herstellerangaben", InspectionIntervalMonths = interval });
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             return (await response.Content.ReadFromJsonAsync<EquipmentTypeDto>())!;
         }
 
@@ -343,7 +343,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         public async Task<EquipmentDto> CreateEquipment(HttpClient client, Guid type)
         {
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type, SerialNumber = Guid.NewGuid().ToString(), Manufacturer = "Testhersteller" });
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             return (await response.Content.ReadFromJsonAsync<EquipmentDto>())!;
         }
 
@@ -364,10 +364,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder)
             {
-                builder.UseEnvironment("Testing");
+                _ = builder.UseEnvironment("Testing");
                 foreach (KeyValuePair<string, string> pair in settings)
                 {
-                    builder.UseSetting(pair.Key, pair.Value);
+                    _ = builder.UseSetting(pair.Key, pair.Value);
                 }
             }
         }

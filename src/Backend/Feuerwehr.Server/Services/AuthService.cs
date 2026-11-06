@@ -73,7 +73,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             // Update last login
             user.LastLoginAt = DateTime.UtcNow;
-            await this._userManager.UpdateAsync(user);
+            _ = await this._userManager.UpdateAsync(user);
 
             IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
             int expirationMinutes = int.Parse(jwtSettings["AccessTokenExpirationMinutes"] ?? "15");

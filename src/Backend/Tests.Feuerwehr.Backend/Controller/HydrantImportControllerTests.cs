@@ -34,8 +34,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task CsvPolicy_OnlyAllowsAdmins(string methodName, string? role, bool allowed)
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
-            services.AddAuthorization(options => options.AddFeuerwehrPolicies());
+            _ = services.AddLogging();
+            _ = services.AddAuthorization(options => options.AddFeuerwehrPolicies());
             using ServiceProvider provider = services.BuildServiceProvider();
             MethodInfo method = typeof(HydrantController).GetMethod(methodName)!;
             IEnumerable<AuthorizeAttribute> attributes = typeof(HydrantController).GetCustomAttributes<AuthorizeAttribute>()
@@ -60,7 +60,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Mock<IHydrantService> service = new Mock<IHydrantService>();
             using CancellationTokenSource cancellation = new CancellationTokenSource();
             byte[] content = [0xef, 0xbb, 0xbf];
-            service.Setup(s => s.ExportAsync(cancellation.Token)).ReturnsAsync(content);
+            _ = service.Setup(s => s.ExportAsync(cancellation.Token)).ReturnsAsync(content);
 
             FileContentResult result = Assert.IsType<FileContentResult>(await new HydrantController(service.Object).Export(cancellation.Token));
 
@@ -78,12 +78,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             Mock<IHydrantService> service = new Mock<IHydrantService>(MockBehavior.Strict);
             HydrantController controller = new HydrantController(service.Object);
-            Assert.IsType<BadRequestObjectResult>(await controller.Import(null, default));
+            _ = Assert.IsType<BadRequestObjectResult>(await controller.Import(null, default));
             using MemoryStream stream = new MemoryStream();
             FormFile empty = new FormFile(stream, 0, 0, "file", "empty.csv");
-            Assert.IsType<BadRequestObjectResult>(await controller.Import(empty, default));
+            _ = Assert.IsType<BadRequestObjectResult>(await controller.Import(empty, default));
             FormFile oversized = new FormFile(stream, 0, HydrantController.MaximumImportBytes + 1, "file", "large.csv");
-            Assert.IsType<BadRequestObjectResult>(await controller.Import(oversized, default));
+            _ = Assert.IsType<BadRequestObjectResult>(await controller.Import(oversized, default));
             service.VerifyNoOtherCalls();
         }
 
@@ -96,7 +96,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Mock<IHydrantService> service = new Mock<IHydrantService>();
             using MemoryStream stream = new MemoryStream([1, 2, 3]);
             using CancellationTokenSource cancellation = new CancellationTokenSource();
-            service.Setup(s => s.ImportAsync(It.IsAny<Stream>(), cancellation.Token))
+            _ = service.Setup(s => s.ImportAsync(It.IsAny<Stream>(), cancellation.Token))
                 .ReturnsAsync(ServiceResult.Ok(new HydrantImportResponse(2, [])));
 
             OkObjectResult result = Assert.IsType<OkObjectResult>(await new HydrantController(service.Object)

@@ -48,10 +48,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = name, NormalizedName = normalized };
-            db.InventoryCategories.Add(category);
+            _ = db.InventoryCategories.Add(category);
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             {
@@ -105,7 +105,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             else
             {
-                db.EquipmentTypes.Add(type);
+                _ = db.EquipmentTypes.Add(type);
             }
 
             type.Category = category;
@@ -115,7 +115,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             type.InspectionInstructions = request.InspectionInstructions.Trim();
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -257,7 +257,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             else
             {
-                db.Equipment.Add(item);
+                _ = db.Equipment.Add(item);
             }
 
             item.EquipmentType = type;
@@ -267,7 +267,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.Status = request.Status;
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -303,7 +303,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.Version++;
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -361,7 +361,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.LastInspectedOn = request.InspectedOn;
             item.Status = request.Status;
             item.Version++;
-            db.EquipmentInspections.Add(new EquipmentInspection
+            _ = db.EquipmentInspections.Add(new EquipmentInspection
             {
                 Id = Guid.NewGuid(),
                 EquipmentId = id,
@@ -378,7 +378,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             });
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {

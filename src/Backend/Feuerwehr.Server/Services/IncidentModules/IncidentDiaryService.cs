@@ -153,13 +153,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 CreatedByDisplayName = userContext.DisplayName,
             };
 
-            dbContext.DiaryEntries.Add(entry);
-            dbContext.DiaryEntryRevisions.Add(revision);
+            _ = dbContext.DiaryEntries.Add(entry);
+            _ = dbContext.DiaryEntryRevisions.Add(revision);
             incident.Revision += 1;
 
             DiaryEntryCreatedResponse response = new DiaryEntryCreatedResponse(entry.Id, entry.EntryNumber, entry.CurrentRevision, incident.Revision, now);
 
-            dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+            _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "diary.entry.create",
                 entry.Id.ToString(),
@@ -169,7 +169,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             outboxService.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), new DiaryEntryChangedEvent(incidentId, entry.Id, entry.EntryNumber, "create", incident.Revision, now));
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.StatusCode(StatusCodes.Status201Created, response);
         }
 
@@ -222,7 +222,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             entry.CurrentRevision += 1;
             entry.UpdatedAtUtc = now;
 
-            dbContext.DiaryEntryRevisions.Add(new DiaryEntryRevision
+            _ = dbContext.DiaryEntryRevisions.Add(new DiaryEntryRevision
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,
@@ -243,7 +243,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             incident.Revision += 1;
             DiaryEntryUpdatedResponse response = new DiaryEntryUpdatedResponse(entry.Id, entry.CurrentRevision, incident.Revision, now);
 
-            dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+            _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "diary.entry.update",
                 entry.Id.ToString(),
@@ -253,7 +253,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             outboxService.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), new DiaryEntryChangedEvent(incidentId, entry.Id, entry.EntryNumber, "update", incident.Revision, now));
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(response);
         }
 
@@ -312,7 +312,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             entry.IsCanceled = true;
             entry.CancellationReason = request.Reason.Trim();
 
-            dbContext.DiaryEntryRevisions.Add(new DiaryEntryRevision
+            _ = dbContext.DiaryEntryRevisions.Add(new DiaryEntryRevision
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,
@@ -334,7 +334,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             incident.Revision += 1;
 
             DiaryEntryCanceledResponse response = new DiaryEntryCanceledResponse(entry.Id, entry.CurrentRevision, true, incident.Revision, now);
-            dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+            _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "diary.entry.cancel",
                 entry.Id.ToString(),
@@ -344,7 +344,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             outboxService.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), new DiaryEntryChangedEvent(incidentId, entry.Id, entry.EntryNumber, "cancel", incident.Revision, now));
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(response);
         }
 

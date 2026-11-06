@@ -122,7 +122,7 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
             /// <param name="value">The value.</param>
             public void Accept(Java.Lang.Object? value)
             {
-                completion.TrySetResult(value is Location location
+                _ = completion.TrySetResult(value is Location location
                     ? new GpsLocation { Latitude = location.Latitude, Longitude = location.Longitude }
                     : null);
             }

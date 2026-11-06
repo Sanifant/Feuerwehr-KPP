@@ -23,9 +23,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public IncidentControllerTests()
         {
             Mock<IUserContextAccessor> user = new Mock<IUserContextAccessor>();
-            user.SetupGet(x => x.UserId).Returns("user-1");
-            user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
-            user.SetupGet(x => x.IsAdmin).Returns(true);
+            _ = user.SetupGet(x => x.UserId).Returns("user-1");
+            _ = user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
+            _ = user.SetupGet(x => x.IsAdmin).Returns(true);
             this._service = new IncidentService(this._db, user.Object, new CommandIdempotencyService(this._db), new OutboxService(this._db));
             this._controller = new IncidentController(this._service);
         }
@@ -72,8 +72,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             ServiceResult replay = await this._service.CreateIncident(request, default);
             Assert.Equal(201, replay.Code);
             Assert.Equal(JsonSerializer.Serialize(original, JsonOptionsFactory.Default), Assert.IsType<JsonElement>(replay.Value).GetRawText());
-            Assert.Single(await this._db.Incidents.ToListAsync());
-            Assert.Single(await this._db.EditorLeases.ToListAsync());
+            _ = Assert.Single(await this._db.Incidents.ToListAsync());
+            _ = Assert.Single(await this._db.EditorLeases.ToListAsync());
             Assert.Equal(2, await this._db.OutboxMessages.CountAsync());
         }
 
@@ -84,10 +84,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task Create_CommandPayloadIncludesAlarmTime()
         {
             CreateIncidentRequest request = Request();
-            await this._service.CreateIncident(request, default);
+            _ = await this._service.CreateIncident(request, default);
             request.AlarmedAtUtc = request.AlarmedAtUtc!.Value.AddMinutes(-1);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => this._service.CreateIncident(request, default));
-            Assert.Single(await this._db.Incidents.ToListAsync());
+            _ = await Assert.ThrowsAsync<InvalidOperationException>(() => this._service.CreateIncident(request, default));
+            _ = Assert.Single(await this._db.Incidents.ToListAsync());
         }
 
         [Fact]

@@ -110,7 +110,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="payload">The payload.</param>
         public void AddMessage(string aggregateType, string eventType, string aggregateId, object payload)
         {
-            dbContext.OutboxMessages.Add(new OutboxMessage
+            _ = dbContext.OutboxMessages.Add(new OutboxMessage
             {
                 Id = Guid.NewGuid(),
                 AggregateType = aggregateType,
@@ -220,7 +220,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                     if (batch.Count > 0)
                     {
-                        await db.SaveChangesAsync(stoppingToken);
+                        _ = await db.SaveChangesAsync(stoppingToken);
                     }
                 }
                 catch (Exception ex)
@@ -281,10 +281,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         public static byte[] BuildMapAuditCsv(IEnumerable<MapAuditEvent> events)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Sequence;OccurredAtUtc;Action;User;ElementId;CommandId;Before;After");
+            _ = sb.AppendLine("Sequence;OccurredAtUtc;Action;User;ElementId;CommandId;Before;After");
             foreach (MapAuditEvent e in events)
             {
-                sb.AppendLine(string.Join(
+                _ = sb.AppendLine(string.Join(
                     ';',
                     e.SequenceNumber.ToString(CultureInfo.InvariantCulture),
                     SanitizeCsvCell(e.OccurredAtUtc.ToString("O", CultureInfo.InvariantCulture)),
@@ -331,14 +331,14 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 int pageId = 3 + (index * 2);
                 int contentId = pageId + 1;
                 StringBuilder content = new StringBuilder();
-                content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");
+                _ = content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");
                 int y = 760;
                 foreach (string line in pages[index])
                 {
-                    content.Append($"BT /F1 9.5 Tf 50 {y} Td ({Escape(line)}) Tj ET\n");
+                    _ = content.Append($"BT /F1 9.5 Tf 50 {y} Td ({Escape(line)}) Tj ET\n");
                     y -= 12;
                 }
-                content.Append($"BT /F1 9 Tf 50 32 Td (Seite {index + 1} / {pages.Count}) Tj ET\n");
+                _ = content.Append($"BT /F1 9 Tf 50 32 Td (Seite {index + 1} / {pages.Count}) Tj ET\n");
                 string contentText = content.ToString();
                 WriteObject(pageId, $"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents {contentId} 0 R /Resources << /Font << /F1 {fontId} 0 R >> >> >>");
                 WriteObject(contentId, $"<< /Length {Encoding.ASCII.GetByteCount(contentText)} >>\nstream\n{contentText}endstream");
@@ -442,15 +442,15 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 if (value is (byte)'\\' or (byte)'(' or (byte)')')
                 {
-                    result.Append('\\').Append((char)value);
+                    _ = result.Append('\\').Append((char)value);
                 }
                 else if (value is < 32 or > 126)
                 {
-                    result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
+                    _ = result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
                 }
                 else
                 {
-                    result.Append((char)value);
+                    _ = result.Append((char)value);
                 }
             }
             return result.ToString();

@@ -99,14 +99,14 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 if (lease.UserId == userContext.UserId && lease.SessionId == request.SessionId)
                 {
                     LeaseResponse ownLeaseResponse = new LeaseResponse(ToLeaseDto(lease, now), now);
-                    dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                    _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                         request.CommandId,
                         "map.lease.acquire",
                         incidentId.ToString(),
                         payloadHash,
                         ResponseHelpers.BuildEnvelope(StatusCodes.Status200OK, ownLeaseResponse),
                         userContext.UserId));
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                    _ = await dbContext.SaveChangesAsync(cancellationToken);
                     return ServiceResult.Ok(ownLeaseResponse);
                 }
 
@@ -120,7 +120,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     Id = Guid.NewGuid(),
                     IncidentId = incidentId,
                 };
-                dbContext.EditorLeases.Add(lease);
+                _ = dbContext.EditorLeases.Add(lease);
             }
 
             lease.UserId = userContext.UserId;
@@ -132,7 +132,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             LeaseResponse response = new LeaseResponse(ToLeaseDto(lease, now), now);
 
-            dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+            _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "map.lease.acquire",
                 incidentId.ToString(),
@@ -142,7 +142,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             outboxService.AddMessage("map", "map.lease.changed", incidentId.ToString(), new LeaseChangedEvent(incidentId, lease.UserDisplayName, lease.SessionId, lease.ExpiresAtUtc, now));
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             return ServiceResult.Ok(response);
         }
@@ -171,7 +171,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 lease.ExpiresAtUtc = now.Add(IncidentModuleTime.LeaseDuration);
 
                 LeaseResponse response = new LeaseResponse(ToLeaseDto(lease, now), now);
-                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.lease.heartbeat",
                     incidentId.ToString(),
@@ -181,7 +181,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 outboxService.AddMessage("map", "map.lease.changed", incidentId.ToString(), new LeaseChangedEvent(incidentId, lease.UserDisplayName, lease.SessionId, lease.ExpiresAtUtc, now));
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
                 return ServiceResult.Ok(response);
             }
             catch (InvalidOperationException ex)
@@ -209,10 +209,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             try
             {
                 EditorLease lease = await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
-                dbContext.EditorLeases.Remove(lease);
+                _ = dbContext.EditorLeases.Remove(lease);
                 LeaseReleasedResponse response = new LeaseReleasedResponse(true, DateTime.UtcNow);
 
-                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.lease.release",
                     incidentId.ToString(),
@@ -222,7 +222,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 outboxService.AddMessage("map", "map.lease.changed", incidentId.ToString(), new LeaseChangedEvent(incidentId, (string?)null, (string?)null, (DateTime?)null, DateTime.UtcNow));
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
                 return ServiceResult.Ok(response);
             }
             catch (InvalidOperationException ex)
@@ -285,7 +285,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Einsatz ist abgeschlossen.");
                 }
 
-                await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
+                _ = await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
 
                 MapElement element = await dbContext.MapElements.FirstOrDefaultAsync(x => x.Id == elementId && x.IncidentId == incidentId, cancellationToken)
                     ?? throw new InvalidOperationException("Element nicht gefunden.");
@@ -297,10 +297,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 DateTime now = DateTime.UtcNow;
                 MapElementDto before = ToMapElementDto(element);
-                dbContext.MapElements.Remove(element);
+                _ = dbContext.MapElements.Remove(element);
                 incident.Revision += 1;
 
-                dbContext.MapAuditEvents.Add(new MapAuditEvent
+                _ = dbContext.MapAuditEvents.Add(new MapAuditEvent
                 {
                     Id = Guid.NewGuid(),
                     IncidentId = incidentId,
@@ -315,7 +315,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 });
 
                 MapElementDeletedResponse response = new MapElementDeletedResponse(true, elementId, incident.Revision, now);
-                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.element.delete",
                     elementId.ToString(),
@@ -325,7 +325,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 outboxService.AddMessage("map", "map.element.changed", incidentId.ToString(), new MapElementChangedEvent(incidentId, incident.Revision, elementId, "delete", now));
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
 
                 return ServiceResult.Ok(response);
             }
@@ -467,7 +467,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Einsatz ist abgeschlossen.");
                 }
 
-                await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
+                _ = await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
 
                 DateTime now = DateTime.UtcNow;
                 bool isCreate = request.ElementId is null || request.ElementId == Guid.Empty;
@@ -531,7 +531,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         element.Category = symbol.Category;
                         element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
                     }
-                    dbContext.MapElements.Add(element);
+                    _ = dbContext.MapElements.Add(element);
                     action = "create";
                 }
                 else
@@ -589,7 +589,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 incident.Revision += 1;
 
-                dbContext.MapAuditEvents.Add(new MapAuditEvent
+                _ = dbContext.MapAuditEvents.Add(new MapAuditEvent
                 {
                     Id = Guid.NewGuid(),
                     IncidentId = incidentId,
@@ -604,7 +604,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 });
 
                 MapElementResponse response = new MapElementResponse(ToMapElementDto(element), incident.Revision, now);
-                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.element.upsert",
                     targetId,
@@ -614,7 +614,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 outboxService.AddMessage("map", "map.element.changed", incidentId.ToString(), new MapElementChangedEvent(incidentId, incident.Revision, element.Id, action, now));
 
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
                 await tx.CommitAsync(cancellationToken);
 
                 return ServiceResult.Ok(response);

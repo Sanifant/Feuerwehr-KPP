@@ -18,7 +18,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             using FeuerwehrDbContext db = CreateDatabase();
             HydrantService service = new HydrantService(db);
-            service.Post(new Hydrant
+            _ = service.Post(new Hydrant
             {
                 Id = 2,
                 Address = new Address
@@ -37,7 +37,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 Status = HydrantStatus.Operational,
                 Notes = "Erste Zeile\r\nZweite Zeile; \"frei\"",
             });
-            service.Post(new Hydrant { Id = 1, Notes = "=1+1" });
+            _ = service.Post(new Hydrant { Id = 1, Notes = "=1+1" });
 
             CultureInfo previousCulture = CultureInfo.CurrentCulture;
             byte[] bytes;
@@ -98,7 +98,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 Status = HydrantStatus.UnderMaintenance,
                 Notes = notes,
             };
-            service.Post(original);
+            _ = service.Post(original);
             using MemoryStream csv = new MemoryStream(await service.ExportAsync());
             using FeuerwehrDbContext target = CreateDatabase();
 
@@ -136,7 +136,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             string csv = Encoding.UTF8.GetString(await service.ExportAsync());
             Assert.StartsWith("\uFEFFstreet;houseNumber;", csv);
             Assert.Equal(2, csv.Split("\r\n").Length);
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(new CancellationToken(true)));
+            _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(new CancellationToken(true)));
         }
 
         private static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()

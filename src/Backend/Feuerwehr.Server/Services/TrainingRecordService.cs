@@ -141,8 +141,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     EndDate = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
 
-                this._db.TrainingCourses.Add(trainingEntity);
-                await this._db.SaveChangesAsync();
+                _ = this._db.TrainingCourses.Add(trainingEntity);
+                _ = await this._db.SaveChangesAsync();
             }
 
             FireDepartmentTrainingCourse relation = new FireDepartmentTrainingCourse
@@ -152,8 +152,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 SeatsAssigned = value.AssignedSeats
             };
 
-            this._db.FireDepartmentTrainingCourses.Add(relation);
-            await this._db.SaveChangesAsync();
+            _ = this._db.FireDepartmentTrainingCourses.Add(relation);
+            _ = await this._db.SaveChangesAsync();
 
             TrainingCourseDto createdDto = new TrainingCourseDto
             {
@@ -208,7 +208,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     FireDepartmentId = fireDepartment.Id,
                     SeatsAssigned = value.AssignedSeats
                 };
-                this._db.FireDepartmentTrainingCourses.Add(relation);
+                _ = this._db.FireDepartmentTrainingCourses.Add(relation);
             }
             else
             {
@@ -216,7 +216,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 relation.SeatsAssigned = value.AssignedSeats;
             }
 
-            await this._db.SaveChangesAsync();
+            _ = await this._db.SaveChangesAsync();
 
             return ServiceResult.NoContent();
         }
@@ -235,8 +235,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.NotFound();
             }
 
-            this._db.TrainingCourses.Remove(trainingEntity);
-            await this._db.SaveChangesAsync();
+            _ = this._db.TrainingCourses.Remove(trainingEntity);
+            _ = await this._db.SaveChangesAsync();
             return ServiceResult.NoContent();
         }
 

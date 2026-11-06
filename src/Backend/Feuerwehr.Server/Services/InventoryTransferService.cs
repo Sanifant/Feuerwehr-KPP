@@ -50,7 +50,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 ct.ThrowIfCancellationRequested();
                 EquipmentDto item = InventoryService.ToDto(entity);
                 string status = item.Status switch { EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", _ => "In Reparatur" };
-                csv.AppendJoin(';', new[] { item.Id.ToString(), item.Barcode, item.EquipmentTypeId.ToString(), item.EquipmentTypeName, item.CategoryName,
+                _ = csv.AppendJoin(';', new[] { item.Id.ToString(), item.Barcode, item.EquipmentTypeId.ToString(), item.EquipmentTypeName, item.CategoryName,
                     item.SerialNumber, item.Manufacturer, status, item.IsActive ? "true" : "false", Date(item.CreatedOn),
                     item.LastInspectedOn is { } last ? Date(last) : string.Empty, Date(item.NextInspectionOn) }.Select(InventoryCsv.Quote)).Append("\r\n");
             }
@@ -123,7 +123,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     continue;
                 }
                 List<ValidationResult> validation = [];
-                Validator.TryValidateObject(row, new ValidationContext(row), validation, validateAllProperties: true);
+                _ = Validator.TryValidateObject(row, new ValidationContext(row), validation, validateAllProperties: true);
                 errors.AddRange(validation.Select(x => new InventoryImportError(i + 1, x.ErrorMessage ?? "Ungültiger Eintrag.")));
             }
             return errors;
@@ -147,7 +147,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                             InventoryTransferKind.Types => "LOCK TABLE \"EquipmentTypes\" IN SHARE ROW EXCLUSIVE MODE",
                             _ => "LOCK TABLE \"InventoryCategories\" IN SHARE ROW EXCLUSIVE MODE",
                         };
-                        await db.Database.ExecuteSqlRawAsync(sql, ct);
+                        _ = await db.Database.ExecuteSqlRawAsync(sql, ct);
                     }
                     ServiceResult result = await apply();
                     if (result.Code >= 400)
@@ -155,12 +155,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         db.ChangeTracker.Clear();
                         return result;
                     }
-                    await db.SaveChangesAsync(ct);
+                    _ = await db.SaveChangesAsync(ct);
                     if (kind == InventoryTransferKind.Equipment && db.Database.IsNpgsql())
                     {
                         // Sequences are not transactional; advancing can leave gaps on rollback, but never
                         // rewinds an already issued number and never makes a duplicate possible.
-                        await db.Database.ExecuteSqlRawAsync("SELECT setval('\"InventoryBarcodeSequence\"', GREATEST((SELECT last_value FROM \"InventoryBarcodeSequence\"), (SELECT MAX(\"BarcodeNumber\") FROM \"Equipment\")), true)", ct);
+                        _ = await db.Database.ExecuteSqlRawAsync("SELECT setval('\"InventoryBarcodeSequence\"', GREATEST((SELECT last_value FROM \"InventoryBarcodeSequence\"), (SELECT MAX(\"BarcodeNumber\") FROM \"Equipment\")), true)", ct);
                     }
                     if (transaction is not null)
                     {
@@ -213,7 +213,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (category is null)
                 {
                     category = new InventoryCategory { Id = row.Id ?? Guid.NewGuid() };
-                    db.InventoryCategories.Add(category);
+                    _ = db.InventoryCategories.Add(category);
                     created++;
                 }
                 else
@@ -285,7 +285,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (type is null)
                 {
                     type = new EquipmentType { Id = row.Id ?? Guid.NewGuid() };
-                    db.EquipmentTypes.Add(type);
+                    _ = db.EquipmentTypes.Add(type);
                     created++;
                 }
                 else
@@ -367,7 +367,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         Status = row.Status,
                         IsActive = row.IsActive
                     };
-                    db.Equipment.Add(item);
+                    _ = db.Equipment.Add(item);
                     created++;
                 }
                 item.EquipmentType = type;

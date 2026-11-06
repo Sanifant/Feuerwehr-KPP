@@ -164,7 +164,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             using FeuerwehrDbContext db = CreateDatabase();
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(Header + "\n" + Row));
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
                 new HydrantService(db).ImportAsync(stream, new CancellationToken(true)));
             Assert.Empty(db.Hydrants);
         }

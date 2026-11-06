@@ -24,27 +24,27 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
             EquipmentType type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = 12, InspectionInstructions = "Sichtprüfung" };
             Equipment item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = today.AddDays(15).AddYears(-1), SerialNumber = "123", Manufacturer = "Test" };
-            db.Equipment.Add(item);
+            _ = db.Equipment.Add(item);
             IdentityRole role = new IdentityRole(Roles.EquipmentOfficer);
-            db.Roles.Add(role);
+            _ = db.Roles.Add(role);
             foreach ((string? id, bool active) in new[] { ("good", true), ("retry", true), ("inactive", false) })
             {
-                db.Users.Add(new ApplicationUser { Id = id, UserName = id, Email = $"{id}@example.test", IsActive = active });
-                db.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = id });
+                _ = db.Users.Add(new ApplicationUser { Id = id, UserName = id, Email = $"{id}@example.test", IsActive = active });
+                _ = db.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = id });
             }
-            await db.SaveChangesAsync();
+            _ = await db.SaveChangesAsync();
             Mock<IMailService> mail = new Mock<IMailService>();
             int attempts = 0;
-            mail.Setup(x => x.SendAsync("retry@example.test", It.IsAny<string>(), It.IsAny<string>()))
+            _ = mail.Setup(x => x.SendAsync("retry@example.test", It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(() => ++attempts == 1 ? Task.FromException(new IOException("SMTP down")) : Task.CompletedTask);
             FixedClock clock = new FixedClock(today);
             InventoryReminderService service = new InventoryReminderService(db, mail.Object, clock, NullLogger<InventoryReminderService>.Instance);
             await service.SendDueReminders(CancellationToken.None);
             mail.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
             item.CreatedOn = today.AddDays(14).AddYears(-1);
-            await db.SaveChangesAsync();
+            _ = await db.SaveChangesAsync();
             await service.SendDueReminders(CancellationToken.None);
-            Assert.Single(db.EquipmentReminderDeliveries);
+            _ = Assert.Single(db.EquipmentReminderDeliveries);
             Assert.Equal("good", db.EquipmentReminderDeliveries.Single().RecipientId);
             await service.SendDueReminders(CancellationToken.None);
             Assert.Equal(2, db.EquipmentReminderDeliveries.Count());
@@ -53,7 +53,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             mail.Verify(x => x.SendAsync("inactive@example.test", It.IsAny<string>(), It.IsAny<string>()), Times.Never());
 
             item.LastInspectedOn = today;
-            await db.SaveChangesAsync();
+            _ = await db.SaveChangesAsync();
             clock.Date = today.AddYears(1).AddDays(-14);
             await service.SendDueReminders(CancellationToken.None);
             Assert.Equal(4, db.EquipmentReminderDeliveries.Count());

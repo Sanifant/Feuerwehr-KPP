@@ -14,20 +14,20 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateSequence(
+            _ = migrationBuilder.CreateSequence(
                 name: "DiaryEntryNumberSeq");
 
-            migrationBuilder.CreateSequence<int>(
+            _ = migrationBuilder.CreateSequence<int>(
                 name: "Hydrants_Id_seq");
 
-            migrationBuilder.CreateSequence<int>(
+            _ = migrationBuilder.CreateSequence<int>(
                 name: "InventoryBarcodeSequence",
                 maxValue: 999L);
 
-            migrationBuilder.CreateSequence(
+            _ = migrationBuilder.CreateSequence(
                 name: "MapAuditSequence");
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -38,10 +38,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                    _ = table.PrimaryKey("PK_AspNetRoles", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "DiaryCategories",
                 columns: table => new
                 {
@@ -54,10 +54,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DiaryCategories", x => x.Id);
+                    _ = table.PrimaryKey("PK_DiaryCategories", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "FireDepartment",
                 columns: table => new
                 {
@@ -69,10 +69,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FireDepartment", x => x.Id);
+                    _ = table.PrimaryKey("PK_FireDepartment", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Hydrants",
                 columns: table => new
                 {
@@ -92,10 +92,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Hydrants", x => x.Id);
+                    _ = table.PrimaryKey("PK_Hydrants", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Incidents",
                 columns: table => new
                 {
@@ -116,10 +116,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Incidents", x => x.Id);
+                    _ = table.PrimaryKey("PK_Incidents", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "InventoryCategories",
                 columns: table => new
                 {
@@ -129,10 +129,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_InventoryCategories", x => x.Id);
+                    _ = table.PrimaryKey("PK_InventoryCategories", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "MapAuditEvents",
                 columns: table => new
                 {
@@ -150,10 +150,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MapAuditEvents", x => x.Id);
+                    _ = table.PrimaryKey("PK_MapAuditEvents", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "MapSymbolCategories",
                 columns: table => new
                 {
@@ -161,10 +161,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MapSymbolCategories", x => x.Name);
+                    _ = table.PrimaryKey("PK_MapSymbolCategories", x => x.Name);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "MapSymbols",
                 columns: table => new
                 {
@@ -179,10 +179,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MapSymbols", x => x.Id);
+                    _ = table.PrimaryKey("PK_MapSymbols", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "OutboxMessages",
                 columns: table => new
                 {
@@ -198,10 +198,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OutboxMessages", x => x.Id);
+                    _ = table.PrimaryKey("PK_OutboxMessages", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "ProcessedCommands",
                 columns: table => new
                 {
@@ -217,10 +217,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProcessedCommands", x => x.Id);
+                    _ = table.PrimaryKey("PK_ProcessedCommands", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "TrainingCourse",
                 columns: table => new
                 {
@@ -235,10 +235,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TrainingCourse", x => x.Id);
+                    _ = table.PrimaryKey("PK_TrainingCourse", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "VehicleEvents",
                 columns: table => new
                 {
@@ -252,10 +252,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VehicleEvents", x => x.Id);
+                    _ = table.PrimaryKey("PK_VehicleEvents", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "VehicleMailMessages",
                 columns: table => new
                 {
@@ -275,10 +275,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VehicleMailMessages", x => x.Id);
+                    _ = table.PrimaryKey("PK_VehicleMailMessages", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "VehicleStatuses",
                 columns: table => new
                 {
@@ -291,10 +291,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VehicleStatuses", x => x.Id);
+                    _ = table.PrimaryKey("PK_VehicleStatuses", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "VehicleTypes",
                 columns: table => new
                 {
@@ -306,10 +306,10 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VehicleTypes", x => x.Id);
+                    _ = table.PrimaryKey("PK_VehicleTypes", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -321,8 +321,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
@@ -330,7 +330,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -359,8 +359,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_AspNetUsers_FireDepartment_FireDepartmentId",
                         column: x => x.FireDepartmentId,
                         principalTable: "FireDepartment",
@@ -368,7 +368,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.SetNull);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "DiaryEntries",
                 columns: table => new
                 {
@@ -383,8 +383,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DiaryEntries", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_DiaryEntries", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_DiaryEntries_Incidents_IncidentId",
                         column: x => x.IncidentId,
                         principalTable: "Incidents",
@@ -392,7 +392,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "EditorLeases",
                 columns: table => new
                 {
@@ -407,8 +407,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EditorLeases", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_EditorLeases", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_EditorLeases_Incidents_IncidentId",
                         column: x => x.IncidentId,
                         principalTable: "Incidents",
@@ -416,7 +416,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "MapElements",
                 columns: table => new
                 {
@@ -441,8 +441,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MapElements", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_MapElements", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_MapElements_Incidents_IncidentId",
                         column: x => x.IncidentId,
                         principalTable: "Incidents",
@@ -450,7 +450,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "EquipmentTypes",
                 columns: table => new
                 {
@@ -463,8 +463,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EquipmentTypes", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_EquipmentTypes", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_EquipmentTypes_InventoryCategories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "InventoryCategories",
@@ -472,7 +472,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "FireDepartmentTrainingCourses",
                 columns: table => new
                 {
@@ -482,14 +482,14 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FireDepartmentTrainingCourses", x => new { x.FireDepartmentId, x.TrainingCourseId });
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_FireDepartmentTrainingCourses", x => new { x.FireDepartmentId, x.TrainingCourseId });
+                    _ = table.ForeignKey(
                         name: "FK_FireDepartmentTrainingCourses_FireDepartment_FireDepartment~",
                         column: x => x.FireDepartmentId,
                         principalTable: "FireDepartment",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_FireDepartmentTrainingCourses_TrainingCourse_TrainingCourse~",
                         column: x => x.TrainingCourseId,
                         principalTable: "TrainingCourse",
@@ -497,7 +497,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -509,8 +509,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_AspNetUserClaims_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
@@ -518,7 +518,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
@@ -529,8 +529,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    _ = table.ForeignKey(
                         name: "FK_AspNetUserLogins_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
@@ -538,7 +538,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
@@ -547,14 +547,14 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    _ = table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
@@ -562,7 +562,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
@@ -573,8 +573,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    _ = table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
@@ -582,7 +582,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Vehicles",
                 columns: table => new
                 {
@@ -600,26 +600,26 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Vehicles", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_Vehicles", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_Vehicles_AspNetUsers_EquipmentOfficerId",
                         column: x => x.EquipmentOfficerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_Vehicles_FireDepartment_FireDepartmentId",
                         column: x => x.FireDepartmentId,
                         principalTable: "FireDepartment",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_Vehicles_VehicleStatuses_VehicleStatusId",
                         column: x => x.VehicleStatusId,
                         principalTable: "VehicleStatuses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_Vehicles_VehicleTypes_VehicleTypeId",
                         column: x => x.VehicleTypeId,
                         principalTable: "VehicleTypes",
@@ -627,7 +627,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "DiaryEntryRevisions",
                 columns: table => new
                 {
@@ -649,8 +649,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DiaryEntryRevisions", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_DiaryEntryRevisions", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_DiaryEntryRevisions_DiaryEntries_DiaryEntryId",
                         column: x => x.DiaryEntryId,
                         principalTable: "DiaryEntries",
@@ -658,7 +658,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Equipment",
                 columns: table => new
                 {
@@ -675,8 +675,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Equipment", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_Equipment", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_Equipment_EquipmentTypes_EquipmentTypeId",
                         column: x => x.EquipmentTypeId,
                         principalTable: "EquipmentTypes",
@@ -684,7 +684,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "VehicleReservations",
                 columns: table => new
                 {
@@ -709,9 +709,9 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VehicleReservations", x => x.Id);
-                    table.CheckConstraint("CK_VehicleReservation_Dates", "\"From\" <= \"To\"");
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_VehicleReservations", x => x.Id);
+                    _ = table.CheckConstraint("CK_VehicleReservation_Dates", "\"From\" <= \"To\"");
+                    _ = table.ForeignKey(
                         name: "FK_VehicleReservations_Vehicles_VehicleId",
                         column: x => x.VehicleId,
                         principalTable: "Vehicles",
@@ -719,7 +719,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "EquipmentInspections",
                 columns: table => new
                 {
@@ -738,8 +738,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EquipmentInspections", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_EquipmentInspections", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_EquipmentInspections_Equipment_EquipmentId",
                         column: x => x.EquipmentId,
                         principalTable: "Equipment",
@@ -747,7 +747,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "EquipmentReminderDeliveries",
                 columns: table => new
                 {
@@ -759,8 +759,8 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_EquipmentReminderDeliveries", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_EquipmentReminderDeliveries", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_EquipmentReminderDeliveries_Equipment_EquipmentId",
                         column: x => x.EquipmentId,
                         principalTable: "Equipment",
@@ -768,7 +768,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "VehicleBookingDays",
                 columns: table => new
                 {
@@ -778,14 +778,14 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_VehicleBookingDays", x => new { x.VehicleId, x.Date });
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_VehicleBookingDays", x => new { x.VehicleId, x.Date });
+                    _ = table.ForeignKey(
                         name: "FK_VehicleBookingDays_VehicleReservations_ReservationId",
                         column: x => x.ReservationId,
                         principalTable: "VehicleReservations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
+                    _ = table.ForeignKey(
                         name: "FK_VehicleBookingDays_Vehicles_VehicleId",
                         column: x => x.VehicleId,
                         principalTable: "Vehicles",
@@ -793,7 +793,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
-            migrationBuilder.InsertData(
+            _ = migrationBuilder.InsertData(
                 values: new object[,]
                 {
                     { new Guid("f3050002-0000-0000-0000-000000000001"), "Löschgeräte", "LÖSCHGERÄTE" },
@@ -803,7 +803,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 table: "InventoryCategories",
                 columns: new[] { "Id", "Name", "NormalizedName" });
 
-            migrationBuilder.InsertData(
+            _ = migrationBuilder.InsertData(
                 values: new object[]
                 {
                     "Feuerwehr",
@@ -814,7 +814,7 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 table: "MapSymbolCategories",
                 column: "Name");
 
-            migrationBuilder.InsertData(
+            _ = migrationBuilder.InsertData(
                 values: new object[,]
                 {
                     { new Guid("5032f99d-4352-4000-8000-000000000001"), true, true, "Betriebsbereit", "BETRIEBSBEREIT", 1 },
@@ -824,219 +824,219 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 table: "VehicleStatuses",
                 columns: new[] { "Id", "AllowsBooking", "IsActive", "Name", "NormalizedName", "Version" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
                 table: "AspNetUserClaims",
                 column: "UserId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserLogins_UserId",
                 table: "AspNetUserLogins",
                 column: "UserId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserRoles_RoleId",
                 table: "AspNetUserRoles",
                 column: "RoleId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_AspNetUsers_FireDepartmentId",
                 table: "AspNetUsers",
                 column: "FireDepartmentId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_DiaryCategories_Code",
                 table: "DiaryCategories",
                 column: "Code",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_DiaryEntries_IncidentId_EntryNumber",
                 table: "DiaryEntries",
                 columns: new[] { "IncidentId", "EntryNumber" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_DiaryEntryRevisions_DiaryEntryId_RevisionNumber",
                 table: "DiaryEntryRevisions",
                 columns: new[] { "DiaryEntryId", "RevisionNumber" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_EditorLeases_IncidentId",
                 table: "EditorLeases",
                 column: "IncidentId",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Equipment_BarcodeNumber",
                 table: "Equipment",
                 column: "BarcodeNumber",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Equipment_EquipmentTypeId",
                 table: "Equipment",
                 column: "EquipmentTypeId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_EquipmentInspections_CommandId",
                 table: "EquipmentInspections",
                 column: "CommandId",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_EquipmentInspections_EquipmentId_RecordedAtUtc",
                 table: "EquipmentInspections",
                 columns: new[] { "EquipmentId", "RecordedAtUtc" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_EquipmentReminderDeliveries_EquipmentId_RecipientId_DueOn",
                 table: "EquipmentReminderDeliveries",
                 columns: new[] { "EquipmentId", "RecipientId", "DueOn" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_EquipmentTypes_CategoryId",
                 table: "EquipmentTypes",
                 column: "CategoryId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_FireDepartmentTrainingCourses_TrainingCourseId",
                 table: "FireDepartmentTrainingCourses",
                 column: "TrainingCourseId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "UX_Incidents_OnlyOneActive",
                 table: "Incidents",
                 column: "Status",
                 unique: true,
                 filter: "\"Status\" = 'Active'");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_InventoryCategories_NormalizedName",
                 table: "InventoryCategories",
                 column: "NormalizedName",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_MapAuditEvents_IncidentId_SequenceNumber",
                 table: "MapAuditEvents",
                 columns: new[] { "IncidentId", "SequenceNumber" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_MapElements_IncidentId_UpdatedAtUtc",
                 table: "MapElements",
                 columns: new[] { "IncidentId", "UpdatedAtUtc" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_MapSymbols_Category_IsActive",
                 table: "MapSymbols",
                 columns: new[] { "Category", "IsActive" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessages_ProcessedAtUtc_CreatedAtUtc",
                 table: "OutboxMessages",
                 columns: new[] { "ProcessedAtUtc", "CreatedAtUtc" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProcessedCommands_CommandId",
                 table: "ProcessedCommands",
                 column: "CommandId",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ProcessedCommands_UserId_Scope_TargetId",
                 table: "ProcessedCommands",
                 columns: new[] { "UserId", "Scope", "TargetId" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleBookingDays_ReservationId",
                 table: "VehicleBookingDays",
                 column: "ReservationId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleEvents_VehicleId_OccurredAtUtc",
                 table: "VehicleEvents",
                 columns: new[] { "VehicleId", "OccurredAtUtc" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleMailMessages_ReservationId_Kind",
                 table: "VehicleMailMessages",
                 columns: new[] { "ReservationId", "Kind" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleMailMessages_SentAtUtc_NextAttemptAtUtc",
                 table: "VehicleMailMessages",
                 columns: new[] { "SentAtUtc", "NextAttemptAtUtc" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleReservations_CommandId",
                 table: "VehicleReservations",
                 column: "CommandId",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleReservations_RequesterId",
                 table: "VehicleReservations",
                 column: "RequesterId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleReservations_VehicleId_Status_From_To",
                 table: "VehicleReservations",
                 columns: new[] { "VehicleId", "Status", "From", "To" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_EquipmentOfficerId",
                 table: "Vehicles",
                 column: "EquipmentOfficerId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_FireDepartmentId_IsActive",
                 table: "Vehicles",
                 columns: new[] { "FireDepartmentId", "IsActive" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_VehicleStatusId",
                 table: "Vehicles",
                 column: "VehicleStatusId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_VehicleTypeId",
                 table: "Vehicles",
                 column: "VehicleTypeId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleStatuses_NormalizedName",
                 table: "VehicleStatuses",
                 column: "NormalizedName",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_VehicleTypes_NormalizedName",
                 table: "VehicleTypes",
                 column: "NormalizedName",
@@ -1046,118 +1046,118 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetUserClaims");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetUserLogins");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetUserRoles");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "DiaryCategories");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "DiaryEntryRevisions");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "EditorLeases");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "EquipmentInspections");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "EquipmentReminderDeliveries");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "FireDepartmentTrainingCourses");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Hydrants");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "MapAuditEvents");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "MapElements");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "MapSymbolCategories");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "MapSymbols");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "OutboxMessages");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "ProcessedCommands");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "VehicleBookingDays");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "VehicleEvents");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "VehicleMailMessages");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "DiaryEntries");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Equipment");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "TrainingCourse");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "VehicleReservations");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Incidents");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "EquipmentTypes");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Vehicles");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "InventoryCategories");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "VehicleStatuses");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "VehicleTypes");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "FireDepartment");
 
-            migrationBuilder.DropSequence(
+            _ = migrationBuilder.DropSequence(
                 name: "DiaryEntryNumberSeq");
 
-            migrationBuilder.DropSequence(
+            _ = migrationBuilder.DropSequence(
                 name: "Hydrants_Id_seq");
 
-            migrationBuilder.DropSequence(
+            _ = migrationBuilder.DropSequence(
                 name: "InventoryBarcodeSequence");
 
-            migrationBuilder.DropSequence(
+            _ = migrationBuilder.DropSequence(
                 name: "MapAuditSequence");
         }
     }

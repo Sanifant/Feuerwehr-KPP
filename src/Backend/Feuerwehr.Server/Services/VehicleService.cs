@@ -107,12 +107,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             else
             {
-                db.Set<VehicleStatus>().Add(status);
+                _ = db.Set<VehicleStatus>().Add(status);
             }
 
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateException exception) when (IsConflict(exception))
             {
@@ -172,12 +172,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             else
             {
-                db.Set<VehicleType>().Add(type);
+                _ = db.Set<VehicleType>().Add(type);
             }
 
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateException exception) when (IsConflict(exception))
             {
@@ -213,7 +213,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             type.Version++;
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -456,13 +456,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             else
             {
-                db.Vehicles.Add(vehicle);
+                _ = db.Vehicles.Add(vehicle);
             }
 
             this.Audit(vehicle, null, id.HasValue ? "VehicleUpdated" : "VehicleCreated", JsonSerializer.Serialize(request));
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
                 if (transaction is not null)
                 {
                     await transaction.CommitAsync(ct);
@@ -499,7 +499,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             this.Audit(vehicle, null, request.IsActive ? "VehicleActivated" : "VehicleDeactivated", "Bestehende Buchungen bleiben erhalten.");
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
                 if (transaction is not null)
                 {
                     await transaction.CommitAsync(ct);
@@ -613,7 +613,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 DecidedAtUtc = direct ? this.Now : null,
                 DecidedById = direct ? this.UserId : null
             };
-            db.VehicleReservations.Add(reservation);
+            _ = db.VehicleReservations.Add(reservation);
             if (direct)
             {
                 this.AddDays(reservation);
@@ -621,10 +621,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             vehicle.Version++;
             this.Audit(vehicle, reservation, direct ? "DirectBooking" : "ReservationRequested", reservation.Comment ?? string.Empty);
-            db.VehicleMailMessages.Add(mail.Compose(reservation, direct ? actor.Email! : vehicle.EquipmentOfficer.Email!, !direct));
+            _ = db.VehicleMailMessages.Add(mail.Compose(reservation, direct ? actor.Email! : vehicle.EquipmentOfficer.Email!, !direct));
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
                 if (transaction is not null)
                 {
                     await transaction.CommitAsync(ct);
@@ -705,7 +705,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 }
 
                 this.AddDays(reservation);
-                db.VehicleMailMessages.Add(mail.Compose(reservation, reservation.RequesterEmail, false));
+                _ = db.VehicleMailMessages.Add(mail.Compose(reservation, reservation.RequesterEmail, false));
             }
             if (status == VehicleReservationStatus.Cancelled)
             {
@@ -720,7 +720,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             this.Audit(vehicle, reservation, status.ToString(), string.Empty);
             try
             {
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
                 if (transaction is not null)
                 {
                     await transaction.CommitAsync(ct);
@@ -774,7 +774,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             for (DateOnly day = reservation.From; day <= reservation.To; day = day.AddDays(1))
             {
-                db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = reservation.VehicleId, Date = day, ReservationId = reservation.Id });
+                _ = db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = reservation.VehicleId, Date = day, ReservationId = reservation.Id });
             }
         }
 

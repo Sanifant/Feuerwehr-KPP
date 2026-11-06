@@ -119,7 +119,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (!roleResult.Succeeded)
                 {
                     // Rollback user creation if role assignment fails
-                    await this._userManager.DeleteAsync(user);
+                    _ = await this._userManager.DeleteAsync(user);
                     return ServiceResult.BadRequest(new IdentityErrorResponse("Failed to assign roles", roleResult.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
                 }
             }

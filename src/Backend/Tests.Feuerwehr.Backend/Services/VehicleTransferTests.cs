@@ -72,9 +72,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 To = new DateOnly(2026, 11, 1),
                 Status = VehicleReservationStatus.Confirmed
             };
-            fixture.Db.VehicleReservations.Add(booking);
-            fixture.Db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = vehicle.Id, ReservationId = booking.Id, Date = booking.From });
-            await fixture.Db.SaveChangesAsync();
+            _ = fixture.Db.VehicleReservations.Add(booking);
+            _ = fixture.Db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = vehicle.Id, ReservationId = booking.Id, Date = booking.From });
+            _ = await fixture.Db.SaveChangesAsync();
             ServiceResult exported = await fixture.Service.Export(VehicleTransferKind.Vehicles, default);
             string csv = Encoding.UTF8.GetString(exported.Content!);
             Assert.Contains("equipmentOfficerEmail", csv);
@@ -92,8 +92,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal("other", stored.EquipmentOfficerId);
             Assert.Equal(vehicle.Name, stored.Name);
             Assert.Equal(VehicleStatusDefaults.MaintenanceId, stored.VehicleStatusId);
-            Assert.Single(fixture.Db.VehicleReservations);
-            Assert.Single(fixture.Db.VehicleBookingDays);
+            _ = Assert.Single(fixture.Db.VehicleReservations);
+            _ = Assert.Single(fixture.Db.VehicleBookingDays);
         }
 
         [Theory]
@@ -146,7 +146,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             await using Fixture fixture = new Fixture();
             Vehicle owned = fixture.Vehicle();
             Vehicle other = fixture.Vehicle("Florian 19-02", "other");
-            await fixture.Db.SaveChangesAsync();
+            _ = await fixture.Db.SaveChangesAsync();
             fixture.As("owner", Roles.EquipmentOfficer);
             ServiceResult export = await fixture.Service.Export(VehicleTransferKind.Vehicles, default);
             string csv = Encoding.UTF8.GetString(export.Content!);
@@ -173,7 +173,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             vehicle.Name = "Bestehender Name";
             vehicle.IsActive = false;
             vehicle.VehicleStatusId = VehicleStatusDefaults.DeregisteredId;
-            await fixture.Db.SaveChangesAsync();
+            _ = await fixture.Db.SaveChangesAsync();
             using MemoryStream stream = Csv($"radioCallSign;fireDepartment;equipmentOfficerEmail\n{vehicle.RadioCallSign};Feuerwehr A;owner@example.test");
             ServiceResult result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
             Assert.Equal(200, result.Code);
@@ -192,7 +192,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             await using Fixture fixture = new Fixture();
             Vehicle vehicle = fixture.Vehicle();
-            await fixture.Db.SaveChangesAsync();
+            _ = await fixture.Db.SaveChangesAsync();
             ServiceResult exported = await fixture.Service.Export(VehicleTransferKind.Types, default);
             List<VehicleTypeImportDto> rows = JsonSerializer.Deserialize<List<VehicleTypeImportDto>>(exported.Content!, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
             VehicleTypeImportDto type = Assert.Single(rows);
@@ -203,7 +203,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(type.Name, (await fixture.Db.Set<VehicleType>().SingleAsync()).Name);
             using MemoryStream invalid = Csv("[{\"name\":\"ELW\"},{\"name\":\"elw\"}]");
             Assert.Equal(400, (await fixture.Service.Import(VehicleTransferKind.Types, invalid, default)).Code);
-            Assert.Single(fixture.Db.Set<VehicleType>());
+            _ = Assert.Single(fixture.Db.Set<VehicleType>());
         }
 
         private static MemoryStream Csv(string text) => new(Encoding.UTF8.GetBytes(text));
@@ -221,19 +221,19 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
             public Fixture()
             {
-                this.Db.Database.EnsureCreated();
+                _ = this.Db.Database.EnsureCreated();
                 this.Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
-                this.Db.Set<VehicleType>().Add(new VehicleType { Id = this.typeId, Name = "MTW", NormalizedName = "MTW" });
-                this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
+                _ = this.Db.Set<VehicleType>().Add(new VehicleType { Id = this.typeId, Name = "MTW", NormalizedName = "MTW" });
+                _ = this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
                 foreach (string? id in new[] { "admin", "owner", "other", "viewer", "inactive", "foreign" })
                 {
-                    this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, IsActive = id != "inactive", FireDepartmentId = id == "foreign" ? 2 : 1 });
+                    _ = this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, IsActive = id != "inactive", FireDepartmentId = id == "foreign" ? 2 : 1 });
                     if (id is "owner" or "other" or "inactive" or "foreign")
                     {
-                        this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                        _ = this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
                     }
                 }
-                this.Db.SaveChanges();
+                _ = this.Db.SaveChanges();
                 this.Service = new VehicleTransferService(this.Db, this.http, new UpperInvariantLookupNormalizer(), this.Clock);
                 this.As("admin", Roles.Admin);
             }
@@ -254,7 +254,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             public Vehicle Vehicle(string callSign = "Florian 19-01", string owner = "owner")
             {
                 Vehicle vehicle = new Vehicle { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = this.typeId };
-                this.Db.Vehicles.Add(vehicle);
+                _ = this.Db.Vehicles.Add(vehicle);
                 return vehicle;
             }
 

@@ -22,7 +22,7 @@ namespace De.Openelp.Feuerwehr.App.Pages
                 vm.Activate();
             }
 
-            this.BarcodeInput.Focus();
+            _ = this.BarcodeInput.Focus();
         }
 
         protected override void OnUnloaded(RoutedEventArgs e)

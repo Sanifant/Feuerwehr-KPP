@@ -79,7 +79,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
                 DiaryCategory? existing = await dbContext.DiaryCategories.FirstOrDefaultAsync(x => x.Code == cat.Code);
                 if (existing is null)
                 {
-                    dbContext.DiaryCategories.Add(new DiaryCategory
+                    _ = dbContext.DiaryCategories.Add(new DiaryCategory
                     {
                         Id = Guid.NewGuid(),
                         Code = cat.Code,
@@ -92,7 +92,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
                 }
             }
 
-            await dbContext.SaveChangesAsync();
+            _ = await dbContext.SaveChangesAsync();
         }
 
         private static async Task SeedAdminUserAsync(

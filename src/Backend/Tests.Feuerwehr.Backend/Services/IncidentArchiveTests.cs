@@ -28,9 +28,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
         public IncidentArchiveTests()
         {
-            this._user.SetupGet(x => x.IsAdmin).Returns(true);
-            this._user.SetupGet(x => x.UserId).Returns("admin-1");
-            this._user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
+            _ = this._user.SetupGet(x => x.IsAdmin).Returns(true);
+            _ = this._user.SetupGet(x => x.UserId).Returns("admin-1");
+            _ = this._user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
             CommandIdempotencyService idempotency = new CommandIdempotencyService(this._db);
             OutboxService outbox = new OutboxService(this._db);
             this._diary = new IncidentDiaryService(this._db, this._user.Object, idempotency, outbox);
@@ -46,8 +46,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             Incident older = this.AddIncident(closedHoursAgo: 3);
             Incident newer = this.AddIncident(closedHoursAgo: 1);
-            this.AddIncident(IncidentStatus.Active);
-            await this._db.SaveChangesAsync();
+            _ = this.AddIncident(IncidentStatus.Active);
+            _ = await this._db.SaveChangesAsync();
             IEnumerable<IncidentSummaryDto> first = Assert.IsAssignableFrom<IEnumerable<IncidentSummaryDto>>((await this._incidents.GetArchive(1, 1)).Value);
             IEnumerable<IncidentSummaryDto> second = Assert.IsAssignableFrom<IEnumerable<IncidentSummaryDto>>((await this._incidents.GetArchive(2, 1)).Value);
             Assert.Equal(newer.Id, Assert.Single(first).Id);
@@ -62,7 +62,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             Incident incident = this.AddIncident();
             this.AddEntry(incident, 1, canceled: true);
-            await this._db.SaveChangesAsync();
+            _ = await this._db.SaveChangesAsync();
             ServiceResult result = await this._archive.GetDiary(incident.Id, default);
             Assert.Equal(200, result.Code);
             DiaryEntryDto entry = Assert.Single(Assert.IsAssignableFrom<IEnumerable<DiaryEntryDto>>(result.Value));
@@ -80,7 +80,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task ArchiveRejectsActiveOrUnknownIncidents()
         {
             Incident active = this.AddIncident(IncidentStatus.Active);
-            await this._db.SaveChangesAsync();
+            _ = await this._db.SaveChangesAsync();
             foreach (Guid id in new[] { active.Id, Guid.NewGuid() })
             {
                 Assert.Equal(404, (await this._archive.GetDiary(id, default)).Code);
@@ -96,8 +96,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             Incident closed = this.AddIncident();
             Incident active = this.AddIncident(IncidentStatus.Active);
-            await this._db.SaveChangesAsync();
-            this._user.SetupGet(x => x.IsAdmin).Returns(false);
+            _ = await this._db.SaveChangesAsync();
+            _ = this._user.SetupGet(x => x.IsAdmin).Returns(false);
             Assert.Equal(403, (await this._incidents.GetArchive()).Code);
             Assert.Equal(403, (await this._archive.GetDiary(closed.Id, default)).Code);
             Assert.Equal(403, (await this._archive.ExportPdf(closed.Id, default)).Code);
@@ -121,8 +121,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task AllArchiveHttpEndpointsRequireAdminRole(string? role, bool allowed)
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
-            services.AddAuthorization(options => options.AddFeuerwehrPolicies());
+            _ = services.AddLogging();
+            _ = services.AddAuthorization(options => options.AddFeuerwehrPolicies());
             using ServiceProvider provider = services.BuildServiceProvider();
             IAuthorizationPolicyProvider policies = provider.GetRequiredService<IAuthorizationPolicyProvider>();
             IAuthorizationService authorization = provider.GetRequiredService<IAuthorizationService>();
@@ -163,7 +163,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 ClosedByDisplayName = "Ada Muster",
                 Revision = 3,
             };
-            this._db.Incidents.Add(incident);
+            _ = this._db.Incidents.Add(incident);
             return incident;
         }
 
@@ -180,7 +180,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 CreatedAtUtc = incident.CreatedAtUtc,
                 UpdatedAtUtc = incident.CreatedAtUtc,
             };
-            this._db.DiaryEntries.Add(entry);
+            _ = this._db.DiaryEntries.Add(entry);
             DiaryEntryRevision revision = new DiaryEntryRevision
             {
                 Id = Guid.NewGuid(),
@@ -198,10 +198,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 CreatedByUserId = "admin-1",
                 CreatedByDisplayName = "Ada Muster",
             };
-            this._db.DiaryEntryRevisions.Add(revision);
+            _ = this._db.DiaryEntryRevisions.Add(revision);
             if (canceled)
             {
-                this._db.DiaryEntryRevisions.Add(new DiaryEntryRevision
+                _ = this._db.DiaryEntryRevisions.Add(new DiaryEntryRevision
                 {
                     Id = Guid.NewGuid(),
                     DiaryEntryId = entry.Id,

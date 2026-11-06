@@ -35,7 +35,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 return null;
             }
 
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IncidentSummaryDto>(JsonOptions, cancellationToken)
                 ?? throw new JsonException("Die Einsatzantwort ist leer.");
         }
@@ -48,7 +48,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         public async Task<MapStateResponse> GetStateAsync(Guid incidentId, CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync($"/api/incidents/{incidentId}/map/state", cancellationToken);
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<MapStateResponse>(JsonOptions, cancellationToken)
                 ?? throw new JsonException("Die Lagekartenantwort ist leer.");
         }

@@ -54,7 +54,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     await client.AuthenticateAsync(settings.Username, settings.Password!);
                 }
 
-                await client.SendAsync(message);
+                _ = await client.SendAsync(message);
             }
             finally
             {

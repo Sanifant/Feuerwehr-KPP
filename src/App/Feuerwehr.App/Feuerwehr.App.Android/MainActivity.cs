@@ -52,7 +52,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             {
                 TaskCompletionSource<bool>? request = this.locationPermissionRequest;
                 this.locationPermissionRequest = null;
-                request?.TrySetResult(this.HasLocationPermission);
+                _ = (request?.TrySetResult(this.HasLocationPermission));
             }
         }
 
@@ -84,7 +84,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 current = null;
             }
 
-            this.locationPermissionRequest?.TrySetResult(false);
+            _ = (this.locationPermissionRequest?.TrySetResult(false));
             this.locationPermissionRequest = null;
             this.destroyed.Cancel();
             base.OnDestroy();

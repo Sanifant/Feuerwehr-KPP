@@ -104,8 +104,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 {
                     message.LeaseUntilUtc = leaseUntil;
                     message.Attempts++;
-                    db.VehicleMailMessages.Update(message);
-                    await db.SaveChangesAsync(ct);
+                    _ = db.VehicleMailMessages.Update(message);
+                    _ = await db.SaveChangesAsync(ct);
                 }
                 DateTime? sent = null;
                 string? error = null;
@@ -123,7 +123,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 DateTime next = clock.GetUtcNow().UtcDateTime.AddMinutes(Math.Min(60, Math.Pow(2, Math.Min(message.Attempts + 1, 6))));
                 if (db.Database.IsRelational())
                 {
-                    await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.LeaseUntilUtc == leaseUntil).ExecuteUpdateAsync(
+                    _ = await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.LeaseUntilUtc == leaseUntil).ExecuteUpdateAsync(
                         update => update
                         .SetProperty(x => x.SentAtUtc, sent).SetProperty(x => x.LastError, error)
                         .SetProperty(x => x.NextAttemptAtUtc, next).SetProperty(x => x.LeaseUntilUtc, (DateTime?)null), ct);
@@ -134,7 +134,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     message.LastError = error;
                     message.NextAttemptAtUtc = next;
                     message.LeaseUntilUtc = null;
-                    await db.SaveChangesAsync(ct);
+                    _ = await db.SaveChangesAsync(ct);
                 }
             }
         }

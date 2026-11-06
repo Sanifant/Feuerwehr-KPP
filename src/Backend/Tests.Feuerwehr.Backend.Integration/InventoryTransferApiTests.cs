@@ -27,13 +27,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             EquipmentDto item = await fixture.CreateEquipment(officer, type.Id);
             using HttpResponseMessage inspection = await officer.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", new RecordEquipmentInspectionRequest
             { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, Status = EquipmentStatus.Defective, Comment = "Historie bleibt erhalten", ExpectedVersion = item.Version });
-            inspection.EnsureSuccessStatusCode();
+            _ = inspection.EnsureSuccessStatusCode();
             EquipmentDetailDto inspected = (await inspection.Content.ReadFromJsonAsync<EquipmentDetailDto>())!;
             using HttpResponseMessage deactivate = await officer.PutAsJsonAsync($"/api/inventory/{item.Id}/active", new SetEquipmentActiveRequest { IsActive = false, ExpectedVersion = inspected.Equipment.Version });
-            deactivate.EnsureSuccessStatusCode();
+            _ = deactivate.EnsureSuccessStatusCode();
             string csv = $"barcode;equipmentTypeId;serialNumber;manufacturer;status;isActive;createdOn;lastInspectedOn\r\n{item.Barcode};{replacementType.Id};NEU-123;Neuer Hersteller;Einsatzklar;true;2000-01-01;2000-01-02\r\nKPP-700;{type.Id};IMPORT-700;Importhersteller;In Reparatur;false;{fixture.Today:yyyy-MM-dd};\r\n";
             using HttpResponseMessage response = await Upload(officer, "/api/inventory/import", csv, "inventar.csv");
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             InventoryImportResponse result = (await response.Content.ReadFromJsonAsync<InventoryImportResponse>())!;
             Assert.Equal(1, result.CreatedCount);
             Assert.Equal(1, result.UpdatedCount);
@@ -65,10 +65,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             EquipmentTypeDto type = await fixture.CreateType(officer);
             SaveEquipmentRequest request = new SaveEquipmentRequest { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "GröÃŸe; \"Zitat\"\nzweite Zeile" };
             using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory", request);
-            create.EnsureSuccessStatusCode();
+            _ = create.EnsureSuccessStatusCode();
             EquipmentDto item = (await create.Content.ReadFromJsonAsync<EquipmentDto>())!;
             using HttpResponseMessage export = await officer.GetAsync("/api/inventory/export");
-            export.EnsureSuccessStatusCode();
+            _ = export.EnsureSuccessStatusCode();
             Assert.Equal("text/csv", export.Content.Headers.ContentType!.MediaType);
             byte[] bytes = await export.Content.ReadAsByteArrayAsync();
             Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes.Take(3));
@@ -76,7 +76,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Contains("'=SUM", csv);
             Assert.Contains("GröÃŸe", csv);
             using HttpResponseMessage import = await Upload(officer, "/api/inventory/import", csv, "inventar.csv");
-            import.EnsureSuccessStatusCode();
+            _ = import.EnsureSuccessStatusCode();
             Assert.Equal(0, (await import.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
             EquipmentDetailDto detail = (await officer.GetFromJsonAsync<EquipmentDetailDto>($"/api/inventory/{item.Id}"))!;
             Assert.Equal(request.SerialNumber, detail.Equipment.SerialNumber);
@@ -116,7 +116,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Task<HttpResponseMessage> upload = Upload(officer, "/api/inventory/import", $"barcode;equipmentTypeId;serialNumber;manufacturer\nKPP-800;{type.Id};Concurrent;Test\n", "parallel.csv");
             Task<EquipmentDto> ordinary = fixture.CreateEquipment(officer, type.Id);
             using HttpResponseMessage response = await upload;
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             EquipmentDto item = await ordinary;
             Assert.NotEqual("KPP-800", item.Barcode);
             EquipmentDto next = await fixture.CreateEquipment(officer, type.Id);
@@ -133,10 +133,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             string name = $"Kategorie {Guid.NewGuid()}";
             using HttpResponseMessage first = await Upload(admin, "/api/inventory/categories/import", JsonSerializer.Serialize(new[] { new { name } }), "categories.json");
-            first.EnsureSuccessStatusCode();
+            _ = first.EnsureSuccessStatusCode();
             Assert.Equal(1, (await first.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
             using HttpResponseMessage second = await Upload(admin, "/api/inventory/categories/import", JsonSerializer.Serialize(new[] { new { name } }), "categories.json");
-            second.EnsureSuccessStatusCode();
+            _ = second.EnsureSuccessStatusCode();
             Assert.Equal(1, (await second.Content.ReadFromJsonAsync<InventoryImportResponse>())!.UpdatedCount);
             InventoryCategoryDto category = Assert.Single((await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!, x => x.Name == name);
             EquipmentTypeDto type = await fixture.CreateType(officer, 12);
@@ -145,7 +145,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 new { id = Guid.NewGuid(), name = "Importierter Typ", categoryId = category.Id, inspectionIntervalMonths = 24, inspectionInstructions = "Weitere Anweisung" },
             });
             using HttpResponseMessage imported = await Upload(officer, "/api/inventory/types/import", json, "types.json");
-            imported.EnsureSuccessStatusCode();
+            _ = imported.EnsureSuccessStatusCode();
             InventoryImportResponse result = (await imported.Content.ReadFromJsonAsync<InventoryImportResponse>())!;
             Assert.Equal(1, result.CreatedCount);
             Assert.Equal(1, result.UpdatedCount);
@@ -155,12 +155,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             foreach (string? path in new[] { "categories", "types" })
             {
                 using HttpResponseMessage export = await officer.GetAsync($"/api/inventory/{path}/export");
-                export.EnsureSuccessStatusCode();
+                _ = export.EnsureSuccessStatusCode();
                 Assert.Equal("application/json", export.Content.Headers.ContentType!.MediaType);
                 string text = await export.Content.ReadAsStringAsync();
                 Assert.Equal(JsonValueKind.Array, JsonDocument.Parse(text).RootElement.ValueKind);
                 using HttpResponseMessage roundTrip = await Upload(admin, $"/api/inventory/{path}/import", text, "roundtrip.json");
-                roundTrip.EnsureSuccessStatusCode();
+                _ = roundTrip.EnsureSuccessStatusCode();
                 Assert.Equal(0, (await roundTrip.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
             }
         }
@@ -197,12 +197,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             for (int i = 0; i < 2; i++)
             {
                 using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory/types", request);
-                create.EnsureSuccessStatusCode();
+                _ = create.EnsureSuccessStatusCode();
             }
             using HttpResponseMessage export = await officer.GetAsync("/api/inventory/types/export");
-            export.EnsureSuccessStatusCode();
+            _ = export.EnsureSuccessStatusCode();
             using HttpResponseMessage import = await Upload(officer, "/api/inventory/types/import", await export.Content.ReadAsStringAsync(), "types.json");
-            import.EnsureSuccessStatusCode();
+            _ = import.EnsureSuccessStatusCode();
             Assert.Equal(0, (await import.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
         }
 

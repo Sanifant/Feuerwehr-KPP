@@ -211,7 +211,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 ILayer? previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
                 if (previousPins != null)
                 {
-                    map.Layers.Remove(previousPins);
+                    _ = map.Layers.Remove(previousPins);
                 }
 
                 map.Layers.Add(memoryLayer);
@@ -220,7 +220,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         private void DrawHydrants()
         {
-            this.hydrantService.GetAllAsync().ContinueWith(task =>
+            _ = this.hydrantService.GetAllAsync().ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully)
                 {

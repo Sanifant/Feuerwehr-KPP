@@ -30,13 +30,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             VehicleDto vehicle = await this.CreateVehicle(officer);
             HttpResponseMessage booking = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
             { CommandId = Guid.NewGuid(), From = fixture.Today.AddDays(5), To = fixture.Today.AddDays(6) });
-            booking.EnsureSuccessStatusCode();
+            _ = booking.EnsureSuccessStatusCode();
             DateTime? initialStatusChange = (await admin.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!.Single(x => x.Id == vehicle.Id).StatusChangedAtUtc;
-            Assert.NotNull(initialStatusChange);
+            _ = Assert.NotNull(initialStatusChange);
             byte[] types = await admin.GetByteArrayAsync("/api/vehicles/types/export");
             using (MultipartFormDataContent form = Upload(types, "fahrzeugtypen.json"))
             {
-                (await admin.PostAsync("/api/vehicles/types/import", form)).EnsureSuccessStatusCode();
+                _ = (await admin.PostAsync("/api/vehicles/types/import", form)).EnsureSuccessStatusCode();
             }
 
             string csv = await admin.GetStringAsync("/api/vehicles/export");
@@ -55,7 +55,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
             Assert.Equal(2, await db.VehicleBookingDays.CountAsync(x => x.VehicleId == vehicle.Id));
-            Assert.Single(await db.VehicleReservations.Where(x => x.VehicleId == vehicle.Id).ToListAsync());
+            _ = Assert.Single(await db.VehicleReservations.Where(x => x.VehicleId == vehicle.Id).ToListAsync());
         }
 
         [Fact]
@@ -89,14 +89,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             string statusName = $"AuÃŸer Dienst {Guid.NewGuid():N}";
             Assert.Equal(HttpStatusCode.Forbidden, (await officer.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName })).StatusCode);
             HttpResponseMessage response = await admin.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName, AllowsBooking = false });
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             VehicleStatusDto status = (await response.Content.ReadFromJsonAsync<VehicleStatusDto>())!;
             VehicleTypeDto[] types = (await admin.GetFromJsonAsync<VehicleTypeDto[]>("/api/vehicles/types"))!;
             VehicleTypeDto? mtw = types.SingleOrDefault(x => x.Name == "MTW");
             if (mtw is null)
             {
                 HttpResponseMessage created = await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = "MTW" });
-                created.EnsureSuccessStatusCode();
+                _ = created.EnsureSuccessStatusCode();
                 mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
             }
             HttpResponseMessage changed = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
@@ -108,11 +108,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 VehicleTypeId = mtw.Id,
                 VehicleStatusId = status.Id
             });
-            changed.EnsureSuccessStatusCode();
+            _ = changed.EnsureSuccessStatusCode();
             VehicleDto updated = (await changed.Content.ReadFromJsonAsync<VehicleDto>())!;
             Assert.Equal(statusName, updated.VehicleStatusName);
             Assert.False(updated.AllowsBooking);
-            Assert.NotNull(updated.StatusChangedAtUtc);
+            _ = Assert.NotNull(updated.StatusChangedAtUtc);
             DateOnly from = fixture.Today.AddDays(2);
             VehicleAvailabilityDto[] calendar = (await officer.GetFromJsonAsync<VehicleAvailabilityDto[]>($"/api/vehicles/availability?from={from:yyyy-MM-dd}&to={from.AddDays(2):yyyy-MM-dd}&vehicleType=MTW"))!;
             Assert.All(calendar, x => Assert.Equal("MTW", x.Vehicle.VehicleTypeName));
@@ -133,7 +133,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             string name = $"MTW {Guid.NewGuid():N}";
             Assert.Equal(HttpStatusCode.Forbidden, (await officer.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = name })).StatusCode);
             HttpResponseMessage response = await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = name });
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             VehicleTypeDto type = (await response.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
             Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = name.ToLowerInvariant() })).StatusCode);
             VehicleDto vehicle = await this.CreateVehicle(officer);
@@ -145,15 +145,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 ExpectedVersion = vehicle.Version,
                 VehicleTypeId = type.Id
             });
-            assigned.EnsureSuccessStatusCode();
+            _ = assigned.EnsureSuccessStatusCode();
             Assert.Equal(name, (await assigned.Content.ReadFromJsonAsync<VehicleDto>())!.VehicleTypeName);
             VehicleAvailabilityDto[]? calendar = await officer.GetFromJsonAsync<VehicleAvailabilityDto[]>($"/api/vehicles/availability?from={fixture.Today:yyyy-MM-dd}&to={fixture.Today.AddDays(20):yyyy-MM-dd}");
             Assert.Equal(type.Id, calendar!.Single(x => x.Vehicle.Id == vehicle.Id).Vehicle.VehicleTypeId);
             HttpResponseMessage updated = await admin.PutAsJsonAsync($"/api/vehicles/types/{type.Id}", new SaveVehicleTypeRequest { Name = name + " neu", ExpectedVersion = type.Version });
-            updated.EnsureSuccessStatusCode();
+            _ = updated.EnsureSuccessStatusCode();
             VehicleTypeDto renamed = (await updated.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
             HttpResponseMessage deactivated = await admin.PutAsJsonAsync($"/api/vehicles/types/{type.Id}/active", new SetVehicleTypeActiveRequest { IsActive = false, ExpectedVersion = renamed.Version });
-            deactivated.EnsureSuccessStatusCode();
+            _ = deactivated.EnsureSuccessStatusCode();
             Assert.DoesNotContain((await officer.GetFromJsonAsync<VehicleTypeDto[]>("/api/vehicles/types"))!, x => x.Id == type.Id);
             Assert.Equal(name + " neu", (await officer.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!.Single(x => x.Id == vehicle.Id).VehicleTypeName);
         }
@@ -179,8 +179,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.All(pending!.Single(x => x.Vehicle.Id == vehicle.Id).Days, x => Assert.Equal(VehicleDayStatus.Pending, x.Status));
             HttpResponseMessage[] decisions = await Task.WhenAll(reservations.Select(reservation => officer.PostAsJsonAsync(
                 $"/api/vehicles/reservations/{reservation.Id}/approve", new DecideVehicleReservationRequest { ExpectedVersion = reservation.Version })));
-            Assert.Single(decisions, x => x.StatusCode == HttpStatusCode.OK);
-            Assert.Single(decisions, x => x.StatusCode == HttpStatusCode.Conflict);
+            _ = Assert.Single(decisions, x => x.StatusCode == HttpStatusCode.OK);
+            _ = Assert.Single(decisions, x => x.StatusCode == HttpStatusCode.Conflict);
 
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
@@ -228,19 +228,19 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             DateOnly start = fixture.Today.AddDays(10);
             HttpResponseMessage request = await member.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
             { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
-            request.EnsureSuccessStatusCode();
+            _ = request.EnsureSuccessStatusCode();
             VehicleReservationDto reservation = (await request.Content.ReadFromJsonAsync<VehicleReservationDto>())!;
             HttpResponseMessage[] results = await Task.WhenAll(
                 officer.PostAsJsonAsync($"/api/vehicles/reservations/{reservation.Id}/approve", new DecideVehicleReservationRequest { ExpectedVersion = 1 }),
                 officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
                 { CommandId = Guid.NewGuid(), From = start.AddDays(1), To = start.AddDays(3) }));
-            Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
-            Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
+            _ = Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
+            _ = Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
             List<VehicleBookingDay> days = await db.VehicleBookingDays.Where(x => x.VehicleId == vehicle.Id).ToListAsync();
             Assert.Equal(3, days.Count);
-            Assert.Single(days.Select(x => x.ReservationId).Distinct());
+            _ = Assert.Single(days.Select(x => x.ReservationId).Distinct());
         }
 
         [Fact]
@@ -264,17 +264,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.Forbidden, memberDeactivation.StatusCode);
             CreateVehicleReservationRequest command = new CreateVehicleReservationRequest { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(1) };
             HttpResponseMessage created = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", command);
-            created.EnsureSuccessStatusCode();
+            _ = created.EnsureSuccessStatusCode();
             HttpResponseMessage replay = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", command);
             Assert.Equal((await created.Content.ReadFromJsonAsync<VehicleReservationDto>())!.Id, (await replay.Content.ReadFromJsonAsync<VehicleReservationDto>())!.Id);
             VehicleDto current = (await admin.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!.Single(x => x.Id == vehicle.Id);
             HttpResponseMessage deactivated = await admin.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}/active", new SetVehicleActiveRequest { ExpectedVersion = current.Version, IsActive = false });
-            deactivated.EnsureSuccessStatusCode();
+            _ = deactivated.EnsureSuccessStatusCode();
             Assert.DoesNotContain((await member.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!, x => x.Id == vehicle.Id);
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
             Assert.Equal(2, await db.VehicleBookingDays.CountAsync(x => x.VehicleId == vehicle.Id));
-            Assert.Single(await db.VehicleReservations.Where(x => x.VehicleId == vehicle.Id).ToListAsync());
+            _ = Assert.Single(await db.VehicleReservations.Where(x => x.VehicleId == vehicle.Id).ToListAsync());
         }
 
         [Fact]
@@ -289,13 +289,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             DateOnly start = fixture.Today.AddDays(30);
             HttpResponseMessage response = await member.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
             { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             VehicleReservationDto reservation = (await response.Content.ReadFromJsonAsync<VehicleReservationDto>())!;
             HttpResponseMessage[] results = await Task.WhenAll(
                 officer.PostAsJsonAsync($"/api/vehicles/reservations/{reservation.Id}/approve", new DecideVehicleReservationRequest { ExpectedVersion = 1 }),
                 officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}/active", new SetVehicleActiveRequest { ExpectedVersion = 2, IsActive = false }));
-            Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
-            Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
+            _ = Assert.Single(results, x => x.StatusCode == HttpStatusCode.OK);
+            _ = Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
             bool active = (await db.Vehicles.FindAsync(vehicle.Id))!.IsActive;
@@ -317,10 +317,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             if (!officer.FireDepartmentId.HasValue)
             {
                 FireDepartment department = new FireDepartment { Name = "MTW Integration" };
-                db.FireDepartments.Add(department);
-                await db.SaveChangesAsync();
+                _ = db.FireDepartments.Add(department);
+                _ = await db.SaveChangesAsync();
                 officer.FireDepartmentId = department.Id;
-                await db.SaveChangesAsync();
+                _ = await db.SaveChangesAsync();
             }
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/vehicles", new SaveVehicleRequest
             { FireDepartmentId = officer.FireDepartmentId.Value, EquipmentOfficerId = officer.Id, RadioCallSign = $"Florian {Guid.NewGuid():N}" });

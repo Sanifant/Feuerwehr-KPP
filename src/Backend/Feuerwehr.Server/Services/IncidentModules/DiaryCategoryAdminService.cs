@@ -48,7 +48,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     CreatedAtUtc = now,
                     UpdatedAtUtc = now,
                 };
-                dbContext.DiaryCategories.Add(existing);
+                _ = dbContext.DiaryCategories.Add(existing);
             }
             else
             {
@@ -57,7 +57,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 existing.UpdatedAtUtc = now;
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(new DiaryCategoryDto(existing.Id, existing.Code, existing.Name, existing.IsActive));
         }
     }

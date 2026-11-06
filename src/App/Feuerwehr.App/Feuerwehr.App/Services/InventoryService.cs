@@ -21,7 +21,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         public async Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct)
         {
             using HttpResponseMessage response = await http.GetAsync($"/api/inventory/barcode/{Uri.EscapeDataString(barcode)}", ct);
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
                 ?? throw new InvalidOperationException("Die Geräteantwort ist leer.");
         }

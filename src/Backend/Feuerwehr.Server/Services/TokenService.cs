@@ -144,10 +144,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
             string hashedToken = this.HashToken(refreshToken);
 
             // Remove old token
-            await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
+            _ = await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
 
             // Store new hashed token
-            await this._userManager.SetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken", hashedToken);
+            _ = await this._userManager.SetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken", hashedToken);
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return;
             }
 
-            await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
+            _ = await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
         }
 
         /// <summary>

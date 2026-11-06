@@ -122,7 +122,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
                 foreach (ILayer? layer in currentMap.Layers.Where(layer => layer.Name is "Lage" or "Hydranten").ToArray())
                 {
-                    currentMap.Layers.Remove(layer);
+                    _ = currentMap.Layers.Remove(layer);
                     layer.Dispose();
                 }
                 currentMap.Layers.Add(hydrants);

@@ -59,7 +59,7 @@ namespace De.Openelp.Feuerwehr.Diagnostics
             {
                 lock (this._sync)
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(this._path)!);
+                    _ = Directory.CreateDirectory(Path.GetDirectoryName(this._path)!);
                     if (File.Exists(this._path) && new FileInfo(this._path).Length > 2 * 1024 * 1024)
                     {
                         File.Move(this._path, this._path + ".previous", overwrite: true);

@@ -67,7 +67,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             StringBuilder csv = new StringBuilder("\uFEFF" + string.Join(';', VehicleCsv.Columns) + "\r\n");
             foreach (Vehicle? vehicle in vehicles)
             {
-                csv.AppendJoin(';', new[] { vehicle.Id.ToString(), vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate,
+                _ = csv.AppendJoin(';', new[] { vehicle.Id.ToString(), vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate,
                     vehicle.FireDepartment.Name, vehicle.FireDepartmentId.ToString(CultureInfo.InvariantCulture), vehicle.VehicleType?.Name,
                     vehicle.VehicleStatus.Name, vehicle.EquipmentOfficer.Email, vehicle.IsActive ? "true" : "false" }.Select(VehicleCsv.Quote)).Append("\r\n");
             }
@@ -136,7 +136,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             List<ValidationResult> errors = [];
-            Validator.TryValidateObject(row, new ValidationContext(row), errors, true);
+            _ = Validator.TryValidateObject(row, new ValidationContext(row), errors, true);
             return errors.Select(error => new VehicleImportError(line, error.ErrorMessage ?? "Ungültiger Eintrag."));
         }
 
@@ -150,7 +150,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     await using IDbContextTransaction? transaction = db.Database.IsRelational() ? await db.Database.BeginTransactionAsync(ct) : null;
                     if (db.Database.IsNpgsql())
                     {
-                        await db.Database.ExecuteSqlRawAsync(
+                        _ = await db.Database.ExecuteSqlRawAsync(
                             kind == VehicleTransferKind.Vehicles
                             ? "LOCK TABLE \"Vehicles\" IN EXCLUSIVE MODE" : "LOCK TABLE \"VehicleTypes\" IN EXCLUSIVE MODE", ct);
                     }
@@ -161,7 +161,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         db.ChangeTracker.Clear();
                         return result;
                     }
-                    await db.SaveChangesAsync(ct);
+                    _ = await db.SaveChangesAsync(ct);
                     if (transaction is not null)
                     {
                         await transaction.CommitAsync(ct);
@@ -212,7 +212,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (type is null)
                 {
                     type = new VehicleType { Id = row.Id ?? Guid.NewGuid() };
-                    db.Set<VehicleType>().Add(type);
+                    _ = db.Set<VehicleType>().Add(type);
                     created++;
                 }
                 else
@@ -349,7 +349,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 vehicle.IsActive = row.IsActive ?? vehicle.IsActive;
                 if (isNew)
                 {
-                    db.Vehicles.Add(vehicle);
+                    _ = db.Vehicles.Add(vehicle);
                     created++;
                 }
                 else
@@ -357,7 +357,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     vehicle.Version++;
                     updated++;
                 }
-                db.VehicleEvents.Add(new VehicleEvent
+                _ = db.VehicleEvents.Add(new VehicleEvent
                 {
                     Id = Guid.NewGuid(),
                     VehicleId = vehicle.Id,

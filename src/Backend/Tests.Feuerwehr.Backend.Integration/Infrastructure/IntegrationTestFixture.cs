@@ -59,7 +59,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
                 Password = SeedAdminPassword,
             });
 
-            response.EnsureSuccessStatusCode();
+            _ = response.EnsureSuccessStatusCode();
             LoginResponse? login = await response.Content.ReadFromJsonAsync<LoginResponse>();
             return login?.AccessToken ?? throw new InvalidOperationException("Login response did not contain an access token.");
         }

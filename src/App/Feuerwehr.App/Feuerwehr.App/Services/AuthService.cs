@@ -105,7 +105,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 {
                     this._httpClient.DefaultRequestHeaders.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this._accessToken);
-                    await this._httpClient.PostAsync("/api/Auth/logout", null);
+                    _ = await this._httpClient.PostAsync("/api/Auth/logout", null);
                 }
             }
             catch
@@ -213,7 +213,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                     // If token is expired, try to refresh
                     if (this._decodedToken.ValidTo <= DateTime.UtcNow)
                     {
-                        await this.RefreshTokenAsync();
+                        _ = await this.RefreshTokenAsync();
                     }
                 }
             }

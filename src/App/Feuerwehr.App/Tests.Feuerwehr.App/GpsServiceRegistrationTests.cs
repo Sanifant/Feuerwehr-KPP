@@ -19,7 +19,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
             IGpsService service = ClientApp.Services.GetRequiredService<IGpsService>();
 
-            Assert.IsType<UnsupportedGpsService>(service);
+            _ = Assert.IsType<UnsupportedGpsService>(service);
             Assert.Null(await service.GetCurrentLocationAsync());
         }
 
@@ -51,7 +51,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             using CancellationTokenSource cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
                 new UnsupportedGpsService().GetCurrentLocationAsync(cancellation.Token));
         }
     }

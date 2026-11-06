@@ -27,11 +27,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
-            builder.UseEnvironment(Environments.Development);
+            _ = builder.UseEnvironment(Environments.Development);
 
-            builder.ConfigureAppConfiguration((_, config) =>
+            _ = builder.ConfigureAppConfiguration((_, config) =>
             {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
+                _ = config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:postgresdb"] = this._postgresConnectionString,
                     ["ConnectionStrings:cache"] = this._redisConnectionString,

@@ -39,7 +39,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 if (this.SetProperty(ref this._selectedPageIndex, value))
                 {
                     this.OnPropertyChanged(nameof(this.SelectedPageIndex));
-                    this.NavigateTo(value);
+                    _ = this.NavigateTo(value);
                     this.IsDrawerOpened = false;
                 }
             }

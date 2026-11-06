@@ -58,9 +58,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 foreach (EquipmentDto? item in pending)
                 {
                     string status = item.Status switch { EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", _ => "In Reparatur" };
-                    body.AppendLine($"{item.Barcode} | {item.EquipmentTypeName} | {item.Manufacturer} | Seriennummer {item.SerialNumber}");
-                    body.AppendLine($"Prüftermin: {item.NextInspectionOn.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} | Status: {status}");
-                    body.AppendLine();
+                    _ = body.AppendLine($"{item.Barcode} | {item.EquipmentTypeName} | {item.Manufacturer} | Seriennummer {item.SerialNumber}");
+                    _ = body.AppendLine($"Prüftermin: {item.NextInspectionOn.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} | Status: {status}");
+                    _ = body.AppendLine();
                 }
                 try
                 {
@@ -80,7 +80,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     SentAtUtc = now,
                 }));
                 // Erst nach erfolgreicher SMTP-Annahme markieren; fehlgeschlagene Empfänger bleiben offen.
-                await db.SaveChangesAsync(ct);
+                _ = await db.SaveChangesAsync(ct);
             }
         }
     }
@@ -119,7 +119,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         {
                             // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schlieÃŸt die Verbindung.
                             await using NpgsqlCommand release = new NpgsqlCommand("SELECT pg_advisory_unlock(305002014)", mutex) { CommandTimeout = 5 };
-                            await release.ExecuteNonQueryAsync(CancellationToken.None);
+                            _ = await release.ExecuteNonQueryAsync(CancellationToken.None);
                         }
                     }
                 }

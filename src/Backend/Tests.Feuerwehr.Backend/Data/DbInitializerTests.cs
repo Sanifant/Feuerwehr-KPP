@@ -29,11 +29,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         {
             this._configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
-            services.AddSingleton<IConfiguration>(this._configuration);
-            services.AddSingleton<ILogger<Program>>(this._logger);
-            services.AddDbContext<FeuerwehrDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-            services.AddIdentityCore<ApplicationUser>(options =>
+            _ = services.AddLogging();
+            _ = services.AddSingleton<IConfiguration>(this._configuration);
+            _ = services.AddSingleton<ILogger<Program>>(this._logger);
+            _ = services.AddDbContext<FeuerwehrDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+            _ = services.AddIdentityCore<ApplicationUser>(options =>
             {
                 options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = false;
@@ -74,7 +74,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
                 Assert.NotNull(admin);
                 Assert.Equal(expectedEmail, admin.Email);
                 Assert.Equal(expectedEmail, admin.UserName);
-                Assert.Single(await this._users.Users.ToListAsync());
+                _ = Assert.Single(await this._users.Users.ToListAsync());
                 Assert.True(await this._users.CheckPasswordAsync(admin, InitialPassword));
                 Assert.True(admin.EmailConfirmed);
                 Assert.True(admin.IsActive);
@@ -151,7 +151,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             Assert.Equal(passwordHash, admin.PasswordHash);
             Assert.True(await this._users.CheckPasswordAsync(admin, InitialPassword));
             Assert.Equal(3, (await this._users.GetRolesAsync(admin)).Count);
-            Assert.Single(await this._users.Users.ToListAsync());
+            _ = Assert.Single(await this._users.Users.ToListAsync());
             Assert.Equal(6, await this._provider.GetRequiredService<FeuerwehrDbContext>().DiaryCategories.CountAsync());
             Assert.DoesNotContain(InitialPassword, string.Join("\n", this._logger.Messages));
         }
@@ -204,7 +204,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
                 Roles = [Roles.Viewer, moduleRole]
             });
 
-            Assert.IsType<OkObjectResult>(response);
+            _ = Assert.IsType<OkObjectResult>(response);
             Assert.Equal(new[] { Roles.Viewer, moduleRole }.Order(), (await this._users.GetRolesAsync(user)).Order());
         }
 

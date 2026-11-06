@@ -20,22 +20,22 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             SmtpSettings settings = Settings(authenticate);
             Mock<ISmtpClient> client = new Mock<ISmtpClient>(MockBehavior.Strict);
-            client.SetupSet(c => c.Timeout = settings.TimeoutMilliseconds);
-            client.SetupGet(c => c.IsConnected).Returns(true);
+            _ = client.SetupSet(c => c.Timeout = settings.TimeoutMilliseconds);
+            _ = client.SetupGet(c => c.IsConnected).Returns(true);
             MockSequence sequence = new MockSequence();
-            client.InSequence(sequence).Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
+            _ = client.InSequence(sequence).Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
                 .Returns(Task.CompletedTask);
             if (authenticate)
             {
-                client.InSequence(sequence).Setup(c => c.AuthenticateAsync(settings.Username!, settings.Password!, default))
+                _ = client.InSequence(sequence).Setup(c => c.AuthenticateAsync(settings.Username!, settings.Password!, default))
                     .Returns(Task.CompletedTask);
             }
 
             MimeMessage? sent = null;
-            client.InSequence(sequence).Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null))
+            _ = client.InSequence(sequence).Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null))
                 .Callback<MimeMessage, CancellationToken, MailKit.ITransferProgress?>((message, _, _) => sent = message)
                 .ReturnsAsync("queued");
-            client.InSequence(sequence).Setup(c => c.DisconnectAsync(true, default)).Returns(Task.CompletedTask);
+            _ = client.InSequence(sequence).Setup(c => c.DisconnectAsync(true, default)).Returns(Task.CompletedTask);
 
             await new MailService(client.Object, settings, NullLogger<MailService>.Instance)
                 .SendAsync("recipient@example.org", "Einladung für Müller", "Passwort vergeben: https://example.org/password/test");
@@ -68,14 +68,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             SmtpSettings settings = Settings();
             Mock<ISmtpClient> client = new Mock<ISmtpClient>();
             IOException failure = new IOException("SMTP test failure");
-            client.SetupGet(c => c.IsConnected).Returns(failingStep != "connect");
-            client.Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
+            _ = client.SetupGet(c => c.IsConnected).Returns(failingStep != "connect");
+            _ = client.Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
                 .Returns(failingStep == "connect" ? Task.FromException(failure) : Task.CompletedTask);
-            client.Setup(c => c.AuthenticateAsync(settings.Username!, settings.Password!, default))
+            _ = client.Setup(c => c.AuthenticateAsync(settings.Username!, settings.Password!, default))
                 .Returns(failingStep == "authenticate" ? Task.FromException(failure) : Task.CompletedTask);
-            client.Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null))
+            _ = client.Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null))
                 .Returns(failingStep == "send" ? Task.FromException<string>(failure) : Task.FromResult("queued"));
-            client.Setup(c => c.DisconnectAsync(true, default)).ThrowsAsync(new IOException("Disconnect failed"));
+            _ = client.Setup(c => c.DisconnectAsync(true, default)).ThrowsAsync(new IOException("Disconnect failed"));
 
             IOException exception = await Assert.ThrowsAsync<IOException>(() =>
                 new MailService(client.Object, settings, NullLogger<MailService>.Instance).SendAsync("recipient@example.org", "Test", "Body"));
@@ -95,9 +95,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task DisconnectFailure_AfterAcceptedMessageDoesNotFailDelivery()
         {
             Mock<ISmtpClient> client = new Mock<ISmtpClient>();
-            client.SetupGet(c => c.IsConnected).Returns(true);
-            client.Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null)).ReturnsAsync("queued");
-            client.Setup(c => c.DisconnectAsync(true, default)).ThrowsAsync(new IOException("Disconnect failed"));
+            _ = client.SetupGet(c => c.IsConnected).Returns(true);
+            _ = client.Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null)).ReturnsAsync("queued");
+            _ = client.Setup(c => c.DisconnectAsync(true, default)).ThrowsAsync(new IOException("Disconnect failed"));
 
             await new MailService(client.Object, Settings(), NullLogger<MailService>.Instance)
                 .SendAsync("recipient@example.org", "Test", "Body");

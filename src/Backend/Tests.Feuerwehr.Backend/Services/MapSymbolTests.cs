@@ -47,14 +47,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 .UseSqlite(this._connection, options => options.ExecutionStrategy(dependencies => new NpgsqlRetryingExecutionStrategy(dependencies)))
                 .AddInterceptors(this._commitFailure)
                 .Options);
-            await this._db.Database.EnsureCreatedAsync();
-            this._user.SetupGet(x => x.UserId).Returns("editor-1");
-            this._user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
-            this._user.SetupGet(x => x.IsAdmin).Returns(true);
+            _ = await this._db.Database.EnsureCreatedAsync();
+            _ = this._user.SetupGet(x => x.UserId).Returns("editor-1");
+            _ = this._user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
+            _ = this._user.SetupGet(x => x.IsAdmin).Returns(true);
             this._symbols = new MapSymbolService(this._db, this._user.Object, NullLogger<MapSymbolService>.Instance);
             this._map = new SituationMapService(this._db, this._user.Object, new CommandIdempotencyService(this._db), new OutboxService(this._db), new MapLeaseService(this._db));
-            this._db.Incidents.Add(new Incident { Id = this._incidentId, Name = "Brand", Status = IncidentStatus.Active, Revision = 1 });
-            this._db.EditorLeases.Add(new EditorLease
+            _ = this._db.Incidents.Add(new Incident { Id = this._incidentId, Name = "Brand", Status = IncidentStatus.Active, Revision = 1 });
+            _ = this._db.EditorLeases.Add(new EditorLease
             {
                 Id = Guid.NewGuid(),
                 IncidentId = this._incidentId,
@@ -65,7 +65,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 ExpiresAtUtc = DateTime.UtcNow.AddMinutes(2),
                 LastHeartbeatAtUtc = DateTime.UtcNow,
             });
-            await this._db.SaveChangesAsync();
+            _ = await this._db.SaveChangesAsync();
         }
 
         [Fact]
@@ -196,8 +196,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             SaveMapSymbolRequest update = SymbolRequest();
             update.IsActive = false;
             Assert.Equal(200, (await this._symbols.Save(symbol.Id, update, default)).Code);
-            Assert.Single(Assert.IsAssignableFrom<IEnumerable<MapSymbolDto>>((await this._symbols.GetSymbols(default)).Value));
-            this._user.SetupGet(x => x.IsAdmin).Returns(false);
+            _ = Assert.Single(Assert.IsAssignableFrom<IEnumerable<MapSymbolDto>>((await this._symbols.GetSymbols(default)).Value));
+            _ = this._user.SetupGet(x => x.IsAdmin).Returns(false);
             Assert.Equal(403, (await this._symbols.Save(null, SymbolRequest(), default)).Code);
             Assert.Empty(Assert.IsAssignableFrom<IEnumerable<MapSymbolDto>>((await this._symbols.GetSymbols(default)).Value));
         }
@@ -214,9 +214,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(symbol.SvgContent, created.Element.SymbolSvg);
             Assert.Equal("Feuerwehr", created.Element.Category);
             ServiceResult replay = await this._map.UpsertElement(this._incidentId, create, default);
-            Assert.IsType<JsonElement>(replay.Value);
-            Assert.Single(await this._db.MapElements.ToListAsync());
-            Assert.Single(await this._db.MapAuditEvents.ToListAsync());
+            _ = Assert.IsType<JsonElement>(replay.Value);
+            _ = Assert.Single(await this._db.MapElements.ToListAsync());
+            _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
 
             UpsertMapElementRequest move = this.Write(symbol.Id.ToString(), created.Element.Id, 1, "{\"type\":\"Point\",\"coordinates\":[10.26,51.51]}");
             move.Label = "LF 10";
@@ -252,7 +252,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             MapElementResponse created = Assert.IsType<MapElementResponse>((await this._map.UpsertElement(this._incidentId, this.Write(symbol.Id.ToString()), default)).Value);
             SaveMapSymbolRequest update = SymbolRequest(Svg.Replace("red", "blue"), "Objekte");
             update.IsActive = false;
-            await this._symbols.Save(symbol.Id, update, default);
+            _ = await this._symbols.Save(symbol.Id, update, default);
             Assert.Equal(400, (await this._map.UpsertElement(this._incidentId, this.Write(symbol.Id.ToString()), default)).Code);
             MapElementResponse moved = Assert.IsType<MapElementResponse>((await this._map.UpsertElement(this._incidentId, this.Write(symbol.Id.ToString(), created.Element.Id, 1), default)).Value);
             Assert.Equal(symbol.SvgContent, moved.Element.SymbolSvg);
@@ -278,7 +278,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 { CommandId = Guid.NewGuid().ToString(), SessionId = "session-1", LeaseToken = "other", ExpectedVersion = 1 }, default);
             Assert.Equal(409, wrongLeaseDeletion.Code);
             Assert.Equal(original.GeometryJson, (await this._db.MapElements.SingleAsync()).GeometryJson);
-            Assert.Single(await this._db.MapAuditEvents.ToListAsync());
+            _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
 
         [Theory]
@@ -295,8 +295,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task CatalogHttpPermissionsSeparateViewingAndAdministration(string role, bool canView, bool canManage)
         {
             ServiceCollection services = new ServiceCollection();
-            services.AddLogging();
-            services.AddAuthorization(options => options.AddFeuerwehrPolicies());
+            _ = services.AddLogging();
+            _ = services.AddAuthorization(options => options.AddFeuerwehrPolicies());
             using ServiceProvider provider = services.BuildServiceProvider();
             IAuthorizationPolicyProvider policies = provider.GetRequiredService<IAuthorizationPolicyProvider>();
             IAuthorizationService auth = provider.GetRequiredService<IAuthorizationService>();
@@ -327,12 +327,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             this._db.ChangeTracker.Clear();
             Assert.Equal(command.GeometryJson, (await this._db.MapElements.SingleAsync()).GeometryJson);
             Assert.Equal("create", (await this._db.MapAuditEvents.SingleAsync()).Action);
-            Assert.Single(await this._db.OutboxMessages.ToListAsync());
-            Assert.Single(await this._db.ProcessedCommands.ToListAsync());
+            _ = Assert.Single(await this._db.OutboxMessages.ToListAsync());
+            _ = Assert.Single(await this._db.ProcessedCommands.ToListAsync());
             ServiceResult replay = await this._map.UpsertElement(this._incidentId, command, default);
             Assert.Equal(200, replay.Code);
-            Assert.Single(await this._db.MapElements.ToListAsync());
-            Assert.Single(await this._db.MapAuditEvents.ToListAsync());
+            _ = Assert.Single(await this._db.MapElements.ToListAsync());
+            _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
 
         [Theory]
@@ -354,9 +354,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             this._db.ChangeTracker.Clear();
             Assert.Equal(1, (await this._db.MapElements.SingleAsync()).Version);
             Assert.Equal(2, (await this._db.Incidents.SingleAsync()).Revision);
-            Assert.Single(await this._db.MapAuditEvents.ToListAsync());
-            Assert.Single(await this._db.OutboxMessages.ToListAsync());
-            Assert.Single(await this._db.ProcessedCommands.ToListAsync());
+            _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
+            _ = Assert.Single(await this._db.OutboxMessages.ToListAsync());
+            _ = Assert.Single(await this._db.ProcessedCommands.ToListAsync());
         }
 
         [Fact]
@@ -426,7 +426,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             update.RadioCallName = " ";
             Assert.Equal(400, (await this._map.UpsertElement(this._incidentId, update, default)).Code);
             Assert.Equal("Florian 40/1", (await this._db.MapElements.SingleAsync()).RadioCallName);
-            Assert.Single(await this._db.MapAuditEvents.ToListAsync());
+            _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
 
         [Fact]
@@ -447,7 +447,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(409, (await this._symbols.CreateCategory(new() { Name = " technische hilfe " }, default)).Code);
             Assert.Equal(400, (await this._symbols.CreateCategory(new() { Name = " " }, default)).Code);
             Assert.Equal(400, (await this._symbols.CreateCategory(new() { Name = new string('a', 41) }, default)).Code);
-            this._user.SetupGet(x => x.IsAdmin).Returns(false);
+            _ = this._user.SetupGet(x => x.IsAdmin).Returns(false);
             Assert.Equal(403, (await this._symbols.CreateCategory(new() { Name = "Nicht erlaubt" }, default)).Code);
             Assert.Equal(5, await this._db.MapSymbolCategories.CountAsync());
         }
@@ -501,7 +501,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             UpsertMapElementRequest update = this.Write(symbol.Id.ToString(), reloaded.Id, reloaded.Version);
             update.RadioCallName = null;
             Assert.Equal(400, (await this._map.UpsertElement(this._incidentId, update, default)).Code);
-            Assert.Single(await this._db.MapAuditEvents.ToListAsync());
+            _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
             UpsertMapElementRequest newPlacement = this.Write(symbol.Id.ToString());
             newPlacement.RadioCallName = null;
             Assert.False(Assert.IsType<MapElementResponse>((await this._map.UpsertElement(this._incidentId, newPlacement, default)).Value).Element.IsVehicle);
@@ -586,7 +586,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 base.OnModelCreating(modelBuilder);
                 foreach (IMutableSequence? sequence in modelBuilder.Model.GetSequences().ToList())
                 {
-                    modelBuilder.Model.RemoveSequence(sequence.Name, sequence.Schema);
+                    _ = modelBuilder.Model.RemoveSequence(sequence.Name, sequence.Schema);
                 }
             }
         }

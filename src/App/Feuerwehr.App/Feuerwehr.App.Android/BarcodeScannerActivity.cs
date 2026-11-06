@@ -120,7 +120,7 @@ namespace De.Openelp.Feuerwehr.App.Android
 
                 this.RunOnUiThread(() =>
                 {
-                    pending?.TrySetResult(code);
+                    _ = (pending?.TrySetResult(code));
                     this.Finish();
                 });
             }
@@ -187,7 +187,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             else
             {
                 pending = null;
-                completion.TrySetResult(null);
+                _ = completion.TrySetResult(null);
             }
         }
 
@@ -233,7 +233,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             this.session = null;
             this.camera = null;
             this.reader = null;
-            this.thread?.QuitSafely();
+            _ = (this.thread?.QuitSafely());
             this.thread?.Join();
             this.handler?.Dispose();
             this.thread?.Dispose();
@@ -259,7 +259,7 @@ namespace De.Openelp.Feuerwehr.App.Android
 
         protected override void OnDestroy()
         {
-            pending?.TrySetResult(null);
+            _ = (pending?.TrySetResult(null));
             pending = null;
             current = null;
             base.OnDestroy();
@@ -322,7 +322,7 @@ namespace De.Openelp.Feuerwehr.App.Android
 
         private void Fail(string message) => this.RunOnUiThread(() =>
         {
-            pending?.TrySetException(new InvalidOperationException(message));
+            _ = (pending?.TrySetException(new InvalidOperationException(message)));
             this.Finish();
         });
 
@@ -373,7 +373,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                     request.AddTarget(owner.previewSurface!);
                     request.AddTarget(owner.reader!.Surface!);
                     request.Set(CaptureRequest.ControlAfMode!, (int)ControlAFMode.ContinuousPicture);
-                    session.SetRepeatingRequest(request.Build(), null, owner.handler);
+                    _ = session.SetRepeatingRequest(request.Build(), null, owner.handler);
                 }
                 catch (Exception)
                 {

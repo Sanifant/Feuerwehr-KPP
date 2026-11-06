@@ -36,7 +36,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     ((int)hydrant.WaterSource).ToString(CultureInfo.InvariantCulture),
                     ((int)hydrant.Status).ToString(CultureInfo.InvariantCulture), CsvText(hydrant.Notes),
                 };
-                csv.AppendJoin(';', values).Append("\r\n");
+                _ = csv.AppendJoin(';', values).Append("\r\n");
             }
 
             // A UTF-8 BOM lets spreadsheet applications recognize German characters.
@@ -64,7 +64,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }).ToList();
             context.Hydrants.AddRange(entities);
             // One SaveChanges transaction persists the complete file, never individual rows.
-            await context.SaveChangesAsync(cancellationToken);
+            _ = await context.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(new HydrantImportResponse(entities.Count, []));
         }
 
@@ -91,8 +91,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             HydrantEntity entity = new HydrantEntity { Id = value.Id };
             Apply(entity, value);
-            context.Hydrants.Add(entity);
-            context.SaveChanges();
+            _ = context.Hydrants.Add(entity);
+            _ = context.SaveChanges();
             Hydrant dto = ToDto(entity);
             return ServiceResult.CreatedAtAction("Get", new { id = dto.Id }, dto);
         }
@@ -111,7 +111,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             Apply(entity, value);
-            context.SaveChanges();
+            _ = context.SaveChanges();
             return ServiceResult.NoContent();
         }
 
@@ -127,8 +127,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.NotFound();
             }
 
-            context.Hydrants.Remove(entity);
-            context.SaveChanges();
+            _ = context.Hydrants.Remove(entity);
+            _ = context.SaveChanges();
             return ServiceResult.NoContent();
         }
 
