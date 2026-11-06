@@ -3,14 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace De.Openelp.Feuerwehr.Server.Controller
 {
+    /// <summary>
+    /// Maps application service outcomes to MVC responses without coupling services to controllers.
+    /// </summary>
     internal static class ServiceResultExtensions
     {
         /// <summary>
-        /// Executes to Action Result.
+        /// Maps the application's status, payload, location, download, or problem details to an MVC response.
         /// </summary>
-        /// <param name="controller">The controller.</param>
-        /// <param name="result">The result.</param>
-        /// <returns></returns>
+        /// <param name="controller">The MVC controller creating the HTTP response.</param>
+        /// <param name="result">The application outcome to map to an HTTP response.</param>
+        /// <returns>An HTTP response containing the outcome of the service result operation, or validation, authorization, or conflict details on failure.</returns>
         public static ActionResult ToActionResult(this ControllerBase controller, ServiceResult result)
         {
             if (result.Content is not null)

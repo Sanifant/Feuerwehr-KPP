@@ -4,14 +4,16 @@ using De.Openelp.Feuerwehr.App.Models;
 
 namespace De.Openelp.Feuerwehr.App.Services
 {
-    /// <summary>Used until the host registers a platform location implementation.</summary>
+    /// <summary>
+    /// Used until the host registers a platform location implementation.
+    /// </summary>
     public sealed class UnsupportedGpsService : IGpsService
     {
         /// <summary>
-        /// Gets the current Location.
+        /// Requests the device's current location using the platform provider and caller cancellation token.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the device location, or null if location is unavailable or permission is denied.</returns>
         public Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

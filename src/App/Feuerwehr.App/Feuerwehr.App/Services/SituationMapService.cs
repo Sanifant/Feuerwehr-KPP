@@ -13,9 +13,9 @@ namespace De.Openelp.Feuerwehr.App.Services
 {
     // This client deliberately exposes only the two read endpoints, with no lease or mutation calls.
     /// <summary>
-    /// Executes situation Map Service.
+    /// Implements situation map operations for the Avalonia client.
     /// </summary>
-    /// <param name="httpClient">The http Client.</param>
+    /// <param name="httpClient">The HTTP client used to call the backend API.</param>
     public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : ISituationMapService
     {
         private static readonly JsonSerializerOptions JsonOptions = new (JsonSerializerDefaults.Web)
@@ -24,10 +24,10 @@ namespace De.Openelp.Feuerwehr.App.Services
         };
 
         /// <summary>
-        /// Gets the active Incident.
+        /// Retrieves the current active incident, when one exists.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the active incident summary, or null when there is no active incident.</returns>
         public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
@@ -42,11 +42,11 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Gets the state.
+        /// Retrieves the incident's map elements, hydrants, symbols, and current editing lease.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the incident's map elements, hydrants, and current editing lease.</returns>
         public async Task<MapStateResponse> GetStateAsync(Guid incidentId, CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync($"/api/incidents/{incidentId}/map/state", cancellationToken);

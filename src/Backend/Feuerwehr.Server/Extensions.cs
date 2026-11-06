@@ -9,11 +9,20 @@ namespace De.Openelp.Feuerwehr.Server
     // Adds common Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
     // This project should be referenced by each service project in your solution.
     // To learn more about using this project, see https://aka.ms/aspire/service-defaults
+    /// <summary>
+    /// Configures service discovery, resilience, health checks, and OpenTelemetry for the API host.
+    /// </summary>
     public static class Extensions
     {
         private const string HealthEndpointPath = "/health";
         private const string AlivenessEndpointPath = "/alive";
 
+        /// <summary>
+        /// Registers service discovery, HTTP resilience, health checks, and OpenTelemetry defaults.
+        /// </summary>
+        /// <typeparam name="TBuilder">The application builder type, preserved by the configuration extension.</typeparam>
+        /// <param name="builder">The builder whose services and host settings are configured.</param>
+        /// <returns>The same application builder with the requested defaults configured.</returns>
         public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
             _ = builder.ConfigureOpenTelemetry();
@@ -40,6 +49,12 @@ namespace De.Openelp.Feuerwehr.Server
             return builder;
         }
 
+        /// <summary>
+        /// Configures application logging, metrics, tracing, and telemetry export.
+        /// </summary>
+        /// <typeparam name="TBuilder">The application builder type, preserved by the configuration extension.</typeparam>
+        /// <param name="builder">The builder whose services and host settings are configured.</param>
+        /// <returns>The same application builder with the requested defaults configured.</returns>
         public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
             _ = builder.Logging.AddOpenTelemetry(logging =>
@@ -75,6 +90,12 @@ namespace De.Openelp.Feuerwehr.Server
             return builder;
         }
 
+        /// <summary>
+        /// Registers the self health check used by the liveness endpoint.
+        /// </summary>
+        /// <typeparam name="TBuilder">The application builder type, preserved by the configuration extension.</typeparam>
+        /// <param name="builder">The builder whose services and host settings are configured.</param>
+        /// <returns>The same application builder with the requested defaults configured.</returns>
         public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
         {
             _ = builder.Services.AddHealthChecks()
@@ -85,10 +106,10 @@ namespace De.Openelp.Feuerwehr.Server
         }
 
         /// <summary>
-        /// Executes map Default Endpoints.
+        /// Maps development health endpoints and the Prometheus metrics endpoint.
         /// </summary>
-        /// <param name="app">The app.</param>
-        /// <returns></returns>
+        /// <param name="app">The web application receiving the default endpoints.</param>
+        /// <returns>The application with the default endpoints mapped.</returns>
         public static WebApplication MapDefaultEndpoints(this WebApplication app)
         {
             // Adding health checks endpoints to applications in non-development environments has security implications.

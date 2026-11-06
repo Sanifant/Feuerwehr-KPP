@@ -3,12 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Data
 {
+    /// <summary>
+    /// Configures Entity Framework relationships, constraints, and indexes for inventory persistence.
+    /// </summary>
     internal static class InventoryModelConfiguration
     {
         /// <summary>
-        /// Executes configure Inventory.
+        /// Configures inventory entity relationships, constraints, and barcode allocation.
         /// </summary>
-        /// <param name="model">The model.</param>
+        /// <param name="model">The database context or model builder used by this operation.</param>
         public static void ConfigureInventory(this ModelBuilder model)
         {
             _ = model.HasSequence<int>("InventoryBarcodeSequence").StartsAt(1).HasMax(999);

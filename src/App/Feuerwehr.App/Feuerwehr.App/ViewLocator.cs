@@ -17,8 +17,8 @@ namespace De.Openelp.Feuerwehr.App
         /// <summary>
         /// Builds the operation.
         /// </summary>
-        /// <param name="param">The param.</param>
-        /// <returns></returns>
+        /// <param name="param">The view model for which to create a view.</param>
+        /// <returns>The resolved view, or a diagnostic control if the matching view type cannot be found.</returns>
         public Control? Build(object? param)
         {
             if (param is null)
@@ -38,10 +38,10 @@ namespace De.Openelp.Feuerwehr.App
         }
 
         /// <summary>
-        /// Executes match.
+        /// Determines whether the supplied object is a view model supported by the view locator.
         /// </summary>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
+        /// <param name="data">The data object to test against the supported view-model types.</param>
+        /// <returns>True if the data is a supported view model; otherwise, false.</returns>
         public bool Match(object? data)
         {
             return data is ViewModelBase;

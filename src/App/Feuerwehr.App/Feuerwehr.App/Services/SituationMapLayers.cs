@@ -13,13 +13,16 @@ using NetTopologySuite.Geometries;
 
 namespace De.Openelp.Feuerwehr.App.Services
 {
+    /// <summary>
+    /// Builds Mapsui layers from situation-map geometries, symbols, and hydrant coordinates.
+    /// </summary>
     public static class SituationMapLayers
     {
         /// <summary>
-        /// Creates the elements.
+        /// Projects map-element GeoJSON into Mapsui features with symbols, colors, and labels.
         /// </summary>
-        /// <param name="elements">The elements.</param>
-        /// <returns></returns>
+        /// <param name="elements">The situation-map elements whose GeoJSON and display attributes form the layer.</param>
+        /// <returns>A Mapsui layer containing the projected map elements and their display styles.</returns>
         public static MemoryLayer CreateElements(IEnumerable<MapElementDto> elements)
         {
             List<IFeature> features = new ();
@@ -77,10 +80,10 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Creates the hydrants.
+        /// Projects hydrant locations into a Mapsui point layer.
         /// </summary>
-        /// <param name="hydrants">The hydrants.</param>
-        /// <returns></returns>
+        /// <param name="hydrants">The hydrant locations to project into the map layer.</param>
+        /// <returns>A Mapsui layer containing the projected hydrant points.</returns>
         public static MemoryLayer CreateHydrants(IEnumerable<MapHydrantDto> hydrants)
         {
             return new MemoryLayer

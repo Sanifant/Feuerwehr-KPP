@@ -5,31 +5,31 @@ namespace De.Openelp.Feuerwehr.Server.Services
 {
 
     /// <summary>
-    /// Executes mail Service.
+    /// Implements mail operations for the API application layer.
     /// </summary>
-    /// <param name="client">The client.</param>
-    /// <param name="settings">The settings.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="client">The authenticated HTTP client used by the test scenario.</param>
+    /// <param name="settings">The resolved configuration settings used by this component.</param>
+    /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
     public sealed class MailService(ISmtpClient client, SmtpSettings settings, ILogger<MailService> logger) : IMailService, IHtmlMailService
     {
         /// <summary>
-        /// Sends the operation.
+        /// Sends the supplied email notification through the configured SMTP server.
         /// </summary>
-        /// <param name="recipient">The recipient.</param>
-        /// <param name="subject">The subject.</param>
-        /// <param name="body">The body.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="recipient">The destination email address.</param>
+        /// <param name="subject">The email subject line.</param>
+        /// <param name="body">The plain-text email body.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public Task SendAsync(string recipient, string subject, string body) =>
             this.SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
 
         /// <summary>
-        /// Sends the html.
+        /// Sends a multipart email with plain-text and HTML bodies and the embedded application logo.
         /// </summary>
-        /// <param name="recipient">The recipient.</param>
-        /// <param name="subject">The subject.</param>
-        /// <param name="textBody">The text Body.</param>
-        /// <param name="htmlBody">The html Body.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="recipient">The destination email address.</param>
+        /// <param name="subject">The email subject line.</param>
+        /// <param name="textBody">The plain-text version of the email body.</param>
+        /// <param name="htmlBody">The HTML version of the email body.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody)
         {
             BodyBuilder builder = new ()

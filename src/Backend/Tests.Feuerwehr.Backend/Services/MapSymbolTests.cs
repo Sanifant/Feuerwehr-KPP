@@ -22,6 +22,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests map symbol behavior and its expected outcomes.
+    /// </summary>
     public sealed class MapSymbolTests : IAsyncLifetime
     {
         private const string Svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 50'><rect width='100' height='50' fill='red'/></svg>";
@@ -37,9 +40,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         private readonly Guid _incidentId = Guid.NewGuid();
 
         /// <summary>
-        /// Initializes the operation.
+        /// Loads the Avalonia application resources and styles.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task InitializeAsync()
         {
             await this._connection.OpenAsync();
@@ -69,10 +72,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = await this._db.SaveChangesAsync();
         }
 
-        [Fact]
         /// <summary>
-        /// Executes catalog Has Four Categories And Stores Validated Svg With Consistent Dimensions.
+        /// Verifies that catalog has four categories and stores validated SVG with consistent dimensions.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CatalogHasFourCategoriesAndStoresValidatedSvgWithConsistentDimensions()
         {
             Assert.Equal(MapSymbolCategories.All.OrderBy(x => x), Assert.IsAssignableFrom<IEnumerable<string>>((await this._symbols.GetCategories(default)).Value));
@@ -90,10 +94,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(4, await this._db.MapSymbols.CountAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes svg Allows Internal Gradients Styles And Editor Metadata.
+        /// Verifies that SVG allows internal gradients styles and editor metadata.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task SvgAllowsInternalGradientsStylesAndEditorMetadata()
         {
             const string svg = "<svg xmlns='http://www.w3.org/2000/svg' width='32px' height='32px'><metadata><data xmlns='urn:metadata'>Editor</data></metadata><style>.a{fill:url(#red);stroke:#000}</style><defs><linearGradient id='red'><stop offset='0' stop-color='red'/></linearGradient></defs><path class='a' d='M0 0 L32 32'/></svg>";
@@ -104,17 +109,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Contains("viewBox=\"0 0 32 32\"", saved.SvgContent);
         }
 
+        /// <summary>
+        /// Verifies that embedded raster can be uploaded listed and placed on the map.
+        /// </summary>
+        /// <param name="referenceAttribute">The SVG attribute containing the reference under test.</param>
+        /// <param name="format">The markup or encoding format to validate.</param>
+        /// <param name="data">The data object to test against the supported view-model types.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("href", "png", Png)]
         [InlineData("xlink:href", "png", Png)]
         [InlineData("href", "jpeg", Jpeg)]
         [InlineData("xlink:href", "jpeg", Jpeg)]
-        /// <summary>
-        /// Executes embedded Raster Can Be Uploaded Listed And Placed On The Map.
-        /// </summary>
-        /// <param name="referenceAttribute">The reference Attribute.</param>
-        /// <param name="format">The format.</param>
-        /// <param name="data">The data.</param>
         public async Task EmbeddedRasterCanBeUploadedListedAndPlacedOnTheMap(string referenceAttribute, string format, string data)
         {
             string svg = $"<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 32 32'><image width='32' height='32' {referenceAttribute}='data:image/{format};base64,{data}'/></svg>";
@@ -130,6 +136,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(saved.SvgContent, (await this._db.MapElements.SingleAsync()).SymbolSvg);
         }
 
+        /// <summary>
+        /// Verifies that embedded images reject external active mislabeled and invalid content.
+        /// </summary>
+        /// <param name="reference">The SVG reference value to test for unsafe content.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("https://example.org/image.png")]
         [InlineData("//example.org/image.png")]
@@ -143,10 +154,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [InlineData("data:image/png;base64,not-base64!")]
         [InlineData("data:image/png;base64,")]
         [InlineData("data:image/png,%89PNG")]
-        /// <summary>
-        /// Executes embedded Images Reject External Active Mislabeled And Invalid Content.
-        /// </summary>
-        /// <param name="reference">The reference.</param>
         public async Task EmbeddedImagesRejectExternalActiveMislabeledAndInvalidContent(string reference)
         {
             string svg = $"<svg viewBox='0 0 32 32'><image href='{reference}'/></svg>";
@@ -154,10 +161,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(await this._db.MapSymbols.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes embedded Raster Data Remains Disallowed For Use Elements.
+        /// Verifies that embedded raster data remains disallowed for use elements.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task EmbeddedRasterDataRemainsDisallowedForUseElements()
         {
             string svg = $"<svg viewBox='0 0 32 32'><use href='data:image/png;base64,{Png}'/></svg>";
@@ -165,6 +173,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(await this._db.MapSymbols.ToListAsync());
         }
 
+        /// <summary>
+        /// Verifies that upload rejects active external or invalid SVG.
+        /// </summary>
+        /// <param name="svg">The SVG markup supplied to the symbol validator.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("<svg viewBox='0 0 10 10'><script>alert(1)</script></svg>")]
         [InlineData("<svg viewBox='0 0 10 10' onload='alert(1)'/>")]
@@ -176,20 +189,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [InlineData("<html>Not SVG</html>")]
         [InlineData("\u0089PNG\r\n\u001a\n")]
         [InlineData("<svg viewBox='0 0 0 10'/>")]
-        /// <summary>
-        /// Executes upload Rejects Active External Or Invalid Svg.
-        /// </summary>
-        /// <param name="svg">The svg.</param>
         public async Task UploadRejectsActiveExternalOrInvalidSvg(string svg)
         {
             Assert.Equal(400, (await this._symbols.Save(null, SymbolRequest(svg), default)).Code);
             Assert.Empty(await this._db.MapSymbols.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes upload Checks Size Category And Admin Role And Hides Inactive Symbols For Viewers.
+        /// Verifies that upload checks size category and admin role and hides inactive symbols for viewers.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UploadChecksSizeCategoryAndAdminRoleAndHidesInactiveSymbolsForViewers()
         {
             Assert.Equal(400, (await this._symbols.Save(null, SymbolRequest(new string('x', 262145)), default)).Code);
@@ -204,10 +214,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(Assert.IsAssignableFrom<IEnumerable<MapSymbolDto>>((await this._symbols.GetSymbols(default)).Value));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes symbol Can Be Placed Moved Reloaded And Deleted With Consistent Audit And Idempotency.
+        /// Verifies that symbol can be placed moved reloaded and deleted with consistent audit and idempotency.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task SymbolCanBePlacedMovedReloadedAndDeletedWithConsistentAuditAndIdempotency()
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -244,10 +255,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(3, await this._db.OutboxMessages.CountAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes catalog Changes Do Not Alter Existing Symbols And Inactive Symbols Cannot Be Placed Again.
+        /// Verifies that catalog changes do not alter existing symbols and inactive symbols cannot be placed again.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CatalogChangesDoNotAlterExistingSymbolsAndInactiveSymbolsCannotBePlacedAgain()
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -261,10 +273,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal("Feuerwehr", moved.Element.Category);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes moves And Deletes Respect Versions And Editing Leases.
+        /// Verifies that moves and deletes respect versions and editing leases.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task MovesAndDeletesRespectVersionsAndEditingLeases()
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -283,17 +296,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
 
+        /// <summary>
+        /// Verifies that catalog HTTP permissions separate viewing and administration.
+        /// </summary>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="canView">The expected can view flag for this test case.</param>
+        /// <param name="canManage">The expected can manage flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("Admin", true, true)]
         [InlineData("SituationMapEditor", true, false)]
         [InlineData("SituationMapViewer", true, false)]
         [InlineData("Commander", false, false)]
-        /// <summary>
-        /// Executes catalog Http Permissions Separate Viewing And Administration.
-        /// </summary>
-        /// <param name="role">The role.</param>
-        /// <param name="canView">The can View.</param>
-        /// <param name="canManage">The can Manage.</param>
         public async Task CatalogHttpPermissionsSeparateViewingAndAdministration(string role, bool canView, bool canManage)
         {
             ServiceCollection services = new ();
@@ -311,10 +325,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes polygon Is Saved With Audit And Idempotency Under The Npgsql Retry Strategy.
+        /// Verifies that polygon is saved with audit and idempotency under the npgsql retry strategy.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PolygonIsSavedWithAuditAndIdempotencyUnderTheNpgsqlRetryStrategy()
         {
             UpsertMapElementRequest command = this.Write(string.Empty, geometry: "{\"type\":\"Polygon\",\"coordinates\":[[[10,51],[10.1,51],[10.1,51.1],[10,51]]]}");
@@ -337,13 +352,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
 
+        /// <summary>
+        /// Verifies that retrying creation after an uncertain commit does not duplicate elements or audit.
+        /// </summary>
+        /// <param name="committed">The expected committed flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        /// <summary>
-        /// Executes retrying Creation After An Uncertain Commit Does Not Duplicate Elements Or Audit.
-        /// </summary>
-        /// <param name="committed">The committed.</param>
         public async Task RetryingCreationAfterAnUncertainCommitDoesNotDuplicateElementsOrAudit(bool committed)
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -361,10 +377,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = Assert.Single(await this._db.ProcessedCommands.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes retrying A Move Reloads The Original Version After Rollback.
+        /// Verifies that retrying a move reloads the original version after rollback.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task RetryingAMoveReloadsTheOriginalVersionAfterRollback()
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -384,14 +401,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(2, await this._db.ProcessedCommands.CountAsync());
         }
 
+        /// <summary>
+        /// Verifies that symbols require a call name without persisting partial changes.
+        /// </summary>
+        /// <param name="callName">The display name of the associated call.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        /// <summary>
-        /// Executes symbols Require A Call Name Without Persisting Partial Changes.
-        /// </summary>
-        /// <param name="callName">The call Name.</param>
         public async Task SymbolsRequireACallNameWithoutPersistingPartialChanges(string? callName)
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -405,10 +423,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(await this._db.OutboxMessages.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes symbol Details Are Persisted And The Call Name Cannot Be Cleared.
+        /// Verifies that symbol details are persisted and the call name cannot be cleared.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task SymbolDetailsArePersistedAndTheCallNameCannotBeCleared()
         {
             MapSymbolDto symbol = Assert.IsType<MapSymbolDto>((await this._symbols.Save(null, SymbolRequest(), default)).Value);
@@ -431,10 +450,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes custom Categories Persist And Can Be Used For Symbols.
+        /// Verifies that custom categories persist and can be used for symbols.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CustomCategoriesPersistAndCanBeUsedForSymbols()
         {
             ServiceResult created = await this._symbols.CreateCategory(new () { Name = "  Technische Hilfe  " }, default);
@@ -454,13 +474,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(5, await this._db.MapSymbolCategories.CountAsync());
         }
 
+        /// <summary>
+        /// Verifies that non vehicle symbols can be placed and moved without details.
+        /// </summary>
+        /// <param name="callName">The display name of the associated call.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(null)]
         [InlineData("Unnötiger Funkrufname")]
-        /// <summary>
-        /// Executes non Vehicle Symbols Can Be Placed And Moved Without Details.
-        /// </summary>
-        /// <param name="callName">The call Name.</param>
         public async Task NonVehicleSymbolsCanBePlacedAndMovedWithoutDetails(string? callName)
         {
             SaveMapSymbolRequest request = SymbolRequest();
@@ -485,10 +506,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(2, await this._db.MapAuditEvents.CountAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes vehicle Flag Is Editable And Placed Elements Keep Their Vehicle Rules.
+        /// Verifies that vehicle flag is editable and placed elements keep their vehicle rules.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task VehicleFlagIsEditableAndPlacedElementsKeepTheirVehicleRules()
         {
             SaveMapSymbolRequest request = SymbolRequest();
@@ -510,9 +532,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this map symbol component.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task DisposeAsync()
         {
             await this._db.DisposeAsync();
@@ -536,21 +558,34 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 RadioCallName = "Florian 1",
             };
 
+        /// <summary>
+        /// Injects transaction-commit failures to exercise retry behavior and atomic booking changes.
+        /// </summary>
         private sealed class TransientCommitFailure : DbTransactionInterceptor
         {
+            /// <summary>
+            /// Gets or sets a value indicating whether before commit is enabled for this transient commit failure.
+            /// </summary>
             public bool BeforeCommit { get; set; }
 
+            /// <summary>
+            /// Gets or sets a value indicating whether after commit is enabled for this transient commit failure.
+            /// </summary>
             public bool AfterCommit { get; set; }
 
+            /// <summary>
+            /// Gets the number of injected transaction failures.
+            /// </summary>
             public int Failures { get; private set; }
 
             /// <summary>
-            /// Executes transaction Committing.
+            /// Injects the configured transient failure when a transaction attempts to commit.
             /// </summary>
-            /// <param name="transaction">The transaction.</param>
-            /// <param name="eventData">The event Data.</param>
-            /// <param name="result">The result.</param>
-            /// <param name="cancellationToken">The cancellation Token.</param>
+            /// <param name="transaction">The database transaction observed by the test interceptor.</param>
+            /// <param name="eventData">The Entity Framework transaction event data.</param>
+            /// <param name="result">The application outcome to map to an HTTP response.</param>
+            /// <param name="cancellationToken">A token that cancels the operation.</param>
+            /// <returns>A task whose result is the transaction interception result after applying the simulated failure behavior.</returns>
             public override ValueTask<InterceptionResult> TransactionCommittingAsync(DbTransaction transaction, TransactionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default)
             {
                 if (this.BeforeCommit)
@@ -564,11 +599,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
 
             /// <summary>
-            /// Executes transaction Committed.
+            /// Tracks transaction completion for the simulated commit-failure scenario.
             /// </summary>
-            /// <param name="transaction">The transaction.</param>
-            /// <param name="eventData">The event Data.</param>
-            /// <param name="cancellationToken">The cancellation Token.</param>
+            /// <param name="transaction">The database transaction observed by the test interceptor.</param>
+            /// <param name="eventData">The Entity Framework transaction event data.</param>
+            /// <param name="cancellationToken">A token that cancels the operation.</param>
+            /// <returns>A task that completes when the scenario and its assertions finish.</returns>
             public override Task TransactionCommittedAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
             {
                 if (this.AfterCommit)
@@ -584,8 +620,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
         // SQLite exercises transactions with the real Npgsql retry strategy (including its
         // transaction guard). This does not replace a PostgreSQL integration/sequence test.
+        /// <summary>
+        /// Owns an isolated SQLite database context used by service tests.
+        /// </summary>
+        /// <param name="options">The options to configure for the application's policies or services.</param>
         private sealed class SqliteTestContext(DbContextOptions<FeuerwehrDbContext> options) : FeuerwehrDbContext(options)
         {
+            /// <summary>
+            /// Configures Identity and application entity mappings, relationships, indexes, and concurrency tokens.
+            /// </summary>
+            /// <param name="modelBuilder">The Entity Framework model builder receiving the entity configuration.</param>
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 base.OnModelCreating(modelBuilder);

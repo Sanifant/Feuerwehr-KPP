@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes vehicle Mail Dispatcher.
+    /// Sends queued vehicle reservation notifications and persists delivery or retry information.
     /// </summary>
-    /// <param name="db">The db.</param>
-    /// <param name="mail">The mail.</param>
-    /// <param name="clock">The clock.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="db">The database context for querying and persisting application records.</param>
+    /// <param name="mail">The mail service used to send account or operational notifications.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
+    /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
     public sealed class VehicleMailDispatcher(
         FeuerwehrDbContext db,
         IHtmlMailService mail,
@@ -18,10 +18,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         ILogger<VehicleMailDispatcher> logger) : IVehicleMailDispatcher
     {
         /// <summary>
-        /// Executes dispatch.
+        /// Delivers pending vehicle reservation emails and records successful delivery or a scheduled retry.
         /// </summary>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task Dispatch(CancellationToken ct)
         {
             DateTime now = clock.GetUtcNow().UtcDateTime;

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Validates authentication requests, account lockouts, token renewal, and password changes.
+    /// </summary>
     public sealed class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -14,6 +17,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthService" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="userManager">The Identity user manager used to load and update accounts.</param>
+        /// <param name="signInManager">The sign-in manager used to verify passwords and enforce account lockout.</param>
+        /// <param name="invitations">The service that sends password invitations for newly created or re-invited users.</param>
+        /// <param name="tokenService">The token service used to issue or revoke session credentials.</param>
+        /// <param name="configuration">The application configuration containing connection, authentication, and frontend settings.</param>
         public AuthService(
                 UserManager<ApplicationUser> userManager,
                 SignInManager<ApplicationUser> signInManager,
@@ -29,10 +40,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Login with email and password.
+        /// Authenticates the supplied email and password and establishes a session subject to account activation and lockout checks.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The login input to validate and apply.</param>
+        /// <returns>A task whose result is an application result containing the access and refresh credentials and user profile, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Login(LoginRequest request)
         {
 
@@ -89,11 +100,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Refresh access token using refresh token.
+        /// Renews the authenticated session after validating the refresh token and account state.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="bearerToken">The bearer Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The refresh token input to validate and apply.</param>
+        /// <param name="bearerToken">The access token accompanying the refresh request.</param>
+        /// <returns>A task whose result is an application result containing the renewed session credentials, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> RefreshToken(RefreshTokenRequest request, string bearerToken)
         {
 
@@ -150,17 +161,18 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes reset Password.
+        /// Assigns a password after validating the invitation identifier and matching account email.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The reset input to validate and apply.</param>
+        /// <returns>A task whose result is an application result containing the password assignment or change outcome, or validation, authorization, or conflict details on failure.</returns>
         public Task<ServiceResult> ResetPassword(ResetRequest request) => this._invitations.CompleteAsync(request);
 
         /// <summary>
-        /// Executes change Password.
+        /// Verifies the current password with lockout tracking and changes the authenticated user's password.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="currentUserId">The current User Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The change password input to validate and apply.</param>
+        /// <param name="currentUserId">The authenticated caller's identifier, used for ownership and self-deletion checks.</param>
+        /// <returns>A task whose result is an application result containing the password assignment or change outcome, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
         {
             if (string.IsNullOrWhiteSpace(currentUserId))
@@ -205,10 +217,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Logout and revoke refresh token.
+        /// Revokes the current session's refresh token and signs the user out.
         /// </summary>
-        /// <param name="currentUserId">The current User Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="currentUserId">The authenticated caller's identifier, used for ownership and self-deletion checks.</param>
+        /// <returns>A task whose result is an application result containing the outcome of the authentication operation, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Logout(string? currentUserId)
         {
             string? userId = currentUserId;
@@ -224,10 +236,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Get current user info.
+        /// Retrieves the authenticated user's profile and assigned roles.
         /// </summary>
-        /// <param name="currentUserId">The current User Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="currentUserId">The authenticated caller's identifier, used for ownership and self-deletion checks.</param>
+        /// <returns>A task whose result is an application result containing the user profile and assigned roles, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetCurrentUser(string? currentUserId)
         {
             string? userId = currentUserId;

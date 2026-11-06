@@ -12,8 +12,18 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
+    /// <summary>
+    /// Tests hydrant import controller behavior and its expected outcomes.
+    /// </summary>
     public class HydrantImportControllerTests
     {
+        /// <summary>
+        /// Verifies that CSV policy only allows admins.
+        /// </summary>
+        /// <param name="methodName">The display name of the associated method.</param>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="allowed">The expected allowed flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("Import", "Admin", true)]
         [InlineData("Import", "Commander", false)]
@@ -25,12 +35,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         [InlineData("Export", "Firefighter", false)]
         [InlineData("Export", "Viewer", false)]
         [InlineData("Export", null, false)]
-        /// <summary>
-        /// Executes csv Policy Only Allows Admins.
-        /// </summary>
-        /// <param name="methodName">The method Name.</param>
-        /// <param name="role">The role.</param>
-        /// <param name="allowed">The allowed.</param>
         public async Task CsvPolicy_OnlyAllowsAdmins(string methodName, string? role, bool allowed)
         {
             ServiceCollection services = new ();
@@ -51,10 +55,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(allowed, result.Succeeded);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes export Returns Csv Download And Passes Cancellation.
+        /// Verifies that export returns CSV download and passes cancellation.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Export_ReturnsCsvDownloadAndPassesCancellation()
         {
             Mock<IHydrantService> service = new ();
@@ -70,10 +75,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             service.Verify(s => s.ExportAsync(cancellation.Token), Times.Once);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes missing Empty Or Oversized File Does Not Call The Service.
+        /// Verifies that missing empty or oversized file does not call the service.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task MissingEmptyOrOversizedFile_DoesNotCallTheService()
         {
             Mock<IHydrantService> service = new (MockBehavior.Strict);
@@ -87,10 +93,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             service.VerifyNoOtherCalls();
         }
 
-        [Fact]
         /// <summary>
-        /// Executes file Stream And Cancellation Are Passed To The Service.
+        /// Verifies that file stream and cancellation are passed to the service.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task FileStreamAndCancellation_ArePassedToTheService()
         {
             Mock<IHydrantService> service = new ();

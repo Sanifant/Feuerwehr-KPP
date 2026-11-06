@@ -5,17 +5,18 @@ using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Collection(IntegrationTestCollection.Name)]
     /// <summary>
-    /// Executes auth Integration Tests.
+    /// Tests auth integration behavior and its expected outcomes.
     /// </summary>
-    /// <param name="fixture">The fixture.</param>
+    /// <param name="fixture">The shared test fixture providing application and database infrastructure.</param>
+    [Collection(IntegrationTestCollection.Name)]
     public sealed class AuthIntegrationTests(IntegrationTestFixture fixture)
     {
-        [Fact]
         /// <summary>
-        /// Executes login With Seeded Admin Returns Access And Refresh Token.
+        /// Verifies that login with seeded admin returns access and refresh token.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Login_WithSeededAdmin_ReturnsAccessAndRefreshToken()
         {
             HttpResponseMessage response = await fixture.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest

@@ -7,63 +7,149 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Data
 {
+    /// <summary>
+    /// Provides Identity and application persistence for hydrants, incidents, inventory, and vehicle reservations.
+    /// </summary>
     public class FeuerwehrDbContext : IdentityDbContext<ApplicationUser>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FeuerwehrDbContext" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="options">The options to configure for the application's policies or services.</param>
         public FeuerwehrDbContext(DbContextOptions<FeuerwehrDbContext> options)
             : base(options)
         {
         }
 
+        /// <summary>
+        /// Gets or sets the database set of hydrants.
+        /// </summary>
         public DbSet<Hydrant> Hydrants { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of fire departments.
+        /// </summary>
         public DbSet<FireDepartment> FireDepartments { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of training courses.
+        /// </summary>
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of fire department training courses.
+        /// </summary>
         public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of incidents.
+        /// </summary>
         public DbSet<Incident> Incidents { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of map elements.
+        /// </summary>
         public DbSet<MapElement> MapElements { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of map symbols.
+        /// </summary>
         public DbSet<MapSymbol> MapSymbols { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of map symbol categories.
+        /// </summary>
         public DbSet<MapSymbolCategory> MapSymbolCategories { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of map audit events.
+        /// </summary>
         public DbSet<MapAuditEvent> MapAuditEvents { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of editor leases.
+        /// </summary>
         public DbSet<EditorLease> EditorLeases { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of diary categories.
+        /// </summary>
         public DbSet<DiaryCategory> DiaryCategories { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of diary entries.
+        /// </summary>
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of diary entry revisions.
+        /// </summary>
         public DbSet<DiaryEntryRevision> DiaryEntryRevisions { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of processed commands.
+        /// </summary>
         public DbSet<ProcessedCommand> ProcessedCommands { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of outbox messages.
+        /// </summary>
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of inventory categories.
+        /// </summary>
         public DbSet<InventoryCategory> InventoryCategories { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of equipment types.
+        /// </summary>
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
 
+        /// <summary>
+        /// Gets or sets the equipment record associated with this feuerwehr db context.
+        /// </summary>
         public DbSet<Equipment> Equipment { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of equipment inspections.
+        /// </summary>
         public DbSet<EquipmentInspection> EquipmentInspections { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of equipment reminder deliveries.
+        /// </summary>
         public DbSet<EquipmentReminderDelivery> EquipmentReminderDeliveries { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of vehicles.
+        /// </summary>
         public DbSet<Vehicle> Vehicles { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of vehicle reservations.
+        /// </summary>
         public DbSet<VehicleReservation> VehicleReservations { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of vehicle booking days.
+        /// </summary>
         public DbSet<VehicleBookingDay> VehicleBookingDays { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of vehicle events.
+        /// </summary>
         public DbSet<VehicleEvent> VehicleEvents { get; set; }
 
+        /// <summary>
+        /// Gets or sets the database set of vehicle mail messages.
+        /// </summary>
         public DbSet<VehicleMailMessage> VehicleMailMessages { get; set; }
 
+        /// <summary>
+        /// Configures Identity and application entity mappings, relationships, indexes, and concurrency tokens.
+        /// </summary>
+        /// <param name="modelBuilder">The Entity Framework model builder receiving the entity configuration.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

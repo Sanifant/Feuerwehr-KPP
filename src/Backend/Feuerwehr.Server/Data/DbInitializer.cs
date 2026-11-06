@@ -6,13 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Data
 {
+    /// <summary>
+    /// Seeds application roles, initial users, and reference data when the API starts.
+    /// </summary>
     public static class DbInitializer
     {
         /// <summary>
-        /// Executes seed Data.
+        /// Ensures the initial roles, users, and application reference data exist.
         /// </summary>
-        /// <param name="serviceProvider">The service Provider.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="serviceProvider">The root service provider used to create a scope for background work.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public static async Task SeedDataAsync(IServiceProvider serviceProvider)
         {
             RoleManager<IdentityRole> roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();

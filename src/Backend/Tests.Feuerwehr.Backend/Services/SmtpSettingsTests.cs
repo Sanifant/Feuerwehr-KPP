@@ -4,22 +4,26 @@ using Microsoft.Extensions.Configuration;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests smtp settings behavior and its expected outcomes.
+    /// </summary>
     public class SmtpSettingsTests
     {
         /// <summary>
-        /// Executes read.
+        /// Parses smtp settings rows from the import stream and reports format or field validation errors.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="values">The configuration key-value pairs supplied for the SMTP resolution scenario.</param>
+        /// <returns>The resolved SMTP host, port, sender, and transport settings.</returns>
         public static SmtpSettings Read(Dictionary<string, string?> values) => SmtpSettings.FromConfiguration(
             new ConfigurationBuilder().AddInMemoryCollection(values).Build());
 
+        /// <summary>
+        /// Verifies that settings use aspire mailpit endpoint.
+        /// </summary>
+        /// <param name="connectionString">The SMTP connection string to parse in this scenario.</param>
         [Theory]
         [InlineData("smtp://mailpit:32781")]
         [InlineData("endpoint=smtp://mailpit:32781")]
-        /// <summary>
-        /// Executes settings Use Aspire Mailpit Endpoint.
-        /// </summary>
-        /// <param name="connectionString">The connection String.</param>
         public void Settings_UseAspireMailpitEndpoint(string connectionString)
         {
             SmtpSettings settings = Read(new () { ["ConnectionStrings:mail"] = connectionString });
@@ -30,10 +34,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(settings.Password);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes settings Read All Provider Environment Keys And Override Old Aspire Configuration.
+        /// Verifies that settings read all provider environment keys and override old aspire configuration.
         /// </summary>
+        [Fact]
         public void Settings_ReadAllProviderEnvironmentKeysAndOverrideOldAspireConfiguration()
         {
             SmtpSettings settings = Read(new ()
@@ -59,19 +63,19 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(45000, settings.TimeoutMilliseconds);
         }
 
+        /// <summary>
+        /// Verifies that provider defaults require encryption.
+        /// </summary>
+        /// <param name="port">The SMTP server port.</param>
+        /// <param name="security">The transport security mode for the SMTP connection.</param>
+        /// <param name="expected">The expected result or value for the scenario.</param>
+        /// <param name="expectedPort">The SMTP port expected after connection-string parsing.</param>
         [Theory]
         [InlineData("465", null, SecureSocketOptions.SslOnConnect, 465)]
         [InlineData("587", null, SecureSocketOptions.StartTls, 587)]
         [InlineData(null, null, SecureSocketOptions.StartTls, 587)]
         [InlineData(null, "sslonconnect", SecureSocketOptions.SslOnConnect, 465)]
         [InlineData(null, "STARTTLS", SecureSocketOptions.StartTls, 587)]
-        /// <summary>
-        /// Executes provider Defaults Require Encryption.
-        /// </summary>
-        /// <param name="port">The port.</param>
-        /// <param name="security">The security.</param>
-        /// <param name="expected">The expected.</param>
-        /// <param name="expectedPort">The expected Port.</param>
         public void ProviderDefaults_RequireEncryption(string? port, string? security, SecureSocketOptions expected, int expectedPort)
         {
             SmtpSettings settings = Read(new () { ["MAIL_HOST"] = "smtp.example.org", ["MAIL_PORT"] = port, ["MAIL_SECURITY"] = security });
@@ -79,10 +83,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(expectedPort, settings.Port);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes local Defaults And Legacy Sender Remain Supported.
+        /// Verifies that local defaults and legacy sender remain supported.
         /// </summary>
+        [Fact]
         public void LocalDefaultsAndLegacySender_RemainSupported()
         {
             SmtpSettings settings = Read(new () { ["Mail:From"] = "legacy@example.org" });
@@ -93,10 +97,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(30000, settings.TimeoutMilliseconds);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes empty Provider Values Allow App Host To Force Mailpit When Provider Credentials Are Inherited.
+        /// Verifies that empty provider values allow app host to force mailpit when provider credentials are inherited.
         /// </summary>
+        [Fact]
         public void EmptyProviderValues_AllowAppHostToForceMailpitWhenProviderCredentialsAreInherited()
         {
             SmtpSettings settings = Read(new ()
@@ -115,6 +119,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(settings.Username);
         }
 
+        /// <summary>
+        /// Verifies that invalid settings are rejected.
+        /// </summary>
+        /// <param name="key">The key identifying the securely stored value.</param>
+        /// <param name="value">The string value to process.</param>
         [Theory]
         [InlineData("MAIL_PORT", "abc")]
         [InlineData("MAIL_PORT", "0")]
@@ -125,27 +134,22 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [InlineData("MAIL_SECURITY", "StartTlsWhenAvailable")]
         [InlineData("MAIL_SECURITY", "3")]
         [InlineData("MAIL_FROM", "invalid address")]
-        /// <summary>
-        /// Executes invalid Settings Are Rejected.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
         public void InvalidSettings_AreRejected(string key, string value)
         {
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => Read(new () { [key] = value }));
             Assert.Contains(key, exception.Message);
         }
 
+        /// <summary>
+        /// Verifies that incomplete or unencrypted credentials are rejected without leaking password.
+        /// </summary>
+        /// <param name="username">The user's login name.</param>
+        /// <param name="password">The password supplied for authentication.</param>
+        /// <param name="security">The transport security mode for the SMTP connection.</param>
         [Theory]
         [InlineData("user@example.org", null, "StartTls")]
         [InlineData(null, "secret-value", "StartTls")]
         [InlineData("user@example.org", "secret-value", "None")]
-        /// <summary>
-        /// Executes incomplete Or Unencrypted Credentials Are Rejected Without Leaking Password.
-        /// </summary>
-        /// <param name="username">The username.</param>
-        /// <param name="password">The password.</param>
-        /// <param name="security">The security.</param>
         public void IncompleteOrUnencryptedCredentials_AreRejectedWithoutLeakingPassword(string? username, string? password, string security)
         {
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => Read(new ()
@@ -157,10 +161,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.DoesNotContain("secret-value", exception.ToString());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes invalid Connection String Is Rejected Without Leaking Credentials.
+        /// Verifies that invalid connection string is rejected without leaking credentials.
         /// </summary>
+        [Fact]
         public void InvalidConnectionString_IsRejectedWithoutLeakingCredentials()
         {
             InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => Read(new () { ["ConnectionStrings:mail"] = "endpoint=invalid;password=secret-value" }));

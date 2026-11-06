@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes situation Map Service.
+    /// Implements situation map operations for the API application layer.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
-    /// <param name="userContext">The user Context.</param>
-    /// <param name="idempotency">The idempotency.</param>
-    /// <param name="outboxService">The outbox Service.</param>
-    /// <param name="leaseService">The lease Service.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
+    /// <param name="userContext">The accessor for the authenticated caller's identity and permissions.</param>
+    /// <param name="idempotency">The command store that checks retries against their original payloads.</param>
+    /// <param name="outboxService">The service that stages live events in the current database unit of work.</param>
+    /// <param name="leaseService">The service that validates ownership and expiry of map editing leases.</param>
     public sealed class SituationMapService(FeuerwehrDbContext dbContext,
         IUserContextAccessor userContext,
         ICommandIdempotencyService idempotency,
@@ -24,11 +24,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
     {
 
         /// <summary>
-        /// Gets the state.
+        /// Retrieves the incident's map elements, hydrants, symbols, and current editing lease.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the incident's map state and editing lease, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetState(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -63,12 +63,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes acquire Lease.
+        /// Attempts to acquire the incident's map editing lease for the requesting user session.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="request">The acquire lease input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the granted or renewed editing lease, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> AcquireLease(Guid incidentId, AcquireLeaseRequest request, CancellationToken cancellationToken)
         {
 
@@ -146,12 +146,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes heartbeat.
+        /// Renews the editing lease after validating its owner, session, and token.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="request">The lease heartbeat input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the granted or renewed editing lease, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Heartbeat(Guid incidentId, LeaseHeartbeatRequest request, CancellationToken cancellationToken)
         {
 
@@ -190,12 +190,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes release.
+        /// Releases the editing lease owned by the requesting session.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="request">The release lease input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing confirmation of the lease release, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Release(Guid incidentId, ReleaseLeaseRequest request, CancellationToken cancellationToken)
         {
 
@@ -232,12 +232,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes upsert Element.
+        /// Creates or updates a map element after lease and version checks and persists its audit and live event.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="request">The upsert map element input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the map change outcome and updated incident revision, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
             IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
@@ -257,13 +257,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Deletes the element.
+        /// Deletes a map element after lease and version checks while retaining its audit history.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="elementId">The element Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="elementId">The identifier of the map element.</param>
+        /// <param name="request">The delete map element input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the map change outcome and updated incident revision, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> DeleteElement(Guid incidentId, Guid elementId, DeleteMapElementRequest request, CancellationToken cancellationToken)
         {
 
@@ -338,13 +338,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Gets the audit.
+        /// Retrieves a page of situation-map audit events for the incident.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="page">The page.</param>
-        /// <param name="pageSize">The page Size.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="page">The one-based page number to retrieve.</param>
+        /// <param name="pageSize">The maximum number of records to include in a page.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the requested page of map audit events, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetAudit(Guid incidentId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
         {
             page = Math.Max(1, page);
@@ -372,11 +372,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes export Audit Csv.
+        /// Exports the incident's situation-map audit trail as CSV.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken)
         {
             List<MapAuditEvent> events = await dbContext.MapAuditEvents.AsNoTracking()
@@ -389,11 +389,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes export Map Pdf.
+        /// Exports the incident's situation-map information as a PDF document.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);

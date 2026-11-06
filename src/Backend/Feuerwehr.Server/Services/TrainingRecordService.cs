@@ -5,11 +5,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Implements training course operations for the API application layer.
+    /// </summary>
     public sealed class TrainingRecordService : ITrainingRecordService
     {
         private readonly ILogger<TrainingRecordService> _logger;
         private readonly FeuerwehrDbContext _db;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TrainingRecordService" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="dbContext">The database context for the current unit of work.</param>
+        /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
         public TrainingRecordService(FeuerwehrDbContext dbContext, ILogger<TrainingRecordService> logger)
         {
             this._db = dbContext;
@@ -17,11 +25,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves training course records visible to the caller.
         /// </summary>
-        /// <param name="level">The level.</param>
-        /// <param name="title">The title.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="level">The training qualification level.</param>
+        /// <param name="title">The title to include in the response or exported document.</param>
+        /// <returns>A task whose result is an application result containing the matching training course records, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Get(string? level, string? title)
         {
             IQueryable<TrainingCourse> trainingsQuery = this._db.TrainingCourses
@@ -65,10 +73,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves training course records matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the training course to retrieve.</param>
+        /// <returns>A task whose result is an application result containing the matching training course record, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Get(int id)
         {
             TrainingCourse? training = await this._db.TrainingCourses
@@ -99,10 +107,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes post.
+        /// Creates training course records from the validated input.
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="value">The training course data value to process.</param>
+        /// <returns>A task whose result is an application result containing the saved training course record or success status, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Post(TrainingCourseDto value)
         {
             string trimmedTitle = value.Title.Trim();
@@ -172,11 +180,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes put.
+        /// Updates training course records matching the supplied identifier after validating the input.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="value">The value.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the training course to process.</param>
+        /// <param name="value">The training course data value to process.</param>
+        /// <returns>A task whose result is an application result containing the saved training course record or success status, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Put(int id, TrainingCourseDto value)
         {
             TrainingCourse? trainingEntity = await this._db.TrainingCourses
@@ -224,10 +232,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Deletes the operation.
+        /// Deletes the training course record matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the training course to process.</param>
+        /// <returns>A task whose result is an application result containing confirmation that the record was deleted, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Delete(int id)
         {
             TrainingCourse? trainingEntity = await this._db.TrainingCourses

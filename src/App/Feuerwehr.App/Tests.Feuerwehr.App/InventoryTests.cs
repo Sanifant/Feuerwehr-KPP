@@ -8,19 +8,23 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.App
 {
+    /// <summary>
+    /// Tests equipment behavior and its expected outcomes.
+    /// </summary>
     public sealed class InventoryTests
     {
+        /// <summary>
+        /// Verifies that role controls navigation lookup and inspection.
+        /// </summary>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="view">The expected view flag for this test case.</param>
+        /// <param name="manage">The expected manage flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("EquipmentOfficer", true, true)]
         [InlineData("InventoryViewer", true, false)]
         [InlineData("Admin", true, true)]
         [InlineData("Firefighter", false, false)]
-        /// <summary>
-        /// Executes role Controls Navigation Lookup And Inspection.
-        /// </summary>
-        /// <param name="role">The role.</param>
-        /// <param name="view">The view.</param>
-        /// <param name="manage">The manage.</param>
         public async Task RoleControlsNavigationLookupAndInspection(string role, bool view, bool manage)
         {
             Mock<IAuthService> auth = Auth(role);
@@ -34,10 +38,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             service.Verify(x => x.FindBarcodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), view ? Times.Once() : Times.Never());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes camera Result Loads Device And Inspection Uses Its Version And Preserves Retry Command.
+        /// Verifies that camera result loads device and inspection uses its version and preserves retry command.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CameraResultLoadsDeviceAndInspectionUsesItsVersionAndPreservesRetryCommand()
         {
             Mock<IInventoryService> service = new ();
@@ -66,10 +71,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Equal("Dichtung defekt", vm.Comment);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes inactive Device And Role Revocation Prevent Maintenance And Discard Late Lookup.
+        /// Verifies that inactive device and role revocation prevent maintenance and discard late lookup.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task InactiveDeviceAndRoleRevocationPreventMaintenanceAndDiscardLateLookup()
         {
             Mock<IAuthService> auth = Auth("EquipmentOfficer");
@@ -92,10 +98,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             vm.Deactivate();
         }
 
-        [Fact]
         /// <summary>
-        /// Executes client Sends Authenticated Json With String Status And Encodes Barcode.
+        /// Verifies that client sends authenticated JSON with string status and encodes barcode.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ClientSendsAuthenticatedJsonWithStringStatusAndEncodesBarcode()
         {
             InventoryHandler handler = new ();
@@ -140,14 +147,32 @@ namespace De.Openelp.Feuerwehr.Tests.App
                 7), []);
         }
 
+        /// <summary>
+        /// Captures inventory HTTP requests and supplies deterministic API responses to client tests.
+        /// </summary>
         private sealed class InventoryHandler : HttpMessageHandler
         {
+            /// <summary>
+            /// Gets the request path captured by the test HTTP handler.
+            /// </summary>
             public string? Path { get; private set; }
 
+            /// <summary>
+            /// Gets the Authorization header captured from the last client request.
+            /// </summary>
             public string? Authorization { get; private set; }
 
+            /// <summary>
+            /// Gets the JSON request body captured by the test HTTP handler.
+            /// </summary>
             public JsonElement? Payload { get; private set; }
 
+            /// <summary>
+            /// Sends the supplied email notification through the configured SMTP server.
+            /// </summary>
+            /// <param name="request">The HTTP request message input to validate and apply.</param>
+            /// <param name="cancellationToken">A token that cancels the operation.</param>
+            /// <returns>A task whose result is the HTTP response returned by the backend; the caller must dispose it.</returns>
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 this.Path = request.RequestUri!.AbsolutePath;

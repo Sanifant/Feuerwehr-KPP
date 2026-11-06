@@ -3,6 +3,9 @@ using System.Diagnostics;
 namespace De.Openelp.Feuerwehr.Diagnostics
 {
     // Linked into the API and AppHost so each process records its own lifetime independently.
+    /// <summary>
+    /// Records process lifetime events and failures to console output and a rotating local diagnostic log.
+    /// </summary>
     internal sealed class ProcessDiagnostics : IDisposable
     {
         private readonly object _sync = new ();
@@ -22,17 +25,18 @@ namespace De.Openelp.Feuerwehr.Diagnostics
         }
 
         /// <summary>
-        /// Executes start.
+        /// Subscribes to process lifetime events and records startup diagnostics.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="name">The display name of the process diagnostics.</param>
+        /// <returns>The diagnostics subscription to dispose when the process scope ends.</returns>
         public static ProcessDiagnostics Start(string name) => new (name);
 
         /// <summary>
-        /// Executes record.
+        /// Writes a diagnostic event to console output and the rotating process log without propagating logging failures.
         /// </summary>
-        /// <param name="step">The step.</param>
-        /// <param name="details">The details.</param>
-        /// <param name="exception">The exception.</param>
+        /// <param name="step">The lifecycle step or diagnostic event name to record.</param>
+        /// <param name="details">Optional context to include in the diagnostic entry.</param>
+        /// <param name="exception">The failure to include in the diagnostic entry, when present.</param>
         public void Record(string step, string? details = null, Exception? exception = null)
         {
             string text = $"{DateTime.UtcNow:O} [{this._name}] {step}: {details}";
@@ -76,7 +80,7 @@ namespace De.Openelp.Feuerwehr.Diagnostics
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Records diagnostic shutdown and removes process lifetime event subscriptions.
         /// </summary>
         public void Dispose()
         {

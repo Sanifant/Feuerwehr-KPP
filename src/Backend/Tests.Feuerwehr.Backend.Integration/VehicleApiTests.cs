@@ -14,15 +14,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
     /// <summary>
-    /// Executes vehicle Api Tests.
+    /// Tests vehicle API behavior and its expected outcomes.
     /// </summary>
-    /// <param name="fixture">The fixture.</param>
+    /// <param name="fixture">The shared test fixture providing application and database infrastructure.</param>
     public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture<InventoryApiFixture>
     {
-        [Fact]
         /// <summary>
-        /// Executes import Export Uses Officer Email And Preserves Bookings With Real Postgres And Http Uploads.
+        /// Verifies that import export uses officer email and preserves bookings with real postgres and HTTP uploads.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ImportExportUsesOfficerEmailAndPreservesBookingsWithRealPostgresAndHttpUploads()
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
@@ -59,10 +60,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             _ = Assert.Single(await db.VehicleReservations.Where(x => x.VehicleId == vehicle.Id).ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes invalid Email Rolls Back All Csv Rows And Returns Their Line Number.
+        /// Verifies that invalid email rolls back all CSV rows and returns their line number.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task InvalidEmailRollsBackAllCsvRowsAndReturnsTheirLineNumber()
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
@@ -78,10 +80,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Null(stored.Name);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes custom Statuses Are Admin Managed And Mtw Availability Excludes Other Vehicle Types.
+        /// Verifies that custom statuses are admin managed and mtw availability excludes other vehicle types.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CustomStatusesAreAdminManagedAndMtwAvailabilityExcludesOtherVehicleTypes()
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
@@ -124,10 +127,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.Conflict, unavailableBooking.StatusCode);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes vehicle Types Are Admin Managed And Appear In Vehicle And Calendar Responses.
+        /// Verifies that vehicle types are admin managed and appear in vehicle and calendar responses.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task VehicleTypesAreAdminManaged_AndAppearInVehicleAndCalendarResponses()
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
@@ -160,10 +164,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(name + " neu", (await officer.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!.Single(x => x.Id == vehicle.Id).VehicleTypeName);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes concurrent Approvals Claim The Entire Range Exactly Once And Send Html With Inline Logo And Comment.
+        /// Verifies that concurrent approvals claim the entire range exactly once and send html with inline logo and comment.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ConcurrentApprovals_ClaimTheEntireRangeExactlyOnce_AndSendHtmlWithInlineLogoAndComment()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -219,10 +224,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes parallel Direct Booking And Approval Cannot Partially Book Overlapping Ranges.
+        /// Verifies that parallel direct booking and approval cannot partially book overlapping ranges.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ParallelDirectBookingAndApproval_CannotPartiallyBookOverlappingRanges()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -246,10 +252,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             _ = Assert.Single(days.Select(x => x.ReservationId).Distinct());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes vehicle Api Enforces Ownership And Roles And Preserves Bookings After Deactivation.
+        /// Verifies that vehicle API enforces ownership and roles and preserves bookings after deactivation.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task VehicleApiEnforcesOwnershipAndRoles_AndPreservesBookingsAfterDeactivation()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -281,10 +288,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             _ = Assert.Single(await db.VehicleReservations.Where(x => x.VehicleId == vehicle.Id).ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes concurrent Deactivation And Approval Uses The Same Vehicle Lock.
+        /// Verifies that concurrent deactivation and approval uses the same vehicle lock.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ConcurrentDeactivationAndApproval_UsesTheSameVehicleLock()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);

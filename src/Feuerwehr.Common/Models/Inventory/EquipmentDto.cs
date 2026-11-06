@@ -1,23 +1,23 @@
 namespace De.Openelp.Feuerwehr.Common.Models.Inventory
 {
     /// <summary>
-    /// Executes equipment Dto.
+    /// Carries equipment data across the API boundary.
     /// </summary>
-    /// <param name="Id">The id.</param>
-    /// <param name="Barcode">The barcode.</param>
-    /// <param name="EquipmentTypeId">The equipment Type Id.</param>
-    /// <param name="EquipmentTypeName">The equipment Type Name.</param>
-    /// <param name="CategoryName">The category Name.</param>
-    /// <param name="SerialNumber">The serial Number.</param>
-    /// <param name="Manufacturer">The manufacturer.</param>
-    /// <param name="Status">The status.</param>
-    /// <param name="IsActive">The is Active.</param>
-    /// <param name="CreatedOn">The created On.</param>
-    /// <param name="LastInspectedOn">The last Inspected On.</param>
-    /// <param name="NextInspectionOn">The next Inspection On.</param>
-    /// <param name="InspectionIntervalMonths">The inspection Interval Months.</param>
-    /// <param name="InspectionInstructions">The inspection Instructions.</param>
-    /// <param name="Version">The version.</param>
+    /// <param name="Id">The unique identifier of the equipment.</param>
+    /// <param name="Barcode">The unique equipment barcode used for lookup and import matching.</param>
+    /// <param name="EquipmentTypeId">The identifier of the equipment type defining its inspection plan.</param>
+    /// <param name="EquipmentTypeName">The display name of the equipment type.</param>
+    /// <param name="CategoryName">The category's display name.</param>
+    /// <param name="SerialNumber">The manufacturer's serial number of the equipment.</param>
+    /// <param name="Manufacturer">The equipment manufacturer.</param>
+    /// <param name="Status">The operational condition of the equipment.</param>
+    /// <param name="IsActive">The equipment is active.</param>
+    /// <param name="CreatedOn">The date the equipment was registered.</param>
+    /// <param name="LastInspectedOn">The most recent inspection date, or null when no inspection has been recorded.</param>
+    /// <param name="NextInspectionOn">The next inspection due date calculated from the inspection plan.</param>
+    /// <param name="InspectionIntervalMonths">The inspection interval in calendar months.</param>
+    /// <param name="InspectionInstructions">The instructions for performing the equipment inspection.</param>
+    /// <param name="Version">The concurrency version used to detect conflicting updates.</param>
     public sealed record EquipmentDto(
         Guid Id,
         string Barcode,

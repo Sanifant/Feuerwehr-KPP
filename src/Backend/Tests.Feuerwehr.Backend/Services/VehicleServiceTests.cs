@@ -14,12 +14,16 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests vehicle service behavior and its expected outcomes.
+    /// </summary>
     public sealed class VehicleServiceTests
     {
-        [Fact]
         /// <summary>
-        /// Executes status Timestamp Tracks Initial Assignment And Real Transitions But Not Master Data Or Activation Edits.
+        /// Verifies that status timestamp tracks initial assignment and real transitions but not master data or activation edits.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task StatusTimestampTracksInitialAssignmentAndRealTransitionsButNotMasterDataOrActivationEdits()
         {
             await using Fixture fixture = new ();
@@ -58,10 +62,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(changedAt, stored.StatusChangedAtUtc);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes legacy Vehicle Timestamp Stays Unknown Until Its Status Actually Changes.
+        /// Verifies that legacy vehicle timestamp stays unknown until its status actually changes.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task LegacyVehicleTimestampStaysUnknownUntilItsStatusActuallyChanges()
         {
             await using Fixture fixture = new ();
@@ -81,10 +86,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(updated.StatusChangedAtUtc);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes status Catalog Is Extensible And Maintenance Prevents New Bookings And Approval.
+        /// Verifies that status catalog is extensible and maintenance prevents new bookings and approval.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task StatusCatalogIsExtensibleAndMaintenancePreventsNewBookingsAndApproval()
         {
             await using Fixture fixture = new ();
@@ -120,10 +126,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Contains(Assert.IsType<List<VehicleStatusDto>>((await fixture.Service.Statuses(false, default)).Value), x => x.Id == custom.Id);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes availability Can Be Filtered By Normalized Vehicle Type.
+        /// Verifies that availability can be filtered by normalized vehicle type.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task AvailabilityCanBeFilteredByNormalizedVehicleType()
         {
             await using Fixture fixture = new ();
@@ -140,10 +147,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(vehicle.Id, Assert.Single(filtered).Vehicle.Id);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes vehicle Types Require Admin Reject Duplicates And Preserve Existing Assignments When Deactivated.
+        /// Verifies that vehicle types require admin reject duplicates and preserve existing assignments when deactivated.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task VehicleTypesRequireAdmin_RejectDuplicatesAndPreserveExistingAssignmentsWhenDeactivated()
         {
             await using Fixture fixture = new ();
@@ -190,17 +198,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(400, unknownTypeSave.Code);
         }
 
+        /// <summary>
+        /// Verifies that requests require an explicit booking role.
+        /// </summary>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="expected">The expected result or value for the scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(Roles.Commander, 200)]
         [InlineData(Roles.Firefighter, 200)]
         [InlineData(Roles.Viewer, 403)]
         [InlineData(Roles.InventoryViewer, 403)]
         [InlineData(Roles.Admin, 403)]
-        /// <summary>
-        /// Executes requests Require An Explicit Booking Role.
-        /// </summary>
-        /// <param name="role">The role.</param>
-        /// <param name="expected">The expected.</param>
         public async Task RequestsRequireAnExplicitBookingRole(string role, int expected)
         {
             await using Fixture fixture = new ();
@@ -211,10 +220,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(fixture.Db.VehicleBookingDays);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes pending Requests Are Orange And Non Blocking Only Approval Claims All Days.
+        /// Verifies that pending requests are orange and non blocking only approval claims all days.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PendingRequestsAreOrangeAndNonBlocking_OnlyApprovalClaimsAllDays()
         {
             await using Fixture fixture = new ();
@@ -246,10 +256,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.DoesNotContain("<Ãœbung>", confirmation.HtmlBody);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes retries Do Not Create Duplicate Requests Bookings Or Emails.
+        /// Verifies that retries do not create duplicate requests bookings or emails.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task RetriesDoNotCreateDuplicateRequestsBookingsOrEmails()
         {
             await using Fixture fixture = new ();
@@ -270,10 +281,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(2, fixture.Db.VehicleMailMessages.Count());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes only Assigned Officer Can Decide Or Book Directly Admin Can Maintain.
+        /// Verifies that only assigned officer can decide or book directly admin can maintain.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task OnlyAssignedOfficerCanDecideOrBookDirectly_AdminCanMaintain()
         {
             await using Fixture fixture = new ();
@@ -292,10 +304,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(fixture.Db.VehicleBookingDays);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes direct Booking Is Confirmed And Cancellation Releases Days Without Deleting History.
+        /// Verifies that direct booking is confirmed and cancellation releases days without deleting history.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DirectBookingIsConfirmed_AndCancellationReleasesDaysWithoutDeletingHistory()
         {
             await using Fixture fixture = new ();
@@ -311,10 +324,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Contains(fixture.Db.VehicleEvents, x => x.Action == "Cancelled");
         }
 
-        [Fact]
         /// <summary>
-        /// Executes vehicle Data And Booking Dates Are Validated Officer Cannot Create For Another Department.
+        /// Verifies that vehicle data and booking dates are validated officer cannot create for another department.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task VehicleDataAndBookingDatesAreValidated_OfficerCannotCreateForAnotherDepartment()
         {
             await using Fixture fixture = new ();
@@ -332,10 +346,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, past, true, default)).Code);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes mail Failure Keeps Booking And Retries Later.
+        /// Verifies that mail failure keeps booking and retries later.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task MailFailureKeepsBookingAndRetriesLater()
         {
             await using Fixture fixture = new ();
@@ -355,16 +370,31 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             mail.Verify(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(2));
         }
 
+        /// <summary>
+        /// Creates isolated persistence, caller identity, and service dependencies for the surrounding test scenarios.
+        /// </summary>
         private sealed class Fixture : IAsyncDisposable
         {
+            /// <summary>
+            /// Gets the database context owned by the fixture.
+            /// </summary>
             public FeuerwehrDbContext Db { get; } = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
             private readonly HttpContextAccessor http = new () { HttpContext = new DefaultHttpContext() };
 
+            /// <summary>
+            /// Gets the controllable clock used by the fixture.
+            /// </summary>
             public TestClock Clock { get; } = new ();
 
+            /// <summary>
+            /// Gets the application service under test.
+            /// </summary>
             public VehicleService Service { get; }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Fixture" /> class with its required dependencies.
+            /// </summary>
             public Fixture()
             {
                 _ = this.Db.Database.EnsureCreated();
@@ -388,40 +418,51 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
 
             /// <summary>
-            /// Executes as.
+            /// Changes the fixture's current caller identity and role for the next service operation.
             /// </summary>
-            /// <param name="id">The id.</param>
+            /// <param name="id">The identifier of the fixture to process.</param>
+            /// <param name="role">The Identity role under test.</param>
             public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
                 [new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
 
             /// <summary>
-            /// Executes vehicle.
+            /// Creates or retrieves the vehicle used by the booking scenario.
             /// </summary>
+            /// <returns>A task whose result is the vehicle data prepared for the current test scenario.</returns>
             public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await this.Service.Save(
                 null,
                 new SaveVehicleRequest
                 { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
 
             /// <summary>
-            /// Executes request.
+            /// Creates valid reservation input for the supplied date range and scenario.
             /// </summary>
-            /// <param name="comment">The comment.</param>
+            /// <param name="comment">The comment recorded with the fixture.</param>
+            /// <returns>The create vehicle reservation request prepared for the current test scenario.</returns>
             public CreateVehicleReservationRequest Request(string? comment = null) => new ()
             { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
 
             /// <summary>
-            /// Executes dispose.
+            /// Releases the resources owned by this fixture component.
             /// </summary>
+            /// <returns>A task that completes when the scenario and its assertions finish.</returns>
             public ValueTask DisposeAsync() => this.Db.DisposeAsync();
         }
 
+        /// <summary>
+        /// Supplies a controllable UTC time to tests.
+        /// </summary>
         private sealed class TestClock : TimeProvider
         {
+            /// <summary>
+            /// Gets or sets the UTC instant returned by the test clock.
+            /// </summary>
             public DateTimeOffset UtcNow { get; set; } = new (2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
 
             /// <summary>
-            /// Gets the utc Now.
+            /// Returns the deterministic UTC instant configured for this test clock.
             /// </summary>
+            /// <returns>The UTC instant configured by the test clock.</returns>
             public override DateTimeOffset GetUtcNow() => this.UtcNow;
         }
     }

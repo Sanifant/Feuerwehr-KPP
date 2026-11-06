@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace De.Openelp.Feuerwehr.Server.Controller
 {
+    /// <summary>
+    /// Exposes HTTP endpoints for user account operations and maps application results to responses.
+    /// </summary>
+    /// <param name="service">The users service handling the requested operations.</param>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Policy = "RequireAdmin")]
@@ -12,41 +16,32 @@ namespace De.Openelp.Feuerwehr.Server.Controller
     {
 
         /// <summary>
-        /// Get all users (Admin only).
+        /// Retrieves user profiles and their assigned roles.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task whose result is an HTTP response containing the user profiles and their roles, or validation, authorization, or conflict details on failure.</returns>
         [HttpGet]
-        /// <summary>
-        /// Gets the all Users.
-        /// </summary>
         public async Task<IActionResult> GetAllUsers()
         {
             return this.ToActionResult(await service.GetAllUsers());
         }
 
         /// <summary>
-        /// Get user by ID (Admin only).
+        /// Retrieves a user's profile and assigned roles by identifier.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to retrieve.</param>
+        /// <returns>A task whose result is an HTTP response containing the user profile and assigned roles, or validation, authorization, or conflict details on failure.</returns>
         [HttpGet("{id}")]
-        /// <summary>
-        /// Gets the user.
-        /// </summary>
-        /// <param name="id">The id.</param>
         public async Task<IActionResult> GetUser(string id)
         {
             return this.ToActionResult(await service.GetUser(id));
         }
 
         /// <summary>
-        /// Create new user (Admin only).
+        /// Creates a user with the requested profile and roles and sends a password invitation.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The register user input to validate and apply.</param>
+        /// <returns>A task whose result is an HTTP response containing the created user profile and invitation outcome, or validation, authorization, or conflict details on failure.</returns>
         [HttpPost]
-        /// <summary>
-        /// Creates the user.
-        /// </summary>
-        /// <param name="request">The request.</param>
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
         {
             if (!this.ModelState.IsValid)
@@ -57,26 +52,24 @@ namespace De.Openelp.Feuerwehr.Server.Controller
             return this.ToActionResult(await service.CreateUser(request));
         }
 
-        [HttpPost("{id}/resend-invitation")]
         /// <summary>
-        /// Executes resend Invitation.
+        /// Issues a new password invitation and invalidates the account's earlier invitation state.
         /// </summary>
-        /// <param name="id">The id.</param>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <returns>A task whose result is an HTTP response containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
+        [HttpPost("{id}/resend-invitation")]
         public async Task<IActionResult> ResendInvitation(string id)
         {
             return this.ToActionResult(await service.ResendInvitation(id));
         }
 
         /// <summary>
-        /// Update user (Admin only).
+        /// Updates the user's profile, department membership, and assigned roles.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <param name="request">The update user input to validate and apply.</param>
+        /// <returns>A task whose result is an HTTP response containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         [HttpPut("{id}")]
-        /// <summary>
-        /// Updates the user.
-        /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
             if (!this.ModelState.IsValid)
@@ -88,28 +81,22 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         }
 
         /// <summary>
-        /// Delete user (Admin only) - Soft delete by setting IsActive = false.
+        /// Deactivates the requested user account while preserving its existing operational records.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <returns>A task whose result is an HTTP response containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         [HttpDelete("{id}")]
-        /// <summary>
-        /// Deletes the user.
-        /// </summary>
-        /// <param name="id">The id.</param>
         public async Task<IActionResult> DeleteUser(string id)
         {
             return this.ToActionResult(await service.DeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
         /// <summary>
-        /// Hard delete user (Admin only) - Permanently remove from database.
+        /// Permanently removes the requested user account after enforcing self-deletion and ownership restrictions.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <returns>A task whose result is an HTTP response containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         [HttpDelete("{id}/permanent")]
-        /// <summary>
-        /// Executes permanently Delete User.
-        /// </summary>
-        /// <param name="id">The id.</param>
         public async Task<IActionResult> PermanentlyDeleteUser(string id)
         {
             return this.ToActionResult(await service.PermanentlyDeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));

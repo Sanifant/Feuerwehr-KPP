@@ -8,17 +8,18 @@ using De.Openelp.Feuerwehr.Server.Authorization;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Trait("Category", "Integration")]
     /// <summary>
-    /// Executes inventory Transfer Api Tests.
+    /// Tests inventory transfer API behavior and its expected outcomes.
     /// </summary>
-    /// <param name="fixture">The fixture.</param>
+    /// <param name="fixture">The shared test fixture providing application and database infrastructure.</param>
+    [Trait("Category", "Integration")]
     public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : IClassFixture<InventoryApiFixture>
     {
-        [Fact]
         /// <summary>
-        /// Executes csv Upsert Uses Barcode Preserves Identity State And History And Advances Automatic Numbers.
+        /// Verifies that CSV upsert uses barcode preserves identity state and history and advances automatic numbers.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CsvUpsertUsesBarcode_PreservesIdentityStateAndHistory_AndAdvancesAutomaticNumbers()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -55,10 +56,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.True(int.Parse(automatic.Barcode[4..]) > 700);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes csv Export Is Excel Compatible And Round Trips Quotes Unicode Newlines And Formula Prefixes.
+        /// Verifies that CSV export is excel compatible and round trips quotes unicode newlines and formula prefixes.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CsvExportIsExcelCompatibleAndRoundTripsQuotesUnicodeNewlinesAndFormulaPrefixes()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -84,10 +86,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(request.Manufacturer, detail.Equipment.Manufacturer);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes invalid Inventory Rows And Duplicate Barcodes Reject The Whole File.
+        /// Verifies that invalid inventory rows and duplicate barcodes reject the whole file.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task InvalidInventoryRowsAndDuplicateBarcodesRejectTheWholeFile()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -106,10 +109,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.NotFound, (await officer.GetAsync("/api/inventory/barcode/KPP-899")).StatusCode);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes import And Ordinary Create Do Not Collide And Sequence Never Rewinds.
+        /// Verifies that import and ordinary create do not collide and sequence never rewinds.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ImportAndOrdinaryCreateDoNotCollide_AndSequenceNeverRewinds()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -124,10 +128,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.True(int.Parse(next.Barcode[4..]) > 800);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes categories And Types Use Json And Update Existing Records.
+        /// Verifies that categories and types use JSON and update existing records.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CategoriesAndTypesUseJsonAndUpdateExistingRecords()
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
@@ -166,16 +171,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             }
         }
 
+        /// <summary>
+        /// Verifies that invalid JSON reports errors without partial writes.
+        /// </summary>
+        /// <param name="kind">The category of records to transfer and its corresponding file format.</param>
+        /// <param name="json">The JSON import content submitted by the scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("categories", "[null]")]
         [InlineData("categories", "[{\"name\":\"Doppelt\"},{\"name\":\"doppelt\"}]")]
         [InlineData("types", "[{\"name\":\"Unvollständig\",\"inspectionIntervalMonths\":0}]")]
         [InlineData("types", "not json")]
-        /// <summary>
-        /// Executes invalid Json Reports Errors Without Partial Writes.
-        /// </summary>
-        /// <param name="kind">The kind.</param>
-        /// <param name="json">The json.</param>
         public async Task InvalidJsonReportsErrorsWithoutPartialWrites(string kind, string json)
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
@@ -186,10 +192,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.DoesNotContain(categories!, x => x.Name == "Doppelt");
         }
 
-        [Fact]
         /// <summary>
-        /// Executes json Export Can Reimport Distinct Existing Types With The Same Display Name.
+        /// Verifies that JSON export can reimport distinct existing types with the same display name.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task JsonExportCanReimportDistinctExistingTypesWithTheSameDisplayName()
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
@@ -209,10 +216,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(0, (await import.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes readers Can Export But Only Officers And Admins Can Import And Categories Require Admin.
+        /// Verifies that readers can export but only officers and admins can import and categories require admin.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ReadersCanExportButOnlyOfficersAndAdminsCanImportAndCategoriesRequireAdmin()
         {
             using HttpClient viewer = await fixture.Client(Roles.InventoryViewer);

@@ -4,22 +4,18 @@ using System.Threading.Tasks;
 namespace De.Openelp.Feuerwehr.App.Services
 {
     /// <summary>
-    /// Simple in-memory secure storage implementation for desktop/development.
-    /// NOTE: For production mobile apps, use platform-specific secure storage:
-    /// - Android: KeyStore
-    /// - iOS: Keychain
-    /// - Windows: Data Protection API (DPAPI).
+    /// Simple in-memory secure storage implementation for desktop/development. NOTE: For production mobile apps, use platform-specific secure storage: - Android: KeyStore - iOS: Keychain - Windows: Data Protection API (DPAPI).
     /// </summary>
     public class InMemorySecureStorage : ISecureStorage
     {
         private readonly ConcurrentDictionary<string, string> _storage = new ();
 
         /// <summary>
-        /// Sets the operation.
+        /// Stores a value under the supplied key using the platform's credential storage.
         /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="key">The key identifying the securely stored value.</param>
+        /// <param name="value">The string value to process.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public Task SetAsync(string key, string value)
         {
             this._storage[key] = value;
@@ -27,10 +23,10 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves a value from the platform's credential storage by key.
         /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="key">The key identifying the securely stored value.</param>
+        /// <returns>A task whose result is the value stored under the key, or null when the key is absent.</returns>
         public Task<string?> GetAsync(string key)
         {
             _ = this._storage.TryGetValue(key, out string? value);
@@ -38,10 +34,10 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Removes the operation.
+        /// Removes the value associated with the supplied secure-storage key.
         /// </summary>
-        /// <param name="key">The key.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="key">The key identifying the securely stored value.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public Task RemoveAsync(string key)
         {
             _ = this._storage.TryRemove(key, out _);

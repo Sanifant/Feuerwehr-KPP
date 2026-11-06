@@ -1,9 +1,9 @@
 namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
 {
     /// <summary>
-    /// Executes vehicle Department Dto.
+    /// Carries vehicle department data across the API boundary.
     /// </summary>
-    /// <param name="Id">The id.</param>
-    /// <param name="Name">The name.</param>
+    /// <param name="Id">The unique identifier of the vehicle department.</param>
+    /// <param name="Name">The display name of the vehicle department.</param>
     public sealed record VehicleDepartmentDto(int Id, string Name);
 }

@@ -2,14 +2,17 @@ using System.Text;
 
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
+    /// <summary>
+    /// Builds a simple text PDF for incident diary and situation-map exports.
+    /// </summary>
     public static class MinimalPdfBuilder
     {
         /// <summary>
         /// Builds the simple Pdf.
         /// </summary>
-        /// <param name="title">The title.</param>
-        /// <param name="lines">The lines.</param>
-        /// <returns></returns>
+        /// <param name="title">The title to include in the response or exported document.</param>
+        /// <param name="lines">The ordered text lines to render in the PDF document.</param>
+        /// <returns>The generated PDF document bytes.</returns>
         public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
         {
             List<string[]> pages = Paginate(lines.SelectMany(WrapLine));

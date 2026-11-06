@@ -6,12 +6,16 @@ using ClientApp = De.Openelp.Feuerwehr.App.App;
 
 namespace De.Openelp.Feuerwehr.Tests.App
 {
+    /// <summary>
+    /// Tests GPS service registration behavior and its expected outcomes.
+    /// </summary>
     public class GpsServiceRegistrationTests
     {
-        [Fact]
         /// <summary>
-        /// Executes default Registration Does Not Invent A Location.
+        /// Verifies that default registration does not invent a location.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DefaultRegistration_DoesNotInventALocation()
         {
             ClientApp app = new ();
@@ -23,10 +27,10 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Null(await service.GetCurrentLocationAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes platform Registration Is Preserved When Services Are Reloaded.
+        /// Verifies that platform registration is preserved when services are reloaded.
         /// </summary>
+        [Fact]
         public void PlatformRegistration_IsPreservedWhenServicesAreReloaded()
         {
             IGpsService gps = Mock.Of<IGpsService>();
@@ -42,10 +46,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Same(gps, Assert.Single(ClientApp.Services.GetServices<IGpsService>()));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes unsupported Service Respects Caller Cancellation.
+        /// Verifies that unsupported service respects caller cancellation.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UnsupportedService_RespectsCallerCancellation()
         {
             using CancellationTokenSource cancellation = new ();

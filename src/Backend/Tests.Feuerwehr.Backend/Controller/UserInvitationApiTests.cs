@@ -19,6 +19,9 @@ using Moq;
 namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
     // Real Identity token/password handling and EF storage, with mail/Redis replaced at their boundaries.
+    /// <summary>
+    /// Tests user invitation API behavior and its expected outcomes.
+    /// </summary>
     public sealed class UserInvitationApiTests : IDisposable
     {
         private readonly ServiceProvider _provider;
@@ -32,6 +35,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private readonly AuthController _authApi;
         private readonly TokenService _realTokens;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserInvitationApiTests" /> class with its required dependencies.
+        /// </summary>
         public UserInvitationApiTests()
         {
             ServiceCollection services = new ();
@@ -80,10 +86,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 config));
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the user Sends Uuid Link And Creates Account Without Password.
+        /// Verifies that create user sends uuid link and creates account without password.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateUser_SendsUuidLinkAndCreatesAccountWithoutPassword()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -102,10 +109,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Contains("60 Minuten", mail.Body);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes fire Department Assignment Is Persisted And Returned And Can Be Changed Or Cleared.
+        /// Verifies that fire department assignment is persisted and returned and can be changed or cleared.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task FireDepartmentAssignment_IsPersistedAndReturned_AndCanBeChangedOrCleared()
         {
             FeuerwehrDbContext db = this._provider.GetRequiredService<FeuerwehrDbContext>();
@@ -140,10 +148,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Null((await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Validates Email Sets Real Password And Rejects Replay.
+        /// Verifies that reset password validates email sets real password and rejects replay.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_ValidatesEmailSetsRealPasswordAndRejectsReplay()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -159,10 +168,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Wrong Email Cannot Select Another User Or Consume Link.
+        /// Verifies that reset password wrong email cannot select another user or consume link.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_WrongEmailCannotSelectAnotherUserOrConsumeLink()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -176,10 +186,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Expired Invitation Does Not Set Password.
+        /// Verifies that reset password expired invitation does not set password.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_ExpiredInvitationDoesNotSetPassword()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -188,10 +199,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.False(await this._users.HasPasswordAsync(user));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Invitation Is Valid Just Before Sixty Minute Expiry.
+        /// Verifies that reset password invitation is valid just before sixty minute expiry.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_InvitationIsValidJustBeforeSixtyMinuteExpiry()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -200,10 +212,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Cache Deletion Failure Still Revokes Tokens And Returns Success.
+        /// Verifies that reset password cache deletion failure still revokes tokens and returns success.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_CacheDeletionFailureStillRevokesTokensAndReturnsSuccess()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -226,14 +239,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
+        /// <summary>
+        /// Verifies that reset password invalid or unknown uuid is rejected.
+        /// </summary>
+        /// <param name="token">The opaque invitation identifier used for password assignment.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("invalid")]
         [InlineData("00000000-0000-0000-0000-000000000000")]
         [InlineData("0db09979-818f-4b48-91ba-1a5d836b8da2")]
-        /// <summary>
-        /// Executes reset Password Invalid Or Unknown Uuid Is Rejected.
-        /// </summary>
-        /// <param name="token">The token.</param>
         public async Task ResetPassword_InvalidOrUnknownUuidIsRejected(string token)
         {
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(new ResetRequest
@@ -244,10 +258,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             }));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Weak Password Leaves Invitation Available For Retry.
+        /// Verifies that reset password weak password leaves invitation available for retry.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_WeakPasswordLeavesInvitationAvailableForRetry()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -258,14 +273,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = Assert.IsType<OkObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
+        /// <summary>
+        /// Verifies that reset password rejects changed or unavailable account.
+        /// </summary>
+        /// <param name="change">The account or invitation change applied before password assignment.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("disabled")]
         [InlineData("deleted")]
         [InlineData("changed-email")]
-        /// <summary>
-        /// Executes reset Password Rejects Changed Or Unavailable Account.
-        /// </summary>
-        /// <param name="change">The change.</param>
         public async Task ResetPassword_RejectsChangedOrUnavailableAccount(string change)
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -282,10 +298,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the user Mail Failure Rolls Back Account And Invitation.
+        /// Verifies that create user mail failure rolls back account and invitation.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateUser_MailFailureRollsBackAccountAndInvitation()
         {
             this._mail.Fail = true;
@@ -301,10 +318,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Empty(this._store.Entries);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reset Password Invalid Model Is Rejected At Api Boundary.
+        /// Verifies that reset password invalid model is rejected at API boundary.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResetPassword_InvalidModelIsRejectedAtApiBoundary()
         {
             this._authApi.ModelState.AddModelError("Email", "Eine E-Mail-Adresse ist erforderlich.");
@@ -316,14 +334,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this user invitation API component.
         /// </summary>
         public void Dispose() => this._provider.Dispose();
 
-        [Fact]
         /// <summary>
-        /// Executes change Password Uses Signed In User And Requires Current Password.
+        /// Verifies that change password uses signed in user and requires current password.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ChangePassword_UsesSignedInUserAndRequiresCurrentPassword()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -340,10 +359,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(3));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes change Password Rejects Missing User Or Invalid Model.
+        /// Verifies that change password rejects missing user or invalid model.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ChangePassword_RejectsMissingUserOrInvalidModel()
         {
             ChangePasswordRequest request = new ()
@@ -355,10 +375,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes change Password Five Wrong Current Passwords Lock Account And Prevent Changes.
+        /// Verifies that change password five wrong current passwords lock account and prevent changes.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ChangePassword_FiveWrongCurrentPasswordsLockAccountAndPreventChanges()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -395,10 +416,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes change Password Shares Failed Attempt Counter With Login.
+        /// Verifies that change password shares failed attempt counter with login.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ChangePassword_SharesFailedAttemptCounterWithLogin()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -421,10 +443,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(423, Assert.IsType<ObjectResult>(await this._authApi.ChangePassword(request)).StatusCode);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes change Password Rejects Preexisting Lockout And Allows Change After Expiry.
+        /// Verifies that change password rejects preexisting lockout and allows change after expiry.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ChangePassword_RejectsPreexistingLockoutAndAllowsChangeAfterExpiry()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -439,10 +462,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.True(await this._users.CheckPasswordAsync(user, request.NewPassword));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes change Password Correct Current Password Resets Failures Even When New Password Is Weak.
+        /// Verifies that change password correct current password resets failures even when new password is weak.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ChangePassword_CorrectCurrentPasswordResetsFailuresEvenWhenNewPasswordIsWeak()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -464,10 +488,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes resend Invitation Locks Existing Account Until Successful Password Reset.
+        /// Verifies that resend invitation locks existing account until successful password reset.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResendInvitation_LocksExistingAccountUntilSuccessfulPasswordReset()
         {
             (ApplicationUser? user, Guid firstId) = await this.CreateInvitedUser();
@@ -524,10 +549,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.False(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes resend Invitation Invalidates Previous Links And Keeps Lock After Expiry.
+        /// Verifies that resend invitation invalidates previous links and keeps lock after expiry.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResendInvitation_InvalidatesPreviousLinksAndKeepsLockAfterExpiry()
         {
             (ApplicationUser? user, Guid oldId) = await this.CreateInvitedUser();
@@ -545,10 +571,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.False(user.PasswordResetRequired);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes resend Invitation Revokes Existing Access Tokens Including After Unlock.
+        /// Verifies that resend invitation revokes existing access tokens including after unlock.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResendInvitation_RevokesExistingAccessTokensIncludingAfterUnlock()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -573,13 +600,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.True(await this._realTokens.IsAccessTokenValidAsync(this._realTokens.GetPrincipalFromExpiredToken(newJwt)!));
         }
 
+        /// <summary>
+        /// Verifies that resend invitation mail failure restores previous lock and invitation.
+        /// </summary>
+        /// <param name="alreadyInvited">The expected already invited flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        /// <summary>
-        /// Executes resend Invitation Mail Failure Restores Previous Lock And Invitation.
-        /// </summary>
-        /// <param name="alreadyInvited">The already Invited.</param>
         public async Task ResendInvitation_MailFailureRestoresPreviousLockAndInvitation(bool alreadyInvited)
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -611,10 +639,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes resend Invitation Password Reset Also Clears Existing Failed Login Lockout.
+        /// Verifies that resend invitation password reset also clears existing failed login lockout.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResendInvitation_PasswordResetAlsoClearsExistingFailedLoginLockout()
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
@@ -643,10 +672,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             })).Result);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes resend Invitation Rejects Unknown And Inactive Users.
+        /// Verifies that resend invitation rejects unknown and inactive users.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ResendInvitation_RejectsUnknownAndInactiveUsers()
         {
             _ = Assert.IsType<NotFoundObjectResult>(await this._usersApi.ResendInvitation("missing"));
@@ -692,32 +722,55 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             };
         }
 
+        /// <summary>
+        /// Supplies a UTC instant that tests can advance explicitly.
+        /// </summary>
         private sealed class MutableClock : TimeProvider
         {
+            /// <summary>
+            /// Gets or sets the configurable current instant returned by the test clock.
+            /// </summary>
             public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
 
             /// <summary>
-            /// Gets the utc Now.
+            /// Returns the deterministic UTC instant configured for this test clock.
             /// </summary>
+            /// <returns>The UTC instant configured by the test clock.</returns>
             public override DateTimeOffset GetUtcNow() => this.Now;
         }
 
+        /// <summary>
+        /// Retains invitations in memory and exposes cleanup behavior for password-assignment tests.
+        /// </summary>
         private sealed class MemoryInvitations : IUserInvitationStore
         {
+            /// <summary>
+            /// Gets the invitations retained by the in-memory test store.
+            /// </summary>
             public Dictionary<Guid, UserInvitation> Entries { get; } = [];
 
+            /// <summary>
+            /// Gets the expiry duration supplied when the test invitation was stored.
+            /// </summary>
             public TimeSpan StoredLifetime { get; private set; }
 
+            /// <summary>
+            /// Gets or sets a value indicating whether fail removal is enabled for this memory invitations.
+            /// </summary>
             public bool FailRemoval { get; set; }
 
+            /// <summary>
+            /// Gets or sets the test callback invoked before invitation cleanup.
+            /// </summary>
             public Action? BeforeRemove { get; set; }
 
             /// <summary>
-            /// Executes store.
+            /// Stores the invitation under its opaque identifier for the requested lifetime.
             /// </summary>
-            /// <param name="id">The id.</param>
-            /// <param name="invitation">The invitation.</param>
-            /// <param name="lifetime">The lifetime.</param>
+            /// <param name="id">The identifier of the memory invitations to process.</param>
+            /// <param name="invitation">The account, reset token, and expiry associated with the invitation identifier.</param>
+            /// <param name="lifetime">The duration for which the invitation remains in the store.</param>
+            /// <returns>A task that completes when the scenario and its assertions finish.</returns>
             public Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
             {
                 this.Entries[id] = invitation;
@@ -726,14 +779,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             }
 
             /// <summary>
-            /// Executes find.
+            /// Retrieves the invitation associated with the opaque identifier, if it has not expired.
             /// </summary>
+            /// <param name="id">The identifier of the memory invitations to process.</param>
+            /// <returns>A task whose result is the stored invitation, or null if the identifier is unknown or expired.</returns>
             public Task<UserInvitation?> FindAsync(Guid id) => Task.FromResult(this.Entries.GetValueOrDefault(id));
 
             /// <summary>
             /// Removes the operation.
             /// </summary>
-            /// <param name="id">The id.</param>
+            /// <param name="id">The identifier of the memory invitations to process.</param>
+            /// <returns>A task that completes when the scenario and its assertions finish.</returns>
             public Task RemoveAsync(Guid id)
             {
                 this.BeforeRemove?.Invoke();
@@ -747,18 +803,28 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             }
         }
 
+        /// <summary>
+        /// Captures sent email content for assertions in invitation tests.
+        /// </summary>
         private sealed class CapturingMail : IMailService
         {
+            /// <summary>
+            /// Gets the messages associated with this capturing mail.
+            /// </summary>
             public List<(string Recipient, string Subject, string Body)> Messages { get; } = [];
 
+            /// <summary>
+            /// Gets or sets a value indicating whether fail is enabled for this capturing mail.
+            /// </summary>
             public bool Fail { get; set; }
 
             /// <summary>
-            /// Sends the operation.
+            /// Sends the supplied email notification through the configured SMTP server.
             /// </summary>
-            /// <param name="recipient">The recipient.</param>
-            /// <param name="subject">The subject.</param>
-            /// <param name="body">The body.</param>
+            /// <param name="recipient">The destination email address.</param>
+            /// <param name="subject">The email subject line.</param>
+            /// <param name="body">The plain-text email body.</param>
+            /// <returns>A task that completes when the scenario and its assertions finish.</returns>
             public Task SendAsync(string recipient, string subject, string body)
             {
                 if (this.Fail)

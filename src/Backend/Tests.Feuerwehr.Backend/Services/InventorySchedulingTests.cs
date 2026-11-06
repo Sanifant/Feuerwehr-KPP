@@ -8,19 +8,23 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests inventory scheduling behavior and its expected outcomes.
+    /// </summary>
     public sealed class InventorySchedulingTests
     {
+        /// <summary>
+        /// Verifies that due date uses calendar months and last inspection when present.
+        /// </summary>
+        /// <param name="created">The equipment registration date supplied by the scenario.</param>
+        /// <param name="inspected">The most recent inspection date, or null when no inspection exists.</param>
+        /// <param name="interval">The inspection interval in calendar months used in this scenario.</param>
+        /// <param name="expected">The expected result or value for the scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("2026-01-31", null, 1, "2026-02-28")]
         [InlineData("2024-01-31", null, 1, "2024-02-29")]
         [InlineData("2024-01-31", "2026-02-28", 1, "2026-03-28")]
-        /// <summary>
-        /// Executes due Date Uses Calendar Months And Last Inspection When Present.
-        /// </summary>
-        /// <param name="created">The created.</param>
-        /// <param name="inspected">The inspected.</param>
-        /// <param name="interval">The interval.</param>
-        /// <param name="expected">The expected.</param>
         public async Task DueDateUsesCalendarMonthsAndLastInspectionWhenPresent(string created, string? inspected, int interval, string expected)
         {
             await using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);

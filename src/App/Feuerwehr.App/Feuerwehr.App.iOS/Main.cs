@@ -2,6 +2,9 @@ using UIKit;
 
 namespace De.Openelp.Feuerwehr.App.iOS
 {
+    /// <summary>
+    /// Provides the iOS application entry point.
+    /// </summary>
     public class Application
     {
         // This is the main entry point of the application.

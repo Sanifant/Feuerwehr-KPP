@@ -17,10 +17,10 @@ using Mapsui.Tiling;
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {
     /// <summary>
-    /// Executes situation Map View Model.
+    /// Provides bindable state and commands for the situation map view.
     /// </summary>
-    /// <param name="service">The service.</param>
-    /// <param name="authService">The auth Service.</param>
+    /// <param name="service">The situation map service handling the requested operations.</param>
+    /// <param name="authService">The authentication service supplying session state and user roles.</param>
     public partial class SituationMapViewModel(ISituationMapService service, IAuthService authService) : ViewModelBase
     {
         private Guid? displayedIncidentId;
@@ -41,10 +41,13 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         [ObservableProperty]
         private string lastUpdated = string.Empty;
 
+        /// <summary>
+        /// Gets a value indicating whether the signed-in user can view situation map data.
+        /// </summary>
         public bool CanView => authService.IsAuthenticated && (authService.UserRoles.Contains("SituationMapViewer") || authService.UserRoles.Contains("SituationMapEditor"));
 
         /// <summary>
-        /// Executes activate.
+        /// Subscribes to authentication changes and activates the view's data updates.
         /// </summary>
         public void Activate()
         {
@@ -59,7 +62,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         }
 
         /// <summary>
-        /// Executes deactivate.
+        /// Unsubscribes from authentication changes and cancels work that belongs to the inactive view.
         /// </summary>
         public void Deactivate()
         {
@@ -68,11 +71,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.Clear();
         }
 
-        [RelayCommand(CanExecute = nameof(CanView))]
         /// <summary>
-        /// Executes refresh.
+        /// Reloads the active incident and situation-map layers while preserving read-only client behavior.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
+        [RelayCommand(CanExecute = nameof(CanView))]
         public async Task RefreshAsync(CancellationToken cancellationToken)
         {
             if (!this.CanView)
@@ -145,10 +149,10 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             }
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Executes zoom In.
+        /// Increases the map zoom level.
         /// </summary>
+        [RelayCommand]
         public void ZoomIn()
         {
             if (this.zoomFactor == 1)
@@ -163,10 +167,10 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
 
 
-        [RelayCommand]
         /// <summary>
-        /// Executes zoom Out.
+        /// Decreases the map zoom level.
         /// </summary>
+        [RelayCommand]
         public void ZoomOut()
         {
             this.CanZoomIn = true;

@@ -5,19 +5,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Implements fire department operations for the API application layer.
+    /// </summary>
     public sealed class FireDepartmentService : IFireDepartmentService
     {
         private readonly FeuerwehrDbContext _db;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FireDepartmentService" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="db">The database context for querying and persisting application records.</param>
         public FireDepartmentService(FeuerwehrDbContext db)
         {
             this._db = db;
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves fire department records visible to the caller.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task whose result is an application result containing the matching fire department records, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Get()
         {
             List<FireDepartmentDto> fireDepartments = await this._db.FireDepartments
@@ -44,10 +51,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Adds the operation.
+        /// Creates fire department records from the validated input.
         /// </summary>
-        /// <param name="fireDepartmentDto">The fire Department Dto.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="fireDepartmentDto">The fire department details to persist.</param>
+        /// <returns>A task whose result is an application result containing the saved fire department record or success status, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Add(FireDepartmentDto fireDepartmentDto)
         {
             FireDepartment entity = new ()
@@ -73,10 +80,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves fire department records matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the fire department to retrieve.</param>
+        /// <returns>A task whose result is an application result containing the matching fire department record, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Get(int id)
         {
             FireDepartment? fireDepartment = await this._db.FireDepartments

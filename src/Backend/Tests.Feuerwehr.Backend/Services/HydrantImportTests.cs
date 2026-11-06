@@ -6,34 +6,38 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests hydrant import behavior and its expected outcomes.
+    /// </summary>
     public class HydrantImportTests
     {
         private const string Header = "street;houseNumber;postalCode;city;latitude;longitude;nominalDiameter;type;waterSource;status;notes";
         private const string Row = "DorfstraÃŸe;12;02361;Testort;53.929134;10.638436;80;1;1;1;";
 
         /// <summary>
-        /// Creates the database.
+        /// Creates an isolated database for hydrant import assertions.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The configured PostgreSQL database context.</returns>
         public static FeuerwehrDbContext CreateDatabase() => new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
         /// <summary>
-        /// Executes import.
+        /// Validates and imports hydrant import records, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="db">The db.</param>
-        /// <param name="csv">The csv.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="db">The database context for querying and persisting application records.</param>
+        /// <param name="csv">The readable CSV stream to validate and import.</param>
+        /// <returns>A task whose result is an application result containing the created and updated record counts and any import errors, or validation, authorization, or conflict details on failure.</returns>
         public static async Task<ServiceResult> Import(FeuerwehrDbContext db, string csv)
         {
             using MemoryStream stream = new (Encoding.UTF8.GetBytes(csv));
             return await new HydrantService(db).ImportAsync(stream);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes published Example Imports Every Row And Allows Empty Notes.
+        /// Verifies that published example imports every row and allows empty notes.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PublishedExample_ImportsEveryRowAndAllowsEmptyNotes()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -51,10 +55,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(entities[1].Notes);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes omitted Notes Column And Out Of Range Coordinates Are Accepted.
+        /// Verifies that omitted notes column and out of range coordinates are accepted.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task OmittedNotesColumnAndOutOfRangeCoordinates_AreAccepted()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -70,6 +75,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(entity.Notes);
         }
 
+        /// <summary>
+        /// Verifies that missing required value rejects whole file including earlier valid rows.
+        /// </summary>
+        /// <param name="column">The CSV column whose validation is exercised.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("street")]
         [InlineData("houseNumber")]
@@ -81,10 +91,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [InlineData("type")]
         [InlineData("waterSource")]
         [InlineData("status")]
-        /// <summary>
-        /// Executes missing Required Value Rejects Whole File Including Earlier Valid Rows.
-        /// </summary>
-        /// <param name="column">The column.</param>
         public async Task MissingRequiredValue_RejectsWholeFileIncludingEarlierValidRows(string column)
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -100,15 +106,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.ChangeTracker.Entries());
         }
 
+        /// <summary>
+        /// Verifies that missing rows or required headers are rejected.
+        /// </summary>
+        /// <param name="csv">The readable CSV stream to validate and import.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("")]
         [InlineData("street;houseNumber")]
         [InlineData("street;street")]
         [InlineData(Header)]
-        /// <summary>
-        /// Executes missing Rows Or Required Headers Are Rejected.
-        /// </summary>
-        /// <param name="csv">The csv.</param>
         public async Task MissingRowsOrRequiredHeaders_AreRejected(string csv)
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -118,10 +125,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.Hydrants);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes quoted Semicolons Quotes And Multiline Notes Are Preserved.
+        /// Verifies that quoted semicolons quotes and multiline notes are preserved.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task QuotedSemicolonsQuotesAndMultilineNotes_ArePreserved()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -130,15 +138,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal("Beim Tor; Hinweis: \"frei\"\nZweite Zeile", Assert.Single(db.Hydrants).Notes);
         }
 
+        /// <summary>
+        /// Verifies that invalid CSV or storage types are rejected.
+        /// </summary>
+        /// <param name="row">The CSV row supplied to the import validator.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("DorfstraÃŸe;12;02361;Testort;abc;10;80;1;1;1;")]
         [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;0;1;1;")]
         [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;\"nicht geschlossen")]
         [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;Notiz;zusätzlich")]
-        /// <summary>
-        /// Executes invalid Csv Or Storage Types Are Rejected.
-        /// </summary>
-        /// <param name="row">The row.</param>
         public async Task InvalidCsvOrStorageTypes_AreRejected(string row)
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -146,10 +155,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.Hydrants);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes bom Zero Coordinates And Omitted Trailing Notes Are Accepted.
+        /// Verifies that bom zero coordinates and omitted trailing notes are accepted.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task BomZeroCoordinatesAndOmittedTrailingNotes_AreAccepted()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -158,10 +168,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(0, Assert.Single(db.Hydrants).Latitude);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes cancellation Does Not Persist Anything.
+        /// Verifies that cancellation does not persist anything.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Cancellation_DoesNotPersistAnything()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -171,10 +182,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.Hydrants);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes invalid Utf8 Is Reported As An Import Error.
+        /// Verifies that invalid utf8 is reported as an import error.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task InvalidUtf8_IsReportedAsAnImportError()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -185,10 +197,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.Hydrants);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes excessive Row Count Does Not Import Partial Data.
+        /// Verifies that excessive row count does not import partial data.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ExcessiveRowCount_DoesNotImportPartialData()
         {
             using FeuerwehrDbContext db = CreateDatabase();

@@ -7,18 +7,18 @@ using StackExchange.Redis;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes user Invitation Store.
+    /// Stores expiring password invitations in Redis under their opaque invitation identifiers.
     /// </summary>
-    /// <param name="redis">The redis.</param>
+    /// <param name="redis">The Redis connection used for expiring invitation storage.</param>
     public sealed class UserInvitationStore(IConnectionMultiplexer redis) : IUserInvitationStore
     {
         /// <summary>
-        /// Executes store.
+        /// Stores the invitation under its opaque identifier for the requested lifetime.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="invitation">The invitation.</param>
-        /// <param name="lifetime">The lifetime.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user invitation to process.</param>
+        /// <param name="invitation">The account, reset token, and expiry associated with the invitation identifier.</param>
+        /// <param name="lifetime">The duration for which the invitation remains in the store.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
         {
             bool stored = await redis.GetDatabase().StringSetAsync(Key(id), JsonSerializer.Serialize(invitation), lifetime);
@@ -29,10 +29,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes find.
+        /// Retrieves the invitation associated with the opaque identifier, if it has not expired.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user invitation to process.</param>
+        /// <returns>A task whose result is the stored invitation, or null if the identifier is unknown or expired.</returns>
         public async Task<UserInvitation?> FindAsync(Guid id)
         {
             RedisValue value = await redis.GetDatabase().StringGetAsync(Key(id));
@@ -40,9 +40,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Removes the operation.
+        /// Removes the invitation associated with the opaque identifier.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user invitation to process.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task RemoveAsync(Guid id) => await redis.GetDatabase().KeyDeleteAsync(Key(id));
 
         private static string Key(Guid id) => "user-invitation:" +

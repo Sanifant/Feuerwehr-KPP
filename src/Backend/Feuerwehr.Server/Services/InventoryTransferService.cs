@@ -11,13 +11,32 @@ using Npgsql;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
-    public enum InventoryTransferKind { Equipment, Types, Categories }
+    /// <summary>
+    /// Defines the supported inventory transfer kind values.
+    /// </summary>
+    public enum InventoryTransferKind
+    {
+        /// <summary>
+        /// Transfers individual equipment records as CSV.
+        /// </summary>
+        Equipment,
+
+        /// <summary>
+        /// Transfers equipment types and their inspection plans as JSON.
+        /// </summary>
+        Types,
+
+        /// <summary>
+        /// Transfers inventory categories as JSON.
+        /// </summary>
+        Categories
+    }
 
     /// <summary>
-    /// Executes inventory Transfer Service.
+    /// Implements inventory transfer operations for the API application layer.
     /// </summary>
-    /// <param name="db">The db.</param>
-    /// <param name="clock">The clock.</param>
+    /// <param name="db">The database context for querying and persisting application records.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
     public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider clock) : IInventoryTransferService
     {
         private static readonly JsonSerializerOptions Json = new (JsonSerializerDefaults.Web) { WriteIndented = true };
@@ -25,11 +44,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
 
         /// <summary>
-        /// Executes export.
+        /// Exports inventory transfer records in the supported download format.
         /// </summary>
-        /// <param name="kind">The kind.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="kind">The category of records to transfer and its corresponding file format.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Export(InventoryTransferKind kind, CancellationToken ct)
         {
             if (kind == InventoryTransferKind.Categories)
@@ -62,12 +81,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes import.
+        /// Validates and imports inventory transfer records, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="kind">The kind.</param>
-        /// <param name="stream">The stream.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="kind">The category of records to transfer and its corresponding file format.</param>
+        /// <param name="stream">The readable import stream in the format selected by the transfer kind.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the created and updated record counts and any import errors, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct)
         {
             if (kind == InventoryTransferKind.Equipment)

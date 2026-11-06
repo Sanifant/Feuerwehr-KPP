@@ -8,15 +8,19 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace De.Openelp.Feuerwehr.App.Desktop
 {
+    /// <summary>
+    /// Starts and configures the desktop Avalonia application.
+    /// </summary>
     internal sealed class Program
     {
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
-        [STAThread]
         /// <summary>
-        /// Executes main.
+        /// Starts the application using the supplied command-line arguments.
         /// </summary>
+        /// <param name="args">The command-line arguments supplied to the application.</param>
+        [STAThread]
         public static void Main(string[] args) => BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
 
@@ -24,7 +28,7 @@ namespace De.Openelp.Feuerwehr.App.Desktop
         /// <summary>
         /// Builds the avalonia App.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The configured Avalonia application builder.</returns>
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()

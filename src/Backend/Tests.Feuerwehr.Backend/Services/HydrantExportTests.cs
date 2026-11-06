@@ -8,12 +8,16 @@ using Microsoft.VisualBasic.FileIO;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests hydrant export behavior and its expected outcomes.
+    /// </summary>
     public class HydrantExportTests
     {
-        [Fact]
         /// <summary>
-        /// Executes export Matches Import Example And Preserves Csv Escaping Regardless Of Culture.
+        /// Verifies that export matches import example and preserves CSV escAPIng regardless of culture.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Export_MatchesImportExampleAndPreservesCsvEscapingRegardlessOfCulture()
         {
             using FeuerwehrDbContext db = CreateDatabase();
@@ -68,13 +72,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(2, await db.Hydrants.CountAsync());
         }
 
+        /// <summary>
+        /// Verifies that export can be imported without changing the CSV.
+        /// </summary>
+        /// <param name="notes">Optional notes about the hydrant export.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(null)]
         [InlineData("Beim Tor; Hinweis: \"frei\"\r\nZweite Zeile")]
-        /// <summary>
-        /// Executes export Can Be Imported Without Changing The Csv.
-        /// </summary>
-        /// <param name="notes">The notes.</param>
         public async Task Export_CanBeImportedWithoutChangingTheCsv(string? notes)
         {
             using FeuerwehrDbContext source = CreateDatabase();
@@ -125,10 +130,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(original.Id, Assert.Single(source.Hydrants).Id);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes empty Database Exports Headers And Cancellation Is Respected.
+        /// Verifies that empty database exports headers and cancellation is respected.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task EmptyDatabase_ExportsHeadersAndCancellationIsRespected()
         {
             using FeuerwehrDbContext db = CreateDatabase();

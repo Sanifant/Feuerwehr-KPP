@@ -13,12 +13,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests vehicle transfer behavior and its expected outcomes.
+    /// </summary>
     public sealed class VehicleTransferTests
     {
-        [Fact]
         /// <summary>
-        /// Executes import Timestamps Only Actual Status Changes And Rolls Them Back With An Invalid Batch.
+        /// Verifies that import timestamps only actual status changes and rolls them back with an invalid batch.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ImportTimestampsOnlyActualStatusChangesAndRollsThemBackWithAnInvalidBatch()
         {
             await using Fixture fixture = new ();
@@ -54,10 +58,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(changedAt, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes csv Round Trip Resolves Officer Email And Preserves Vehicle Identity Bookings And Quoted Text.
+        /// Verifies that CSV round trip resolves officer email and preserves vehicle identity bookings and quoted text.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CsvRoundTripResolvesOfficerEmailAndPreservesVehicleIdentityBookingsAndQuotedText()
         {
             await using Fixture fixture = new ();
@@ -96,15 +101,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = Assert.Single(fixture.Db.VehicleBookingDays);
         }
 
+        /// <summary>
+        /// Verifies that invalid officer rejects the whole file without creating users or partial vehicles.
+        /// </summary>
+        /// <param name="email">The user's email address.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("missing@example.test")]
         [InlineData("viewer@example.test")]
         [InlineData("inactive@example.test")]
         [InlineData("foreign@example.test")]
-        /// <summary>
-        /// Executes invalid Officer Rejects The Whole File Without Creating Users Or Partial Vehicles.
-        /// </summary>
-        /// <param name="email">The email.</param>
         public async Task InvalidOfficerRejectsTheWholeFileWithoutCreatingUsersOrPartialVehicles(string email)
         {
             await using Fixture fixture = new ();
@@ -117,16 +123,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(usersBefore, await fixture.Db.Users.CountAsync());
         }
 
+        /// <summary>
+        /// Verifies that invalid files have actionable errors and do not change data.
+        /// </summary>
+        /// <param name="csv">The readable CSV stream to validate and import.</param>
+        /// <param name="expected">The expected result or value for the scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("radioCallSign;radioCallSign;fireDepartment;equipmentOfficerEmail\nA;A;Feuerwehr A;owner@example.test", "mehrfach")]
         [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail\n\"Nicht geschlossen;Feuerwehr A;owner@example.test", "CSV-Zeile")]
         [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail;vehicleType\nA;Feuerwehr A;owner@example.test;Unbekannt", "Fahrzeugtyp")]
         [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail;status\nA;Feuerwehr A;owner@example.test;Unbekannt", "Status")]
-        /// <summary>
-        /// Executes invalid Files Have Actionable Errors And Do Not Change Data.
-        /// </summary>
-        /// <param name="csv">The csv.</param>
-        /// <param name="expected">The expected.</param>
         public async Task InvalidFilesHaveActionableErrorsAndDoNotChangeData(string csv, string expected)
         {
             await using Fixture fixture = new ();
@@ -137,10 +144,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(fixture.Db.Vehicles);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes officers Only Export Assigned Vehicles And Cannot Import Updates For Other Officers.
+        /// Verifies that officers only export assigned vehicles and cannot import updates for other officers.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task OfficersOnlyExportAssignedVehiclesAndCannotImportUpdatesForOtherOfficers()
         {
             await using Fixture fixture = new ();
@@ -162,10 +170,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(403, (await fixture.Service.Export(VehicleTransferKind.Vehicles, default)).Code);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reimport Without Ids Updates By Department And Call Sign And Missing Columns Preserve Values.
+        /// Verifies that reimport without ids updates by department and call sign and missing columns preserve values.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ReimportWithoutIdsUpdatesByDepartmentAndCallSignAndMissingColumnsPreserveValues()
         {
             await using Fixture fixture = new ();
@@ -184,10 +193,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(VehicleStatusDefaults.DeregisteredId, stored.VehicleStatusId);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes vehicle Types Round Trip And Rename In Place While Duplicate Names Rollback The Entire Batch.
+        /// Verifies that vehicle types round trip and rename in place while duplicate names rollback the entire batch.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task VehicleTypesRoundTripAndRenameInPlaceWhileDuplicateNamesRollbackTheEntireBatch()
         {
             await using Fixture fixture = new ();
@@ -208,17 +218,32 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
         private static MemoryStream Csv(string text) => new (Encoding.UTF8.GetBytes(text));
 
+        /// <summary>
+        /// Creates isolated persistence, caller identity, and service dependencies for the surrounding test scenarios.
+        /// </summary>
         private sealed class Fixture : IAsyncDisposable
         {
+            /// <summary>
+            /// Gets the database context owned by the fixture.
+            /// </summary>
             public FeuerwehrDbContext Db { get; } = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
+            /// <summary>
+            /// Gets the application service under test.
+            /// </summary>
             public VehicleTransferService Service { get; }
 
+            /// <summary>
+            /// Gets the controllable clock used by the fixture.
+            /// </summary>
             public TestClock Clock { get; } = new ();
 
             private readonly HttpContextAccessor http = new () { HttpContext = new DefaultHttpContext() };
             private readonly Guid typeId = Guid.NewGuid();
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Fixture" /> class with its required dependencies.
+            /// </summary>
             public Fixture()
             {
                 _ = this.Db.Database.EnsureCreated();
@@ -240,18 +265,20 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
 
             /// <summary>
-            /// Executes as.
+            /// Changes the fixture's current caller identity and role for the next service operation.
             /// </summary>
-            /// <param name="id">The id.</param>
+            /// <param name="id">The identifier of the fixture to process.</param>
+            /// <param name="role">The Identity role under test.</param>
             public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
                 [
                 new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
 
             /// <summary>
-            /// Executes vehicle.
+            /// Creates or retrieves the vehicle used by the booking scenario.
             /// </summary>
-            /// <param name="callSign">The call Sign.</param>
-            /// <param name="owner">The owner.</param>
+            /// <param name="callSign">The radio call sign identifying the fixture vehicle.</param>
+            /// <param name="owner">The activity or controller owning the scanner operation.</param>
+            /// <returns>The vehicle prepared for the current test scenario.</returns>
             public Vehicle Vehicle(string callSign = "Florian 19-01", string owner = "owner")
             {
                 Vehicle vehicle = new ()
@@ -261,18 +288,26 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
 
             /// <summary>
-            /// Executes dispose.
+            /// Releases the resources owned by this fixture component.
             /// </summary>
+            /// <returns>A task that completes when the scenario and its assertions finish.</returns>
             public ValueTask DisposeAsync() => this.Db.DisposeAsync();
         }
 
+        /// <summary>
+        /// Supplies a controllable UTC time to tests.
+        /// </summary>
         private sealed class TestClock : TimeProvider
         {
+            /// <summary>
+            /// Gets or sets the UTC instant returned by the test clock.
+            /// </summary>
             public DateTimeOffset UtcNow { get; set; } = new (2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
 
             /// <summary>
-            /// Gets the utc Now.
+            /// Returns the deterministic UTC instant configured for this test clock.
             /// </summary>
+            /// <returns>The UTC instant configured by the test clock.</returns>
             public override DateTimeOffset GetUtcNow() => this.UtcNow;
         }
     }

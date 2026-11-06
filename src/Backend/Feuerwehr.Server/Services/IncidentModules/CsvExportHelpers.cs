@@ -4,13 +4,16 @@ using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
+    /// <summary>
+    /// Formats audit records as CSV and protects exported cells from spreadsheet formula interpretation.
+    /// </summary>
     public static class CsvExportHelpers
     {
         /// <summary>
-        /// Executes sanitize Csv Cell.
+        /// Prefixes potentially executable spreadsheet formulas so exported cells remain text.
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
+        /// <param name="value">The string? value to process.</param>
+        /// <returns>The escaped cell text safe for spreadsheet-compatible CSV export.</returns>
         public static string SanitizeCsvCell(string? value)
         {
             string normalized = (value ?? string.Empty).Replace("\r", " ").Replace("\n", " ");
@@ -25,8 +28,8 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <summary>
         /// Builds the map Audit Csv.
         /// </summary>
-        /// <param name="events">The events.</param>
-        /// <returns></returns>
+        /// <param name="events">The ordered audit events to include in the CSV export.</param>
+        /// <returns>The generated export file bytes.</returns>
         public static byte[] BuildMapAuditCsv(IEnumerable<MapAuditEvent> events)
         {
             StringBuilder sb = new();

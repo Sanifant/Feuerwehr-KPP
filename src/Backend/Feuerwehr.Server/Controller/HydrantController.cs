@@ -6,18 +6,25 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace De.Openelp.Feuerwehr.Server.Controller
 {
+    /// <summary>
+    /// Exposes HTTP endpoints for hydrant operations and maps application results to responses.
+    /// </summary>
+    /// <param name="service">The hydrant service handling the requested operations.</param>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Policy = PolicyNames.CanViewData)]
     public class HydrantController(IHydrantService service) : ControllerBase
     {
+        /// <summary>
+        /// The maximum accepted upload size in bytes.
+        /// </summary>
         public const long MaximumImportBytes = 5 * 1024 * 1024;
 
         /// <summary>
-        /// Exports hydrant data as a CSV file.
+        /// Exports hydrant records in the supported download format.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an HTTP response containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         [HttpGet("export")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
         public async Task<IActionResult> Export(CancellationToken cancellationToken)
@@ -26,11 +33,11 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         }
 
         /// <summary>
-        /// Imports hydrant data from an uploaded CSV file.
+        /// Validates and imports hydrant records, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="file">The uploaded CSV file.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="file">The uploaded import file; null when no file was supplied.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an HTTP response containing the created and updated record counts and any import errors, or validation, authorization, or conflict details on failure.</returns>
         [HttpPost("import")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
         [Consumes("multipart/form-data")]
@@ -52,9 +59,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         }
 
         /// <summary>
-        /// Gets all hydrants.
+        /// Retrieves hydrant records visible to the caller.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An HTTP response containing the matching hydrant records, or validation, authorization, or conflict details on failure.</returns>
         [HttpGet]
         public ActionResult<IEnumerable<Hydrant>> Get()
         {
@@ -62,10 +69,10 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         }
 
         /// <summary>
-        /// Gets a hydrant by id.
+        /// Retrieves hydrant records matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The hydrant identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the hydrant to retrieve.</param>
+        /// <returns>An HTTP response containing the matching hydrant record, or validation, authorization, or conflict details on failure.</returns>
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -75,8 +82,8 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Creates a hydrant.
         /// </summary>
-        /// <param name="value">The hydrant to create.</param>
-        /// <returns></returns>
+        /// <param name="value">The hydrant value to process.</param>
+        /// <returns>An HTTP response containing the saved hydrant record or success status, or validation, authorization, or conflict details on failure.</returns>
         [HttpPost]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Post([FromBody] Hydrant value)
@@ -87,9 +94,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Updates a hydrant.
         /// </summary>
-        /// <param name="id">The hydrant identifier.</param>
-        /// <param name="value">The hydrant values to update.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the hydrant to process.</param>
+        /// <param name="value">The hydrant value to process.</param>
+        /// <returns>An HTTP response containing the saved hydrant record or success status, or validation, authorization, or conflict details on failure.</returns>
         [HttpPut("{id}")]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Put(int id, [FromBody] Hydrant value)
@@ -100,8 +107,8 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Deletes a hydrant.
         /// </summary>
-        /// <param name="id">The hydrant identifier.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the hydrant to process.</param>
+        /// <returns>An HTTP response containing confirmation that the record was deleted, or validation, authorization, or conflict details on failure.</returns>
         [HttpDelete("{id}")]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Delete(int id)

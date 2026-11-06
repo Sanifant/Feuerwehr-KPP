@@ -10,6 +10,9 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
+    /// <summary>
+    /// Tests users controller behavior and its expected outcomes.
+    /// </summary>
     public class UsersControllerTests
     {
         private readonly Mock<UserManager<ApplicationUser>> _mockUserManager;
@@ -17,6 +20,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private readonly Mock<IUserInvitationService> _mockInvitations;
         private readonly UsersController _controller;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UsersControllerTests" /> class with its required dependencies.
+        /// </summary>
         public UsersControllerTests()
         {
             this._mockUserManager = new Mock<UserManager<ApplicationUser>>(
@@ -85,10 +91,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         #region GetUser Tests
 
-        [Fact]
         /// <summary>
-        /// Gets the user Returns Ok Result With Valid User Id.
+        /// Verifies that get user returns ok result with valid user id.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task GetUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
@@ -115,10 +122,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(okResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Updates Email And Username.
+        /// Verifies that update user updates email and username.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_UpdatesEmailAndUsername()
         {
             ApplicationUser user = new ()
@@ -137,10 +145,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(request.Email, user.UserName);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Clears Roles When Empty Role List Provided.
+        /// Verifies that update user clears roles when empty role list provided.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_ClearsRoles_WhenEmptyRoleListProvided()
         {
             ApplicationUser user = new ()
@@ -163,16 +172,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
         }
 
+        /// <summary>
+        /// Verifies that update user preserves changes or clears fire department explicitly.
+        /// </summary>
+        /// <param name="departmentId">The identifier of the associated department.</param>
+        /// <param name="clear">The expected clear flag for this test case.</param>
+        /// <param name="expected">The expected result or value for the scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(null, false, 1)]
         [InlineData(2, false, 2)]
         [InlineData(null, true, null)]
-        /// <summary>
-        /// Updates the user Preserves Changes Or Clears Fire Department Explicitly.
-        /// </summary>
-        /// <param name="departmentId">The department Id.</param>
-        /// <param name="clear">The clear.</param>
-        /// <param name="expected">The expected.</param>
         public async Task UpdateUser_PreservesChangesOrClearsFireDepartmentExplicitly(int? departmentId, bool clear, int? expected)
         {
             ApplicationUser user = new ()
@@ -187,10 +197,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(expected, user.FireDepartmentId);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Rejects Conflicting Department Changes.
+        /// Verifies that update user rejects conflicting department changes.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_RejectsConflictingDepartmentChanges()
         {
             ApplicationUser user = new ()
@@ -204,10 +215,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._mockUserManager.Verify(manager => manager.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Returns Bad Request When Email Belongs To Another User.
+        /// Verifies that update user returns bad request when email belongs to another user.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_ReturnsBadRequest_WhenEmailBelongsToAnotherUser()
         {
             ApplicationUser user = new ()
@@ -225,10 +237,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
 
-        [Fact]
         /// <summary>
-        /// Gets the user Returns Not Found When User Does Not Exist.
+        /// Verifies that get user returns not found when user does not exist.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task GetUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -293,10 +306,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _mockInvitations.Verify(service => service.SendAsync(It.IsAny<ApplicationUser>()), Times.Once);
         }
         */
-        [Fact]
         /// <summary>
-        /// Creates the user Returns Bad Request When User Email Already Exists.
+        /// Verifies that create user returns bad request when user email already exists.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateUser_ReturnsBadRequest_WhenUserEmailAlreadyExists()
         {
             // Arrange
@@ -322,10 +336,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(badRequestResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the user Returns Bad Request When Role Does Not Exist.
+        /// Verifies that create user returns bad request when role does not exist.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateUser_ReturnsBadRequest_WhenRoleDoesNotExist()
         {
             // Arrange
@@ -350,10 +365,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(badRequestResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the user Rolls Back User Creation When Role Assignment Fails.
+        /// Verifies that create user rolls back user creation when role assignment fails.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateUser_RollsBackUserCreation_WhenRoleAssignmentFails()
         {
             // Arrange
@@ -391,10 +407,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._mockUserManager.Verify(um => um.DeleteAsync(It.IsAny<ApplicationUser>()), Times.Once);
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the user Returns Bad Request When User Creation Fails.
+        /// Verifies that create user returns bad request when user creation fails.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateUser_ReturnsBadRequest_WhenUserCreationFails()
         {
             // Arrange
@@ -424,10 +441,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         #region UpdateUser Tests
 
-        [Fact]
         /// <summary>
-        /// Updates the user Returns Ok Result With Valid Request.
+        /// Verifies that update user returns ok result with valid request.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_ReturnsOkResult_WithValidRequest()
         {
             // Arrange
@@ -468,10 +486,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(okResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Returns Not Found When User Does Not Exist.
+        /// Verifies that update user returns not found when user does not exist.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -489,10 +508,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(notFoundResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Updates Only Provided Fields.
+        /// Verifies that update user updates only provided fields.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_UpdatesOnlyProvidedFields()
         {
             // Arrange
@@ -522,10 +542,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(okResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Updates Password When New Password Provided.
+        /// Verifies that update user updates password when new password provided.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_UpdatesPassword_WhenNewPasswordProvided()
         {
             // Arrange
@@ -550,10 +571,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._mockUserManager.Verify(um => um.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), request.NewPassword), Times.Once);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Returns Bad Request When Update Fails.
+        /// Verifies that update user returns bad request when update fails.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_ReturnsBadRequest_WhenUpdateFails()
         {
             // Arrange
@@ -575,10 +597,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(badRequestResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the user Returns Bad Request When Invalid Role Provided.
+        /// Verifies that update user returns bad request when invalid role provided.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateUser_ReturnsBadRequest_WhenInvalidRoleProvided()
         {
             // Arrange
@@ -603,10 +626,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         #region DeleteUser Tests
 
-        [Fact]
         /// <summary>
-        /// Deletes the user Returns Ok Result With Valid User Id.
+        /// Verifies that delete user returns ok result with valid user id.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DeleteUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
@@ -628,10 +652,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.False(user.IsActive);
         }
 
-        [Fact]
         /// <summary>
-        /// Deletes the user Returns Not Found When User Does Not Exist.
+        /// Verifies that delete user returns not found when user does not exist.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DeleteUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -646,10 +671,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(notFoundResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Deletes the user Returns Bad Request When Trying To Delete Own Account.
+        /// Verifies that delete user returns bad request when trying to delete own account.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DeleteUser_ReturnsBadRequest_WhenTryingToDeleteOwnAccount()
         {
             // Arrange
@@ -669,10 +695,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(badRequestResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Deletes the user Returns Bad Request When Update Fails.
+        /// Verifies that delete user returns bad request when update fails.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DeleteUser_ReturnsBadRequest_WhenUpdateFails()
         {
             // Arrange
@@ -698,10 +725,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         #region PermanentlyDeleteUser Tests
 
-        [Fact]
         /// <summary>
-        /// Executes permanently Delete User Returns Ok Result With Valid User Id.
+        /// Verifies that permanently delete user returns ok result with valid user id.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PermanentlyDeleteUser_ReturnsOkResult_WithValidUserId()
         {
             // Arrange
@@ -722,10 +750,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(okResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes permanently Delete User Returns Not Found When User Does Not Exist.
+        /// Verifies that permanently delete user returns not found when user does not exist.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PermanentlyDeleteUser_ReturnsNotFound_WhenUserDoesNotExist()
         {
             // Arrange
@@ -740,10 +769,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(notFoundResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes permanently Delete User Returns Bad Request When Trying To Delete Own Account.
+        /// Verifies that permanently delete user returns bad request when trying to delete own account.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PermanentlyDeleteUser_ReturnsBadRequest_WhenTryingToDeleteOwnAccount()
         {
             // Arrange
@@ -763,10 +793,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.NotNull(badRequestResult.Value);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes permanently Delete User Returns Bad Request When Delete Fails.
+        /// Verifies that permanently delete user returns bad request when delete fails.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task PermanentlyDeleteUser_ReturnsBadRequest_WhenDeleteFails()
         {
             // Arrange

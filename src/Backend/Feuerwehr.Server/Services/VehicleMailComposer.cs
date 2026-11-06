@@ -5,19 +5,19 @@ using De.Openelp.Feuerwehr.Server.Models.Vehicles;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes vehicle Mail Composer.
+    /// Builds plain-text and HTML reservation notifications with booking details and the frontend link.
     /// </summary>
-    /// <param name="configuration">The configuration.</param>
-    /// <param name="clock">The clock.</param>
+    /// <param name="configuration">The application configuration containing connection, authentication, and frontend settings.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
     public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvider clock) : IVehicleMailComposer
     {
         /// <summary>
-        /// Executes compose.
+        /// Creates the plain-text and HTML notification for a reservation request or confirmed booking.
         /// </summary>
-        /// <param name="reservation">The reservation.</param>
-        /// <param name="recipient">The recipient.</param>
-        /// <param name="request">The request.</param>
-        /// <returns></returns>
+        /// <param name="reservation">The reservation whose captured booking details are included in the notification.</param>
+        /// <param name="recipient">The destination email address.</param>
+        /// <param name="request">Whether to compose a pending-request notification rather than a booking confirmation.</param>
+        /// <returns>The queued notification content and initial delivery metadata.</returns>
         public VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request)
         {
             string title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestätigt";

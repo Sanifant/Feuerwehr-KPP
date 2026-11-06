@@ -6,16 +6,16 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes diary Category Admin Service.
+    /// Implements diary category operations for the API application layer.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
     public sealed class DiaryCategoryAdminService(FeuerwehrDbContext dbContext) : IDiaryCategoryAdminService
     {
         /// <summary>
-        /// Gets the all.
+        /// Retrieves diary category records visible to the caller.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the matching diary category records, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetAll(CancellationToken cancellationToken)
         {
             List<DiaryCategoryDto> categories = await dbContext.DiaryCategories
@@ -27,11 +27,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes upsert.
+        /// Creates or updates diary category records after validating input and concurrency state.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The upsert diary category input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the outcome of the diary category operation, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Upsert(UpsertDiaryCategoryRequest request, CancellationToken cancellationToken)
         {
 

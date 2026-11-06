@@ -5,29 +5,56 @@ using MimeKit;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Resolves SMTP connection and sender settings from explicit configuration or Aspire service connections.
+    /// </summary>
     public sealed class SmtpSettings
     {
+        /// <summary>
+        /// Gets the SMTP server host name.
+        /// </summary>
         public required string Host { get; init; }
 
+        /// <summary>
+        /// Gets the SMTP server port.
+        /// </summary>
         public required int Port { get; init; }
 
+        /// <summary>
+        /// Gets the transport security mode for the SMTP connection.
+        /// </summary>
         public required SecureSocketOptions Security { get; init; }
 
+        /// <summary>
+        /// Gets the user's login name.
+        /// </summary>
         public string? Username { get; init; }
 
+        /// <summary>
+        /// Gets the password supplied for authentication.
+        /// </summary>
         public string? Password { get; init; }
 
+        /// <summary>
+        /// Gets the first date of the reservation range, inclusive.
+        /// </summary>
         public required string From { get; init; }
 
+        /// <summary>
+        /// Gets the sender display name.
+        /// </summary>
         public required string FromName { get; init; }
 
+        /// <summary>
+        /// Gets the SMTP operation timeout in milliseconds.
+        /// </summary>
         public required int TimeoutMilliseconds { get; init; }
 
         /// <summary>
-        /// Executes from Configuration.
+        /// Resolves SMTP settings from explicit mail configuration, Aspire connection information, or local defaults.
         /// </summary>
-        /// <param name="configuration">The configuration.</param>
-        /// <returns></returns>
+        /// <param name="configuration">The application configuration containing connection, authentication, and frontend settings.</param>
+        /// <returns>The resolved SMTP host, port, sender, and transport settings.</returns>
         public static SmtpSettings FromConfiguration(IConfiguration configuration)
         {
             static string? NonBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();

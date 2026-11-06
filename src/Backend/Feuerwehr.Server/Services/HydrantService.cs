@@ -9,16 +9,16 @@ using HydrantEntity = De.Openelp.Feuerwehr.Server.Models.Hydrant;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes hydrant Service.
+    /// Implements hydrant operations for the API application layer.
     /// </summary>
-    /// <param name="context">The context.</param>
+    /// <param name="context">The database context or model builder used by this operation.</param>
     public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
     {
         /// <summary>
-        /// Executes export.
+        /// Exports hydrant records in the supported download format.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the generated export file bytes.</returns>
         public async Task<byte[]> ExportAsync(CancellationToken cancellationToken = default)
         {
             List<HydrantEntity> hydrants = await context.Hydrants.AsNoTracking().OrderBy(h => h.Id).ToListAsync(cancellationToken);
@@ -45,11 +45,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes import.
+        /// Validates and imports hydrant records, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="csv">The csv.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="csv">The readable CSV stream to validate and import.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the created and updated record counts and any import errors, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
         {
             (List<Hydrant>? hydrants, List<HydrantImportError>? errors) = HydrantCsvImport.Read(csv, cancellationToken);
@@ -71,16 +71,16 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves hydrant records visible to the caller.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An application result containing the matching hydrant records, or validation, authorization, or conflict details on failure.</returns>
         public ServiceResult Get() => ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves hydrant records matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the hydrant to retrieve.</param>
+        /// <returns>An application result containing the matching hydrant record, or validation, authorization, or conflict details on failure.</returns>
         public ServiceResult Get(int id)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
@@ -88,10 +88,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes post.
+        /// Creates hydrant records from the validated input.
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
+        /// <param name="value">The hydrant value to process.</param>
+        /// <returns>An application result containing the saved hydrant record or success status, or validation, authorization, or conflict details on failure.</returns>
         public ServiceResult Post(Hydrant value)
         {
             HydrantEntity entity = new ()
@@ -104,11 +104,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes put.
+        /// Updates hydrant records matching the supplied identifier after validating the input.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the hydrant to process.</param>
+        /// <param name="value">The hydrant value to process.</param>
+        /// <returns>An application result containing the saved hydrant record or success status, or validation, authorization, or conflict details on failure.</returns>
         public ServiceResult Put(int id, Hydrant value)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
@@ -123,10 +123,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Deletes the operation.
+        /// Deletes the hydrant record matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns></returns>
+        /// <param name="id">The identifier of the hydrant to process.</param>
+        /// <returns>An application result containing confirmation that the record was deleted, or validation, authorization, or conflict details on failure.</returns>
         public ServiceResult Delete(int id)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);

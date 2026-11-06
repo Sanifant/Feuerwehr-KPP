@@ -20,6 +20,9 @@ using Mapsui.UI.Avalonia;
 
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {
+    /// <summary>
+    /// Provides bindable state and commands for the map view.
+    /// </summary>
     public partial class MapViewModel : ViewModelBase
     {
 
@@ -48,6 +51,11 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         private readonly IHydrantService hydrantService;
         private readonly IGpsService gpsService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MapViewModel" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="service">The hydrant service handling the requested operations.</param>
+        /// <param name="gpsService">The platform location service used to locate the device.</param>
         public MapViewModel(IHydrantService service, IGpsService gpsService)
         {
 
@@ -58,10 +66,10 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.DrawHydrants();
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Executes zoom In.
+        /// Increases the map zoom level.
         /// </summary>
+        [RelayCommand]
         public void ZoomIn()
         {
             if (this.zoomFactor == 1)
@@ -74,10 +82,10 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Executes zoom Out.
+        /// Decreases the map zoom level.
         /// </summary>
+        [RelayCommand]
         public void ZoomOut()
         {
             this.CanZoomIn = true;
@@ -85,11 +93,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Executes center On Location.
+        /// Requests the device position and centers the map when a location is available.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
+        [RelayCommand]
         public async Task CenterOnLocationAsync(CancellationToken cancellationToken)
         {
             GpsLocation? location = await this.GetLocationForCommandAsync(cancellationToken);
@@ -105,11 +114,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             }
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Executes settings.
+        /// Requests the current location before opening hydrant creation at the returned coordinates.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
+        [RelayCommand]
         public async Task SettingsAsync(CancellationToken cancellationToken)
         {
             GpsLocation? location = await this.GetLocationForCommandAsync(cancellationToken);
@@ -128,20 +138,20 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             }
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Adds the hydrant.
+        /// Opens hydrant creation using the selected location.
         /// </summary>
+        [RelayCommand]
         public void AddHydrant()
         {
             this.IsAddVisible = false;
         }
 
-        [RelayCommand]
         /// <summary>
-        /// Executes map Clicked.
+        /// Handles selection of a hydrant or map element at the clicked map position.
         /// </summary>
-        /// <param name="mapEventArgs">The map Event Args.</param>
+        /// <param name="mapEventArgs">The map tap event containing the selected display coordinates.</param>
+        [RelayCommand]
         public void MapClicked(TappedEventArgs? mapEventArgs)
         {
             if (this.Map is null || mapEventArgs?.Source is not MapControl mapControl)
@@ -172,10 +182,10 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         }
 
         /// <summary>
-        /// Initializes the location.
+        /// Loads the initial device position and updates the current-location pin when a location is available.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task InitializeLocationAsync(CancellationToken cancellationToken = default)
         {
             GpsLocation? location = await this.gpsService.GetCurrentLocationAsync(cancellationToken);

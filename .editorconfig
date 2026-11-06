@@ -57,7 +57,7 @@ stylecop.documentation.documentInternalElements = true
 stylecop.documentation.documentPrivateElements = false
 stylecop.documentation.documentPrivateFields = false
 stylecop.documentation.documentInterfaces = all                # all | exposed | none
-stylecop.documentation.companyName = PlaceholderCompany
+stylecop.documentation.companyName = openelp.de
 stylecop.documentation.copyrightText = Copyright (c) {companyName}. All rights reserved.
 stylecop.documentation.variables.myvariable = value             # requires Roslyn 4.4 or newer
 stylecop.documentation.headerDecoration =
@@ -147,3 +147,6 @@ dotnet_diagnostic.SA1309.severity = none
 
 # SA1009: Closing parenthesis should be spaced correctly
 dotnet_diagnostic.SA1009.severity = none
+
+# SA1124: Do not use regions
+dotnet_diagnostic.SA1124.severity = none

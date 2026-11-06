@@ -9,6 +9,9 @@ using De.Openelp.Feuerwehr.Common.Models.Auth;
 
 namespace De.Openelp.Feuerwehr.App.Services
 {
+    /// <summary>
+    /// Maintains the client's authenticated session and stores tokens through secure storage.
+    /// </summary>
     public class AuthService : IAuthService
     {
         private const string AccessTokenKey = "access_token";
@@ -28,12 +31,24 @@ namespace De.Openelp.Feuerwehr.App.Services
         private string? _refreshToken;
         private JwtSecurityToken? _decodedToken;
 
+        /// <summary>
+        /// Gets a value indicating whether a user is currently signed in.
+        /// </summary>
         public bool IsAuthenticated => this._decodedToken != null && this._decodedToken.ValidTo > DateTime.UtcNow;
 
+        /// <summary>
+        /// Gets the signed-in user's email address.
+        /// </summary>
         public string? UserEmail => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == EmailClaim)?.Value;
 
+        /// <summary>
+        /// Gets the signed-in user's full display name.
+        /// </summary>
         public string? UserFullName => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == NameClaim)?.Value;
 
+        /// <summary>
+        /// Gets the roles granted to the signed-in user.
+        /// </summary>
         public IReadOnlyList<string> UserRoles
         {
             get
@@ -50,8 +65,16 @@ namespace De.Openelp.Feuerwehr.App.Services
             }
         }
 
+        /// <summary>
+        /// Occurs when the authentication state changes so subscribed views can refresh their permissions.
+        /// </summary>
         public event EventHandler? AuthStateChanged;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthService" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client used to call the backend API.</param>
+        /// <param name="secureStorage">The platform storage used to retain authentication credentials.</param>
         public AuthService(HttpClient httpClient, ISecureStorage secureStorage)
         {
             this._httpClient = httpClient;
@@ -62,11 +85,11 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Executes login.
+        /// Authenticates the supplied email and password and establishes a session subject to account activation and lockout checks.
         /// </summary>
-        /// <param name="email">The email.</param>
-        /// <param name="password">The password.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="password">The password supplied for authentication.</param>
+        /// <returns>A task whose result is true if authentication succeeds; otherwise, false.</returns>
         public async Task<bool> LoginAsync(string email, string password)
         {
             try
@@ -96,9 +119,9 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Executes logout.
+        /// Revokes the current session's refresh token and signs the user out.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task LogoutAsync()
         {
             try
@@ -122,9 +145,9 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Executes refresh Token.
+        /// Renews the authenticated session after validating the refresh token and account state.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task whose result is true if the session is renewed; otherwise, false.</returns>
         public async Task<bool> RefreshTokenAsync()
         {
             if (string.IsNullOrEmpty(this._refreshToken))
@@ -161,9 +184,9 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Gets the access Token.
+        /// Retrieves the access token for authenticated API calls, renewing the session when needed.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task whose result is the current access token, or null if no valid authenticated session is available.</returns>
         public async Task<string?> GetAccessTokenAsync()
         {
             // Check if token is still valid

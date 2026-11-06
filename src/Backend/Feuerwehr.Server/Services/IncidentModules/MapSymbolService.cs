@@ -7,27 +7,27 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes map Symbol Service.
+    /// Implements map symbol operations for the API application layer.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
-    /// <param name="user">The user.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
+    /// <param name="user">The accessor for the authenticated caller's identity and permissions.</param>
+    /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
     public sealed class MapSymbolService(FeuerwehrDbContext dbContext, IUserContextAccessor user, ILogger<MapSymbolService> logger) : IMapSymbolService
     {
         /// <summary>
-        /// Gets the categories.
+        /// Retrieves map symbol categories visible to the caller.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the map symbol categories, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetCategories(CancellationToken cancellationToken)
             => ServiceResult.Ok(await dbContext.MapSymbolCategories.AsNoTracking().OrderBy(x => x.Name).Select(x => x.Name).ToListAsync(cancellationToken));
 
         /// <summary>
-        /// Creates the category.
+        /// Creates map symbol categories from the validated input.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The create map symbol category input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the newly created category, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken)
         {
             if (!user.IsAdmin)
@@ -53,10 +53,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Gets the symbols.
+        /// Retrieves the available situation-map symbols.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the available map symbol definitions, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetSymbols(CancellationToken cancellationToken)
         {
             logger.LogDebug("Map symbol catalog load started. Admin: {IsAdmin}", user.IsAdmin);
@@ -76,12 +76,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Saves the operation.
+        /// Creates or updates map symbol records after validating input and concurrency state.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The existing map symbol identifier, or null to create a new record.</param>
+        /// <param name="request">The save map symbol input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the saved map symbol record or success status, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Save(Guid? id, SaveMapSymbolRequest request, CancellationToken cancellationToken)
         {
             if (!user.IsAdmin)

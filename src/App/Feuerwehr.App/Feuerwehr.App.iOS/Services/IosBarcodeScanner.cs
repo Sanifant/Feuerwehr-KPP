@@ -10,16 +10,23 @@ using UIKit;
 
 namespace De.Openelp.Feuerwehr.App.iOS.Services
 {
+    /// <summary>
+    /// Presents the iOS camera scanner and returns the decoded equipment barcode.
+    /// </summary>
     public sealed class IosBarcodeScanner : IBarcodeScanner
     {
         private readonly SemaphoreSlim gate = new(1, 1);
 
+        /// <summary>
+        /// Gets a value indicating whether the current platform supports barcode scanning.
+        /// </summary>
         public bool IsSupported => true;
 
         /// <summary>
-        /// Executes scan.
+        /// Scans an equipment barcode with the platform camera and loads the matching equipment.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the decoded barcode, or null if scanning is canceled or no value is obtained.</returns>
         public async Task<string?> ScanAsync(CancellationToken cancellationToken)
         {
             await gate.WaitAsync(cancellationToken);
@@ -58,6 +65,10 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
             return completion.Task;
         }
 
+        /// <summary>
+        /// Exposes HTTP endpoints for barcode view operations and maps application results to responses.
+        /// </summary>
+        /// <param name="completion">The completion source receiving the decoded barcode or cancellation result.</param>
         private sealed class BarcodeViewController(TaskCompletionSource<string?> completion) : UIViewController
         {
             private readonly AVCaptureSession session = new();
@@ -67,7 +78,7 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
             private bool completed;
 
             /// <summary>
-            /// Executes view Did Load.
+            /// Creates the iOS scanner preview and starts camera capture.
             /// </summary>
             public override void ViewDidLoad()
             {
@@ -98,16 +109,16 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
             }
 
             /// <summary>
-            /// Executes view Did Layout Subviews.
+            /// Resizes the camera preview to match the scanner view bounds.
             /// </summary>
             public override void ViewDidLayoutSubviews()
             { base.ViewDidLayoutSubviews(); if (preview is not null) preview.Frame = View!.Bounds; }
 
             /// <summary>
-            /// Executes complete.
+            /// Completes the pending barcode scan and releases camera resources.
             /// </summary>
-            /// <param name="barcode">The barcode.</param>
-            /// <param name="error">The error.</param>
+            /// <param name="barcode">The unique equipment barcode used for lookup and import matching.</param>
+            /// <param name="error">The platform camera failure code.</param>
             public void Complete(string? barcode, Exception? error = null)
             {
                 if (completed) return;
@@ -117,15 +128,19 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
             }
 
             /// <summary>
-            /// Executes view Did Disappear.
+            /// Stops camera capture after the scanner view disappears.
             /// </summary>
-            /// <param name="animated">The animated.</param>
+            /// <param name="animated">Whether the platform animates the view transition.</param>
             public override void ViewDidDisappear(bool animated)
             {
                 base.ViewDidDisappear(animated);
                 if (!completed) Complete(null);
             }
 
+            /// <summary>
+            /// Releases the resources owned by this barcode view component.
+            /// </summary>
+            /// <param name="disposing">Whether managed resources should also be released.</param>
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -136,14 +151,18 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
                 base.Dispose(disposing);
             }
 
+            /// <summary>
+            /// Forwards decoded iOS camera metadata to the pending barcode scan.
+            /// </summary>
+            /// <param name="owner">The activity or controller owning the scanner operation.</param>
             private sealed class MetadataDelegate(BarcodeViewController owner) : AVCaptureMetadataOutputObjectsDelegate
             {
                 /// <summary>
-                /// Executes did Output Metadata Objects.
+                /// Completes the iOS scan when camera metadata contains a supported barcode.
                 /// </summary>
-                /// <param name="captureOutput">The capture Output.</param>
-                /// <param name="metadataObjects">The metadata Objects.</param>
-                /// <param name="connection">The connection.</param>
+                /// <param name="captureOutput">The capture output producing barcode metadata.</param>
+                /// <param name="metadataObjects">The metadata objects decoded from the camera capture.</param>
+                /// <param name="connection">The camera connection associated with the decoded metadata.</param>
                 public override void DidOutputMetadataObjects(AVCaptureMetadataOutput captureOutput, AVMetadataObject[] metadataObjects, AVCaptureConnection connection)
                 {
                     foreach (AVMetadataMachineReadableCodeObject value in metadataObjects.OfType<AVMetadataMachineReadableCodeObject>())

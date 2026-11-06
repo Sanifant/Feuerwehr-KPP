@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes incident Service.
+    /// Implements incident operations for the API application layer.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
-    /// <param name="userContext">The user Context.</param>
-    /// <param name="idempotency">The idempotency.</param>
-    /// <param name="outboxService">The outbox Service.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
+    /// <param name="userContext">The accessor for the authenticated caller's identity and permissions.</param>
+    /// <param name="idempotency">The command store that checks retries against their original payloads.</param>
+    /// <param name="outboxService">The service that stages live events in the current database unit of work.</param>
     public sealed class IncidentService(FeuerwehrDbContext dbContext,
         IUserContextAccessor userContext,
         ICommandIdempotencyService idempotency,
@@ -21,10 +21,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
     {
 
         /// <summary>
-        /// Gets the active Incident.
+        /// Retrieves the current active incident, when one exists.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the active incident, when present, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetActiveIncident(CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents
@@ -41,12 +41,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Gets the archive.
+        /// Retrieves a page of closed incidents from the archive.
         /// </summary>
-        /// <param name="page">The page.</param>
-        /// <param name="pageSize">The page Size.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="page">The one-based page number to retrieve.</param>
+        /// <param name="pageSize">The maximum number of records to include in a page.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the requested page of closed incidents, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
         {
             if (!userContext.IsAdmin)
@@ -70,11 +70,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Creates the incident.
+        /// Creates an active incident, records the command outcome, and stages its live update event.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The create incident input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the created incident and its initial editing lease, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CreateIncident(CreateIncidentRequest request, CancellationToken cancellationToken)
         {
             if (request.AlarmedAtUtc is null || request.AlarmedAtUtc == DateTimeOffset.MinValue)
@@ -160,12 +160,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes close Incident.
+        /// Closes the active incident after checking its revision and records the command and live event consistently.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="request">The close incident input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the closed incident and updated revision, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CloseIncident(Guid incidentId, CloseIncidentRequest request, CancellationToken cancellationToken)
         {
 

@@ -5,18 +5,18 @@ using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes outbox Service.
+    /// Adds live-update events to the current database unit of work for later dispatch.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
     public sealed class OutboxService(FeuerwehrDbContext dbContext) : IOutboxService
     {
         /// <summary>
-        /// Adds the message.
+        /// Stages an outbox message in the current database unit of work for delivery after commit.
         /// </summary>
-        /// <param name="aggregateType">The aggregate Type.</param>
-        /// <param name="eventType">The event Type.</param>
-        /// <param name="aggregateId">The aggregate Id.</param>
-        /// <param name="payload">The payload.</param>
+        /// <param name="aggregateType">The aggregate type that produced the event.</param>
+        /// <param name="eventType">The event name used to dispatch the live notification.</param>
+        /// <param name="aggregateId">The identifier of the aggregate that produced the event.</param>
+        /// <param name="payload">The command or event data to serialize.</param>
         public void AddMessage(string aggregateType, string eventType, string aggregateId, object payload)
         {
             _ = dbContext.OutboxMessages.Add(new OutboxMessage

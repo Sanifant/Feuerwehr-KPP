@@ -5,11 +5,20 @@ using Microsoft.VisualBasic.FileIO;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Parses and validates hydrant CSV uploads before importing the complete file.
+    /// </summary>
     internal static class HydrantCsvImport
     {
         private static readonly string[] RequiredColumns =
             ["street", "houseNumber", "postalCode", "city", "latitude", "longitude", "nominalDiameter", "type", "waterSource", "status"];
 
+        /// <summary>
+        /// Parses hydrant CSV import rows from the import stream and reports format or field validation errors.
+        /// </summary>
+        /// <param name="stream">The readable import stream in the format selected by the transfer kind.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>The hydrants returned by the API.</returns>
         internal static (List<Hydrant> Hydrants, List<HydrantImportError> Errors) Read(Stream stream, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

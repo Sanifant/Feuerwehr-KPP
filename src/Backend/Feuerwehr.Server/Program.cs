@@ -16,6 +16,9 @@ using Scalar.AspNetCore;
 
 namespace De.Openelp.Feuerwehr.Server
 {
+    /// <summary>
+    /// Exposes the API entry point for hosting and integration testing.
+    /// </summary>
     public partial class Program
     {
         private static async Task Main(string[] args)

@@ -19,6 +19,9 @@ using ImageFormatType = Android.Graphics.ImageFormatType;
 
 namespace De.Openelp.Feuerwehr.App.Android
 {
+    /// <summary>
+    /// Captures Android camera frames and completes a barcode scan with the decoded equipment identifier.
+    /// </summary>
     [Activity(Label = "Gerätebarcode scannen", Theme = "@android:style/Theme.Material.Light.NoActionBar", ScreenOrientation = ScreenOrientation.Portrait, Exported = false)]
     public sealed class BarcodeScannerActivity : Activity, TextureView.ISurfaceTextureListener, ImageReader.IOnImageAvailableListener
     {
@@ -46,11 +49,11 @@ namespace De.Openelp.Feuerwehr.App.Android
         };
 
         /// <summary>
-        /// Executes on Request Permissions Result.
+        /// Completes the pending platform permission request using the returned grant results.
         /// </summary>
-        /// <param name="requestCode">The request Code.</param>
-        /// <param name="permissions">The permissions.</param>
-        /// <param name="grantResults">The grant Results.</param>
+        /// <param name="requestCode">The identifier of the completed Android permission request.</param>
+        /// <param name="permissions">The Android permissions included in the completed permission request.</param>
+        /// <param name="grantResults">The platform grant or denial result for each requested permission.</param>
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -74,9 +77,9 @@ namespace De.Openelp.Feuerwehr.App.Android
         }
 
         /// <summary>
-        /// Executes on Image Available.
+        /// Decodes available camera frames and completes the scan when a barcode is found.
         /// </summary>
-        /// <param name="imageReader">The image Reader.</param>
+        /// <param name="imageReader">The source of camera frames available for barcode decoding.</param>
         public void OnImageAvailable(ImageReader? imageReader)
         {
             if (this.closing)
@@ -130,33 +133,39 @@ namespace De.Openelp.Feuerwehr.App.Android
         }
 
         /// <summary>
-        /// Executes on Surface Texture Available.
+        /// Starts the camera preview when its texture becomes available.
         /// </summary>
-        /// <param name="surface">The surface.</param>
-        /// <param name="width">The width.</param>
+        /// <param name="surface">The camera preview texture supplied by Android.</param>
+        /// <param name="width">The preview width in pixels.</param>
+        /// <param name="height">The preview height in pixels.</param>
         public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) => this.OpenCamera();
 
         /// <summary>
-        /// Executes on Surface Texture Destroyed.
+        /// Stops camera use when the preview texture is destroyed.
         /// </summary>
-        /// <param name="surface">The surface.</param>
-        /// <returns></returns>
+        /// <param name="surface">The camera preview texture supplied by Android.</param>
+        /// <returns>True to allow Android to release the preview texture.</returns>
         public bool OnSurfaceTextureDestroyed(SurfaceTexture surface) => true;
 
         /// <summary>
-        /// Executes on Surface Texture Size Changed.
+        /// Receives updated dimensions for the camera preview texture.
         /// </summary>
-        /// <param name="surface">The surface.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
+        /// <param name="surface">The camera preview texture supplied by Android.</param>
+        /// <param name="width">The preview width in pixels.</param>
+        /// <param name="height">The preview height in pixels.</param>
         public void OnSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) { }
 
         /// <summary>
-        /// Executes on Surface Texture Updated.
+        /// Receives notification that the camera preview texture has a new frame.
         /// </summary>
-        /// <param name="surface">The surface.</param>
+        /// <param name="surface">The camera preview texture supplied by Android.</param>
         public void OnSurfaceTextureUpdated(SurfaceTexture surface) { }
 
+        /// <summary>
+        /// Starts the camera scanner activity and associates its result with the supplied completion source.
+        /// </summary>
+        /// <param name="owner">The activity or controller owning the scanner operation.</param>
+        /// <param name="completion">The completion source receiving the decoded barcode or cancellation result.</param>
         internal static void Begin(Activity owner, TaskCompletionSource<string?> completion)
         {
             if (pending is not null)
@@ -176,6 +185,10 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
+        /// <summary>
+        /// Cancels the pending camera scan and closes its activity.
+        /// </summary>
+        /// <param name="completion">The completion source receiving the decoded barcode or cancellation result.</param>
         internal static void Cancel(TaskCompletionSource<string?> completion)
         {
             if (!ReferenceEquals(pending, completion))
@@ -192,6 +205,10 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
+        /// <summary>
+        /// Initializes the Android activity and its platform services from the saved state.
+        /// </summary>
+        /// <param name="savedInstanceState">The saved Android activity state, when restoring an existing activity.</param>
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             TextView hint = null!;
@@ -219,6 +236,9 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
+        /// <summary>
+        /// Suspends camera capture when the scanner activity loses focus.
+        /// </summary>
         protected override void OnPause()
         {
             if (this.permissionPending)
@@ -249,6 +269,9 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
+        /// <summary>
+        /// Resumes scanner camera setup when the activity becomes active.
+        /// </summary>
         protected override void OnResume()
         {
             base.OnResume();
@@ -259,6 +282,9 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
+        /// <summary>
+        /// Cancels pending platform operations and releases activity resources.
+        /// </summary>
         protected override void OnDestroy()
         {
             _ = (pending?.TrySetResult(null));
@@ -328,16 +354,22 @@ namespace De.Openelp.Feuerwehr.App.Android
             this.Finish();
         });
 
+        /// <summary>
+        /// Forwards Android camera availability and failure callbacks to the barcode scanner activity.
+        /// </summary>
+        /// <param name="owner">The activity or controller owning the scanner operation.</param>
         private sealed class CameraState(BarcodeScannerActivity owner) : CameraDevice.StateCallback
         {
             /// <summary>
-            /// Executes on Opened.
+            /// Attaches the opened camera to the scanner and starts its capture session.
             /// </summary>
+            /// <param name="camera">The camera device associated with the lifecycle callback.</param>
             public override void OnOpened(CameraDevice camera) => owner.RunOnUiThread(() => owner.StartPreview(camera));
 
             /// <summary>
-            /// Executes on Disconnected.
+            /// Closes the scanner camera after the platform reports disconnection.
             /// </summary>
+            /// <param name="camera">The camera device associated with the lifecycle callback.</param>
             public override void OnDisconnected(CameraDevice camera)
             {
                 camera.Close();
@@ -345,9 +377,10 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
 
             /// <summary>
-            /// Executes on Error.
+            /// Handles a camera failure and completes the pending scanner operation.
             /// </summary>
-            /// <param name="camera">The camera.</param>
+            /// <param name="camera">The camera device associated with the lifecycle callback.</param>
+            /// <param name="error">The platform camera failure code.</param>
             public override void OnError(CameraDevice camera, CameraError error)
             {
                 camera.Close();
@@ -355,12 +388,16 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
+        /// <summary>
+        /// Coordinates the Android camera capture session used to decode barcodes.
+        /// </summary>
+        /// <param name="owner">The activity or controller owning the scanner operation.</param>
         private sealed class SessionState(BarcodeScannerActivity owner) : CameraCaptureSession.StateCallback
         {
             /// <summary>
-            /// Executes on Configured.
+            /// Starts repeating capture requests for the configured camera session.
             /// </summary>
-            /// <param name="session">The session.</param>
+            /// <param name="session">The camera capture session associated with the callback.</param>
             public override void OnConfigured(CameraCaptureSession session)
             {
                 if (owner.closing)
@@ -385,8 +422,9 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
 
             /// <summary>
-            /// Executes on Configure Failed.
+            /// Handles capture-session setup failure and ends the pending scanner operation.
             /// </summary>
+            /// <param name="session">The camera capture session associated with the callback.</param>
             public override void OnConfigureFailed(CameraCaptureSession session) => owner.Fail("Kameravorschau nicht verfügbar.");
         }
     }

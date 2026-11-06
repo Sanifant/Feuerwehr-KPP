@@ -5,20 +5,20 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes map Lease Service.
+    /// Implements map lease operations for the API application layer.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
     public sealed class MapLeaseService(FeuerwehrDbContext dbContext) : IMapLeaseService
     {
         /// <summary>
-        /// Executes require Valid Lease.
+        /// Requires an unexpired map editing lease matching the incident, user, session, and token.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="sessionId">The session Id.</param>
-        /// <param name="leaseToken">The lease Token.</param>
-        /// <param name="userId">The user Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="sessionId">The client session that owns or requests the editing lease.</param>
+        /// <param name="leaseToken">The opaque token proving ownership of the editing lease.</param>
+        /// <param name="userId">The identifier of the user account.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the validated editing lease owned by the supplied user and session.</returns>
         public async Task<EditorLease> RequireValidLeaseAsync(Guid incidentId, string sessionId, string leaseToken, string userId, CancellationToken cancellationToken)
         {
             EditorLease lease = await dbContext.EditorLeases.FirstOrDefaultAsync(x => x.IncidentId == incidentId, cancellationToken)

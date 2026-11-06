@@ -5,8 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace De.Openelp.Feuerwehr.App
 {
+    /// <summary>
+    /// Displays the login interface and coordinates its view lifecycle.
+    /// </summary>
     public partial class LoginView : ContentPage
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoginView" /> class with its required dependencies.
+        /// </summary>
         public LoginView()
         {
             this.InitializeComponent();

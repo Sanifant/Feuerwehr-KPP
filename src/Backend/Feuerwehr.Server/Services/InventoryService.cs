@@ -11,11 +11,11 @@ using ZXing;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes inventory Service.
+    /// Implements equipment operations for the API application layer.
     /// </summary>
-    /// <param name="db">The db.</param>
-    /// <param name="user">The user.</param>
-    /// <param name="clock">The clock.</param>
+    /// <param name="db">The database context for querying and persisting application records.</param>
+    /// <param name="user">The accessor for the authenticated caller's identity and permissions.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
     public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor user, TimeProvider clock) : IInventoryService
     {
         private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
@@ -23,18 +23,19 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private IQueryable<Equipment> EquipmentQuery => db.Equipment.Include(x => x.EquipmentType).ThenInclude(x => x.Category);
 
         /// <summary>
-        /// Gets the categories.
+        /// Retrieves inventory categories visible to the caller.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the inventory categories, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetCategories(CancellationToken ct) => ServiceResult.Ok(await db.InventoryCategories
             .OrderBy(x => x.Name).Select(x => new InventoryCategoryDto(x.Id, x.Name)).ToListAsync(ct));
 
         /// <summary>
-        /// Creates the category.
+        /// Creates inventory categories from the validated input.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The create inventory category input to validate and apply.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the newly created category, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CreateCategory(CreateInventoryCategoryRequest request, CancellationToken ct)
         {
             string name = request.Name.Trim();
@@ -65,20 +66,21 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the types.
+        /// Retrieves equipment types and their inspection plans visible to the caller.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the equipment types and inspection plans, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetTypes(CancellationToken ct) => ServiceResult.Ok(await db.EquipmentTypes
             .Include(x => x.Category).OrderBy(x => x.Name)
             .Select(x => new EquipmentTypeDto(x.Id, x.CategoryId, x.Category.Name, x.Name, x.InspectionIntervalMonths, x.InspectionInstructions, x.Version)).ToListAsync(ct));
 
         /// <summary>
-        /// Saves the type.
+        /// Creates or updates equipment types and their inspection plans after validating input and concurrency state.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The existing equipment type identifier, or null to create a new record.</param>
+        /// <param name="request">The save equipment type input to validate and apply.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the saved equipment type and inspection plan, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> SaveType(Guid? id, SaveEquipmentTypeRequest request, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 150 ||
@@ -139,11 +141,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the all.
+        /// Retrieves equipment records visible to the caller.
         /// </summary>
-        /// <param name="includeInactive">The include Inactive.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="includeInactive">Whether to include deactivated records in the result.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the matching equipment records, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetAll(bool includeInactive, CancellationToken ct)
         {
             List<Equipment> items = await this.EquipmentQuery.AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.BarcodeNumber).ToListAsync(ct);
@@ -151,11 +153,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Gets the operation.
+        /// Retrieves equipment records matching the supplied identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the equipment to retrieve.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the matching equipment record, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Get(Guid id, CancellationToken ct)
         {
             Equipment? item = await this.EquipmentQuery.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -180,11 +182,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes find Barcode.
+        /// Looks up equipment by its unique barcode and loads its inspection history.
         /// </summary>
-        /// <param name="barcode">The barcode.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="barcode">The unique equipment barcode used for lookup and import matching.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the equipment details and inspection history, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> FindBarcode(string barcode, CancellationToken ct)
         {
             barcode = barcode.Trim().ToUpperInvariant();
@@ -199,11 +201,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes barcode Label.
+        /// Generates the equipment barcode as an SVG label suitable for printing.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the equipment to process.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> BarcodeLabel(Guid id, CancellationToken ct)
         {
             Equipment? item = await db.Equipment.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -222,12 +224,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Saves the operation.
+        /// Creates or updates equipment records after validating input and concurrency state.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The existing equipment identifier, or null to create a new record.</param>
+        /// <param name="request">The save equipment input to validate and apply.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the saved equipment record or success status, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Save(Guid? id, SaveEquipmentRequest request, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(request.SerialNumber) || request.SerialNumber.Length > 150 ||
@@ -295,12 +297,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Sets the active.
+        /// Changes the activation state of equipment records while preserving existing history.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the equipment to process.</param>
+        /// <param name="request">The set equipment active input to validate and apply.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the updated activation state, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> SetActive(Guid id, SetEquipmentActiveRequest request, CancellationToken ct)
         {
             Equipment? item = await db.Equipment.FindAsync([id], ct);
@@ -329,12 +331,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes inspect.
+        /// Records an equipment inspection with concurrency checking and a snapshot of its inspection plan.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the equipment to process.</param>
+        /// <param name="request">The record equipment inspection input to validate and apply.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the equipment details and inspection history, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Inspect(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct)
         {
             if (request.CommandId == Guid.Empty || !Enum.IsDefined(request.Status) || request.Comment?.Length > 4000)
@@ -410,6 +412,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
             return await this.Get(id, ct);
         }
 
+        /// <summary>
+        /// Maps the persistence record to its API contract, including computed inspection scheduling data.
+        /// </summary>
+        /// <param name="item">The equipment entity to map to the public contract.</param>
+        /// <returns>The equipment details, including the calculated next inspection date.</returns>
         internal static EquipmentDto ToDto(Equipment item) => new (
             item.Id,
             $"KPP-{item.BarcodeNumber:D3}",

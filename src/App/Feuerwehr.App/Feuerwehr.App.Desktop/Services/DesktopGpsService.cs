@@ -5,14 +5,16 @@ using De.Openelp.Feuerwehr.App.Services;
 
 namespace De.Openelp.Feuerwehr.App.Desktop.Services
 {
-    /// <summary>Desktop stub that returns a fixed location.</summary>
+    /// <summary>
+    /// Desktop stub that returns a fixed location.
+    /// </summary>
     public sealed class DesktopGpsService : IGpsService
     {
         /// <summary>
-        /// Gets the current Location.
+        /// Requests the device's current location using the platform provider and caller cancellation token.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the device location, or null if location is unavailable or permission is denied.</returns>
         public Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

@@ -15,15 +15,29 @@ using Npgsql;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
-    public enum VehicleTransferKind { Vehicles, Types }
+    /// <summary>
+    /// Defines the supported vehicle transfer kind values.
+    /// </summary>
+    public enum VehicleTransferKind
+    {
+        /// <summary>
+        /// Transfers vehicle records as CSV.
+        /// </summary>
+        Vehicles,
+
+        /// <summary>
+        /// Transfers vehicle types as JSON.
+        /// </summary>
+        Types
+    }
 
     /// <summary>
-    /// Executes vehicle Transfer Service.
+    /// Implements vehicle transfer operations for the API application layer.
     /// </summary>
-    /// <param name="db">The db.</param>
-    /// <param name="http">The http.</param>
-    /// <param name="normalizer">The normalizer.</param>
-    /// <param name="clock">The clock.</param>
+    /// <param name="db">The database context for querying and persisting application records.</param>
+    /// <param name="http">The accessor for the authenticated HTTP request and caller claims.</param>
+    /// <param name="normalizer">The Identity lookup normalizer used to match imported officer email addresses.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
     public sealed class VehicleTransferService(
         FeuerwehrDbContext db,
         IHttpContextAccessor http,
@@ -39,11 +53,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private bool IsAdmin => this.Principal.IsInRole(Roles.Admin);
 
         /// <summary>
-        /// Executes export.
+        /// Exports vehicle transfer records in the supported download format.
         /// </summary>
-        /// <param name="kind">The kind.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="kind">The category of records to transfer and its corresponding file format.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Export(VehicleTransferKind kind, CancellationToken ct)
         {
             if (!this.Allowed(kind))
@@ -78,12 +92,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes import.
+        /// Validates and imports vehicle transfer records, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="kind">The kind.</param>
-        /// <param name="stream">The stream.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="kind">The category of records to transfer and its corresponding file format.</param>
+        /// <param name="stream">The readable import stream in the format selected by the transfer kind.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the created and updated record counts and any import errors, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> Import(VehicleTransferKind kind, Stream stream, CancellationToken ct)
         {
             if (!this.Allowed(kind))

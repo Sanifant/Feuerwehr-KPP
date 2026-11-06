@@ -4,24 +4,27 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace De.Openelp.Feuerwehr.Server.Hubs
 {
+    /// <summary>
+    /// Authorizes SignalR subscriptions for incident, diary, and situation-map updates.
+    /// </summary>
     [Authorize]
     public sealed class IncidentHub : Hub<IIncidentClient>
     {
         /// <summary>
-        /// Executes subscribe Incident.
+        /// Adds an authorized connection to the incident's live update group.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task SubscribeIncident(string incidentId)
         {
             await this.Groups.AddToGroupAsync(this.Context.ConnectionId, $"incident:{incidentId}");
         }
 
         /// <summary>
-        /// Executes subscribe Map.
+        /// Adds an authorized connection to the situation-map update group.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task SubscribeMap(string incidentId)
         {
             if (!this.CanViewMap())
@@ -33,10 +36,10 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         }
 
         /// <summary>
-        /// Executes subscribe Diary.
+        /// Adds an authorized connection to the incident diary update group.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task SubscribeDiary(string incidentId)
         {
             if (!this.CanViewDiary())

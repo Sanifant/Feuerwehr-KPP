@@ -6,6 +6,9 @@ using System.Xml.Linq;
 
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
+    /// <summary>
+    /// Validates and normalizes uploaded map-symbol SVG while rejecting unsafe content.
+    /// </summary>
     internal static class SvgSymbolValidator
     {
         private static readonly HashSet<string> Elements = new ("svg g path rect circle ellipse line polyline polygon text tspan defs clipPath mask linearGradient radialGradient stop use symbol title desc pattern marker style image".Split(' '), StringComparer.Ordinal);
@@ -16,8 +19,8 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <summary>
         /// Validates the operation.
         /// </summary>
-        /// <param name="content">The content.</param>
-        /// <returns></returns>
+        /// <param name="content">The content to validate or return in the generated response.</param>
+        /// <returns>The validated and normalized SVG markup.</returns>
         public static string Validate(string content)
         {
             if (string.IsNullOrWhiteSpace(content) || Encoding.UTF8.GetByteCount(content) > 262144)

@@ -5,6 +5,20 @@ using Microsoft.VisualBasic.FileIO;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Associates a parsed equipment import row with its source line number.
+    /// </summary>
+    /// <param name="Line">The source CSV line number.</param>
+    /// <param name="BarcodeNumber">The numeric equipment barcode sequence value.</param>
+    /// <param name="TypeId">The identifier of the associated type.</param>
+    /// <param name="TypeName">The display name of the associated type.</param>
+    /// <param name="Category">The category label assigned to the inventory CSV row.</param>
+    /// <param name="SerialNumber">The manufacturer's serial number of the equipment.</param>
+    /// <param name="Manufacturer">The equipment manufacturer.</param>
+    /// <param name="Status">The operational condition of the equipment.</param>
+    /// <param name="IsActive">The inventory CSV row is active.</param>
+    /// <param name="CreatedOn">The date the equipment was registered.</param>
+    /// <param name="LastInspectedOn">The most recent inspection date, or null when no inspection has been recorded.</param>
     internal sealed record InventoryCsvRow(
         long Line,
         int BarcodeNumber,
@@ -18,11 +32,22 @@ namespace De.Openelp.Feuerwehr.Server.Services
         DateOnly? CreatedOn,
         DateOnly? LastInspectedOn);
 
+    /// <summary>
+    /// Reads and writes equipment CSV rows using the inventory import and export format.
+    /// </summary>
     internal static class InventoryCsv
     {
+        /// <summary>
+        /// The the columns associated with this inventory CSV.
+        /// </summary>
         internal static readonly string[] Columns = ["id", "barcode", "equipmentTypeId", "equipmentType", "category", "serialNumber", "manufacturer", "status", "isActive", "createdOn", "lastInspectedOn", "nextInspectionOn"];
         private static readonly string[] RequiredColumns = ["barcode", "serialNumber", "manufacturer"];
 
+        /// <summary>
+        /// Escapes a CSV cell, including delimiters, quotes, line breaks, and formula-like prefixes.
+        /// </summary>
+        /// <param name="value">The string? value to process.</param>
+        /// <returns>The escaped cell text safe for spreadsheet-compatible CSV export.</returns>
         internal static string Quote(string? value)
         {
             value ??= string.Empty;
@@ -35,6 +60,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
+        /// <summary>
+        /// Parses inventory CSV rows from the import stream and reports format or field validation errors.
+        /// </summary>
+        /// <param name="stream">The readable import stream in the format selected by the transfer kind.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>The parsed source rows together with any import validation errors.</returns>
         internal static (List<InventoryCsvRow> Rows, List<InventoryImportError> Errors) Read(Stream stream, CancellationToken ct)
         {
             List<InventoryCsvRow> rows = [];

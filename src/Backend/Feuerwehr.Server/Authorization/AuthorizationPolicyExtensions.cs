@@ -8,7 +8,7 @@ namespace De.Openelp.Feuerwehr.Server.Authorization
         /// <summary>
         /// Configure all authorization policies for the Feuerwehr system.
         /// </summary>
-        /// <param name="options">The options.</param>
+        /// <param name="options">The options to configure for the application's policies or services.</param>
         public static void AddFeuerwehrPolicies(this Microsoft.AspNetCore.Authorization.AuthorizationOptions options)
         {
             options.AddPolicy(PolicyNames.RequireAdmin, policy =>

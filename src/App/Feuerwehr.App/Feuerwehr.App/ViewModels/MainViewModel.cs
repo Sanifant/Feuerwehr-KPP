@@ -13,6 +13,9 @@ using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {
+    /// <summary>
+    /// Provides bindable state and commands for the main view.
+    /// </summary>
     public partial class MainViewModel : ViewModelBase
     {
         private readonly IAuthService _authService;
@@ -23,8 +26,14 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         [ObservableProperty]
         private bool _isDrawerOpened;
 
+        /// <summary>
+        /// Gets the available navigation pages.
+        /// </summary>
         public ObservableCollection<PageItem> Pages { get; } = new ObservableCollection<PageItem>();
 
+        /// <summary>
+        /// Gets or sets the selected navigation page index.
+        /// </summary>
         public int SelectedPageIndex
         {
             get => this._selectedPageIndex;
@@ -39,36 +48,73 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             }
         }
 
+        /// <summary>
+        /// Gets the version of the running application.
+        /// </summary>
         public string AppVersion => Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion ?? "1.0.0";
 
+        /// <summary>
+        /// Gets the copyright notice from assembly metadata.
+        /// </summary>
         public string? Copyright => Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyCopyrightAttribute>()?
             .Copyright;
 
+        /// <summary>
+        /// Gets the application description from assembly metadata.
+        /// </summary>
         public string? Description => Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyDescriptionAttribute>()?
             .Description;
 
+        /// <summary>
+        /// Gets the application title from assembly metadata.
+        /// </summary>
         public string? ProductTitle => Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyProductAttribute>()?
             .Product;
 
+        /// <summary>
+        /// Gets the signed-in user's email address.
+        /// </summary>
         public string? UserEmail => this._authService.UserEmail;
 
+        /// <summary>
+        /// Gets the signed-in user's full display name.
+        /// </summary>
         public string? UserName => this._authService.UserFullName;
 
+        /// <summary>
+        /// Gets the current incident summary.
+        /// </summary>
         public IncidentSummaryDto Incident => this._incident;
 
+        /// <summary>
+        /// Gets the application navigation service.
+        /// </summary>
         public INavigation? Navigation { get; internal set; }
 
+        /// <summary>
+        /// Gets a value indicating whether a user is currently signed in.
+        /// </summary>
         public bool IsAuthenticated => this._authService.IsAuthenticated;
 
+        /// <summary>
+        /// Gets a value indicating whether the signed-in user can open the situation map.
+        /// </summary>
         public bool CanViewSituationMap => this.IsAuthenticated && (this._authService.UserRoles.Contains("SituationMapViewer") || this._authService.UserRoles.Contains("SituationMapEditor"));
 
+        /// <summary>
+        /// Gets a value indicating whether the signed-in user can open the equipment inventory.
+        /// </summary>
         public bool CanViewInventory => this.IsAuthenticated && this._authService.UserRoles.Any(role => role is "Admin" or "EquipmentOfficer" or "InventoryViewer");
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MainViewModel" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="authService">The authentication service supplying session state and user roles.</param>
         public MainViewModel(IAuthService authService)
         {
             this._authService = authService ?? throw new ArgumentNullException(nameof(authService));

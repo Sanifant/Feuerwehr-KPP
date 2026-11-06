@@ -16,6 +16,9 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Data
 {
+    /// <summary>
+    /// Tests db initializer behavior and its expected outcomes.
+    /// </summary>
     public sealed class DbInitializerTests : IDisposable
     {
         private const string AdminEmail = "admin@feuerwehr.local";
@@ -25,6 +28,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         private readonly UserManager<ApplicationUser> _users;
         private readonly CapturingLogger _logger = new ();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DbInitializerTests" /> class with its required dependencies.
+        /// </summary>
         public DbInitializerTests()
         {
             this._configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
@@ -43,16 +49,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             this._users = this._provider.GetRequiredService<UserManager<ApplicationUser>>();
         }
 
+        /// <summary>
+        /// Verifies that seed data uses environment credentials and assigns all admin roles.
+        /// </summary>
+        /// <param name="configuredEmail">The administrator email supplied for this seeding scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("admin@example.org")]
         [InlineData("  admin@example.org  ")]
-        /// <summary>
-        /// Executes seed Data Uses Environment Credentials And Assigns All Admin Roles.
-        /// </summary>
-        /// <param name="configuredEmail">The configured Email.</param>
         public async Task SeedData_UsesEnvironmentCredentialsAndAssignsAllAdminRoles(string? configuredEmail)
         {
             // A unique prefix avoids changing the real application's configuration or other tests.
@@ -91,14 +98,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             }
         }
 
+        /// <summary>
+        /// Verifies that seed data missing password fails without creating admin.
+        /// </summary>
+        /// <param name="password">The password supplied for authentication.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        /// <summary>
-        /// Executes seed Data Missing Password Fails Without Creating Admin.
-        /// </summary>
-        /// <param name="password">The password.</param>
         public async Task SeedData_MissingPasswordFailsWithoutCreatingAdmin(string? password)
         {
             this._configuration["SeedAdmin:Password"] = password;
@@ -109,10 +117,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             Assert.Null(await this._users.FindByEmailAsync(AdminEmail));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes seed Data Invalid Password Fails Without Creating Admin Or Logging Password.
+        /// Verifies that seed data invalid password fails without creating admin or logging password.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task SeedData_InvalidPasswordFailsWithoutCreatingAdminOrLoggingPassword()
         {
             const string invalidPassword = "weak-secret";
@@ -127,16 +136,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             Assert.DoesNotContain(invalidPassword, string.Join("\n", this._logger.Messages));
         }
 
+        /// <summary>
+        /// Verifies that seed data existing admin keeps password and repairs missing roles.
+        /// </summary>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="configuredPassword">The administrator password supplied for this seeding scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(AdminEmail, null)]
         [InlineData(AdminEmail, "DifferentSeedPassword456!")]
         [InlineData("admin@example.org", null)]
         [InlineData("admin@example.org", "DifferentSeedPassword456!")]
-        /// <summary>
-        /// Executes seed Data Existing Admin Keeps Password And Repairs Missing Roles.
-        /// </summary>
-        /// <param name="email">The email.</param>
-        /// <param name="configuredPassword">The configured Password.</param>
         public async Task SeedData_ExistingAdminKeepsPasswordAndRepairsMissingRoles(string email, string? configuredPassword)
         {
             ApplicationUser admin = new ()
@@ -157,15 +167,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             Assert.DoesNotContain(InitialPassword, string.Join("\n", this._logger.Messages));
         }
 
+        /// <summary>
+        /// Verifies that seed data existing database adds module roles and allows user role updates.
+        /// </summary>
+        /// <param name="moduleRole">The Identity role under test.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(Roles.SituationMapViewer)]
         [InlineData(Roles.SituationMapEditor)]
         [InlineData(Roles.IncidentDiaryViewer)]
         [InlineData(Roles.IncidentDiaryEditor)]
-        /// <summary>
-        /// Executes seed Data Existing Database Adds Module Roles And Allows User Role Updates.
-        /// </summary>
-        /// <param name="moduleRole">The module Role.</param>
         public async Task SeedData_ExistingDatabaseAddsModuleRolesAndAllowsUserRoleUpdates(string moduleRole)
         {
             RoleManager<IdentityRole> roles = this._provider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -212,10 +223,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             Assert.Equal(new[] { Roles.Viewer, moduleRole }.Order(), (await this._users.GetRolesAsync(user)).Order());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes seed Data Invalid Email Fails Without Creating Admin.
+        /// Verifies that seed data invalid email fails without creating admin.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task SeedData_InvalidEmailFailsWithoutCreatingAdmin()
         {
             this._configuration["SeedAdmin:Email"] = "not-an-email";
@@ -230,7 +242,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this db initializer component.
         /// </summary>
         public void Dispose()
         {
@@ -238,10 +250,22 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             (this._configuration as IDisposable)?.Dispose();
         }
 
+        /// <summary>
+        /// Captures log entries so tests can verify diagnostic behavior.
+        /// </summary>
         private sealed class CapturingLogger : ILogger<Program>
         {
+            /// <summary>
+            /// Gets the messages associated with this capturing logger.
+            /// </summary>
             public List<string> Messages { get; } = [];
 
+            /// <summary>
+            /// Creates the logging scope used by the test logger.
+            /// </summary>
+            /// <typeparam name="TState">The state type used by this contract.</typeparam>
+            /// <param name="state">The structured state associated with the captured log entry.</param>
+            /// <returns>The logging scope, or null when scope tracking is not required.</returns>
             public IDisposable? BeginScope<TState>(TState state)
                 where TState : notnull
                 => null;
@@ -249,9 +273,19 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             /// <summary>
             /// Determines whether enabled.
             /// </summary>
-            /// <param name="logLevel">The log Level.</param>
+            /// <param name="logLevel">The severity of the log entry captured by the test.</param>
+            /// <returns>True if the requested capturing logger operation succeeds; otherwise, false.</returns>
             public bool IsEnabled(LogLevel logLevel) => true;
 
+            /// <summary>
+            /// Captures the formatted log entry for subsequent test assertions.
+            /// </summary>
+            /// <typeparam name="TState">The state type used by this contract.</typeparam>
+            /// <param name="logLevel">The severity of the log entry captured by the test.</param>
+            /// <param name="eventId">The identifier of the associated event.</param>
+            /// <param name="state">The structured state associated with the captured log entry.</param>
+            /// <param name="exception">The failure to include in the diagnostic entry, when present.</param>
+            /// <param name="formatter">The formatter used to render the captured log message.</param>
             public void Log<TState>(
                 LogLevel logLevel,
                 EventId eventId,

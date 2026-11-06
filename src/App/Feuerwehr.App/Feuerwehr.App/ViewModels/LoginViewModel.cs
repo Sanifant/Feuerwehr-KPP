@@ -6,6 +6,9 @@ using De.Openelp.Feuerwehr.App.Services;
 
 namespace De.Openelp.Feuerwehr.App.ViewModels
 {
+    /// <summary>
+    /// Provides bindable state and commands for the login view.
+    /// </summary>
     public partial class LoginViewModel : ViewModelBase
     {
         private readonly IAuthService _authService;
@@ -25,8 +28,15 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         [ObservableProperty]
         private bool _rememberMe = true;
 
+        /// <summary>
+        /// Occurs when the authentication state changes so subscribed views can refresh their permissions.
+        /// </summary>
         public event EventHandler? LoginSuccessful;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoginViewModel" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="authService">The authentication service supplying session state and user roles.</param>
         public LoginViewModel(IAuthService authService)
         {
             this._authService = authService ?? throw new ArgumentNullException(nameof(authService));

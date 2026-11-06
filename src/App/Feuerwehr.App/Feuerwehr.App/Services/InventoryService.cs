@@ -8,17 +8,17 @@ using De.Openelp.Feuerwehr.Common.Models.Inventory;
 namespace De.Openelp.Feuerwehr.App.Services
 {
     /// <summary>
-    /// Executes inventory Service.
+    /// Implements equipment operations for the Avalonia client.
     /// </summary>
-    /// <param name="http">The http.</param>
+    /// <param name="http">The HTTP client used to call the backend API.</param>
     public sealed class InventoryService(AuthenticatedHttpClient http) : IInventoryService
     {
         /// <summary>
-        /// Executes find Barcode.
+        /// Looks up equipment by its unique barcode and loads its inspection history.
         /// </summary>
-        /// <param name="barcode">The barcode.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="barcode">The unique equipment barcode used for lookup and import matching.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the equipment's current details and inspection history.</returns>
         public async Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct)
         {
             using HttpResponseMessage response = await http.GetAsync($"/api/inventory/barcode/{Uri.EscapeDataString(barcode)}", ct);
@@ -28,12 +28,12 @@ namespace De.Openelp.Feuerwehr.App.Services
         }
 
         /// <summary>
-        /// Executes inspect.
+        /// Records an equipment inspection with concurrency checking and a snapshot of its inspection plan.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the equipment to process.</param>
+        /// <param name="request">The record equipment inspection input to validate and apply.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the equipment's current details and inspection history.</returns>
         public async Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct)
         {
             using JsonContent content = JsonContent.Create(request);

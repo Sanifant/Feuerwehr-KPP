@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Implements user account operations for the API application layer.
+    /// </summary>
     public sealed class UsersService : IUsersService
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -13,6 +16,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private readonly IUserInvitationService _invitations;
         private readonly ILogger<UsersService> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UsersService" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="userManager">The Identity user manager used to load and update accounts.</param>
+        /// <param name="roleManager">The Identity role manager used to validate and create roles.</param>
+        /// <param name="invitations">The service that sends password invitations for newly created or re-invited users.</param>
+        /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
         public UsersService(
             UserManager<ApplicationUser> userManager,
                 RoleManager<IdentityRole> roleManager,
@@ -26,9 +36,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Get all users (Admin only).
+        /// Retrieves user profiles and their assigned roles.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task whose result is an application result containing the user profiles and their roles, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetAllUsers()
         {
             List<ApplicationUser> users = await this._userManager.Users
@@ -48,10 +58,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Get user by ID (Admin only).
+        /// Retrieves a user's profile and assigned roles by identifier.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to retrieve.</param>
+        /// <returns>A task whose result is an application result containing the user profile and assigned roles, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetUser(string id)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);
@@ -66,10 +76,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Create new user (Admin only).
+        /// Creates a user with the requested profile and roles and sends a password invitation.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The register user input to validate and apply.</param>
+        /// <returns>A task whose result is an application result containing the created user profile and invitation outcome, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CreateUser(RegisterUserRequest request)
         {
 
@@ -142,10 +152,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes resend Invitation.
+        /// Issues a new password invitation and invalidates the account's earlier invitation state.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <returns>A task whose result is an application result containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> ResendInvitation(string id)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);
@@ -173,11 +183,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Update user (Admin only).
+        /// Updates the user's profile, department membership, and assigned roles.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="request">The request.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <param name="request">The update user input to validate and apply.</param>
+        /// <returns>A task whose result is an application result containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> UpdateUser(string id, UpdateUserRequest request)
         {
 
@@ -271,11 +281,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Delete user (Admin only) - Soft delete by setting IsActive = false.
+        /// Deactivates the requested user account while preserving its existing operational records.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="currentUserId">The current User Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <param name="currentUserId">The authenticated caller's identifier, used for ownership and self-deletion checks.</param>
+        /// <returns>A task whose result is an application result containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> DeleteUser(string id, string? currentUserId)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);
@@ -304,11 +314,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Hard delete user (Admin only) - Permanently remove from database.
+        /// Permanently removes the requested user account after enforcing self-deletion and ownership restrictions.
         /// </summary>
-        /// <param name="id">The id.</param>
-        /// <param name="currentUserId">The current User Id.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="id">The identifier of the user account to process.</param>
+        /// <param name="currentUserId">The authenticated caller's identifier, used for ownership and self-deletion checks.</param>
+        /// <returns>A task whose result is an application result containing the outcome of the user account operation, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> PermanentlyDeleteUser(string id, string? currentUserId)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);

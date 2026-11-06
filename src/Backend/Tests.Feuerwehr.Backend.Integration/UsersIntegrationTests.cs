@@ -6,17 +6,18 @@ using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Collection(IntegrationTestCollection.Name)]
     /// <summary>
-    /// Executes users Integration Tests.
+    /// Tests users integration behavior and its expected outcomes.
     /// </summary>
-    /// <param name="fixture">The fixture.</param>
+    /// <param name="fixture">The shared test fixture providing application and database infrastructure.</param>
+    [Collection(IntegrationTestCollection.Name)]
     public sealed class UsersIntegrationTests(IntegrationTestFixture fixture)
     {
-        [Fact]
         /// <summary>
-        /// Gets the all Users Without Token Returns Unauthorized.
+        /// Verifies that get all users without token returns unauthorized.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task GetAllUsers_WithoutToken_ReturnsUnauthorized()
         {
             fixture.Client.DefaultRequestHeaders.Authorization = null;
@@ -26,10 +27,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
-        [Fact]
         /// <summary>
-        /// Gets the all Users With Admin Token Returns Users.
+        /// Verifies that get all users with admin token returns users.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task GetAllUsers_WithAdminToken_ReturnsUsers()
         {
             string token = await fixture.LoginAsAdminAndGetAccessTokenAsync();

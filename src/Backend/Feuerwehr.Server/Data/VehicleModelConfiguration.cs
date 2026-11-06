@@ -3,12 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Server.Data
 {
+    /// <summary>
+    /// Configures Entity Framework relationships, constraints, and indexes for vehicle persistence.
+    /// </summary>
     public static class VehicleModelConfiguration
     {
         /// <summary>
-        /// Executes configure Vehicles.
+        /// Configures vehicle, reservation, calendar-day, and notification persistence.
         /// </summary>
-        /// <param name="model">The model.</param>
+        /// <param name="model">The database context or model builder used by this operation.</param>
         public static void ConfigureVehicles(this ModelBuilder model)
         {
             _ = model.Entity<VehicleStatus>(entity =>

@@ -7,15 +7,19 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests mail service behavior and its expected outcomes.
+    /// </summary>
     public class MailServiceTests
     {
+        /// <summary>
+        /// Verifies that send connects authenticates and sends configured message.
+        /// </summary>
+        /// <param name="authenticate">The expected authenticate flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        /// <summary>
-        /// Sends the connects Authenticates And Sends Configured Message.
-        /// </summary>
-        /// <param name="authenticate">The authenticate.</param>
         public async Task Send_ConnectsAuthenticatesAndSendsConfiguredMessage(bool authenticate)
         {
             SmtpSettings settings = Settings(authenticate);
@@ -55,14 +59,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
         }
 
+        /// <summary>
+        /// Verifies that send propagates failures and closes open connections.
+        /// </summary>
+        /// <param name="failingStep">The SMTP lifecycle step at which the test injects a failure.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("connect")]
         [InlineData("authenticate")]
         [InlineData("send")]
-        /// <summary>
-        /// Sends the propagates Failures And Closes Open Connections.
-        /// </summary>
-        /// <param name="failingStep">The failing Step.</param>
         public async Task Send_PropagatesFailuresAndClosesOpenConnections(string failingStep)
         {
             SmtpSettings settings = Settings();
@@ -88,10 +93,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes disconnect Failure After Accepted Message Does Not Fail Delivery.
+        /// Verifies that disconnect failure after accepted message does not fail delivery.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task DisconnectFailure_AfterAcceptedMessageDoesNotFailDelivery()
         {
             Mock<ISmtpClient> client = new ();

@@ -5,40 +5,51 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace De.Openelp.Feuerwehr.Server.Controller
 {
+    /// <summary>
+    /// Exposes HTTP endpoints for vehicle transfer operations and maps application results to responses.
+    /// </summary>
+    /// <param name="service">The vehicle transfer service handling the requested operations.</param>
     [ApiController, Route("api/vehicles"), Authorize]
     [RequestSizeLimit(MaximumImportBytes + (64 * 1024))]
-    /// <summary>
-    /// Executes vehicle Transfer Controller.
-    /// </summary>
-    /// <param name="service">The service.</param>
     public sealed class VehicleTransferController(IVehicleTransferService service) : ControllerBase
     {
+        /// <summary>
+        /// The maximum accepted upload size in bytes.
+        /// </summary>
         public const long MaximumImportBytes = 5 * 1024 * 1024;
 
-        [HttpGet("export")]
         /// <summary>
-        /// Executes export Vehicles.
+        /// Exports vehicles for vehicle transfer in the supported download format.
         /// </summary>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an HTTP response containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
+        [HttpGet("export")]
         public async Task<IActionResult> ExportVehicles(CancellationToken ct) => this.ToActionResult(await service.Export(VehicleTransferKind.Vehicles, ct));
 
-        [HttpGet("types/export")]
         /// <summary>
-        /// Executes export Types.
+        /// Exports types for vehicle transfer as JSON.
         /// </summary>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an HTTP response containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
+        [HttpGet("types/export")]
         public async Task<IActionResult> ExportTypes(CancellationToken ct) => this.ToActionResult(await service.Export(VehicleTransferKind.Types, ct));
 
-        [HttpPost("import"), Consumes("multipart/form-data")]
         /// <summary>
-        /// Executes import Vehicles.
+        /// Validates and imports vehicles for vehicle transfer, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="file">The file.</param>
+        /// <param name="file">The uploaded import file; null when no file was supplied.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an HTTP response containing the outcome of the vehicle transfer operation, or validation, authorization, or conflict details on failure.</returns>
+        [HttpPost("import"), Consumes("multipart/form-data")]
         public Task<IActionResult> ImportVehicles([FromForm] IFormFile? file, CancellationToken ct) => this.Import(VehicleTransferKind.Vehicles, file, ct);
 
-        [HttpPost("types/import"), Consumes("multipart/form-data")]
         /// <summary>
-        /// Executes import Types.
+        /// Validates and imports types for vehicle transfer, rejecting invalid input before applying changes.
         /// </summary>
-        /// <param name="file">The file.</param>
+        /// <param name="file">The uploaded import file; null when no file was supplied.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an HTTP response containing the outcome of the vehicle transfer operation, or validation, authorization, or conflict details on failure.</returns>
+        [HttpPost("types/import"), Consumes("multipart/form-data")]
         public Task<IActionResult> ImportTypes([FromForm] IFormFile? file, CancellationToken ct) => this.Import(VehicleTransferKind.Types, file, ct);
 
         private async Task<IActionResult> Import(VehicleTransferKind kind, IFormFile? file, CancellationToken ct)

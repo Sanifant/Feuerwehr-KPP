@@ -14,6 +14,9 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests incident archive behavior and its expected outcomes.
+    /// </summary>
     public sealed class IncidentArchiveTests : IDisposable
     {
         private readonly FeuerwehrDbContext _db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
@@ -24,6 +27,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         private readonly IncidentService _incidents;
         private readonly IncidentArchiveService _archive;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IncidentArchiveTests" /> class with its required dependencies.
+        /// </summary>
         public IncidentArchiveTests()
         {
             _ = this._user.SetupGet(x => x.IsAdmin).Returns(true);
@@ -36,10 +42,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             this._archive = new IncidentArchiveService(this._db, this._diary, this._user.Object);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes archive Lists Only Closed Incidents In Newest First Pages.
+        /// Verifies that archive lists only closed incidents in newest first pages.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ArchiveListsOnlyClosedIncidentsInNewestFirstPages()
         {
             Incident older = this.AddIncident(closedHoursAgo: 3);
@@ -52,10 +59,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(older.Id, Assert.Single(second).Id);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes archive Diary Includes Current State And All Revisions Without Changing Data.
+        /// Verifies that archive diary includes current state and all revisions without changing data.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ArchiveDiaryIncludesCurrentStateAndAllRevisionsWithoutChangingData()
         {
             Incident incident = this.AddIncident();
@@ -71,10 +79,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(await this._db.OutboxMessages.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes archive Rejects Active Or Unknown Incidents.
+        /// Verifies that archive rejects active or unknown incidents.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ArchiveRejectsActiveOrUnknownIncidents()
         {
             Incident active = this.AddIncident(IncidentStatus.Active);
@@ -86,10 +95,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes non Admins Cannot Read Archives Or Use Legacy Diary Endpoints For Closed Incidents.
+        /// Verifies that non admins cannot read archives or use legacy diary endpoints for closed incidents.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task NonAdminsCannotReadArchivesOrUseLegacyDiaryEndpointsForClosedIncidents()
         {
             Incident closed = this.AddIncident();
@@ -104,6 +114,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(200, (await this._diary.GetEntries(active.Id, default)).Code);
         }
 
+        /// <summary>
+        /// Verifies that all archive HTTP endpoints require admin role.
+        /// </summary>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="allowed">The expected allowed flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("Admin", true)]
         [InlineData("Commander", false)]
@@ -111,11 +127,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [InlineData("IncidentDiaryEditor", false)]
         [InlineData("SituationMapEditor", false)]
         [InlineData(null, false)]
-        /// <summary>
-        /// Executes all Archive Http Endpoints Require Admin Role.
-        /// </summary>
-        /// <param name="role">The role.</param>
-        /// <param name="allowed">The allowed.</param>
         public async Task AllArchiveHttpEndpointsRequireAdminRole(string? role, bool allowed)
         {
             ServiceCollection services = new ();
@@ -141,7 +152,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this incident archive component.
         /// </summary>
         public void Dispose() => this._db.Dispose();
 

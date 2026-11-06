@@ -17,16 +17,18 @@ using Manifest = global::Android.Manifest;
 
 namespace De.Openelp.Feuerwehr.App.Android.Services
 {
-    /// <summary>Obtains one foreground location fix without requiring Google Play Services.</summary>
+    /// <summary>
+    /// Obtains one foreground location fix without requiring Google Play Services.
+    /// </summary>
     public sealed class AndroidGpsService : IGpsService
     {
         private static readonly TimeSpan LocationTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
-        /// Gets the current Location.
+        /// Requests the device's current location using the platform provider and caller cancellation token.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the device location, or null if location is unavailable or permission is denied.</returns>
         public async Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -115,12 +117,16 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
             }
         }
 
+        /// <summary>
+        /// Provides a test consumer for resolving the registered platform location service.
+        /// </summary>
+        /// <param name="completion">The completion source receiving the decoded barcode or cancellation result.</param>
         private sealed class LocationConsumer(TaskCompletionSource<GpsLocation?> completion) : Java.Lang.Object, IConsumer
         {
             /// <summary>
-            /// Executes accept.
+            /// Handles accept for the location consumer component.
             /// </summary>
-            /// <param name="value">The value.</param>
+            /// <param name="value">The java.lang.object? value to process.</param>
             public void Accept(Java.Lang.Object? value)
             {
                 _ = completion.TrySetResult(value is Location location

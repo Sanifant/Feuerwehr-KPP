@@ -15,8 +15,14 @@ using Testcontainers.Redis;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
+    /// <summary>
+    /// Hosts the API with PostgreSQL, test users, and mail capture for inventory and vehicle integration scenarios.
+    /// </summary>
     public sealed class InventoryApiFixture : IAsyncLifetime
     {
+        /// <summary>
+        /// Gets the PostgreSQL test container.
+        /// </summary>
         public PostgreSqlContainer Postgres { get; } = new PostgreSqlBuilder("postgres:17-alpine").Build();
 
         private readonly RedisContainer _redis = new RedisBuilder("redis:7.4-alpine").Build();
@@ -24,18 +30,27 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             .WithPortBinding(1025, true).WithPortBinding(8025, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(8025))).Build();
 
+        /// <summary>
+        /// Gets the factory that creates the navigation page content.
+        /// </summary>
         public WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program> Factory { get; private set; } = null!;
 
+        /// <summary>
+        /// Gets the fixture's current calendar date.
+        /// </summary>
         public DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
 
+        /// <summary>
+        /// Gets the mail-capture service URL exposed to integration tests.
+        /// </summary>
         public Uri MailpitUrl => new($"http://{this._mailpit.Hostname}:{this._mailpit.GetMappedPublicPort(8025)}");
 
         private const string Password = "InventoryTest123456";
 
         /// <summary>
-        /// Initializes the operation.
+        /// Loads the Avalonia application resources and styles.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task InitializeAsync()
         {
             try
@@ -73,12 +88,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         }
 
         /// <summary>
-        /// Creates the user.
+        /// Creates a test user with the requested role and activation state.
         /// </summary>
-        /// <param name="role">The role.</param>
-        /// <param name="email">The email.</param>
-        /// <param name="active">The active.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="active">Active is enabled for this inventory API fixture.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task CreateUser(string role, string email, bool active = true)
         {
             using IServiceScope scope = this.Factory.Services.CreateScope();
@@ -90,10 +105,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         }
 
         /// <summary>
-        /// Executes client.
+        /// Creates an HTTP client authenticated as the test user with the requested role.
         /// </summary>
-        /// <param name="role">The role.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="role">The Identity role under test.</param>
+        /// <returns>A task whose result is the test API client authenticated with the requested role.</returns>
         public async Task<HttpClient> Client(string role)
         {
             HttpClient client = this.Factory.CreateClient();
@@ -105,11 +120,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         }
 
         /// <summary>
-        /// Creates the type.
+        /// Creates an equipment type with the requested inspection interval through the hosted API.
         /// </summary>
-        /// <param name="client">The client.</param>
-        /// <param name="interval">The interval.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="client">The authenticated HTTP client used by the test scenario.</param>
+        /// <param name="interval">The inspection interval in calendar months used in this scenario.</param>
+        /// <returns>A task whose result is the created equipment type and its inspection plan.</returns>
         public async Task<EquipmentTypeDto> CreateType(HttpClient client, int interval = 12)
         {
             InventoryCategoryDto[]? categories = await client.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories");
@@ -120,11 +135,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         }
 
         /// <summary>
-        /// Creates the equipment.
+        /// Creates equipment through the hosted API for use in the integration scenario.
         /// </summary>
-        /// <param name="client">The client.</param>
-        /// <param name="type">The type.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="client">The authenticated HTTP client used by the test scenario.</param>
+        /// <param name="type">The kind of inventory API fixture.</param>
+        /// <returns>A task whose result is the equipment details, including the calculated next inspection date.</returns>
         public async Task<EquipmentDto> CreateEquipment(HttpClient client, Guid type)
         {
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type, SerialNumber = Guid.NewGuid().ToString(), Manufacturer = "Testhersteller" });
@@ -133,9 +148,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this inventory API fixture component.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task DisposeAsync()
         {
             if (this.Factory is not null)
@@ -146,8 +161,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             await Task.WhenAll(this.Postgres.DisposeAsync().AsTask(), this._redis.DisposeAsync().AsTask(), this._mailpit.DisposeAsync().AsTask());
         }
 
+        /// <summary>
+        /// Overrides API configuration with the integration fixture's container connections and seed settings.
+        /// </summary>
+        /// <param name="settings">The resolved configuration settings used by this component.</param>
         private sealed class InventoryFactory(Dictionary<string, string> settings) : WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program>
         {
+            /// <summary>
+            /// Configures the test API host with fixture-specific infrastructure and seed credentials.
+            /// </summary>
+            /// <param name="builder">The builder whose services and host settings are configured.</param>
             protected override void ConfigureWebHost(IWebHostBuilder builder)
             {
                 _ = builder.UseEnvironment("Testing");

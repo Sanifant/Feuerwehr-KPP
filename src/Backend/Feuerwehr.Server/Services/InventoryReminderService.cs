@@ -9,12 +9,12 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes inventory Reminder Service.
+    /// Sends equipment officers inspection reminders and tracks delivery per equipment item and due date.
     /// </summary>
-    /// <param name="db">The db.</param>
-    /// <param name="mail">The mail.</param>
-    /// <param name="clock">The clock.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="db">The database context for querying and persisting application records.</param>
+    /// <param name="mail">The mail service used to send account or operational notifications.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
+    /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
     public sealed class InventoryReminderService(
         FeuerwehrDbContext db,
         IMailService mail,
@@ -22,10 +22,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         ILogger<InventoryReminderService> logger) : IInventoryReminderService
     {
         /// <summary>
-        /// Sends the due Reminders.
+        /// Sends officers a digest of active equipment due within fourteen days, excluding reminders already delivered for the same due date.
         /// </summary>
-        /// <param name="ct">The ct.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task SendDueReminders(CancellationToken ct)
         {
             DateTime now = clock.GetUtcNow().UtcDateTime;

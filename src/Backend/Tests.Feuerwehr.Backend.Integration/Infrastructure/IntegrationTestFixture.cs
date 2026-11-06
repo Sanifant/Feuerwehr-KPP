@@ -5,9 +5,18 @@ using Testcontainers.Redis;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
 {
+    /// <summary>
+    /// Starts PostgreSQL and Redis and hosts the API for integration tests.
+    /// </summary>
     public sealed class IntegrationTestFixture : IAsyncLifetime
     {
+        /// <summary>
+        /// The the administrator email configured for test seeding.
+        /// </summary>
         public const string SeedAdminEmail = "integration-admin@feuerwehr.local";
+        /// <summary>
+        /// The the administrator password configured for test seeding.
+        /// </summary>
         public const string SeedAdminPassword = "IntegrationAdmin123";
 
         private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17-alpine")
@@ -21,12 +30,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
 
         private ApiWebApplicationFactory? _factory;
 
+        /// <summary>
+        /// Gets the HTTP client for the hosted test API.
+        /// </summary>
         public HttpClient Client { get; private set; } = default!;
 
         /// <summary>
-        /// Initializes the operation.
+        /// Loads the Avalonia application resources and styles.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task InitializeAsync()
         {
             await Task.WhenAll(this._postgres.StartAsync(), this._redis.StartAsync());
@@ -50,9 +62,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         }
 
         /// <summary>
-        /// Executes login As Admin And Get Access Token.
+        /// Signs in as the seeded administrator and retrieves an access token for integration requests.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task whose result is the formatted integration test fixture content.</returns>
         public async Task<string> LoginAsAdminAndGetAccessTokenAsync()
         {
             HttpResponseMessage response = await this.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
@@ -67,9 +79,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this integration test fixture component.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         public async Task DisposeAsync()
         {
             this.Client.Dispose();

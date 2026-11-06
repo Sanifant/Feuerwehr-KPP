@@ -10,12 +10,16 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests inventory reminder behavior and its expected outcomes.
+    /// </summary>
     public sealed class InventoryReminderTests
     {
-        [Fact]
         /// <summary>
-        /// Executes failed Delivery Is Retried While Successful Delivery Is Deduplicated Per Recipient And Due Date.
+        /// Verifies that failed delivery is retried while successful delivery is deduplicated per recipient and due date.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task FailedDeliveryIsRetried_WhileSuccessfulDeliveryIsDeduplicatedPerRecipientAndDueDate()
         {
             await using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
@@ -62,13 +66,21 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(4, db.EquipmentReminderDeliveries.Count());
         }
 
+        /// <summary>
+        /// Supplies a fixed UTC instant for deterministic tests.
+        /// </summary>
+        /// <param name="date">The calendar date represented by this record.</param>
         private sealed class FixedClock(DateOnly date) : TimeProvider
         {
+            /// <summary>
+            /// Gets or sets the calendar date represented by this record.
+            /// </summary>
             public DateOnly Date { get; set; } = date;
 
             /// <summary>
-            /// Gets the utc Now.
+            /// Returns the deterministic UTC instant configured for this test clock.
             /// </summary>
+            /// <returns>The UTC instant configured by the test clock.</returns>
             public override DateTimeOffset GetUtcNow() => new (this.Date.ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc));
         }
     }

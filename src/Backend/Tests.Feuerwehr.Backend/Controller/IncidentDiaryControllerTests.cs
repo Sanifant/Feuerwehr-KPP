@@ -11,12 +11,15 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
+    /// <summary>
+    /// Tests incident diary controller behavior and its expected outcomes.
+    /// </summary>
     public class IncidentDiaryControllerTests
     {
         /// <summary>
-        /// Creates the db Context.
+        /// Creates the PostgreSQL database context used by Entity Framework design-time tooling.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The configured PostgreSQL database context.</returns>
         public static FeuerwehrDbContext CreateDbContext()
         {
             DbContextOptions<FeuerwehrDbContext> options = new DbContextOptionsBuilder<FeuerwehrDbContext>()
@@ -29,11 +32,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         /// <summary>
-        /// Creates the user Context Mock.
+        /// Creates the caller context mock used to exercise diary authorization.
         /// </summary>
-        /// <param name="userId">The user Id.</param>
-        /// <param name="displayName">The display Name.</param>
-        /// <returns></returns>
+        /// <param name="userId">The identifier of the user account.</param>
+        /// <param name="displayName">The name displayed for the incident diary controller.</param>
+        /// <returns>The configured mock used by the test scenario.</returns>
         public static Mock<IUserContextAccessor> CreateUserContextMock(string userId = "user-1", string displayName = "Ada Admin")
         {
             Mock<IUserContextAccessor> mock = new ();
@@ -43,9 +46,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         /// <summary>
-        /// Creates the idempotency Mock.
+        /// Creates a command-store mock with replay behavior suitable for the diary scenario.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The configured mock used by the test scenario.</returns>
         public static Mock<ICommandIdempotencyService> CreateIdempotencyMock()
         {
             Mock<ICommandIdempotencyService> mock = new ();
@@ -69,13 +72,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         /// <summary>
-        /// Creates the controller.
+        /// Creates a controller with the mocked dependencies and caller context required by the test.
         /// </summary>
-        /// <param name="dbContext">The db Context.</param>
-        /// <param name="userContextMock">The user Context Mock.</param>
-        /// <param name="idempotencyMock">The idempotency Mock.</param>
-        /// <param name="outboxMock">The outbox Mock.</param>
-        /// <returns></returns>
+        /// <param name="dbContext">The database context for the current unit of work.</param>
+        /// <param name="userContextMock">The optional caller-context mock used to configure user permissions.</param>
+        /// <param name="idempotencyMock">The optional command-store mock used to configure replay behavior.</param>
+        /// <param name="outboxMock">The optional outbox mock used to verify live-event staging.</param>
+        /// <returns>The resolved view, or a diagnostic control if the matching view type cannot be found.</returns>
         public static IncidentDiaryController CreateController(
             FeuerwehrDbContext dbContext,
             Mock<IUserContextAccessor>? userContextMock = null,
@@ -90,13 +93,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         /// <summary>
-        /// Creates the incident.
+        /// Creates an incident in the fixture for the current test scenario.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="status">The status.</param>
-        /// <param name="revision">The revision.</param>
-        /// <returns></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="name">The display name of the incident diary controller.</param>
+        /// <param name="status">The current state of the incident diary controller.</param>
+        /// <param name="revision">The revision counter for the incident diary controller.</param>
+        /// <returns>The incident prepared for the current test scenario.</returns>
         public static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
             => new ()
             {
@@ -108,12 +111,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             };
 
         /// <summary>
-        /// Creates the category.
+        /// Creates a diary category in the fixture for the current test scenario.
         /// </summary>
-        /// <param name="code">The code.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="isActive">The is Active.</param>
-        /// <returns></returns>
+        /// <param name="code">The HTTP status code of the application outcome.</param>
+        /// <param name="name">The display name of the incident diary controller.</param>
+        /// <param name="isActive">The incident diary controller is active.</param>
+        /// <returns>The diary category prepared for the current test scenario.</returns>
         public static DiaryCategory CreateCategory(string code, string name, bool isActive = true)
             => new ()
             {
@@ -126,14 +129,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             };
 
         /// <summary>
-        /// Creates the entry.
+        /// Creates a diary entry in the fixture for the current test scenario.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="entryNumber">The entry Number.</param>
-        /// <param name="currentRevision">The current Revision.</param>
-        /// <param name="isCanceled">The is Canceled.</param>
-        /// <param name="cancellationReason">The cancellation Reason.</param>
-        /// <returns></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="entryNumber">The sequential entry number within the incident diary.</param>
+        /// <param name="currentRevision">The latest revision number of the diary entry.</param>
+        /// <param name="isCanceled">The diary entry has been canceled while preserving its revision history.</param>
+        /// <param name="cancellationReason">The reason recorded when canceling the diary entry.</param>
+        /// <returns>The diary entry prepared for the current test scenario.</returns>
         public static DiaryEntry CreateEntry(Guid incidentId, long entryNumber = 1, int currentRevision = 1, bool isCanceled = false, string? cancellationReason = null)
             => new ()
             {
@@ -148,16 +151,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             };
 
         /// <summary>
-        /// Creates the revision.
+        /// Creates a diary revision with the supplied content for test assertions.
         /// </summary>
-        /// <param name="entry">The entry.</param>
-        /// <param name="revisionNumber">The revision Number.</param>
-        /// <param name="revisionType">The revision Type.</param>
-        /// <param name="categoryCode">The category Code.</param>
-        /// <param name="categoryName">The category Name.</param>
-        /// <param name="text">The text.</param>
-        /// <param name="cancellationReason">The cancellation Reason.</param>
-        /// <returns></returns>
+        /// <param name="entry">The diary entry used as the source of revision data.</param>
+        /// <param name="revisionNumber">The sequential number of this diary revision.</param>
+        /// <param name="revisionType">The kind of diary revision: creation, update, or cancellation.</param>
+        /// <param name="categoryCode">The category code used in equipment barcode allocation.</param>
+        /// <param name="categoryName">The category's display name.</param>
+        /// <param name="text">The text content of the incident diary controller.</param>
+        /// <param name="cancellationReason">The reason recorded when canceling the diary entry.</param>
+        /// <returns>The diary entry revision prepared for the current test scenario.</returns>
         public static DiaryEntryRevision CreateRevision(
             DiaryEntry entry,
             int revisionNumber,
@@ -186,10 +189,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreatedByDisplayName = "Ada Admin",
             };
 
-        [Fact]
         /// <summary>
-        /// Gets the entries Returns Ordered Entries With Latest Revisions.
+        /// Verifies that get entries returns ordered entries with latest revisions.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task GetEntries_ReturnsOrderedEntriesWithLatestRevisions()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -231,10 +235,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 });
         }
 
-        [Fact]
         /// <summary>
-        /// Gets the categories Returns Categories Ordered By Name.
+        /// Verifies that get categories returns categories ordered by name.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task GetCategories_ReturnsCategoriesOrderedByName()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -278,10 +283,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
         */
 
-        [Fact]
         /// <summary>
-        /// Creates the entry Returns Stored Response When Command Was Already Processed.
+        /// Verifies that create entry returns stored response when command was already processed.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CreateEntry_ReturnsStoredResponse_WhenCommandWasAlreadyProcessed()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -324,10 +330,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(42L, payload.GetProperty("entryNumber").GetInt64());
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the entry Returns Conflict When Expected Revision Does Not Match.
+        /// Verifies that update entry returns conflict when expected revision does not match.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateEntry_ReturnsConflict_WhenExpectedRevisionDoesNotMatch()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -359,10 +366,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal("Konflikt: veraltete Tagebuchversion.", details.Title);
         }
 
-        [Fact]
         /// <summary>
-        /// Updates the entry Persists New Revision When Request Is Valid.
+        /// Verifies that update entry persists new revision when request is valid.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UpdateEntry_PersistsNewRevision_WhenRequestIsValid()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -414,10 +422,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             outboxMock.Verify(x => x.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), It.IsAny<object>()), Times.Once);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes cancel Entry Returns Bad Request When Reason Is Missing.
+        /// Verifies that cancel entry returns bad request when reason is missing.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CancelEntry_ReturnsBadRequest_WhenReasonIsMissing()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -435,10 +444,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal("Stornierungsbegründung ist erforderlich.", details.Title);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes cancel Entry Persists Cancellation Revision When Request Is Valid.
+        /// Verifies that cancel entry persists cancellation revision when request is valid.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CancelEntry_PersistsCancellationRevision_WhenRequestIsValid()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -486,10 +496,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             outboxMock.Verify(x => x.AddMessage("diary", "diary.entry.changed", incidentId.ToString(), It.IsAny<object>()), Times.Once);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes export Diary Pdf Returns Not Found When Incident Does Not Exist.
+        /// Verifies that export diary pdf returns not found when incident does not exist.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ExportDiaryPdf_ReturnsNotFound_WhenIncidentDoesNotExist()
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
@@ -551,10 +562,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         */
 
         /// <summary>
-        /// Executes to Json Element.
+        /// Serializes the supplied test data as a JSON element.
         /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
+        /// <param name="value">The object value to process.</param>
+        /// <returns>The serialized JSON value for the supplied test data.</returns>
         public static JsonElement ToJsonElement(object value)
             => JsonSerializer.SerializeToElement(value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
     }

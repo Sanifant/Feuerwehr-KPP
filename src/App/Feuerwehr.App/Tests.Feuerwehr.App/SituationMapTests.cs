@@ -16,18 +16,22 @@ using NetTopologySuite.Geometries;
 
 namespace De.Openelp.Feuerwehr.Tests.App
 {
+    /// <summary>
+    /// Tests situation map behavior and its expected outcomes.
+    /// </summary>
     public class SituationMapTests
     {
+        /// <summary>
+        /// Verifies that only viewer role shows navigation and allows loading.
+        /// </summary>
+        /// <param name="role">The Identity role under test.</param>
+        /// <param name="allowed">The expected allowed flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("SituationMapViewer", true)]
         [InlineData("SituationMapEditor", true)]
         [InlineData("IncidentDiaryViewer", false)]
         [InlineData("Admin", false)]
-        /// <summary>
-        /// Executes only Viewer Role Shows Navigation And Allows Loading.
-        /// </summary>
-        /// <param name="role">The role.</param>
-        /// <param name="allowed">The allowed.</param>
         public async Task OnlyViewerRole_ShowsNavigationAndAllowsLoading(string role, bool allowed)
         {
             Mock<IAuthService> auth = CreateAuth(role);
@@ -47,10 +51,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Null(viewModel.Map);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes refresh Replaces Elements And Keeps Viewport Then Clears When Incident Ends.
+        /// Verifies that refresh replaces elements and keeps viewport then clears when incident ends.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Refresh_ReplacesElementsAndKeepsViewport_ThenClearsWhenIncidentEnds()
         {
             IncidentSummaryDto incident = Incident();
@@ -88,10 +93,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Equal("Kein aktiver Einsatz vorhanden.", viewModel.StatusMessage);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes role Revocation Cancels Loading And Discards Late Results.
+        /// Verifies that role revocation cancels loading and discards late results.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task RoleRevocation_CancelsLoadingAndDiscardsLateResults()
         {
             TaskCompletionSource<MapStateResponse> completion = new ();
@@ -115,10 +121,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             viewModel.Deactivate();
         }
 
-        [Fact]
         /// <summary>
-        /// Executes navigation Away Discards Pending Response.
+        /// Verifies that navigation away discards pending response.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task NavigationAway_DiscardsPendingResponse()
         {
             TaskCompletionSource<IncidentSummaryDto?> completion = new ();
@@ -136,10 +143,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             service.Verify(s => s.GetStateAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes refresh Failure Clears Old Map And Allows Retry.
+        /// Verifies that refresh failure clears old map and allows retry.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task RefreshFailure_ClearsOldMapAndAllowsRetry()
         {
             IncidentSummaryDto incident = Incident();
@@ -158,10 +166,10 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.True(viewModel.RefreshCommand.CanExecute(null));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes layers Project Coordinates And Preserve Polygon Holes And Svg Symbols.
+        /// Verifies that layers project coordinates and preserve polygon holes and SVG symbols.
         /// </summary>
+        [Fact]
         public void Layers_ProjectCoordinatesAndPreservePolygonHolesAndSvgSymbols()
         {
 #pragma warning disable SA1101 // StyleCop 1.1.118 misidentifies record 'with' initializer properties as local members.
@@ -187,10 +195,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Equal(1, Assert.IsType<Polygon>(Assert.IsType<GeometryFeature>(features[1]).Geometry).NumInteriorRings);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes http Client Uses Only Get And Reads String Enums Handles Missing Active Incident.
+        /// Verifies that HTTP client uses only get and reads string enums handles missing active incident.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task HttpClient_UsesOnlyGetAndReadsStringEnums_HandlesMissingActiveIncident()
         {
             IncidentSummaryDto incident = Incident();
@@ -249,12 +258,28 @@ namespace De.Openelp.Feuerwehr.Tests.App
         private static MapStateResponse State(Guid incidentId, params MapElementDto[] elements) =>
             new (incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);
 
+        /// <summary>
+        /// Supplies map API responses while counting client requests in read-only behavior tests.
+        /// </summary>
+        /// <param name="incident">The incident associated with this situation map.</param>
         private sealed class ReadOnlyHandler(IncidentSummaryDto incident) : HttpMessageHandler
         {
+            /// <summary>
+            /// Gets or sets a value indicating whether no active incident is enabled for this read only handler.
+            /// </summary>
             public bool NoActiveIncident { get; set; }
 
+            /// <summary>
+            /// Gets the number of HTTP requests observed by the test handler.
+            /// </summary>
             public int RequestCount { get; private set; }
 
+            /// <summary>
+            /// Sends the supplied email notification through the configured SMTP server.
+            /// </summary>
+            /// <param name="request">The HTTP request message input to validate and apply.</param>
+            /// <param name="cancellationToken">A token that cancels the operation.</param>
+            /// <returns>A task whose result is the HTTP response returned by the backend; the caller must dispose it.</returns>
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 this.RequestCount++;

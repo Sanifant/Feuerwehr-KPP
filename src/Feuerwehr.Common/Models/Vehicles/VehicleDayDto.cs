@@ -1,9 +1,9 @@
 namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
 {
     /// <summary>
-    /// Executes vehicle Day Dto.
+    /// Carries vehicle day data across the API boundary.
     /// </summary>
-    /// <param name="Date">The date.</param>
-    /// <param name="Status">The status.</param>
+    /// <param name="Date">The calendar date represented by this record.</param>
+    /// <param name="Status">The current state of the vehicle day.</param>
     public sealed record VehicleDayDto(DateOnly Date, VehicleDayStatus Status);
 }

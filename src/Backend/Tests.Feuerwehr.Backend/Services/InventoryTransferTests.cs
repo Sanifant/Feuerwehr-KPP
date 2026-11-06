@@ -6,8 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests inventory transfer behavior and its expected outcomes.
+    /// </summary>
     public sealed class InventoryTransferTests
     {
+        /// <summary>
+        /// Verifies that invalid CSV is rejected before changing any data.
+        /// </summary>
+        /// <param name="content">The content to validate or return in the generated response.</param>
+        /// <param name="expected">The expected result or value for the scenario.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData("barcode;barcode;serialNumber;manufacturer;equipmentType\nKPP-001;KPP-001;A;B;Test", "mehrfach")]
         [InlineData("barcode;serialNumber;manufacturer\nKPP-001;A;B", "equipmentType")]
@@ -16,11 +25,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         [InlineData("barcode;serialNumber;manufacturer;equipmentType;isActive\nKPP-001;A;B;Test;vielleicht", "isActive")]
         [InlineData("barcode;serialNumber;manufacturer;equipmentType;lastInspectedOn\nKPP-001;A;B;Test;29.10.2026", "JJJJ-MM-TT")]
         [InlineData("barcode;serialNumber;manufacturer;equipmentType\nKPP-001;\"Nicht geschlossen;B;Test", "CSV-Zeile")]
-        /// <summary>
-        /// Executes invalid Csv Is Rejected Before Changing Any Data.
-        /// </summary>
-        /// <param name="content">The content.</param>
-        /// <param name="expected">The expected.</param>
         public async Task InvalidCsvIsRejectedBeforeChangingAnyData(string content, string expected)
         {
             await using FeuerwehrDbContext db = Database();
@@ -32,10 +36,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.Equipment);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes category Batch Is Atomic And Invalid Json Entries Have Readable Errors.
+        /// Verifies that category batch is atomic and invalid JSON entries have readable errors.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task CategoryBatchIsAtomicAndInvalidJsonEntriesHaveReadableErrors()
         {
             await using FeuerwehrDbContext db = Database();

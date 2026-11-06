@@ -9,12 +9,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend
 {
+    /// <summary>
+    /// Tests architecture behavior and its expected outcomes.
+    /// </summary>
     public class ArchitectureTests
     {
-        [Fact]
         /// <summary>
-        /// Executes controllers Only Depend On Application Service Interfaces.
+        /// Verifies that controllers only depend on application service interfaces.
         /// </summary>
+        [Fact]
         public void Controllers_OnlyDependOnApplicationServiceInterfaces()
         {
             IEnumerable<Type> controllers = typeof(HydrantController).Assembly.GetTypes()
@@ -27,10 +30,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes common Contains Contracts Without Server Or Persistence Dependencies.
+        /// Verifies that common contains contracts without server or persistence dependencies.
         /// </summary>
+        [Fact]
         public void Common_ContainsContractsWithoutServerOrPersistenceDependencies()
         {
             Assembly common = typeof(LoginRequest).Assembly;
@@ -43,10 +46,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
                 entity => Assert.Equal(typeof(FeuerwehrDbContext).Assembly, entity.ClrType.Assembly));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes shared Responses Keep Existing Json Field Names.
+        /// Verifies that shared responses keep existing JSON field names.
         /// </summary>
+        [Fact]
         public void SharedResponses_KeepExistingJsonFieldNames()
         {
             JsonSerializerOptions options = new (JsonSerializerDefaults.Web);
@@ -58,10 +61,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
             Assert.Equal("code", error.GetProperty("errors")[0].GetProperty("code").GetString());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes namespace And Entity Separation Do Not Require Schema Changes.
+        /// Verifies that namespace and entity separation do not require schema changes.
         /// </summary>
+        [Fact]
         public void NamespaceAndEntitySeparation_DoNotRequireSchemaChanges()
         {
             using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()

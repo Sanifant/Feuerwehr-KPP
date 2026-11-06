@@ -8,16 +8,21 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes outbox Dispatcher.
+    /// Delivers committed outbox messages to authorized SignalR groups and records dispatch outcomes.
     /// </summary>
-    /// <param name="serviceProvider">The service Provider.</param>
-    /// <param name="logger">The logger.</param>
-    /// <param name="hubContext">The hub Context.</param>
+    /// <param name="serviceProvider">The root service provider used to create a scope for background work.</param>
+    /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
+    /// <param name="hubContext">The SignalR hub context used to send incident notifications.</param>
     public sealed class OutboxDispatcher(
         IServiceProvider serviceProvider,
         ILogger<OutboxDispatcher> logger,
         IHubContext<IncidentHub, IIncidentClient> hubContext) : BackgroundService
     {
+        /// <summary>
+        /// Processes pending outbox work until the host requests cancellation.
+        /// </summary>
+        /// <param name="stoppingToken">A token that cancels the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)

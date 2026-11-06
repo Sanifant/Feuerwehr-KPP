@@ -5,12 +5,28 @@ using Microsoft.VisualBasic.FileIO;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
+    /// <summary>
+    /// Associates a parsed vehicle import row with its source line number.
+    /// </summary>
+    /// <param name="Line">The source CSV line number.</param>
+    /// <param name="Data">The parsed vehicle import data.</param>
     internal sealed record VehicleCsvRow(long Line, VehicleImportDto Data);
 
+    /// <summary>
+    /// Reads and writes vehicle CSV rows used for bulk transfer.
+    /// </summary>
     internal static class VehicleCsv
     {
+        /// <summary>
+        /// The the columns associated with this vehicle CSV.
+        /// </summary>
         internal static readonly string[] Columns = ["id", "radioCallSign", "name", "licensePlate", "fireDepartment", "fireDepartmentId", "vehicleType", "status", "equipmentOfficerEmail", "isActive"];
 
+        /// <summary>
+        /// Escapes a CSV cell, including delimiters, quotes, line breaks, and formula-like prefixes.
+        /// </summary>
+        /// <param name="value">The string? value to process.</param>
+        /// <returns>The escaped cell text safe for spreadsheet-compatible CSV export.</returns>
         internal static string Quote(string? value)
         {
             value ??= string.Empty;
@@ -22,6 +38,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
+        /// <summary>
+        /// Parses vehicle CSV rows from the import stream and reports format or field validation errors.
+        /// </summary>
+        /// <param name="stream">The readable import stream in the format selected by the transfer kind.</param>
+        /// <param name="ct">A token that cancels the operation.</param>
+        /// <returns>The parsed source rows together with any import validation errors.</returns>
         internal static (List<VehicleCsvRow> Rows, List<VehicleImportError> Errors) Read(Stream stream, CancellationToken ct)
         {
             List<VehicleCsvRow> rows = [];

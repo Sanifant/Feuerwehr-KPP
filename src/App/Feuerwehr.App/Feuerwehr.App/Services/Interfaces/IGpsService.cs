@@ -4,15 +4,16 @@ using De.Openelp.Feuerwehr.App.Models;
 
 namespace De.Openelp.Feuerwehr.App.Services
 {
+    /// <summary>
+    /// Defines the GPS operations required by application consumers.
+    /// </summary>
     public interface IGpsService
     {
         /// <summary>
-        /// Gets a current location, requesting foreground permission when necessary.
-        /// Returns null if permission is denied, location is disabled, the platform is
-        /// unsupported, or no fix is available within the platform's timeout.
-        /// Caller cancellation throws OperationCanceledException.
+        /// Requests the device's current location using the platform provider and caller cancellation token.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is the device location, or null if location is unavailable or permission is denied.</returns>
         Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default);
     }
 }

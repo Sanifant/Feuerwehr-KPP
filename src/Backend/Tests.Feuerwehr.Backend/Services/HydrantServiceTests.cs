@@ -5,12 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
+    /// <summary>
+    /// Tests hydrant service behavior and its expected outcomes.
+    /// </summary>
     public class HydrantServiceTests
     {
-        [Fact]
         /// <summary>
-        /// Creates the and Update Map Transport Contract Without Replacing Entity.
+        /// Verifies that create and update map transport contract without replacing entity.
         /// </summary>
+        [Fact]
         public void CreateAndUpdate_MapTransportContractWithoutReplacingEntity()
         {
             using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()

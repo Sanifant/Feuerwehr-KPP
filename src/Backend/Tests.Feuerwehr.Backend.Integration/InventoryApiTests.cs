@@ -22,19 +22,20 @@ using Testcontainers.Redis;
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
     // Actual Program startup, migrations, JWT/Identity and HTTP routing against disposable infrastructure.
-    [Trait("Category", "Integration")]
     /// <summary>
-    /// Executes inventory Api Tests.
+    /// Tests inventory API behavior and its expected outcomes.
     /// </summary>
-    /// <param name="fixture">The fixture.</param>
+    /// <param name="fixture">The shared test fixture providing application and database infrastructure.</param>
+    [Trait("Category", "Integration")]
     public sealed class InventoryApiTests(InventoryApiFixture fixture) : IClassFixture<InventoryApiFixture>
     {
         private static readonly CancellationToken Ct = CancellationToken.None;
 
-        [Fact]
         /// <summary>
-        /// Executes startup Migrates And Seeds Categories And Roles.
+        /// Verifies that startup migrates and seeds categories and roles.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Startup_MigratesAndSeedsCategoriesAndRoles()
         {
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
@@ -49,10 +50,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.InventoryViewer));
         }
 
-        [Fact]
         /// <summary>
-        /// Executes authorization Separates Viewing Maintenance And Category Administration.
+        /// Verifies that authorization separates viewing maintenance and category administration.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Authorization_SeparatesViewingMaintenanceAndCategoryAdministration()
         {
             using HttpClient anonymous = fixture.Factory.CreateClient();
@@ -74,10 +76,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/inventory/categories", new { Name = name.ToUpperInvariant() })).StatusCode);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes equipment Uses Type Plan And Calendar Months Records Inspection And Snapshots.
+        /// Verifies that equipment uses type plan and calendar months records inspection and snapshots.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Equipment_UsesTypePlanAndCalendarMonths_RecordsInspectionAndSnapshots()
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);
@@ -116,10 +119,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(12, found.Inspections[0].InspectionIntervalMonths);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes inactive Equipment Remains Readable But Cannot Be Inspected And Barcode Is Not Reused.
+        /// Verifies that inactive equipment remains readable but cannot be inspected and barcode is not reused.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task InactiveEquipment_RemainsReadableButCannotBeInspected_AndBarcodeIsNotReused()
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);
@@ -136,10 +140,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.NotEqual(item.Barcode, (await fixture.CreateEquipment(client, type.Id)).Barcode);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes validation And Concurrent Edits Do Not Lose Inspection History.
+        /// Verifies that validation and concurrent edits do not lose inspection history.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task ValidationAndConcurrentEdits_DoNotLoseInspectionHistory()
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);
@@ -159,10 +164,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             _ = Assert.Single(detail!.Inspections);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes barcode Limit Stops At999 Without Wrapping.
+        /// Verifies that barcode limit stops at999 without wrapping.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task BarcodeLimit_StopsAt999WithoutWrapping()
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);
@@ -193,10 +199,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             }
         }
 
-        [Fact]
         /// <summary>
-        /// Executes reminders Send One Digest Per Active Officer And Do Not Repeat.
+        /// Verifies that reminders send one digest per active officer and do not repeat.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Reminders_SendOneDigestPerActiveOfficer_AndDoNotRepeat()
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);

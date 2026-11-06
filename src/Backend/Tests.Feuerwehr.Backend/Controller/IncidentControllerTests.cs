@@ -12,6 +12,9 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 {
+    /// <summary>
+    /// Tests incident controller behavior and its expected outcomes.
+    /// </summary>
     public sealed class IncidentControllerTests : IDisposable
     {
         private readonly FeuerwehrDbContext _db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
@@ -20,6 +23,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private readonly IncidentController _controller;
         private readonly IncidentService _service;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IncidentControllerTests" /> class with its required dependencies.
+        /// </summary>
         public IncidentControllerTests()
         {
             Mock<IUserContextAccessor> user = new ();
@@ -30,10 +36,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             this._controller = new IncidentController(this._service);
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the returns Persisted Incident With Alarm Time And Lease And Active Returns Same Incident.
+        /// Verifies that create returns persisted incident with alarm time and lease and active returns same incident.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Create_ReturnsPersistedIncidentWithAlarmTimeAndLease_AndActiveReturnsSameIncident()
         {
             CreateIncidentRequest request = Request();
@@ -59,10 +66,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal("2026-10-26T08:15:00Z", json.RootElement.GetProperty("incident").GetProperty("alarmedAtUtc").GetString());
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the replay Returns Identical Body Without Duplicating Incident Or Events.
+        /// Verifies that create replay returns identical body without duplicating incident or events.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Create_ReplayReturnsIdenticalBodyWithoutDuplicatingIncidentOrEvents()
         {
             CreateIncidentRequest request = Request();
@@ -77,10 +85,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(2, await this._db.OutboxMessages.CountAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the command Payload Includes Alarm Time.
+        /// Verifies that create command payload includes alarm time.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Create_CommandPayloadIncludesAlarmTime()
         {
             CreateIncidentRequest request = Request();
@@ -90,10 +99,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = Assert.Single(await this._db.Incidents.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Creates the missing Alarm Time Is Rejected By Contract And Service.
+        /// Verifies that create missing alarm time is rejected by contract and service.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Create_MissingAlarmTimeIsRejectedByContractAndService()
         {
             CreateIncidentRequest request = Request();
@@ -105,10 +115,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Empty(await this._db.Incidents.ToListAsync());
         }
 
-        [Fact]
         /// <summary>
-        /// Executes close Preserves Alarm Time In Archive And Removes Active Incident.
+        /// Verifies that close preserves alarm time in archive and removes active incident.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Close_PreservesAlarmTimeInArchiveAndRemovesActiveIncident()
         {
             IncidentCreatedResponse created = Assert.IsType<IncidentCreatedResponse>((await this._service.CreateIncident(Request(), default)).Value);
@@ -129,7 +140,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         /// <summary>
-        /// Executes dispose.
+        /// Releases the resources owned by this incident controller component.
         /// </summary>
         public void Dispose() => this._db.Dispose();
 

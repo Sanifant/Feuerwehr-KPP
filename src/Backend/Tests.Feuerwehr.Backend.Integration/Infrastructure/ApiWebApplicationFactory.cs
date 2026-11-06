@@ -6,6 +6,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
 {
+    /// <summary>
+    /// Hosts the API with the database, cache, and seed-user configuration supplied by integration tests.
+    /// </summary>
     public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
     {
         private readonly string _postgresConnectionString;
@@ -13,6 +16,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         private readonly string _seedAdminEmail;
         private readonly string _seedAdminPassword;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiWebApplicationFactory" /> class with its required dependencies.
+        /// </summary>
+        /// <param name="postgresConnectionString">The PostgreSQL connection string supplied by the test container.</param>
+        /// <param name="redisConnectionString">The Redis connection string supplied by the test container.</param>
+        /// <param name="seedAdminEmail">The administrator email supplied for this seeding scenario.</param>
+        /// <param name="seedAdminPassword">The administrator password supplied for this seeding scenario.</param>
         public ApiWebApplicationFactory(
             string postgresConnectionString,
             string redisConnectionString,
@@ -25,6 +35,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
             this._seedAdminPassword = seedAdminPassword;
         }
 
+        /// <summary>
+        /// Configures the test API host with fixture-specific infrastructure and seed credentials.
+        /// </summary>
+        /// <param name="builder">The builder whose services and host settings are configured.</param>
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             _ = builder.UseEnvironment(Environments.Development);

@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Identity;
 namespace De.Openelp.Feuerwehr.Server.Services
 {
     /// <summary>
-    /// Executes user Invitation Service.
+    /// Issues time-limited password invitations and completes password assignment after validating the account and invitation.
     /// </summary>
-    /// <param name="users">The users.</param>
-    /// <param name="store">The store.</param>
-    /// <param name="mail">The mail.</param>
-    /// <param name="tokens">The tokens.</param>
-    /// <param name="configuration">The configuration.</param>
-    /// <param name="clock">The clock.</param>
-    /// <param name="logger">The logger.</param>
+    /// <param name="users">The Identity user manager used to load and update accounts.</param>
+    /// <param name="store">The invitation store used to retain and remove expiring password invitations.</param>
+    /// <param name="mail">The mail service used to send account or operational notifications.</param>
+    /// <param name="tokens">The token service used to issue or revoke session credentials.</param>
+    /// <param name="configuration">The application configuration containing connection, authentication, and frontend settings.</param>
+    /// <param name="clock">The time provider used to evaluate dates and expiry consistently.</param>
+    /// <param name="logger">The logger used to record operational failures and diagnostics.</param>
     public sealed class UserInvitationService(
         UserManager<ApplicationUser> users,
         IUserInvitationStore store,
@@ -24,13 +24,16 @@ namespace De.Openelp.Feuerwehr.Server.Services
         TimeProvider clock,
         ILogger<UserInvitationService> logger) : IUserInvitationService
     {
+        /// <summary>
+        /// The the 60-minute validity period shared by invitation storage, validation, and email text.
+        /// </summary>
         public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(60);
 
         /// <summary>
-        /// Sends the operation.
+        /// Creates a sixty-minute password invitation, locks the account for assignment, and emails the configured frontend link.
         /// </summary>
-        /// <param name="user">The user.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="user">The user account involved in the operation.</param>
+        /// <returns>A task that completes when the operation finishes.</returns>
         public async Task SendAsync(ApplicationUser user)
         {
             string? configuredUrl = configuration["Frontend:BaseUrl"];
@@ -94,10 +97,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Executes complete.
+        /// Validates the invitation, assigns the account password, and revokes earlier refresh credentials.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="request">The reset input to validate and apply.</param>
+        /// <returns>A task whose result is an application result containing the password assignment or change outcome, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CompleteAsync(ResetRequest request)
         {
             static ServiceResult InvalidInvitation() => ServiceResult.BadRequest(

@@ -8,10 +8,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace De.Openelp.Feuerwehr.App.Pages
 {
+    /// <summary>
+    /// Displays the map interface and coordinates its view lifecycle.
+    /// </summary>
     public partial class MapView : ContentPage
     {
         private CancellationTokenSource? locationInitialization;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MapView" /> class with its required dependencies.
+        /// </summary>
         public MapView()
         {
             this.InitializeComponent();
@@ -19,6 +25,10 @@ namespace De.Openelp.Feuerwehr.App.Pages
             this.DataContext = App.Services.GetRequiredService<MapViewModel>();
         }
 
+        /// <summary>
+        /// Activates the view model and starts loading data when the view is attached.
+        /// </summary>
+        /// <param name="e">The event data supplied by the UI framework.</param>
         protected override async void OnLoaded(RoutedEventArgs e)
         {
             base.OnLoaded(e);
@@ -39,6 +49,10 @@ namespace De.Openelp.Feuerwehr.App.Pages
             }
         }
 
+        /// <summary>
+        /// Deactivates the view model and cancels pending work when the view is detached.
+        /// </summary>
+        /// <param name="e">The event data supplied by the UI framework.</param>
         protected override void OnUnloaded(RoutedEventArgs e)
         {
             this.locationInitialization?.Cancel();

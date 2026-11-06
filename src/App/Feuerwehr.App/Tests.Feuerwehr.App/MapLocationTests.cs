@@ -7,12 +7,15 @@ using Moq;
 
 namespace De.Openelp.Feuerwehr.Tests.App
 {
+    /// <summary>
+    /// Tests map location behavior and its expected outcomes.
+    /// </summary>
     public class MapLocationTests
     {
-        [Fact]
         /// <summary>
-        /// Executes constructing Map Does Not Request Location Before The View Is Loaded.
+        /// Verifies that constructing map does not request location before the view is loaded.
         /// </summary>
+        [Fact]
         public void ConstructingMap_DoesNotRequestLocationBeforeTheViewIsLoaded()
         {
             Mock<IGpsService> gps = new (MockBehavior.Strict);
@@ -23,10 +26,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             gps.VerifyNoOtherCalls();
         }
 
-        [Fact]
         /// <summary>
-        /// Executes settings Waits Asynchronously And Uses The Returned Coordinates.
+        /// Verifies that settings waits asynchronously and uses the returned coordinates.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Settings_WaitsAsynchronouslyAndUsesTheReturnedCoordinates()
         {
             TaskCompletionSource<GpsLocation?> completion = new (TaskCreationOptions.RunContinuationsAsynchronously);
@@ -47,10 +51,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.Equal(10.6, viewModel.NewHydrant.Longitude);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes unavailable Location Does Not Create A Pin Or Open Hydrant Creation.
+        /// Verifies that unavailable location does not create a pin or open hydrant creation.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task UnavailableLocation_DoesNotCreateAPinOrOpenHydrantCreation()
         {
             Mock<IGpsService> gps = new ();
@@ -66,10 +71,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.False(viewModel.IsAddVisible);
         }
 
-        [Fact]
         /// <summary>
-        /// Executes initialization Replaces Existing Location Pin.
+        /// Verifies that initialization replaces existing location pin.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task Initialization_ReplacesExistingLocationPin()
         {
             Mock<IGpsService> gps = new ();
@@ -83,13 +89,14 @@ namespace De.Openelp.Feuerwehr.Tests.App
             _ = Assert.Single(viewModel.Map!.Layers, layer => layer.Name == "Pins");
         }
 
+        /// <summary>
+        /// Verifies that cancellation prevents late location results from changing the view.
+        /// </summary>
+        /// <param name="initialize">The expected initialize flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        /// <summary>
-        /// Executes cancellation Prevents Late Location Results From Changing The View.
-        /// </summary>
-        /// <param name="initialize">The initialize.</param>
         public async Task Cancellation_PreventsLateLocationResultsFromChangingTheView(bool initialize)
         {
             TaskCompletionSource<GpsLocation?> completion = new (TaskCreationOptions.RunContinuationsAsynchronously);
@@ -117,13 +124,14 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Assert.False(viewModel.IsAddVisible);
         }
 
+        /// <summary>
+        /// Verifies that canceling bound commands completes without an unhandled cancellation.
+        /// </summary>
+        /// <param name="center">The expected center flag for this test case.</param>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        /// <summary>
-        /// Executes canceling Bound Commands Completes Without An Unhandled Cancellation.
-        /// </summary>
-        /// <param name="center">The center.</param>
         public async Task CancelingBoundCommands_CompletesWithoutAnUnhandledCancellation(bool center)
         {
             Mock<IGpsService> gps = new ();

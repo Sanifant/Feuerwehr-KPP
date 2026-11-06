@@ -1,9 +1,9 @@
 namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
 {
     /// <summary>
-    /// Executes vehicle Availability Dto.
+    /// Carries vehicle availability data across the API boundary.
     /// </summary>
-    /// <param name="Vehicle">The vehicle.</param>
-    /// <param name="Days">The days.</param>
+    /// <param name="Vehicle">The vehicle associated with this vehicle availability.</param>
+    /// <param name="Days">The days associated with this vehicle availability.</param>
     public sealed record VehicleAvailabilityDto(VehicleDto Vehicle, IReadOnlyList<VehicleDayDto> Days);
 }

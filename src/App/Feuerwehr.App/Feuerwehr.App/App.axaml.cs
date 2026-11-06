@@ -11,15 +11,23 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace De.Openelp.Feuerwehr.App
 {
+    /// <summary>
+    /// Initializes the shared Avalonia application, dependency injection, and authenticated navigation.
+    /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Gets the application's service provider.
+        /// </summary>
         public static IServiceProvider Services { get; private set; } = default!;
 
-        /// <summary>Set by the platform host before framework initialization.</summary>
+        /// <summary>
+        /// Gets or sets the callback that registers platform-specific services during application initialization.
+        /// </summary>
         public Action<IServiceCollection>? ConfigurePlatformServices { get; set; }
 
         /// <summary>
-        /// Initializes the operation.
+        /// Loads the Avalonia application resources and styles.
         /// </summary>
         public override void Initialize()
         {
@@ -27,7 +35,7 @@ namespace De.Openelp.Feuerwehr.App
         }
 
         /// <summary>
-        /// Executes on Framework Initialization Completed.
+        /// Creates the application view and wires authenticated navigation after Avalonia initialization.
         /// </summary>
         public override void OnFrameworkInitializationCompleted()
         {

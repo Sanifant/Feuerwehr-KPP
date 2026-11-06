@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     /// <summary>
-    /// Executes incident Diary Service.
+    /// Implements incident diary operations for the API application layer.
     /// </summary>
-    /// <param name="dbContext">The db Context.</param>
-    /// <param name="userContext">The user Context.</param>
-    /// <param name="idempotency">The idempotency.</param>
-    /// <param name="outboxService">The outbox Service.</param>
+    /// <param name="dbContext">The database context for the current unit of work.</param>
+    /// <param name="userContext">The accessor for the authenticated caller's identity and permissions.</param>
+    /// <param name="idempotency">The command store that checks retries against their original payloads.</param>
+    /// <param name="outboxService">The service that stages live events in the current database unit of work.</param>
     public sealed class IncidentDiaryService(FeuerwehrDbContext dbContext,
         IUserContextAccessor userContext,
         ICommandIdempotencyService idempotency,
@@ -21,11 +21,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
     {
 
         /// <summary>
-        /// Gets the entries.
+        /// Retrieves the incident diary entries and their current revisions.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the diary entries and revisions, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetEntries(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -74,10 +74,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Gets the categories.
+        /// Retrieves incident diary categories visible to the caller.
         /// </summary>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the incident diary categories, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> GetCategories(CancellationToken cancellationToken)
         {
             List<DiaryCategoryDto> categories = await dbContext.DiaryCategories.AsNoTracking()
@@ -89,12 +89,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Creates the entry.
+        /// Creates a numbered diary entry and its initial revision, command outcome, and live event.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="request">The create diary entry input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the diary entry and incident revision after the change, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CreateEntry(Guid incidentId, CreateDiaryEntryRequest request, CancellationToken cancellationToken)
         {
 
@@ -174,13 +174,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Updates the entry.
+        /// Appends a diary revision after validating the caller's expected revision.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="entryId">The entry Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="entryId">The identifier of the diary entry.</param>
+        /// <param name="request">The update diary entry input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the diary entry and incident revision after the change, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> UpdateEntry(Guid incidentId, Guid entryId, UpdateDiaryEntryRequest request, CancellationToken cancellationToken)
         {
 
@@ -259,13 +259,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes cancel Entry.
+        /// Cancels a diary entry by recording a new revision and retaining its previous content.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="entryId">The entry Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="entryId">The identifier of the diary entry.</param>
+        /// <param name="request">The cancel diary entry input to validate and apply.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the diary entry and incident revision after the change, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> CancelEntry(Guid incidentId, Guid entryId, CancelDiaryEntryRequest request, CancellationToken cancellationToken)
         {
 
@@ -351,11 +351,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         /// <summary>
-        /// Executes export Diary Pdf.
+        /// Exports the incident diary as a PDF document.
         /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <param name="incidentId">The identifier of the incident.</param>
+        /// <param name="cancellationToken">A token that cancels the operation.</param>
+        /// <returns>A task whose result is an application result containing the download content and MIME type, or validation, authorization, or conflict details on failure.</returns>
         public async Task<ServiceResult> ExportDiaryPdf(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);

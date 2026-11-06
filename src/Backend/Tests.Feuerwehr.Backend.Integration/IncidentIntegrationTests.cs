@@ -7,17 +7,18 @@ using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
 namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Collection(IntegrationTestCollection.Name)]
     /// <summary>
-    /// Executes incident Integration Tests.
+    /// Tests incident integration behavior and its expected outcomes.
     /// </summary>
-    /// <param name="fixture">The fixture.</param>
+    /// <param name="fixture">The shared test fixture providing application and database infrastructure.</param>
+    [Collection(IntegrationTestCollection.Name)]
     public sealed class IncidentIntegrationTests(IntegrationTestFixture fixture)
     {
-        [Fact]
         /// <summary>
-        /// Executes incident Lifecycle Create Active Close Archive Works End To End.
+        /// Verifies that incident lifecycle create active close archive works end to end.
         /// </summary>
+        /// <returns>A task that completes when the scenario and its assertions finish.</returns>
+        [Fact]
         public async Task IncidentLifecycle_CreateActiveCloseArchive_WorksEndToEnd()
         {
             string token = await fixture.LoginAsAdminAndGetAccessTokenAsync();
