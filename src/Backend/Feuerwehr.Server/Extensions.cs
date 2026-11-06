@@ -93,6 +93,7 @@ namespace De.Openelp.Feuerwehr.Server
         /// Executes map Default Endpoints.
         /// </summary>
         /// <param name="app">The app.</param>
+        /// <returns></returns>
         public static WebApplication MapDefaultEndpoints(this WebApplication app)
         {
             // Adding health checks endpoints to applications in non-development environments has security implications.

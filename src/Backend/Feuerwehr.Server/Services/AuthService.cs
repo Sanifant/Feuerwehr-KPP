@@ -34,7 +34,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Login with email and password
         /// </summary>
         /// <param name="request">The request.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Login(LoginRequest request)
         {
 
@@ -95,7 +95,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="bearerToken">The bearer Token.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> RefreshToken(RefreshTokenRequest request, string bearerToken)
         {
 
@@ -154,6 +154,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Executes reset Password.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> ResetPassword(ResetRequest request) => this._invitations.CompleteAsync(request);
 
         /// <summary>
@@ -161,6 +162,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="currentUserId">The current User Id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
         {
             if (string.IsNullOrWhiteSpace(currentUserId))
@@ -208,7 +210,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Logout and revoke refresh token
         /// </summary>
         /// <param name="currentUserId">The current User Id.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Logout(string? currentUserId)
         {
             string? userId = currentUserId;
@@ -227,7 +229,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Get current user info
         /// </summary>
         /// <param name="currentUserId">The current User Id.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetCurrentUser(string? currentUserId)
         {
             string? userId = currentUserId;

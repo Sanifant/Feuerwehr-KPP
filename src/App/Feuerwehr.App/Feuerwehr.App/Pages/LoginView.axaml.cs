@@ -17,6 +17,7 @@ namespace De.Openelp.Feuerwehr.App
             {
                 throw new System.InvalidOperationException($"{nameof(LoginViewModel)} is not registered in the application service provider.");
             }
+
             this.DataContext = vm;
         }
     }

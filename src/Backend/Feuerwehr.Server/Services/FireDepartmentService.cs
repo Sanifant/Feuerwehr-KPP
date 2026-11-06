@@ -19,6 +19,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Gets the operation.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Get()
         {
             List<FireDepartmentDto> fireDepartments = await this._db.FireDepartments
@@ -48,6 +49,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Adds the operation.
         /// </summary>
         /// <param name="fireDepartmentDto">The fire Department Dto.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Add(FireDepartmentDto fireDepartmentDto)
         {
             FireDepartment entity = new FireDepartment
@@ -76,6 +78,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Gets the operation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Get(int id)
         {
             FireDepartment? fireDepartment = await this._db.FireDepartments

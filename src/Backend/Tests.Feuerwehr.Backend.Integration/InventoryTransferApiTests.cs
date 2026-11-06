@@ -199,6 +199,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory/types", request);
                 _ = create.EnsureSuccessStatusCode();
             }
+
             using HttpResponseMessage export = await officer.GetAsync("/api/inventory/types/export");
             _ = export.EnsureSuccessStatusCode();
             using HttpResponseMessage import = await Upload(officer, "/api/inventory/types/import", await export.Content.ReadAsStringAsync(), "types.json");
@@ -221,6 +222,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 using HttpResponseMessage import = await Upload(viewer, $"/api/inventory{suffix}/import", "[]", "file.json");
                 Assert.Equal(HttpStatusCode.Forbidden, import.StatusCode);
             }
+
             using HttpResponseMessage forbidden = await Upload(officer, "/api/inventory/categories/import", "[]", "file.json");
             Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
             using HttpResponseMessage missing = await officer.PostAsync("/api/inventory/import", new MultipartFormDataContent());

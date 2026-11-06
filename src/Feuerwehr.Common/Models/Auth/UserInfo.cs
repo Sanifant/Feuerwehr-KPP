@@ -14,6 +14,6 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
 
         public int? FireDepartmentId { get; set; }
 
-        public List<string> Roles { get; set; } = new();
+        public List<string> Roles { get; set; } = new ();
     }
 }

@@ -12,13 +12,14 @@ namespace De.Openelp.Feuerwehr.App.Services
     /// </summary>
     public class InMemorySecureStorage : ISecureStorage
     {
-        private readonly ConcurrentDictionary<string, string> _storage = new();
+        private readonly ConcurrentDictionary<string, string> _storage = new ();
 
         /// <summary>
         /// Sets the operation.
         /// </summary>
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task SetAsync(string key, string value)
         {
             this._storage[key] = value;
@@ -29,6 +30,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Gets the operation.
         /// </summary>
         /// <param name="key">The key.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<string?> GetAsync(string key)
         {
             _ = this._storage.TryGetValue(key, out string? value);
@@ -39,6 +41,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Removes the operation.
         /// </summary>
         /// <param name="key">The key.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task RemoveAsync(string key)
         {
             _ = this._storage.TryRemove(key, out _);

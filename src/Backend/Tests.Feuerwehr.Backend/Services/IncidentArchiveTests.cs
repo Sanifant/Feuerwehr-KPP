@@ -18,10 +18,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
     public sealed class IncidentArchiveTests : IDisposable
     {
-        private readonly FeuerwehrDbContext _db = new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        private readonly FeuerwehrDbContext _db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
-        private readonly Mock<IUserContextAccessor> _user = new();
+        private readonly Mock<IUserContextAccessor> _user = new ();
         private readonly IncidentDiaryService _diary;
         private readonly IncidentService _incidents;
         private readonly IncidentArchiveService _archive;

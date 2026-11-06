@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="invitation">The invitation.</param>
         /// <param name="lifetime">The lifetime.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
         {
             bool stored = await redis.GetDatabase().StringSetAsync(Key(id), JsonSerializer.Serialize(invitation), lifetime);
@@ -31,6 +32,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes find.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<UserInvitation?> FindAsync(Guid id)
         {
             RedisValue value = await redis.GetDatabase().StringGetAsync(Key(id));
@@ -40,6 +42,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Removes the operation.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task RemoveAsync(Guid id) => await redis.GetDatabase().KeyDeleteAsync(Key(id));
 
         private static string Key(Guid id) => "user-invitation:" +

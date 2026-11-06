@@ -10,6 +10,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         /// <param name="controller">The controller.</param>
         /// <param name="result">The result.</param>
+        /// <returns></returns>
         public static ActionResult ToActionResult(this ControllerBase controller, ServiceResult result)
         {
             if (result.Content is not null)

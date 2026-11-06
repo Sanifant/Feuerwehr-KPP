@@ -32,6 +32,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 _ = db.Users.Add(new ApplicationUser { Id = id, UserName = id, Email = $"{id}@example.test", IsActive = active });
                 _ = db.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = id });
             }
+
             _ = await db.SaveChangesAsync();
             Mock<IMailService> mail = new Mock<IMailService>();
             int attempts = 0;
@@ -66,7 +67,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <summary>
             /// Gets the utc Now.
             /// </summary>
-            public override DateTimeOffset GetUtcNow() => new(this.Date.ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc));
+            public override DateTimeOffset GetUtcNow() => new (this.Date.ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc));
         }
     }
 }

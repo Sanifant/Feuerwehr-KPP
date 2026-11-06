@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="recipient">The recipient.</param>
         /// <param name="subject">The subject.</param>
         /// <param name="body">The body.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task SendAsync(string recipient, string subject, string body) =>
             this.SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
 
@@ -28,6 +29,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="subject">The subject.</param>
         /// <param name="textBody">The text Body.</param>
         /// <param name="htmlBody">The html Body.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody)
         {
             BodyBuilder builder = new BodyBuilder { TextBody = textBody, HtmlBody = htmlBody };

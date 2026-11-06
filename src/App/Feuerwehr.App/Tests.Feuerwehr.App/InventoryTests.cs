@@ -122,7 +122,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         private static EquipmentDetailDto Detail(bool active = true)
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
-            return new(new EquipmentDto(
+            return new (new EquipmentDto(
                 Guid.Parse("30500200-0000-0000-0000-000000000001"),
                 "KPP-001",
                 Guid.NewGuid(),

@@ -27,9 +27,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         private const string Svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 50'><rect width='100' height='50' fill='red'/></svg>";
         private const string Png = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aV7sAAAAASUVORK5CYII=";
         private const string Jpeg = "/9j/4AAQSkZJRgABAQEAYABgAAD/4QA6RXhpZgAATU0AKgAAAAgAA1EQAAEAAAABAQAAAFERAAQAAAABAAAAAFESAAQAAAABAAAAAAAAAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KKKAP/2Q==";
-        private readonly SqliteConnection _connection = new("Data Source=:memory:");
-        private readonly Mock<IUserContextAccessor> _user = new();
-        private readonly TransientCommitFailure _commitFailure = new();
+        private readonly SqliteConnection _connection = new ("Data Source=:memory:");
+        private readonly Mock<IUserContextAccessor> _user = new ();
+        private readonly TransientCommitFailure _commitFailure = new ();
         private FeuerwehrDbContext _db = null!;
         private MapSymbolService _symbols = null!;
         private SituationMapService _map = null!;
@@ -39,6 +39,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <summary>
         /// Initializes the operation.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task InitializeAsync()
         {
             await this._connection.OpenAsync();
@@ -85,6 +86,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 Assert.Contains("viewBox=\"0 0 100 50\"", symbol.SvgContent);
                 Assert.Contains("preserveAspectRatio=\"xMidYMid meet\"", symbol.SvgContent);
             }
+
             Assert.Equal(4, await this._db.MapSymbols.CountAsync());
         }
 
@@ -435,7 +437,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task CustomCategoriesPersistAndCanBeUsedForSymbols()
         {
-            ServiceResult created = await this._symbols.CreateCategory(new() { Name = "  Technische Hilfe  " }, default);
+            ServiceResult created = await this._symbols.CreateCategory(new () { Name = "  Technische Hilfe  " }, default);
             Assert.Equal(201, created.Code);
             Assert.Equal("Technische Hilfe", created.Value);
             this._db.ChangeTracker.Clear();
@@ -444,11 +446,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal("Technische Hilfe", symbol.Category);
             Assert.True(symbol.IsVehicle);
             Assert.True(Assert.Single(Assert.IsAssignableFrom<IEnumerable<MapSymbolDto>>((await this._symbols.GetSymbols(default)).Value)).IsVehicle);
-            Assert.Equal(409, (await this._symbols.CreateCategory(new() { Name = " technische hilfe " }, default)).Code);
-            Assert.Equal(400, (await this._symbols.CreateCategory(new() { Name = " " }, default)).Code);
-            Assert.Equal(400, (await this._symbols.CreateCategory(new() { Name = new string('a', 41) }, default)).Code);
+            Assert.Equal(409, (await this._symbols.CreateCategory(new () { Name = " technische hilfe " }, default)).Code);
+            Assert.Equal(400, (await this._symbols.CreateCategory(new () { Name = " " }, default)).Code);
+            Assert.Equal(400, (await this._symbols.CreateCategory(new () { Name = new string('a', 41) }, default)).Code);
             _ = this._user.SetupGet(x => x.IsAdmin).Returns(false);
-            Assert.Equal(403, (await this._symbols.CreateCategory(new() { Name = "Nicht erlaubt" }, default)).Code);
+            Assert.Equal(403, (await this._symbols.CreateCategory(new () { Name = "Nicht erlaubt" }, default)).Code);
             Assert.Equal(5, await this._db.MapSymbolCategories.CountAsync());
         }
 
@@ -510,6 +512,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <summary>
         /// Executes dispose.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task DisposeAsync()
         {
             await this._db.DisposeAsync();
@@ -517,10 +520,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         }
 
         private static SaveMapSymbolRequest SymbolRequest(string svg = Svg, string category = "Feuerwehr")
-            => new() { Name = "Löschfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
+            => new () { Name = "Löschfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
 
         private UpsertMapElementRequest Write(string symbolId, Guid? elementId = null, int? version = null, string geometry = "{\"type\":\"Point\",\"coordinates\":[10.25,51.5]}")
-            => new()
+            => new ()
             {
                 CommandId = Guid.NewGuid().ToString(),
                 SessionId = "session-1",
@@ -556,6 +559,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                     this.Failures++;
                     throw new TimeoutException("Simulated connection failure before commit.");
                 }
+
                 return ValueTask.FromResult(result);
             }
 
@@ -573,6 +577,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                     this.Failures++;
                     throw new TimeoutException("Simulated connection failure after commit.");
                 }
+
                 return Task.CompletedTask;
             }
         }

@@ -26,6 +26,7 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
         /// Gets the current Location.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

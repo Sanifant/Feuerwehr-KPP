@@ -12,6 +12,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// unsupported, or no fix is available within the platform's timeout.
         /// Caller cancellation throws OperationCanceledException.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         Task<GpsLocation?> GetCurrentLocationAsync(CancellationToken cancellationToken = default);
     }
 }

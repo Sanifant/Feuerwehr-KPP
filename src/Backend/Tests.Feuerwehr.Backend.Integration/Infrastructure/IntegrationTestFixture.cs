@@ -26,6 +26,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         /// <summary>
         /// Initializes the operation.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task InitializeAsync()
         {
             await Task.WhenAll(this._postgres.StartAsync(), this._redis.StartAsync());
@@ -42,7 +43,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
                 SeedAdminEmail,
                 SeedAdminPassword);
 
-            this.Client = this._factory.CreateClient(new()
+            this.Client = this._factory.CreateClient(new ()
             {
                 AllowAutoRedirect = false,
             });
@@ -51,6 +52,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         /// <summary>
         /// Executes login As Admin And Get Access Token.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<string> LoginAsAdminAndGetAccessTokenAsync()
         {
             HttpResponseMessage response = await this.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
@@ -67,6 +69,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         /// <summary>
         /// Executes dispose.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task DisposeAsync()
         {
             this.Client.Dispose();

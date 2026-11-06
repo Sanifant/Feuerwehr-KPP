@@ -9,6 +9,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
         /// Creates the db Context.
         /// </summary>
         /// <param name="args">The args.</param>
+        /// <returns></returns>
         public FeuerwehrDbContext CreateDbContext(string[] args)
         {
             DbContextOptionsBuilder<FeuerwehrDbContext> optionsBuilder = new DbContextOptionsBuilder<FeuerwehrDbContext>();

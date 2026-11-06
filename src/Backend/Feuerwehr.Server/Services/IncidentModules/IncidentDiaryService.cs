@@ -28,6 +28,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetEntries(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -79,6 +80,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Gets the categories.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetCategories(CancellationToken cancellationToken)
         {
             List<DiaryCategoryDto> categories = await dbContext.DiaryCategories.AsNoTracking()
@@ -95,6 +97,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CreateEntry(Guid incidentId, CreateDiaryEntryRequest request, CancellationToken cancellationToken)
         {
 
@@ -180,6 +183,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="entryId">The entry Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> UpdateEntry(Guid incidentId, Guid entryId, UpdateDiaryEntryRequest request, CancellationToken cancellationToken)
         {
 
@@ -264,6 +268,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="entryId">The entry Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CancelEntry(Guid incidentId, Guid entryId, CancelDiaryEntryRequest request, CancellationToken cancellationToken)
         {
 
@@ -353,6 +358,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ExportDiaryPdf(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -401,8 +407,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         AddRevisionLines(lines, previous);
                     }
                 }
+
                 lines.Add(string.Empty);
             }
+
             if (entries.Count == 0)
             {
                 lines.Add("Keine Tagebucheinträge vorhanden.");
@@ -427,7 +435,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         private static DiaryRevisionDto ToRevisionDto(DiaryEntryRevision x)
-            => new(
+            => new (
                 x.Id,
                 x.RevisionNumber,
                 x.RevisionType,

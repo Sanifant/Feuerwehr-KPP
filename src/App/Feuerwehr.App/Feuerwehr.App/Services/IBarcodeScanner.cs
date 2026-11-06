@@ -10,6 +10,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <summary>
         /// Executes scan.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<string?> ScanAsync(CancellationToken cancellationToken) => Task.FromResult<string?>(null);
     }
 }

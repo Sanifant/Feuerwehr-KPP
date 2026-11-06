@@ -19,7 +19,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             catch (DecoderFallbackException)
             {
-                return ([], [new(null, "Die Datei enthält ungültige Zeichen. Bitte als UTF-8-CSV speichern.")]);
+                return ([], [new (null, "Die Datei enthält ungültige Zeichen. Bitte als UTF-8-CSV speichern.")]);
             }
         }
 
@@ -40,7 +40,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 string[]? headers = parser.ReadFields();
                 if (headers is null)
                 {
-                    return (hydrants, [new(null, "Die CSV-Datei ist leer.")]);
+                    return (hydrants, [new (null, "Die CSV-Datei ist leer.")]);
                 }
 
                 Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -48,19 +48,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 {
                     if (!columns.TryAdd(headers[index], index))
                     {
-                        errors.Add(new(1, $"Die Spalte '{headers[index]}' ist mehrfach vorhanden."));
+                        errors.Add(new (1, $"Die Spalte '{headers[index]}' ist mehrfach vorhanden."));
                     }
                     else if (!RequiredColumns.Contains(headers[index], StringComparer.OrdinalIgnoreCase)
                         && !headers[index].Equals("notes", StringComparison.OrdinalIgnoreCase))
                     {
-                        errors.Add(new(1, $"Unbekannte Spalte '{headers[index]}'."));
+                        errors.Add(new (1, $"Unbekannte Spalte '{headers[index]}'."));
                     }
                 }
+
                 foreach (string required in RequiredColumns)
                 {
                     if (!columns.ContainsKey(required))
                     {
-                        errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
+                        errors.Add(new (1, $"Die Pflichtspalte '{required}' fehlt."));
                     }
                 }
 
@@ -77,12 +78,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     string[] fields = parser.ReadFields()!;
                     if (++rowCount > 10_000)
                     {
-                        errors.Add(new(line, "Pro Import sind höchstens 10.000 Hydranten erlaubt."));
+                        errors.Add(new (line, "Pro Import sind höchstens 10.000 Hydranten erlaubt."));
                         break;
                     }
+
                     if (fields.Length > headers.Length)
                     {
-                        errors.Add(new(line, "Die Zeile enthält mehr Werte als Spaltenüberschriften."));
+                        errors.Add(new (line, "Die Zeile enthält mehr Werte als Spaltenüberschriften."));
                         continue;
                     }
 
@@ -90,7 +92,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     string[] missing = RequiredColumns.Where(name => string.IsNullOrWhiteSpace(Field(name))).ToArray();
                     if (missing.Length > 0)
                     {
-                        errors.Add(new(line, $"Pflichtfelder fehlen: {string.Join(", ", missing)}."));
+                        errors.Add(new (line, $"Pflichtfelder fehlen: {string.Join(", ", missing)}."));
                         continue;
                     }
 
@@ -104,7 +106,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         || !int.TryParse(Field("waterSource"), out int source) || !Enum.IsDefined((WaterSource)source)
                         || !int.TryParse(Field("status"), out int status) || !Enum.IsDefined((HydrantStatus)status))
                     {
-                        errors.Add(new(line, "Koordinaten müssen Zahlen mit Dezimalpunkt, Nennweite eine ganze Zahl und Typ, Wasserquelle und Status Werte von 1 bis 4 sein."));
+                        errors.Add(new (line, "Koordinaten müssen Zahlen mit Dezimalpunkt, Nennweite eine ganze Zahl und Typ, Wasserquelle und Status Werte von 1 bis 4 sein."));
                         continue;
                     }
 
@@ -126,15 +128,17 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         Notes = string.IsNullOrWhiteSpace(Field("notes")) ? null : Field("notes"),
                     });
                 }
+
                 if (rowCount == 0)
                 {
-                    errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
+                    errors.Add(new (null, "Die CSV-Datei enthält keine Hydranten."));
                 }
             }
             catch (MalformedLineException)
             {
-                errors.Add(new(parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Trennzeichen und Anführungszeichen prüfen."));
+                errors.Add(new (parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Trennzeichen und Anführungszeichen prüfen."));
             }
+
             return (hydrants, errors);
         }
     }

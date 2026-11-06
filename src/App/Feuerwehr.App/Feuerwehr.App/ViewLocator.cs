@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.App
         /// Builds the operation.
         /// </summary>
         /// <param name="param">The param.</param>
+        /// <returns></returns>
         public Control? Build(object? param)
         {
             if (param is null)
@@ -40,6 +41,7 @@ namespace De.Openelp.Feuerwehr.App
         /// Executes match.
         /// </summary>
         /// <param name="data">The data.</param>
+        /// <returns></returns>
         public bool Match(object? data)
         {
             return data is ViewModelBase;

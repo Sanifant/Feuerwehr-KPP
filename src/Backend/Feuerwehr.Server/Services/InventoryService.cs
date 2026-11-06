@@ -25,6 +25,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Gets the categories.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetCategories(CancellationToken ct) => ServiceResult.Ok(await db.InventoryCategories
             .OrderBy(x => x.Name).Select(x => new InventoryCategoryDto(x.Id, x.Name)).ToListAsync(ct));
 
@@ -33,6 +34,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CreateCategory(CreateInventoryCategoryRequest request, CancellationToken ct)
         {
             string name = request.Name.Trim();
@@ -57,12 +59,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Diese Kategorie existiert bereits.");
             }
+
             return ServiceResult.StatusCode(201, new InventoryCategoryDto(category.Id, category.Name));
         }
 
         /// <summary>
         /// Gets the types.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetTypes(CancellationToken ct) => ServiceResult.Ok(await db.EquipmentTypes
             .Include(x => x.Category).OrderBy(x => x.Name)
             .Select(x => new EquipmentTypeDto(x.Id, x.CategoryId, x.Category.Name, x.Name, x.InspectionIntervalMonths, x.InspectionInstructions, x.Version)).ToListAsync(ct));
@@ -73,6 +77,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> SaveType(Guid? id, SaveEquipmentTypeRequest request, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 150 ||
@@ -121,6 +126,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden.");
             }
+
             return ServiceResult.StatusCode(id.HasValue ? 200 : 201, new EquipmentTypeDto(
                 type.Id,
                 category.Id,
@@ -136,6 +142,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="includeInactive">The include Inactive.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetAll(bool includeInactive, CancellationToken ct)
         {
             List<Equipment> items = await this.EquipmentQuery.AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.BarcodeNumber).ToListAsync(ct);
@@ -147,6 +154,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Get(Guid id, CancellationToken ct)
         {
             Equipment? item = await this.EquipmentQuery.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -175,6 +183,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="barcode">The barcode.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> FindBarcode(string barcode, CancellationToken ct)
         {
             barcode = barcode.Trim().ToUpperInvariant();
@@ -193,6 +202,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> BarcodeLabel(Guid id, CancellationToken ct)
         {
             Equipment? item = await db.Equipment.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -216,6 +226,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Save(Guid? id, SaveEquipmentRequest request, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(request.SerialNumber) || request.SerialNumber.Length > 150 ||
@@ -245,6 +256,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Deaktivierte Geräte können nicht bearbeitet werden.");
             }
+
             // Statusänderungen bestehender Geräte werden ausschlieÃŸlich als Prüfung protokolliert.
             if (id.HasValue && request.Status != item.Status)
             {
@@ -277,6 +289,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Barcodevorrat KPP-001 bis KPP-999 ist ausgeschöpft. Es können keine weiteren Geräte angelegt werden.");
             }
+
             return ServiceResult.StatusCode(id.HasValue ? 200 : 201, ToDto(item));
         }
 
@@ -286,6 +299,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> SetActive(Guid id, SetEquipmentActiveRequest request, CancellationToken ct)
         {
             Equipment? item = await db.Equipment.FindAsync([id], ct);
@@ -309,6 +323,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
             }
+
             return await this.Get(id, ct);
         }
 
@@ -318,6 +333,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Inspect(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct)
         {
             if (request.CommandId == Guid.Empty || !Enum.IsDefined(request.Status) || request.Comment?.Length > 4000)
@@ -337,6 +353,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
                 return await this.Get(id, ct);
             }
+
             Equipment? item = await this.EquipmentQuery.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (item is null)
             {
@@ -388,10 +405,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Prüfauftrag wird bereits verarbeitet. Bitte das Gerät neu laden.");
             }
+
             return await this.Get(id, ct);
         }
 
-        internal static EquipmentDto ToDto(Equipment item) => new(
+        internal static EquipmentDto ToDto(Equipment item) => new (
             item.Id,
             $"KPP-{item.BarcodeNumber:D3}",
             item.EquipmentTypeId,

@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Gets the categories.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetCategories(CancellationToken cancellationToken)
             => ServiceResult.Ok(await dbContext.MapSymbolCategories.AsNoTracking().OrderBy(x => x.Name).Select(x => x.Name).ToListAsync(cancellationToken));
 
@@ -26,6 +27,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken)
         {
             if (!user.IsAdmin)
@@ -54,6 +56,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Gets the symbols.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetSymbols(CancellationToken cancellationToken)
         {
             logger.LogDebug("Map symbol catalog load started. Admin: {IsAdmin}", user.IsAdmin);
@@ -78,6 +81,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Save(Guid? id, SaveMapSymbolRequest request, CancellationToken cancellationToken)
         {
             if (!user.IsAdmin)
@@ -85,6 +89,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 logger.LogWarning("Map symbol save rejected: administrator permission missing.");
                 return ServiceResult.Forbid();
             }
+
             string category = request.Category ?? string.Empty;
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 200
                 || !await dbContext.MapSymbolCategories.AnyAsync(x => x.Name == category, cancellationToken))
@@ -92,6 +97,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 logger.LogWarning("Map symbol save rejected: invalid name or category. SymbolId: {SymbolId}", id);
                 return ServiceResult.Problem(400, "Bitte Name und eine gültige Symbolkategorie angeben.");
             }
+
             string content = request.SvgContent ?? string.Empty;
             string categoryForLog = category.Replace("\r", string.Empty).Replace("\n", string.Empty);
             logger.LogInformation("Map symbol save started. SymbolId: {SymbolId}, Category: {Category}, SvgCharacters: {Length}", id, categoryForLog, content.Length);
@@ -105,6 +111,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 logger.LogWarning("Map symbol SVG validation rejected. SymbolId: {SymbolId}, ErrorType: {ErrorType}", id, error.GetType().Name);
                 return ServiceResult.Problem(400, error is XmlException ? "Die Datei enthält kein gültiges SVG." : error.Message);
             }
+
             logger.LogDebug("Map symbol SVG validation completed. SymbolId: {SymbolId}", id);
 
             logger.LogDebug("Map symbol database lookup started. SymbolId: {SymbolId}", id);
@@ -114,6 +121,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 logger.LogWarning("Map symbol save rejected: symbol was not found. SymbolId: {SymbolId}", id);
                 return ServiceResult.NotFound();
             }
+
             bool created = symbol is null;
             symbol ??= new MapSymbol { Id = Guid.NewGuid(), CreatedAtUtc = DateTime.UtcNow };
             symbol.Name = request.Name.Trim();
@@ -137,6 +145,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 logger.LogError(error, "Map symbol database save failed. SymbolId: {SymbolId}", symbol.Id);
                 throw;
             }
+
             logger.LogInformation("Map symbol save completed. SymbolId: {SymbolId}, Created: {Created}", symbol.Id, created);
             return ServiceResult.StatusCode(created ? 201 : 200, new MapSymbolDto(symbol.Id, symbol.Name, symbol.Category, symbol.SvgContent, symbol.IsActive, symbol.IsVehicle));
         }

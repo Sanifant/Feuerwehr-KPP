@@ -54,6 +54,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes statuses.
         /// </summary>
         /// <param name="includeInactive">The include Inactive.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Statuses(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleStatus>()
             .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderByDescending(x => x.Id == VehicleStatusDefaults.ReadyId).ThenBy(x => x.Name)
             .Select(x => new VehicleStatusDto(x.Id, x.Name, x.AllowsBooking, x.IsActive, x.Version, x.Id == VehicleStatusDefaults.ReadyId)).ToListAsync(ct));
@@ -63,6 +64,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> SaveStatus(Guid? id, SaveVehicleStatusRequest request, CancellationToken ct) => this.Execute(async () =>
         {
             if (!this.IsAdmin)
@@ -118,6 +120,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Status wurde inzwischen geändert oder existiert bereits.");
             }
+
             return ServiceResult.Ok(new VehicleStatusDto(status.Id, status.Name, status.AllowsBooking, status.IsActive, status.Version, status.Id == VehicleStatusDefaults.ReadyId));
         });
 
@@ -125,6 +128,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes types.
         /// </summary>
         /// <param name="includeInactive">The include Inactive.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Types(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleType>()
             .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.Name)
             .Select(x => new VehicleTypeDto(x.Id, x.Name, x.IsActive, x.Version)).ToListAsync(ct));
@@ -134,6 +138,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> SaveType(Guid? id, SaveVehicleTypeRequest request, CancellationToken ct) => this.Execute(async () =>
         {
             if (!this.IsAdmin)
@@ -183,6 +188,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Fahrzeugtyp wurde inzwischen geändert oder existiert bereits. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
 
@@ -191,6 +197,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> SetTypeActive(Guid id, SetVehicleTypeActiveRequest request, CancellationToken ct) => this.Execute(async () =>
         {
             if (!this.IsAdmin)
@@ -219,6 +226,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
 
@@ -227,6 +235,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="includeInactive">The include Inactive.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> List(bool includeInactive, CancellationToken ct)
         {
             IQueryable<Vehicle> query = this.Vehicles.AsNoTracking();
@@ -245,6 +254,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="to">The to.</param>
         /// <param name="ct">The ct.</param>
         /// <param name="vehicleType">The vehicle Type.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Availability(DateOnly from, DateOnly to, CancellationToken ct, string? vehicleType = null)
         {
             if (from == default || to < from || to.DayNumber - from.DayNumber > 365)
@@ -258,6 +268,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 string normalizedType = vehicleType.Trim().ToUpperInvariant();
                 query = query.Where(x => x.VehicleType != null && x.VehicleType.NormalizedName == normalizedType);
             }
+
             List<Vehicle> vehicles = await query
                 .OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct);
             List<VehicleBookingDay> bookings = await db.VehicleBookingDays.AsNoTracking().Where(x => x.Date >= from && x.Date <= to).ToListAsync(ct);
@@ -279,6 +290,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes management Options.
         /// </summary>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ManagementOptions(CancellationToken ct)
         {
             if (!this.CanManage)
@@ -315,6 +327,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> Save(Guid? id, SaveVehicleRequest request, CancellationToken ct) => this.Execute(() => this.SaveCore(id, request, ct));
 
         /// <summary>
@@ -322,6 +335,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> SetActive(Guid id, SetVehicleActiveRequest request, CancellationToken ct) => this.Execute(() => this.SetActiveCore(id, request, ct));
 
         /// <summary>
@@ -329,6 +343,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="scope">The scope.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Reservations(string scope, CancellationToken ct)
         {
             IQueryable<VehicleReservation> query = db.VehicleReservations.AsNoTracking().Include(x => x.Vehicle).AsQueryable();
@@ -354,6 +369,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="direct">The direct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> Reserve(Guid id, CreateVehicleReservationRequest request, bool direct, CancellationToken ct) => this.Execute(() => this.ReserveCore(id, request, direct, ct));
 
         /// <summary>
@@ -362,6 +378,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="status">The status.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public Task<ServiceResult> Decide(Guid id, DecideVehicleReservationRequest request, VehicleReservationStatus status, CancellationToken ct) => this.Execute(() => this.DecideCore(id, request, status, ct));
 
         private static ServiceResult Invalid(string message) => ServiceResult.BadRequest(new MessageResponse(message));
@@ -429,6 +446,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return Invalid("Bitte einen aktiven Fahrzeugtyp wählen.");
                 }
             }
+
             if (id.HasValue && vehicle.Version != request.ExpectedVersion)
             {
                 return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
@@ -472,6 +490,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(this.ToDto(vehicle));
         }
 
@@ -509,6 +528,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(this.ToDto(vehicle));
         }
 
@@ -641,6 +661,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 existing = await db.VehicleReservations.Include(x => x.Vehicle).SingleOrDefaultAsync(x => x.CommandId == request.CommandId, ct);
                 return existing is not null ? this.Replay(existing, hash) : Conflict("Der Zeitraum oder das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(this.ToDto(reservation));
         }
 
@@ -707,6 +728,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 this.AddDays(reservation);
                 _ = db.VehicleMailMessages.Add(mail.Compose(reservation, reservation.RequesterEmail, false));
             }
+
             if (status == VehicleReservationStatus.Cancelled)
             {
                 db.VehicleBookingDays.RemoveRange(await db.VehicleBookingDays.Where(x => x.ReservationId == id).ToListAsync(ct));
@@ -730,6 +752,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return Conflict("Der Zeitraum oder die Anfrage wurde inzwischen geändert. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(this.ToDto(reservation));
         }
 
@@ -784,7 +807,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private void Audit(Vehicle vehicle, VehicleReservation? reservation, string action, string details) => db.VehicleEvents.Add(new VehicleEvent
         { Id = Guid.NewGuid(), VehicleId = vehicle.Id, ReservationId = reservation?.Id, ActorId = this.UserId, Action = action, Details = details, OccurredAtUtc = this.Now });
 
-        private VehicleDto ToDto(Vehicle vehicle) => new(
+        private VehicleDto ToDto(Vehicle vehicle) => new (
             vehicle.Id,
             vehicle.FireDepartmentId,
             vehicle.FireDepartment.Name,
@@ -804,7 +827,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             vehicle.VehicleStatus.AllowsBooking,
             vehicle.StatusChangedAtUtc);
 
-        private VehicleReservationDto ToDto(VehicleReservation reservation) => new(
+        private VehicleReservationDto ToDto(VehicleReservation reservation) => new (
             reservation.Id,
             reservation.VehicleId,
             reservation.RadioCallSign,

@@ -14,6 +14,7 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <param name="targetType">The target Type.</param>
         /// <param name="parameter">The parameter.</param>
         /// <param name="culture">The culture.</param>
+        /// <returns></returns>
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             return value switch
@@ -31,6 +32,7 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <param name="value">The value.</param>
         /// <param name="targetType">The target Type.</param>
         /// <param name="parameter">The parameter.</param>
+        /// <returns></returns>
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             throw new NotSupportedException();

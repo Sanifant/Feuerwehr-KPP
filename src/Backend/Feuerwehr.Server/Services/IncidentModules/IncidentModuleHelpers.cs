@@ -21,7 +21,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
     public static class JsonOptionsFactory
     {
-        public static readonly JsonSerializerOptions Default = new()
+        public static readonly JsonSerializerOptions Default = new ()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -78,6 +78,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="payloadHash">The payload Hash.</param>
         /// <param name="response">The response.</param>
         /// <param name="userId">The user Id.</param>
+        /// <returns></returns>
         public ProcessedCommand BuildStoredCommand(string commandId, string scope, string? targetId, string payloadHash, CommandEnvelopeResponse response, string userId)
         {
             return new ProcessedCommand
@@ -129,6 +130,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="statusCode">The status Code.</param>
         /// <param name="payload">The payload.</param>
+        /// <returns></returns>
         public static CommandEnvelopeResponse BuildEnvelope(int statusCode, object payload)
         {
             return new CommandEnvelopeResponse
@@ -153,6 +155,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="leaseToken">The lease Token.</param>
         /// <param name="userId">The user Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<EditorLease> RequireValidLeaseAsync(Guid incidentId, string sessionId, string leaseToken, string userId, CancellationToken cancellationToken)
         {
             EditorLease lease = await dbContext.EditorLeases.FirstOrDefaultAsync(x => x.IncidentId == incidentId, cancellationToken)
@@ -263,6 +266,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Executes sanitize Csv Cell.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <returns></returns>
         public static string SanitizeCsvCell(string? value)
         {
             string normalized = (value ?? string.Empty).Replace("\r", " ").Replace("\n", " ");
@@ -278,6 +282,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Builds the map Audit Csv.
         /// </summary>
         /// <param name="events">The events.</param>
+        /// <returns></returns>
         public static byte[] BuildMapAuditCsv(IEnumerable<MapAuditEvent> events)
         {
             StringBuilder sb = new StringBuilder();
@@ -307,6 +312,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="title">The title.</param>
         /// <param name="lines">The lines.</param>
+        /// <returns></returns>
         public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
         {
             List<string[]> pages = Paginate(lines.SelectMany(WrapLine));
@@ -338,11 +344,13 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     _ = content.Append($"BT /F1 9.5 Tf 50 {y} Td ({Escape(line)}) Tj ET\n");
                     y -= 12;
                 }
+
                 _ = content.Append($"BT /F1 9 Tf 50 32 Td (Seite {index + 1} / {pages.Count}) Tj ET\n");
                 string contentText = content.ToString();
                 WriteObject(pageId, $"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents {contentId} 0 R /Resources << /Font << /F1 {fontId} 0 R >> >> >>");
                 WriteObject(contentId, $"<< /Length {Encoding.ASCII.GetByteCount(contentText)} >>\nstream\n{contentText}endstream");
             }
+
             WriteObject(fontId, "<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>");
 
             writer.Flush();
@@ -373,6 +381,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     pages.Add(page.ToArray());
                     page.Clear();
                 }
+
                 foreach (string line in block)
                 {
                     if (page.Count == 56)
@@ -380,14 +389,17 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         pages.Add(page.ToArray());
                         page.Clear();
                     }
+
                     page.Add(line);
                 }
+
                 block.Clear();
                 if (separator && page.Count is > 0 and < 56 && page[^1] != string.Empty)
                 {
                     page.Add(string.Empty);
                 }
             }
+
             foreach (string line in lines)
             {
                 if (line.Length == 0)
@@ -399,6 +411,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     block.Add(line);
                 }
             }
+
             FlushBlock(false);
             if (page.Count > 0)
             {
@@ -429,6 +442,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     yield return remaining[..split];
                     remaining = remaining[split..].TrimStart();
                 }
+
                 yield return remaining;
             }
         }
@@ -453,6 +467,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     _ = result.Append((char)value);
                 }
             }
+
             return result.ToString();
         }
     }

@@ -249,13 +249,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 
         public DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
 
-        public Uri MailpitUrl => new($"http://{this.mailpit.Hostname}:{this.mailpit.GetMappedPublicPort(8025)}");
+        public Uri MailpitUrl => new ($"http://{this.mailpit.Hostname}:{this.mailpit.GetMappedPublicPort(8025)}");
 
         private const string Password = "InventoryTest123456";
 
         /// <summary>
         /// Initializes the operation.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task InitializeAsync()
         {
             try
@@ -298,6 +299,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// <param name="role">The role.</param>
         /// <param name="email">The email.</param>
         /// <param name="active">The active.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task CreateUser(string role, string email, bool active = true)
         {
             using IServiceScope scope = this.Factory.Services.CreateScope();
@@ -311,6 +313,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// Executes client.
         /// </summary>
         /// <param name="role">The role.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpClient> Client(string role)
         {
             HttpClient client = this.Factory.CreateClient();
@@ -326,6 +329,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="interval">The interval.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<EquipmentTypeDto> CreateType(HttpClient client, int interval = 12)
         {
             InventoryCategoryDto[]? categories = await client.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories");
@@ -340,6 +344,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// </summary>
         /// <param name="client">The client.</param>
         /// <param name="type">The type.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<EquipmentDto> CreateEquipment(HttpClient client, Guid type)
         {
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type, SerialNumber = Guid.NewGuid().ToString(), Manufacturer = "Testhersteller" });
@@ -350,6 +355,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// <summary>
         /// Executes dispose.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task DisposeAsync()
         {
             if (this.Factory is not null)

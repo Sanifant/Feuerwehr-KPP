@@ -24,6 +24,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
         {
             string? token = await this._authService.GetAccessTokenAsync();
@@ -40,6 +41,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="requestUri">The request Uri.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken = default)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -52,6 +54,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <param name="requestUri">The request Uri.</param>
         /// <param name="content">The content.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent? content, CancellationToken cancellationToken = default)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
@@ -64,6 +67,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <param name="requestUri">The request Uri.</param>
         /// <param name="content">The content.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> PutAsync(string requestUri, HttpContent? content, CancellationToken cancellationToken = default)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri) { Content = content };
@@ -75,6 +79,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="requestUri">The request Uri.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> DeleteAsync(string requestUri, CancellationToken cancellationToken = default)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUri);

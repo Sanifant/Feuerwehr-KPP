@@ -139,7 +139,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(new CancellationToken(true)));
         }
 
-        private static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        private static FeuerwehrDbContext CreateDatabase() => new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
     }
 }

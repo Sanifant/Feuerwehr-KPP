@@ -49,6 +49,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 Assert.True(imported.IsSuccessStatusCode, await imported.Content.ReadAsStringAsync());
                 Assert.True((await imported.Content.ReadFromJsonAsync<VehicleImportResponse>())!.UpdatedCount > 0);
             }
+
             VehicleDto stored = (await admin.GetFromJsonAsync<VehicleDto[]>("/api/vehicles?includeInactive=true"))!.Single(x => x.Id == vehicle.Id);
             Assert.Equal(vehicle.EquipmentOfficerId, stored.EquipmentOfficerId);
             Assert.Equal(initialStatusChange, stored.StatusChangedAtUtc);
@@ -99,6 +100,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 _ = created.EnsureSuccessStatusCode();
                 mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
             }
+
             HttpResponseMessage changed = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
             {
                 RadioCallSign = vehicle.RadioCallSign,
@@ -322,6 +324,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 officer.FireDepartmentId = department.Id;
                 _ = await db.SaveChangesAsync();
             }
+
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/vehicles", new SaveVehicleRequest
             { FireDepartmentId = officer.FireDepartmentId.Value, EquipmentOfficerId = officer.Id, RadioCallSign = $"Florian {Guid.NewGuid():N}" });
             Assert.True(response.IsSuccessStatusCode, $"{response.StatusCode}: {await response.Content.ReadAsStringAsync()}");

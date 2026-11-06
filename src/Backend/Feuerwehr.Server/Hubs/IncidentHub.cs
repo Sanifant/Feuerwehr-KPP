@@ -12,6 +12,7 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         /// Executes subscribe Incident.
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SubscribeIncident(string incidentId)
         {
             await this.Groups.AddToGroupAsync(this.Context.ConnectionId, $"incident:{incidentId}");
@@ -21,6 +22,7 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         /// Executes subscribe Map.
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SubscribeMap(string incidentId)
         {
             if (!this.CanViewMap())
@@ -35,6 +37,7 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         /// Executes subscribe Diary.
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SubscribeDiary(string incidentId)
         {
             if (!this.CanViewDiary())

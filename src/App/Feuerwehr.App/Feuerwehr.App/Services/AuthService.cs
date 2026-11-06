@@ -22,7 +22,7 @@ namespace De.Openelp.Feuerwehr.App.Services
 
         private readonly HttpClient _httpClient;
         private readonly ISecureStorage _secureStorage;
-        private readonly JwtSecurityTokenHandler _jwtHandler = new();
+        private readonly JwtSecurityTokenHandler _jwtHandler = new ();
 
         private string? _accessToken;
         private string? _refreshToken;
@@ -66,6 +66,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<bool> LoginAsync(string email, string password)
         {
             try
@@ -96,6 +97,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <summary>
         /// Executes logout.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task LogoutAsync()
         {
             try
@@ -121,6 +123,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <summary>
         /// Executes refresh Token.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<bool> RefreshTokenAsync()
         {
             if (string.IsNullOrEmpty(this._refreshToken))
@@ -158,6 +161,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <summary>
         /// Gets the access Token.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<string?> GetAccessTokenAsync()
         {
             // Check if token is still valid

@@ -60,12 +60,12 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         {
             if (file is null || file.Length == 0)
             {
-                return this.BadRequest(new InventoryImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
+                return this.BadRequest(new InventoryImportResponse(0, 0, [new (null, "Bitte eine nicht leere Importdatei auswählen.")]));
             }
 
             if (file.Length > MaximumImportBytes)
             {
-                return this.BadRequest(new InventoryImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groÃŸ sein.")]));
+                return this.BadRequest(new InventoryImportResponse(0, 0, [new (null, "Die Importdatei darf höchstens 5 MB groÃŸ sein.")]));
             }
 
             await using Stream stream = file.OpenReadStream();

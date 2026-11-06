@@ -23,6 +23,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="level">The level.</param>
         /// <param name="title">The title.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Get(string? level, string? title)
         {
             IQueryable<TrainingCourse> trainingsQuery = this._db.TrainingCourses
@@ -69,6 +70,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Gets the operation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Get(int id)
         {
             TrainingCourse? training = await this._db.TrainingCourses
@@ -102,6 +104,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes post.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Post(TrainingCourseDto value)
         {
             string trimmedTitle = value.Title.Trim();
@@ -175,6 +178,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="value">The value.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Put(int id, TrainingCourseDto value)
         {
             TrainingCourse? trainingEntity = await this._db.TrainingCourses
@@ -225,6 +229,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Deletes the operation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Delete(int id)
         {
             TrainingCourse? trainingEntity = await this._db.TrainingCourses

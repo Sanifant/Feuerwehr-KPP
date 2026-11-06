@@ -125,6 +125,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                     _ = currentMap.Layers.Remove(layer);
                     layer.Dispose();
                 }
+
                 currentMap.Layers.Add(hydrants);
                 currentMap.Layers.Add(elements);
                 currentMap.Refresh();
@@ -155,6 +156,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.CanZoomIn = false;
                 return;
             }
+
             this.zoomFactor--;
             this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }

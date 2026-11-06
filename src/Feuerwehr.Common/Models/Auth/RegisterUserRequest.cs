@@ -15,7 +15,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
         public string LastName { get; set; } = string.Empty;
 
         [Required]
-        public List<string> Roles { get; set; } = new();
+        public List<string> Roles { get; set; } = new ();
 
         public int? FireDepartmentId { get; set; }
     }

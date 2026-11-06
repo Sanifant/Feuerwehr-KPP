@@ -15,6 +15,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Get all users (Admin only)
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpGet]
         /// <summary>
         /// Gets the all Users.
@@ -27,6 +28,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Get user by ID (Admin only)
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpGet("{id}")]
         /// <summary>
         /// Gets the user.
@@ -40,6 +42,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Create new user (Admin only)
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpPost]
         /// <summary>
         /// Creates the user.
@@ -68,6 +71,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Update user (Admin only)
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpPut("{id}")]
         /// <summary>
         /// Updates the user.
@@ -87,6 +91,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Delete user (Admin only) - Soft delete by setting IsActive = false
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpDelete("{id}")]
         /// <summary>
         /// Deletes the user.
@@ -100,6 +105,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Hard delete user (Admin only) - Permanently remove from database
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpDelete("{id}/permanent")]
         /// <summary>
         /// Executes permanently Delete User.

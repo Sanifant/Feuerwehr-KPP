@@ -20,7 +20,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
     /// <param name="clock">The clock.</param>
     public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider clock) : IInventoryTransferService
     {
-        private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+        private static readonly JsonSerializerOptions Json = new (JsonSerializerDefaults.Web) { WriteIndented = true };
 
         private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
 
@@ -29,6 +29,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="kind">The kind.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Export(InventoryTransferKind kind, CancellationToken ct)
         {
             if (kind == InventoryTransferKind.Categories)
@@ -37,12 +38,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     .Select(x => new InventoryCategoryDto(x.Id, x.Name)).ToListAsync(ct);
                 return ServiceResult.File(JsonSerializer.SerializeToUtf8Bytes(categories, Json), "application/json", "inventarkategorien.json");
             }
+
             if (kind == InventoryTransferKind.Types)
             {
                 List<EquipmentTypeDto> types = await db.EquipmentTypes.AsNoTracking().Include(x => x.Category).OrderBy(x => x.Name)
                     .Select(x => new EquipmentTypeDto(x.Id, x.CategoryId, x.Category.Name, x.Name, x.InspectionIntervalMonths, x.InspectionInstructions, x.Version)).ToListAsync(ct);
                 return ServiceResult.File(JsonSerializer.SerializeToUtf8Bytes(types, Json), "application/json", "geraetetypen.json");
             }
+
             List<Equipment> equipment = await db.Equipment.AsNoTracking().Include(x => x.EquipmentType).ThenInclude(x => x.Category).OrderBy(x => x.BarcodeNumber).ToListAsync(ct);
             StringBuilder csv = new StringBuilder("\uFEFF" + string.Join(';', InventoryCsv.Columns) + "\r\n");
             foreach (Equipment? entity in equipment)
@@ -54,6 +57,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     item.SerialNumber, item.Manufacturer, status, item.IsActive ? "true" : "false", Date(item.CreatedOn),
                     item.LastInspectedOn is { } last ? Date(last) : string.Empty, Date(item.NextInspectionOn) }.Select(InventoryCsv.Quote)).Append("\r\n");
             }
+
             return ServiceResult.File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "inventar.csv");
         }
 
@@ -63,6 +67,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="kind">The kind.</param>
         /// <param name="stream">The stream.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Import(InventoryTransferKind kind, Stream stream, CancellationToken ct)
         {
             if (kind == InventoryTransferKind.Equipment)
@@ -75,6 +80,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
                 return await this.InTransaction(kind, () => this.ImportEquipment(rows, ct), ct);
             }
+
             try
             {
                 if (kind == InventoryTransferKind.Categories)
@@ -92,7 +98,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             catch (JsonException)
             {
-                return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Kategorien bzw. Gerätetypen mit gültigen UUIDs und Feldwerten.")]);
+                return Invalid([new (null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Kategorien bzw. Gerätetypen mit gültigen UUIDs und Feldwerten.")]);
             }
         }
 
@@ -106,12 +112,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             if (rows is null || rows.Count == 0)
             {
-                return [new(null, "Die JSON-Datei muss eine nicht leere Liste enthalten.")];
+                return [new (null, "Die JSON-Datei muss eine nicht leere Liste enthalten.")];
             }
 
             if (rows.Count > 10_000)
             {
-                return [new(null, "Pro Import sind höchstens 10.000 Einträge erlaubt.")];
+                return [new (null, "Pro Import sind höchstens 10.000 Einträge erlaubt.")];
             }
 
             List<InventoryImportError> errors = [];
@@ -119,13 +125,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 if (rows[i] is not { } row)
                 {
-                    errors.Add(new(i + 1, "Der Eintrag darf nicht null sein."));
+                    errors.Add(new (i + 1, "Der Eintrag darf nicht null sein."));
                     continue;
                 }
+
                 List<ValidationResult> validation = [];
                 _ = Validator.TryValidateObject(row, new ValidationContext(row), validation, validateAllProperties: true);
                 errors.AddRange(validation.Select(x => new InventoryImportError(i + 1, x.ErrorMessage ?? "Ungültiger Eintrag.")));
             }
+
             return errors;
         }
 
@@ -149,12 +157,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         };
                         _ = await db.Database.ExecuteSqlRawAsync(sql, ct);
                     }
+
                     ServiceResult result = await apply();
                     if (result.Code >= 400)
                     {
                         db.ChangeTracker.Clear();
                         return result;
                     }
+
                     _ = await db.SaveChangesAsync(ct);
                     if (kind == InventoryTransferKind.Equipment && db.Database.IsNpgsql())
                     {
@@ -162,6 +172,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         // rewinds an already issued number and never makes a duplicate possible.
                         _ = await db.Database.ExecuteSqlRawAsync("SELECT setval('\"InventoryBarcodeSequence\"', GREATEST((SELECT last_value FROM \"InventoryBarcodeSequence\"), (SELECT MAX(\"BarcodeNumber\") FROM \"Equipment\")), true)", ct);
                     }
+
                     if (transaction is not null)
                     {
                         await transaction.CommitAsync(ct);
@@ -199,16 +210,18 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 string normalized = Normalize(name);
                 if (name.Length == 0 || !names.Add(normalized) || row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
                 {
-                    errors.Add(new(i + 1, "Kategoriename/ID ist leer, ungültig oder in der Datei mehrfach vorhanden."));
+                    errors.Add(new (i + 1, "Kategoriename/ID ist leer, ungültig oder in der Datei mehrfach vorhanden."));
                     continue;
                 }
+
                 InventoryCategory? byId = row.Id is { } id ? byIds.GetValueOrDefault(id) : null;
                 InventoryCategory? byName = byNames.GetValueOrDefault(normalized);
                 if (byId is not null && byName is not null && byId.Id != byName.Id)
                 {
-                    errors.Add(new(i + 1, "ID und Name verweisen auf unterschiedliche bestehende Kategorien."));
+                    errors.Add(new (i + 1, "ID und Name verweisen auf unterschiedliche bestehende Kategorien."));
                     continue;
                 }
+
                 InventoryCategory? category = byId ?? byName;
                 if (category is null)
                 {
@@ -220,12 +233,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     updated++;
                 if (!targets.Add(category.Id))
                 {
-                    errors.Add(new(i + 1, "Dieselbe Kategorie würde mehrfach ersetzt werden."));
+                    errors.Add(new (i + 1, "Dieselbe Kategorie würde mehrfach ersetzt werden."));
                     continue;
                 }
+
                 category.Name = name;
                 category.NormalizedName = normalized;
             }
+
             return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
         }
 
@@ -251,37 +266,43 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     ?? categoriesByName.GetValueOrDefault(Normalize(row.CategoryName ?? string.Empty));
                 if (category is null)
                 {
-                    errors.Add(new(i + 1, "Die Kategorie existiert nicht. Bitte zuerst die Kategorien importieren."));
+                    errors.Add(new (i + 1, "Die Kategorie existiert nicht. Bitte zuerst die Kategorien importieren."));
                     continue;
                 }
+
                 if (!string.IsNullOrWhiteSpace(row.CategoryName) && Normalize(row.CategoryName) != category.NormalizedName)
                 {
-                    errors.Add(new(i + 1, "Kategorie-ID und Kategoriename passen nicht zusammen."));
+                    errors.Add(new (i + 1, "Kategorie-ID und Kategoriename passen nicht zusammen."));
                     continue;
                 }
+
                 string name = row.Name.Trim();
                 if (name.Length == 0 || string.IsNullOrWhiteSpace(row.InspectionInstructions) ||
                     row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
                 {
-                    errors.Add(new(i + 1, "Typname/Prüfanweisung ist leer oder Gerätetyp/ID in der Datei mehrfach vorhanden."));
+                    errors.Add(new (i + 1, "Typname/Prüfanweisung ist leer oder Gerätetyp/ID in der Datei mehrfach vorhanden."));
                     continue;
                 }
+
                 EquipmentType? type = row.Id is { } id ? typesById.GetValueOrDefault(id) : null;
                 if (type is null)
                 {
                     if (!keys.Add($"{category.Id}/{Normalize(name)}"))
                     {
-                        errors.Add(new(i + 1, "Der Gerätetyp ist in der Datei mehrfach vorhanden."));
+                        errors.Add(new (i + 1, "Der Gerätetyp ist in der Datei mehrfach vorhanden."));
                         continue;
                     }
+
                     List<EquipmentType> matches = typesByName.GetValueOrDefault((category.Id, Normalize(name))) ?? [];
                     if (matches.Count > 1)
                     {
-                        errors.Add(new(i + 1, "Der Gerätetyp ist nicht eindeutig. Bitte seine bestehende ID angeben."));
+                        errors.Add(new (i + 1, "Der Gerätetyp ist nicht eindeutig. Bitte seine bestehende ID angeben."));
                         continue;
                     }
+
                     type = matches.SingleOrDefault();
                 }
+
                 if (type is null)
                 {
                     type = new EquipmentType { Id = row.Id ?? Guid.NewGuid() };
@@ -293,17 +314,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     type.Version++;
                     updated++;
                 }
+
                 if (!targets.Add(type.Id))
                 {
-                    errors.Add(new(i + 1, "Derselbe Gerätetyp würde mehrfach ersetzt werden."));
+                    errors.Add(new (i + 1, "Derselbe Gerätetyp würde mehrfach ersetzt werden."));
                     continue;
                 }
+
                 type.Category = category;
                 type.CategoryId = category.Id;
                 type.Name = name;
                 type.InspectionIntervalMonths = row.InspectionIntervalMonths;
                 type.InspectionInstructions = row.InspectionInstructions.Trim();
             }
+
             return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
         }
 
@@ -329,20 +353,23 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (type is not null && (row.TypeName.Length > 0 && Normalize(row.TypeName) != Normalize(type.Name) ||
                     row.Category.Length > 0 && Normalize(row.Category) != type.Category.NormalizedName))
                 {
-                    errors.Add(new(row.Line, "Gerätetyp-ID und Typname/Kategorie passen nicht zusammen."));
+                    errors.Add(new (row.Line, "Gerätetyp-ID und Typname/Kategorie passen nicht zusammen."));
                     continue;
                 }
+
                 if (type is null)
                 {
                     List<EquipmentType> matches = (row.Category.Length == 0 ? typesByName.GetValueOrDefault(Normalize(row.TypeName))
                         : typesByCategory.GetValueOrDefault((Normalize(row.TypeName), Normalize(row.Category)))) ?? [];
                     if (matches.Count != 1)
                     {
-                        errors.Add(new(row.Line, "Gerätetyp nicht gefunden oder nicht eindeutig. Bitte vorhandene ID oder Typname und Kategorie angeben."));
+                        errors.Add(new (row.Line, "Gerätetyp nicht gefunden oder nicht eindeutig. Bitte vorhandene ID oder Typname und Kategorie angeben."));
                         continue;
                     }
+
                     type = matches[0];
                 }
+
                 if (existing.TryGetValue(row.BarcodeNumber, out Equipment? item))
                 {
                     // A replacement updates the master data in place; identity, inspection state and
@@ -355,9 +382,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     DateOnly createdOn = row.CreatedOn ?? this.Today;
                     if (createdOn > this.Today || row.LastInspectedOn > this.Today || row.LastInspectedOn < createdOn)
                     {
-                        errors.Add(new(row.Line, "Bei neuen Geräten darf das Datum nicht in der Zukunft liegen; die letzte Prüfung darf nicht vor der Anlage liegen."));
+                        errors.Add(new (row.Line, "Bei neuen Geräten darf das Datum nicht in der Zukunft liegen; die letzte Prüfung darf nicht vor der Anlage liegen."));
                         continue;
                     }
+
                     item = new Equipment
                     {
                         Id = Guid.NewGuid(),
@@ -370,11 +398,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     _ = db.Equipment.Add(item);
                     created++;
                 }
+
                 item.EquipmentType = type;
                 item.EquipmentTypeId = type.Id;
                 item.SerialNumber = row.SerialNumber;
                 item.Manufacturer = row.Manufacturer;
             }
+
             return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new InventoryImportResponse(created, updated, []));
         }
     }

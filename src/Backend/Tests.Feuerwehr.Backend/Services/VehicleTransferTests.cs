@@ -206,17 +206,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = Assert.Single(fixture.Db.Set<VehicleType>());
         }
 
-        private static MemoryStream Csv(string text) => new(Encoding.UTF8.GetBytes(text));
+        private static MemoryStream Csv(string text) => new (Encoding.UTF8.GetBytes(text));
 
         private sealed class Fixture : IAsyncDisposable
         {
-            public FeuerwehrDbContext Db { get; } = new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+            public FeuerwehrDbContext Db { get; } = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
             public VehicleTransferService Service { get; }
 
-            public TestClock Clock { get; } = new();
+            public TestClock Clock { get; } = new ();
 
-            private readonly HttpContextAccessor http = new() { HttpContext = new DefaultHttpContext() };
+            private readonly HttpContextAccessor http = new () { HttpContext = new DefaultHttpContext() };
             private readonly Guid typeId = Guid.NewGuid();
 
             public Fixture()
@@ -233,6 +233,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                         _ = this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
                     }
                 }
+
                 _ = this.Db.SaveChanges();
                 this.Service = new VehicleTransferService(this.Db, this.http, new UpperInvariantLookupNormalizer(), this.Clock);
                 this.As("admin", Roles.Admin);
@@ -266,7 +267,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
         private sealed class TestClock : TimeProvider
         {
-            public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+            public DateTimeOffset UtcNow { get; set; } = new (2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
 
             /// <summary>
             /// Gets the utc Now.

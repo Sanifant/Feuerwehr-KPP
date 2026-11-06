@@ -14,7 +14,7 @@ namespace De.Openelp.Feuerwehr.Server.Models
         [Key]
         public int Id { get; set; }
 
-        public Address Address { get; set; } = new();
+        public Address Address { get; set; } = new ();
 
         [Required]
         public double Latitude { get; set; }

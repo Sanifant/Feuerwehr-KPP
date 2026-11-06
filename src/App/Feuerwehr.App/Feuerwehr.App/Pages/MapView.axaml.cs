@@ -50,6 +50,7 @@ namespace De.Openelp.Feuerwehr.App.Pages
                 viewModel.CenterOnLocationCommand.Cancel();
                 viewModel.SettingsCommand.Cancel();
             }
+
             base.OnUnloaded(e);
         }
     }

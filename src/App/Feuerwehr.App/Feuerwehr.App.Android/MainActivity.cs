@@ -20,7 +20,7 @@ namespace De.Openelp.Feuerwehr.App.Android
     {
         private const int LocationPermissionRequestCode = 4101;
         private static WeakReference<MainActivity>? current;
-        private readonly CancellationTokenSource destroyed = new();
+        private readonly CancellationTokenSource destroyed = new ();
         private TaskCompletionSource<bool>? locationPermissionRequest;
 
         internal static MainActivity? CurrentActivity =>

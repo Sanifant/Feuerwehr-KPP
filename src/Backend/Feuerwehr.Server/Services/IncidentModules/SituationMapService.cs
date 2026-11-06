@@ -32,6 +32,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetState(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -71,6 +72,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> AcquireLease(Guid incidentId, AcquireLeaseRequest request, CancellationToken cancellationToken)
         {
 
@@ -153,6 +155,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Heartbeat(Guid incidentId, LeaseHeartbeatRequest request, CancellationToken cancellationToken)
         {
 
@@ -196,6 +199,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Release(Guid incidentId, ReleaseLeaseRequest request, CancellationToken cancellationToken)
         {
 
@@ -237,6 +241,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
             IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
@@ -262,6 +267,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="elementId">The element Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> DeleteElement(Guid incidentId, Guid elementId, DeleteMapElementRequest request, CancellationToken cancellationToken)
         {
 
@@ -342,6 +348,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="page">The page.</param>
         /// <param name="pageSize">The page Size.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetAudit(Guid incidentId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
         {
             page = Math.Max(1, page);
@@ -373,6 +380,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken)
         {
             List<MapAuditEvent> events = await dbContext.MapAuditEvents.AsNoTracking()
@@ -389,6 +397,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
@@ -527,10 +536,12 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                             element.Strength = null;
                             element.Note = null;
                         }
+
                         element.SymbolSvg = symbol.SvgContent;
                         element.Category = symbol.Category;
                         element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
                     }
+
                     _ = dbContext.MapElements.Add(element);
                     action = "create";
                 }
@@ -568,6 +579,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         element.Strength = request.Strength;
                         element.Note = request.Note;
                     }
+
                     element.ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex;
                     element.GeometryJson = request.GeometryJson;
 
@@ -720,10 +732,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         }
 
         private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now) =>
-            new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
+            new (lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
 
         private static MapElementDto ToMapElementDto(MapElement x)
-            => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
+            => new (x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
 
         private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =
             x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);

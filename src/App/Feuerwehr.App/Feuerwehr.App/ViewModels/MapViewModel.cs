@@ -32,7 +32,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         private Map? _map;
 
         [ObservableProperty]
-        private HydrantPin _selectedHydrant = new();
+        private HydrantPin _selectedHydrant = new ();
 
         [ObservableProperty]
         private bool _isFlyoutOpen;
@@ -47,7 +47,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         private bool _isAddVisible = false;
 
         [ObservableProperty]
-        private Hydrant _newHydrant = new();
+        private Hydrant _newHydrant = new ();
 
         private double zoomFactor = 6;
         private readonly IHydrantService hydrantService;
@@ -74,6 +74,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.CanZoomIn = false;
                 return;
             }
+
             this.zoomFactor--;
             this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }
@@ -179,6 +180,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// Initializes the location.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task InitializeLocationAsync(CancellationToken cancellationToken = default)
         {
             GpsLocation? location = await this.gpsService.GetCurrentLocationAsync(cancellationToken);

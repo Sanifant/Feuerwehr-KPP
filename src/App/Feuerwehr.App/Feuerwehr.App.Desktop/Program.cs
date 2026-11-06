@@ -24,6 +24,7 @@ namespace De.Openelp.Feuerwehr.App.Desktop
         /// <summary>
         /// Builds the avalonia App.
         /// </summary>
+        /// <returns></returns>
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()

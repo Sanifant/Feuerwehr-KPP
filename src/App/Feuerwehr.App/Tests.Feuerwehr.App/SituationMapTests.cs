@@ -216,7 +216,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             return auth;
         }
 
-        private static IncidentSummaryDto Incident() => new(
+        private static IncidentSummaryDto Incident() => new (
             Guid.NewGuid(),
             "Einsatz",
             "123",
@@ -230,7 +230,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             null,
             1);
 
-        private static MapElementDto Element(string coordinates) => new(
+        private static MapElementDto Element(string coordinates) => new (
             Guid.NewGuid(),
             Guid.NewGuid(),
             MapElementType.Symbol,
@@ -247,7 +247,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             "Test");
 
         private static MapStateResponse State(Guid incidentId, params MapElementDto[] elements) =>
-            new(incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);
+            new (incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);
 
         private sealed class ReadOnlyHandler(IncidentSummaryDto incident) : HttpMessageHandler
         {

@@ -22,6 +22,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <summary>
         /// Gets the all.
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<IEnumerable<Hydrant>> GetAllAsync()
         {
             HttpResponseMessage response = await this._httpClient.GetAsync(BaseUrl);
@@ -40,6 +41,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Gets the by Id.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<Hydrant> GetByIdAsync(int id)
         {
             HttpResponseMessage response = await this._httpClient.GetAsync($"{BaseUrl}/{id}");
@@ -57,6 +59,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Creates the operation.
         /// </summary>
         /// <param name="hydrant">The hydrant.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<Hydrant> CreateAsync(Hydrant hydrant)
         {
             HttpResponseMessage response = await this._httpClient.PostAsync(BaseUrl, JsonContent.Create(hydrant));
@@ -75,6 +78,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="hydrant">The hydrant.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<bool> UpdateAsync(int id, Hydrant hydrant)
         {
             HttpResponseMessage response = await this._httpClient.PutAsync($"{BaseUrl}/{id}", JsonContent.Create(hydrant));
@@ -86,6 +90,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Deletes the operation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<bool> DeleteAsync(int id)
         {
             HttpResponseMessage response = await this._httpClient.DeleteAsync($"{BaseUrl}/{id}");

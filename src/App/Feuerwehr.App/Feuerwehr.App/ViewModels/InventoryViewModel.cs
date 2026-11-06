@@ -158,12 +158,14 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.Message = "Bitte Prüfdatum, Status und einen Kommentar mit höchstens 4000 Zeichen angeben.";
                 return;
             }
+
             DateOnly date = DateOnly.FromDateTime(this.InspectedOn.Value.Date);
             if (date > DateOnly.FromDateTime(DateTime.UtcNow) || date < (equipment.LastInspectedOn ?? equipment.CreatedOn))
             {
                 this.Message = "Das Prüfdatum darf nicht in der Zukunft oder vor der Anlage bzw. letzten Prüfung liegen.";
                 return;
             }
+
             try
             {
                 EquipmentDetailDto result = await service.InspectAsync(

@@ -35,10 +35,10 @@ namespace De.Openelp.Feuerwehr.App.Android
         private SessionState? sessionState;
         private bool closing;
         private bool permissionPending;
-        private readonly BarcodeReaderGeneric decoder = new()
+        private readonly BarcodeReaderGeneric decoder = new ()
         {
             AutoRotate = true,
-            Options = new()
+            Options = new ()
             {
                 TryHarder = true,
                 PossibleFormats = [BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.QR_CODE]
@@ -140,6 +140,7 @@ namespace De.Openelp.Feuerwehr.App.Android
         /// Executes on Surface Texture Destroyed.
         /// </summary>
         /// <param name="surface">The surface.</param>
+        /// <returns></returns>
         public bool OnSurfaceTextureDestroyed(SurfaceTexture surface) => true;
 
         /// <summary>
@@ -201,7 +202,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 return;
             }
 
-            current = new(this);
+            current = new (this);
             LinearLayout layout = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
             hint = new TextView(this) { Text = "Barcode KPP-001 bis KPP-999 in die Kamera halten.", TextSize = 18 };
             layout.AddView(hint);
@@ -225,6 +226,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 base.OnPause();
                 return;
             }
+
             this.closing = true;
             this.session?.Close();
             this.camera?.Close();
@@ -366,6 +368,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                     session.Close();
                     return;
                 }
+
                 try
                 {
                     owner.session = session;

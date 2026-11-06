@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <summary>
         /// Creates the db Context.
         /// </summary>
+        /// <returns></returns>
         public static FeuerwehrDbContext CreateDbContext()
         {
             DbContextOptions<FeuerwehrDbContext> options = new DbContextOptionsBuilder<FeuerwehrDbContext>()
@@ -34,6 +35,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         /// <param name="userId">The user Id.</param>
         /// <param name="displayName">The display Name.</param>
+        /// <returns></returns>
         public static Mock<IUserContextAccessor> CreateUserContextMock(string userId = "user-1", string displayName = "Ada Admin")
         {
             Mock<IUserContextAccessor> mock = new Mock<IUserContextAccessor>();
@@ -45,6 +47,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <summary>
         /// Creates the idempotency Mock.
         /// </summary>
+        /// <returns></returns>
         public static Mock<ICommandIdempotencyService> CreateIdempotencyMock()
         {
             Mock<ICommandIdempotencyService> mock = new Mock<ICommandIdempotencyService>();
@@ -74,6 +77,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="userContextMock">The user Context Mock.</param>
         /// <param name="idempotencyMock">The idempotency Mock.</param>
         /// <param name="outboxMock">The outbox Mock.</param>
+        /// <returns></returns>
         public static IncidentDiaryController CreateController(
             FeuerwehrDbContext dbContext,
             Mock<IUserContextAccessor>? userContextMock = null,
@@ -94,8 +98,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="name">The name.</param>
         /// <param name="status">The status.</param>
         /// <param name="revision">The revision.</param>
+        /// <returns></returns>
         public static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
-            => new()
+            => new ()
             {
                 Id = incidentId,
                 Name = name,
@@ -110,8 +115,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="code">The code.</param>
         /// <param name="name">The name.</param>
         /// <param name="isActive">The is Active.</param>
+        /// <returns></returns>
         public static DiaryCategory CreateCategory(string code, string name, bool isActive = true)
-            => new()
+            => new ()
             {
                 Id = Guid.NewGuid(),
                 Code = code,
@@ -129,8 +135,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="currentRevision">The current Revision.</param>
         /// <param name="isCanceled">The is Canceled.</param>
         /// <param name="cancellationReason">The cancellation Reason.</param>
+        /// <returns></returns>
         public static DiaryEntry CreateEntry(Guid incidentId, long entryNumber = 1, int currentRevision = 1, bool isCanceled = false, string? cancellationReason = null)
-            => new()
+            => new ()
             {
                 Id = Guid.NewGuid(),
                 IncidentId = incidentId,
@@ -152,6 +159,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="categoryName">The category Name.</param>
         /// <param name="text">The text.</param>
         /// <param name="cancellationReason">The cancellation Reason.</param>
+        /// <returns></returns>
         public static DiaryEntryRevision CreateRevision(
             DiaryEntry entry,
             int revisionNumber,
@@ -160,7 +168,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string categoryName = "Radio",
             string text = "Initial entry",
             string? cancellationReason = null)
-            => new()
+            => new ()
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,
@@ -548,6 +556,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// Executes to Json Element.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <returns></returns>
         public static JsonElement ToJsonElement(object value)
             => JsonSerializer.SerializeToElement(value, new JsonSerializerOptions(JsonSerializerDefaults.Web));
     }

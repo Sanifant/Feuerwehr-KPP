@@ -19,6 +19,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="reservation">The reservation.</param>
         /// <param name="recipient">The recipient.</param>
         /// <param name="request">The request.</param>
+        /// <returns></returns>
         public VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request)
         {
             string title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestätigt";
@@ -79,6 +80,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes dispatch.
         /// </summary>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task Dispatch(CancellationToken ct)
         {
             DateTime now = clock.GetUtcNow().UtcDateTime;
@@ -107,6 +109,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     _ = db.VehicleMailMessages.Update(message);
                     _ = await db.SaveChangesAsync(ct);
                 }
+
                 DateTime? sent = null;
                 string? error = null;
                 try
@@ -120,6 +123,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     error = exception.GetType().Name;
                     logger.LogWarning("MTW-E-Mail {MessageId} konnte nicht versandt werden ({Error}); erneuter Versuch folgt.", message.Id, error);
                 }
+
                 DateTime next = clock.GetUtcNow().UtcDateTime.AddMinutes(Math.Min(60, Math.Pow(2, Math.Min(message.Attempts + 1, 6))));
                 if (db.Database.IsRelational())
                 {
@@ -164,6 +168,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 {
                     logger.LogError(exception, "MTW-Mailversand fehlgeschlagen.");
                 }
+
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);

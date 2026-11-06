@@ -19,6 +19,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Creates the elements.
         /// </summary>
         /// <param name="elements">The elements.</param>
+        /// <returns></returns>
         public static MemoryLayer CreateElements(IEnumerable<MapElementDto> elements)
         {
             List<IFeature> features = new List<IFeature>();
@@ -71,6 +72,7 @@ namespace De.Openelp.Feuerwehr.App.Services
 
                 features.Add(feature);
             }
+
             return new MemoryLayer { Name = "Lage", Style = null, Features = features };
         }
 
@@ -78,6 +80,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Creates the hydrants.
         /// </summary>
         /// <param name="hydrants">The hydrants.</param>
+        /// <returns></returns>
         public static MemoryLayer CreateHydrants(IEnumerable<MapHydrantDto> hydrants)
         {
             return new MemoryLayer

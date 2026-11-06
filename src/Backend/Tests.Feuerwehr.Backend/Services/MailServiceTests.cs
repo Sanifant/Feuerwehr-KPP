@@ -105,7 +105,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Once);
         }
 
-        private static SmtpSettings Settings(bool authenticate = true) => new()
+        private static SmtpSettings Settings(bool authenticate = true) => new ()
         {
             Host = authenticate ? "smtp.strato.de" : "mailpit",
             Port = authenticate ? 465 : 1025,

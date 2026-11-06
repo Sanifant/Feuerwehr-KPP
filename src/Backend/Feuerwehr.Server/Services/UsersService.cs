@@ -32,7 +32,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Get all users (Admin only)
         /// </summary>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetAllUsers()
         {
             List<ApplicationUser> users = await this._userManager.Users
@@ -55,7 +55,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Get user by ID (Admin only)
         /// </summary>
         /// <param name="id">The id.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetUser(string id)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);
@@ -73,7 +73,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Create new user (Admin only)
         /// </summary>
         /// <param name="request">The request.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CreateUser(RegisterUserRequest request)
         {
 
@@ -149,6 +149,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes resend Invitation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ResendInvitation(string id)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);
@@ -180,7 +181,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> UpdateUser(string id, UpdateUserRequest request)
         {
 
@@ -278,7 +279,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="currentUserId">The current User Id.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> DeleteUser(string id, string? currentUserId)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);
@@ -311,7 +312,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="currentUserId">The current User Id.</param>
-
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> PermanentlyDeleteUser(string id, string? currentUserId)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(id);

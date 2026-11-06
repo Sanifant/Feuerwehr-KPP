@@ -15,6 +15,7 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
         /// Executes scan.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<string?> ScanAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

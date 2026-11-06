@@ -20,6 +20,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetDiary(Guid incidentId, CancellationToken cancellationToken)
         {
             if (!userContext.IsAdmin)
@@ -40,6 +41,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ExportPdf(Guid incidentId, CancellationToken cancellationToken)
         {
             if (!userContext.IsAdmin)

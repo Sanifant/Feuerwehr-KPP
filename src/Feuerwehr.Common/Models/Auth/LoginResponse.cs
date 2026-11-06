@@ -12,7 +12,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
 
         public string FullName { get; set; } = string.Empty;
 
-        public List<string> Roles { get; set; } = new();
+        public List<string> Roles { get; set; } = new ();
 
         public DateTime ExpiresAt { get; set; }
     }

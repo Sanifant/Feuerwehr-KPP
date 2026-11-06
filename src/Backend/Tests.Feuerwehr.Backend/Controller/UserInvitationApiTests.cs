@@ -24,10 +24,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private readonly ServiceProvider _provider;
         private readonly UserManager<ApplicationUser> _users;
         private readonly RoleManager<IdentityRole> _roles;
-        private readonly MemoryInvitations _store = new();
-        private readonly CapturingMail _mail = new();
-        private readonly MutableClock _clock = new();
-        private readonly Mock<ITokenService> _tokens = new();
+        private readonly MemoryInvitations _store = new ();
+        private readonly CapturingMail _mail = new ();
+        private readonly MutableClock _clock = new ();
+        private readonly Mock<ITokenService> _tokens = new ();
         private readonly UsersController _usersApi;
         private readonly AuthController _authApi;
         private readonly TokenService _realTokens;
@@ -275,6 +275,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 user.IsActive = false;
                 _ = await this._users.UpdateAsync(user);
             }
+
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
@@ -405,6 +406,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                     Password = "WrongPassword123",
                 })).Result);
             }
+
             Assert.Equal(3, await this._users.GetAccessFailedCountAsync(user));
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123" };
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
@@ -668,7 +670,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         }
 
         private static ResetRequest Request(Guid id, string email = "new.user@example.com", string password = "MyNewPassword123") =>
-            new() { Token = id.ToString("D"), Email = email, NewPassword = password };
+            new () { Token = id.ToString("D"), Email = email, NewPassword = password };
 
         private void SignInAs(string userId)
         {

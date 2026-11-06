@@ -14,6 +14,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Login with email and password
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpPost("login")]
         [AllowAnonymous]
         /// <summary>
@@ -33,6 +34,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Refresh access token using refresh token
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpPost("refresh")]
         [AllowAnonymous]
         /// <summary>
@@ -86,6 +88,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Logout and revoke refresh token
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpPost("logout")]
         [Authorize]
         /// <summary>
@@ -99,6 +102,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Get current user info
         /// </summary>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpGet("me")]
         [Authorize]
         /// <summary>

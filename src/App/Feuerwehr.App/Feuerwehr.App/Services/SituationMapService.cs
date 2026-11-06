@@ -18,7 +18,7 @@ namespace De.Openelp.Feuerwehr.App.Services
     /// <param name="httpClient">The http Client.</param>
     public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : ISituationMapService
     {
-        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+        private static readonly JsonSerializerOptions JsonOptions = new (JsonSerializerDefaults.Web)
         {
             Converters = { new JsonStringEnumConverter() }
         };
@@ -27,6 +27,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// Gets the active Incident.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
@@ -45,6 +46,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<MapStateResponse> GetStateAsync(Guid incidentId, CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync($"/api/incidents/{incidentId}/map/state", cancellationToken);

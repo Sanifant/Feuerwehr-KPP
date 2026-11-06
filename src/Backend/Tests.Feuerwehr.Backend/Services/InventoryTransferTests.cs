@@ -49,6 +49,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.InventoryCategories);
         }
 
-        private static FeuerwehrDbContext Database() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        private static FeuerwehrDbContext Database() => new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
     }
 }

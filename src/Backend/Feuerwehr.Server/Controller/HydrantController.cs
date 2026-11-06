@@ -17,6 +17,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Exports hydrant data as a CSV file.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpGet("export")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
         public async Task<IActionResult> Export(CancellationToken cancellationToken)
@@ -29,6 +30,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         /// <param name="file">The uploaded CSV file.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         [HttpPost("import")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
         [Consumes("multipart/form-data")]
@@ -37,12 +39,12 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         {
             if (file is null || file.Length == 0)
             {
-                return this.BadRequest(new HydrantImportResponse(0, [new(null, "Bitte eine CSV-Datei auswählen.")]));
+                return this.BadRequest(new HydrantImportResponse(0, [new (null, "Bitte eine CSV-Datei auswählen.")]));
             }
 
             if (file.Length > MaximumImportBytes)
             {
-                return this.BadRequest(new HydrantImportResponse(0, [new(null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
+                return this.BadRequest(new HydrantImportResponse(0, [new (null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
             }
 
             await using Stream stream = file.OpenReadStream();
@@ -52,6 +54,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Gets all hydrants.
         /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public ActionResult<IEnumerable<Hydrant>> Get()
         {
@@ -62,6 +65,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Gets a hydrant by id.
         /// </summary>
         /// <param name="id">The hydrant identifier.</param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -72,6 +76,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Creates a hydrant.
         /// </summary>
         /// <param name="value">The hydrant to create.</param>
+        /// <returns></returns>
         [HttpPost]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Post([FromBody] Hydrant value)
@@ -84,6 +89,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         /// <param name="id">The hydrant identifier.</param>
         /// <param name="value">The hydrant values to update.</param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Put(int id, [FromBody] Hydrant value)
@@ -95,6 +101,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Deletes a hydrant.
         /// </summary>
         /// <param name="id">The hydrant identifier.</param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
         public IActionResult Delete(int id)

@@ -27,6 +27,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes from Configuration.
         /// </summary>
         /// <param name="configuration">The configuration.</param>
+        /// <returns></returns>
         public static SmtpSettings FromConfiguration(IConfiguration configuration)
         {
             static string? NonBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -118,6 +119,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     DbConnectionStringBuilder builder = new DbConnectionStringBuilder { ConnectionString = connection };
                     endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
                 }
+
                 if (endpoint.Scheme is not ("smtp" or "smtps") || string.IsNullOrWhiteSpace(endpoint.Host))
                 {
                     throw new FormatException();

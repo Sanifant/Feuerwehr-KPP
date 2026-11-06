@@ -27,6 +27,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Gets the active Incident.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetActiveIncident(CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents
@@ -48,6 +49,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="page">The page.</param>
         /// <param name="pageSize">The page Size.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
         {
             if (!userContext.IsAdmin)
@@ -75,6 +77,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CreateIncident(CreateIncidentRequest request, CancellationToken cancellationToken)
         {
             if (request.AlarmedAtUtc is null || request.AlarmedAtUtc == DateTimeOffset.MinValue)
@@ -165,6 +168,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CloseIncident(Guid incidentId, CloseIncidentRequest request, CancellationToken cancellationToken)
         {
 
@@ -231,7 +235,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
         }
 
-        private static IncidentSummaryDto ToSummary(Incident incident) => new(
+        private static IncidentSummaryDto ToSummary(Incident incident) => new (
             incident.Id,
             incident.Name,
             incident.IncidentNumber,
@@ -245,7 +249,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             incident.ClosedAtUtc,
             incident.Revision);
 
-        private static EditorLeaseDto ToLeaseDto(EditorLease lease) => new(
+        private static EditorLeaseDto ToLeaseDto(EditorLease lease) => new (
             lease.IncidentId,
             lease.UserId,
             lease.UserDisplayName,

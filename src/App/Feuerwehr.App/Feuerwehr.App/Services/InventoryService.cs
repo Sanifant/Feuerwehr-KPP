@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// </summary>
         /// <param name="barcode">The barcode.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct)
         {
             using HttpResponseMessage response = await http.GetAsync($"/api/inventory/barcode/{Uri.EscapeDataString(barcode)}", ct);
@@ -32,6 +33,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct)
         {
             using JsonContent content = JsonContent.Create(request);
@@ -41,6 +43,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 // Status bleibt für die Benutzerführung auswertbar; Antwortinhalte werden nicht protokolliert.
                 throw new System.Net.Http.HttpRequestException("Die Prüfung konnte nicht gespeichert werden.", null, response.StatusCode);
             }
+
             return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
                 ?? throw new InvalidOperationException("Die Prüfantwort ist leer.");
         }

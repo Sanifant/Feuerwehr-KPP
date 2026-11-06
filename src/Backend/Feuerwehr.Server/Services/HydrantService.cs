@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes export.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<byte[]> ExportAsync(CancellationToken cancellationToken = default)
         {
             List<HydrantEntity> hydrants = await context.Hydrants.AsNoTracking().OrderBy(h => h.Id).ToListAsync(cancellationToken);
@@ -48,6 +49,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="csv">The csv.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
         {
             (List<Hydrant>? hydrants, List<HydrantImportError>? errors) = HydrantCsvImport.Read(csv, cancellationToken);
@@ -71,12 +73,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Gets the operation.
         /// </summary>
+        /// <returns></returns>
         public ServiceResult Get() => ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
 
         /// <summary>
         /// Gets the operation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns></returns>
         public ServiceResult Get(int id)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
@@ -87,6 +91,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes post.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <returns></returns>
         public ServiceResult Post(Hydrant value)
         {
             HydrantEntity entity = new HydrantEntity { Id = value.Id };
@@ -102,6 +107,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="value">The value.</param>
+        /// <returns></returns>
         public ServiceResult Put(int id, Hydrant value)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
@@ -119,6 +125,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Deletes the operation.
         /// </summary>
         /// <param name="id">The id.</param>
+        /// <returns></returns>
         public ServiceResult Delete(int id)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
@@ -165,7 +172,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             entity.Notes = dto.Notes;
         }
 
-        private static Hydrant ToDto(HydrantEntity entity) => new()
+        private static Hydrant ToDto(HydrantEntity entity) => new ()
         {
             Id = entity.Id,
             Address = new Address

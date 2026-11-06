@@ -23,7 +23,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         private readonly IConfigurationRoot _configuration;
         private readonly ServiceProvider _provider;
         private readonly UserManager<ApplicationUser> _users;
-        private readonly CapturingLogger _logger = new();
+        private readonly CapturingLogger _logger = new ();
 
         public DbInitializerTests()
         {
@@ -192,6 +192,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             {
                 Assert.Equal(id, (await roles.FindByNameAsync(name))!.Id);
             }
+
             Assert.Equal(new[] { Roles.Viewer }, await this._users.GetRolesAsync(user));
 
             UsersController controller = new UsersController(new UsersService(

@@ -26,6 +26,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="user">The user.</param>
         /// <param name="roles">The roles.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles)
         {
             IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
@@ -75,6 +76,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <summary>
         /// Executes generate Refresh Token.
         /// </summary>
+        /// <returns></returns>
         public string GenerateRefreshToken()
         {
             byte[] randomNumber = new byte[64];
@@ -87,6 +89,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Determines whether access Token Valid.
         /// </summary>
         /// <param name="principal">The principal.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal)
         {
             string? userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -106,6 +109,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="userId">The user Id.</param>
         /// <param name="refreshToken">The refresh Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(userId);
@@ -132,6 +136,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         /// <param name="userId">The user Id.</param>
         /// <param name="refreshToken">The refresh Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(userId);
@@ -154,6 +159,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes revoke Refresh Token.
         /// </summary>
         /// <param name="userId">The user Id.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task RevokeRefreshTokenAsync(string userId)
         {
             ApplicationUser? user = await this._userManager.FindByIdAsync(userId);
@@ -169,6 +175,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Gets the principal From Expired Token.
         /// </summary>
         /// <param name="token">The token.</param>
+        /// <returns></returns>
         public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
         {
             IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");

@@ -8,15 +8,16 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 {
     internal static class SvgSymbolValidator
     {
-        private static readonly HashSet<string> Elements = new("svg g path rect circle ellipse line polyline polygon text tspan defs clipPath mask linearGradient radialGradient stop use symbol title desc pattern marker style image".Split(' '), StringComparer.Ordinal);
-        private static readonly HashSet<string> Attributes = new("id class viewBox width height x y x1 y1 x2 y2 dx dy cx cy r rx ry d points transform fill fill-opacity fill-rule stroke stroke-width stroke-opacity stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset opacity color clip-path clip-rule mask filter font-family font-size font-weight font-style text-anchor dominant-baseline alignment-baseline letter-spacing word-spacing gradientUnits gradientTransform spreadMethod offset stop-color stop-opacity patternUnits patternContentUnits patternTransform markerWidth markerHeight markerUnits refX refY orient preserveAspectRatio vector-effect href style".Split(' '), StringComparer.Ordinal);
-        private static readonly HashSet<string> CssProperties = new("fill fill-opacity fill-rule stroke stroke-width stroke-opacity stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset opacity color clip-path clip-rule mask filter font-family font-size font-weight font-style text-anchor dominant-baseline alignment-baseline letter-spacing word-spacing stop-color stop-opacity vector-effect".Split(' '), StringComparer.OrdinalIgnoreCase);
+        private static readonly HashSet<string> Elements = new ("svg g path rect circle ellipse line polyline polygon text tspan defs clipPath mask linearGradient radialGradient stop use symbol title desc pattern marker style image".Split(' '), StringComparer.Ordinal);
+        private static readonly HashSet<string> Attributes = new ("id class viewBox width height x y x1 y1 x2 y2 dx dy cx cy r rx ry d points transform fill fill-opacity fill-rule stroke stroke-width stroke-opacity stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset opacity color clip-path clip-rule mask filter font-family font-size font-weight font-style text-anchor dominant-baseline alignment-baseline letter-spacing word-spacing gradientUnits gradientTransform spreadMethod offset stop-color stop-opacity patternUnits patternContentUnits patternTransform markerWidth markerHeight markerUnits refX refY orient preserveAspectRatio vector-effect href style".Split(' '), StringComparer.Ordinal);
+        private static readonly HashSet<string> CssProperties = new ("fill fill-opacity fill-rule stroke stroke-width stroke-opacity stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset opacity color clip-path clip-rule mask filter font-family font-size font-weight font-style text-anchor dominant-baseline alignment-baseline letter-spacing word-spacing stop-color stop-opacity vector-effect".Split(' '), StringComparer.OrdinalIgnoreCase);
         private static readonly XNamespace SvgNamespace = "http://www.w3.org/2000/svg";
 
         /// <summary>
         /// Validates the operation.
         /// </summary>
         /// <param name="content">The content.</param>
+        /// <returns></returns>
         public static string Validate(string content)
         {
             if (string.IsNullOrWhiteSpace(content) || Encoding.UTF8.GetByteCount(content) > 262144)
@@ -56,6 +57,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     node.Remove();
                     continue;
                 }
+
                 if (!Elements.Contains(node.Name.LocalName) || (node.Name.Namespace != SvgNamespace && node.Name.Namespace != XNamespace.None))
                 {
                     throw new ArgumentException($"Das SVG-Element '{node.Name.LocalName}' wird nicht unterstützt.");
@@ -80,6 +82,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         attribute.Remove();
                         continue;
                     }
+
                     if (name == "href")
                     {
                         if (node.Name.LocalName == "image")
@@ -87,17 +90,20 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                             attribute.Value = ValidateImageReference(attribute.Value);
                             continue;
                         }
+
                         if (!Regex.IsMatch(attribute.Value, @"^#[A-Za-z_][\w:.-]*$"))
                         {
                             throw new ArgumentException("SVG-Bilder dürfen nur interne Verweise enthalten.");
                         }
                     }
+
                     ValidateValue(attribute.Value);
                     if (name == "style")
                     {
                         ValidateDeclarations(attribute.Value);
                     }
                 }
+
                 if (node.Name.LocalName == "style")
                 {
                     ValidateStylesheet(node.Value);
@@ -111,6 +117,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 double height = Dimension(root.Attribute("height")?.Value);
                 viewBox = FormattableString.Invariant($"0 0 {width} {height}");
             }
+
             string[] parts = viewBox.Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 4 || parts.Any(part => !double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) || !double.IsFinite(value))
                 || double.Parse(parts[2], CultureInfo.InvariantCulture) <= 0 || double.Parse(parts[3], CultureInfo.InvariantCulture) <= 0)
@@ -161,6 +168,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 throw new ArgumentException("Ein eingebettetes Bild enthält ungültige Base64-Daten.");
             }
+
             // Check the declared raster format without decoding images or loading external resources.
             bool signatureValid = png
                 ? bytes.AsSpan().StartsWith(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 })
@@ -214,6 +222,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 ValidateDeclarations(rule.Groups[2].Value);
             }
+
             if (!string.IsNullOrWhiteSpace(Regex.Replace(remaining, @"[^{}]+\{[^{}]*\}", string.Empty)))
             {
                 throw new ArgumentException("Ungültiges SVG-Stylesheet.");

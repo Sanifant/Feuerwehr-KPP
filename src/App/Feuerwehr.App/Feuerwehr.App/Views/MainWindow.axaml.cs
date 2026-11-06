@@ -83,6 +83,7 @@ namespace De.Openelp.Feuerwehr.App.Views
             {
                 loginViewModel.LoginSuccessful -= this.OnLoginSuccessful;
             }
+
             this.UpdateView();
         }
     }

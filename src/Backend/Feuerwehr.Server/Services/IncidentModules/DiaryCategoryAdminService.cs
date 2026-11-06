@@ -17,6 +17,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// Gets the all.
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetAll(CancellationToken cancellationToken)
         {
             List<DiaryCategoryDto> categories = await dbContext.DiaryCategories
@@ -32,6 +33,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Upsert(UpsertDiaryCategoryRequest request, CancellationToken cancellationToken)
         {
 

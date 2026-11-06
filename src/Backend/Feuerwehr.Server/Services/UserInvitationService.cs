@@ -30,6 +30,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Sends the operation.
         /// </summary>
         /// <param name="user">The user.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SendAsync(ApplicationUser user)
         {
             string? configuredUrl = configuration["Frontend:BaseUrl"];
@@ -87,6 +88,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 {
                     logger.LogWarning(exception, "Fehlgeschlagene Einladung konnte nicht aus dem Cache gelöscht werden; sie läuft über ihre TTL ab.");
                 }
+
                 throw;
             }
         }
@@ -95,6 +97,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Executes complete.
         /// </summary>
         /// <param name="request">The request.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> CompleteAsync(ResetRequest request)
         {
             static ServiceResult InvalidInvitation() => ServiceResult.BadRequest(
@@ -156,6 +159,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 // cleanup must not turn this into a failed reset; the original TTL still applies.
                 logger.LogWarning(exception, "Einladung konnte nach erfolgreicher Passwortvergabe nicht aus dem Cache gelöscht werden; sie läuft über ihre TTL ab.");
             }
+
             return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde gespeichert. Sie können sich jetzt anmelden."));
         }
     }

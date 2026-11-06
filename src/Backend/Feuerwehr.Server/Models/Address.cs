@@ -23,6 +23,7 @@ namespace De.Openelp.Feuerwehr.Server.Models
         /// <summary>
         /// Gets the formatted Address.
         /// </summary>
+        /// <returns></returns>
         public string GetFormattedAddress() =>
             $"{this.Street} {this.HouseNumber}, {this.PostalCode} {this.City}".Trim();
     }

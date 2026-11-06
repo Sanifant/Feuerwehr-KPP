@@ -14,7 +14,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <summary>
         /// Creates the database.
         /// </summary>
-        public static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        /// <returns></returns>
+        public static FeuerwehrDbContext CreateDatabase() => new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
         /// <summary>
@@ -22,6 +23,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         /// <param name="db">The db.</param>
         /// <param name="csv">The csv.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public static async Task<ServiceResult> Import(FeuerwehrDbContext db, string csv)
         {
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));

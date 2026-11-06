@@ -5,7 +5,7 @@ namespace De.Openelp.Feuerwehr.Diagnostics
     // Linked into the API and AppHost so each process records its own lifetime independently.
     internal sealed class ProcessDiagnostics : IDisposable
     {
-        private readonly object _sync = new();
+        private readonly object _sync = new ();
         private readonly string _name;
         private readonly string _path;
 
@@ -24,7 +24,8 @@ namespace De.Openelp.Feuerwehr.Diagnostics
         /// <summary>
         /// Executes start.
         /// </summary>
-        public static ProcessDiagnostics Start(string name) => new(name);
+        /// <returns></returns>
+        public static ProcessDiagnostics Start(string name) => new (name);
 
         /// <summary>
         /// Executes record.
@@ -55,6 +56,7 @@ namespace De.Openelp.Feuerwehr.Diagnostics
             catch (Exception)
             { /* Diagnostics must not terminate a process with a closed output stream. */
             }
+
             try
             {
                 lock (this._sync)

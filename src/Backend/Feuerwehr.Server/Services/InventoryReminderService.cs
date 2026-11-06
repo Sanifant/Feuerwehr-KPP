@@ -26,6 +26,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Sends the due Reminders.
         /// </summary>
         /// <param name="ct">The ct.</param>
+        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SendDueReminders(CancellationToken ct)
         {
             DateTime now = clock.GetUtcNow().UtcDateTime;
@@ -62,6 +63,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     _ = body.AppendLine($"Prüftermin: {item.NextInspectionOn.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} | Status: {status}");
                     _ = body.AppendLine();
                 }
+
                 try
                 {
                     await mail.SendAsync(recipient.Email!, $"Geräteprüfung: {pending.Count} Gerät(e) fällig", body.ToString());
@@ -71,6 +73,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     logger.LogWarning(ex, "Inventarerinnerung konnte nicht zugestellt werden. Erneuter Versuch im nächsten Lauf.");
                     continue;
                 }
+
                 db.EquipmentReminderDeliveries.AddRange(pending.Select(x => new EquipmentReminderDelivery
                 {
                     Id = Guid.NewGuid(),
