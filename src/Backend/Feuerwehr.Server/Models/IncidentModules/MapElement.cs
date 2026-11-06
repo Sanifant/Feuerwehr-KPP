@@ -20,6 +20,7 @@ namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules
         public string? SymbolId { get; set; }
 
         public string? SymbolSvg { get; set; }
+
         public bool IsVehicle { get; set; }
 
         [MaxLength(120)]

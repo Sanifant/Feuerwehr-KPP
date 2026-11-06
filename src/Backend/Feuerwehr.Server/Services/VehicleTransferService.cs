@@ -28,9 +28,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
         TimeProvider clock) : IVehicleTransferService
     {
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+
         private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
+
         private string UserId => this.Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
         private bool IsAdmin => this.Principal.IsInRole(Roles.Admin);
+
         /// <summary>
         /// Executes export.
         /// </summary>
@@ -66,6 +70,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             return ServiceResult.File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "fahrzeuge.csv");
         }
+
         /// <summary>
         /// Executes import.
         /// </summary>
@@ -107,7 +112,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             catch (JsonException) { return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gültigen Feldwerten.")]); }
         }
+
         private bool Allowed(VehicleTransferKind kind) => this.IsAdmin || kind == VehicleTransferKind.Vehicles && this.Principal.IsInRole(Roles.EquipmentOfficer);
+
         private static string Normalize(string text) => text.Trim().ToUpperInvariant();
 
         private static string? Clean(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();

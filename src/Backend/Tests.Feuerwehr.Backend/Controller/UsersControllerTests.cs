@@ -561,6 +561,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
+
         [Fact]
         /// <summary>
         /// Updates the user Returns Bad Request When Invalid Role Provided.

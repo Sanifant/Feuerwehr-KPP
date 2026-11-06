@@ -320,9 +320,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         private sealed class Fixture : IAsyncDisposable
         {
             public FeuerwehrDbContext Db { get; } = new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+
             private readonly HttpContextAccessor http = new() { HttpContext = new DefaultHttpContext() };
+
             public TestClock Clock { get; } = new();
+
             public VehicleService Service { get; }
+
             public Fixture()
             {
                 this.Db.Database.EnsureCreated();
@@ -343,31 +347,37 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                     new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), this.Clock));
                 this.As("officer", Roles.EquipmentOfficer);
             }
+
             /// <summary>
             /// Executes as.
             /// </summary>
             /// <param name="id">The id.</param>
             public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
                 [new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
+
             /// <summary>
             /// Executes vehicle.
             /// </summary>
             public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await this.Service.Save(null, new()
                 { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
+
             /// <summary>
             /// Executes request.
             /// </summary>
             /// <param name="comment">The comment.</param>
             public CreateVehicleReservationRequest Request(string? comment = null) => new()
                 { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
+
             /// <summary>
             /// Executes dispose.
             /// </summary>
             public ValueTask DisposeAsync() => this.Db.DisposeAsync();
         }
+
         private sealed class TestClock : TimeProvider
         {
             public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+
             /// <summary>
             /// Gets the utc Now.
             /// </summary>

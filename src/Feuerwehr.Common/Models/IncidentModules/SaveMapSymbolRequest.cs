@@ -14,6 +14,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules
         public string SvgContent { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
+
         public bool IsVehicle { get; set; }
     }
 }

@@ -3,10 +3,12 @@ using Aspire.Hosting.JavaScript;
 using De.Openelp.Feuerwehr.Diagnostics;
 
 using ProcessDiagnostics diagnostics = ProcessDiagnostics.Start("AppHost");
+
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
 IResourceBuilder<ParameterResource> seedAdminEmail = builder.AddParameterFromConfiguration(
     "seed-admin-email", "SeedAdmin:Email");
+
 IResourceBuilder<ParameterResource> seedAdminPassword = builder.AddParameterFromConfiguration(
     "seed-admin-password", "SeedAdmin:Password", secret: true);
 
@@ -91,6 +93,7 @@ builder.AddProject<Projects.Feuerwehr_App_Desktop>("app")
 server.PublishWithContainerFiles(webfrontend, "wwwroot");
 
 diagnostics.Record("AppHost.Build.Start");
+
 try
 {
     DistributedApplication app = builder.Build();

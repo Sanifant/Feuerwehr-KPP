@@ -648,6 +648,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private sealed class MutableClock : TimeProvider
         {
             public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
+
             /// <summary>
             /// Gets the utc Now.
             /// </summary>
@@ -657,9 +658,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private sealed class MemoryInvitations : IUserInvitationStore
         {
             public Dictionary<Guid, UserInvitation> Entries { get; } = [];
+
             public TimeSpan StoredLifetime { get; private set; }
+
             public bool FailRemoval { get; set; }
+
             public Action? BeforeRemove { get; set; }
+
             /// <summary>
             /// Executes store.
             /// </summary>
@@ -672,10 +677,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 this.StoredLifetime = lifetime;
                 return Task.CompletedTask;
             }
+
             /// <summary>
             /// Executes find.
             /// </summary>
             public Task<UserInvitation?> FindAsync(Guid id) => Task.FromResult(this.Entries.GetValueOrDefault(id));
+
             /// <summary>
             /// Removes the operation.
             /// </summary>
@@ -696,7 +703,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         private sealed class CapturingMail : IMailService
         {
             public List<(string Recipient, string Subject, string Body)> Messages { get; } = [];
+
             public bool Fail { get; set; }
+
             /// <summary>
             /// Sends the operation.
             /// </summary>

@@ -16,6 +16,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
     {
         private readonly FeuerwehrDbContext _db = new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+
         private readonly IncidentController _controller;
         private readonly IncidentService _service;
 

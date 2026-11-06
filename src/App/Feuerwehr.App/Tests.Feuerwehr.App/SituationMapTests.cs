@@ -228,6 +228,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         private sealed class ReadOnlyHandler(IncidentSummaryDto incident) : HttpMessageHandler
         {
             public bool NoActiveIncident { get; set; }
+
             public int RequestCount { get; private set; }
 
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

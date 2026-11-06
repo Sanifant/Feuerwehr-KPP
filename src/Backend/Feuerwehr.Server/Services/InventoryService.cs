@@ -19,12 +19,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
     public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor user, TimeProvider clock) : IInventoryService
     {
         private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+
         private IQueryable<Equipment> EquipmentQuery => db.Equipment.Include(x => x.EquipmentType).ThenInclude(x => x.Category);
+
         /// <summary>
         /// Gets the categories.
         /// </summary>
         public async Task<ServiceResult> GetCategories(CancellationToken ct) => ServiceResult.Ok(await db.InventoryCategories
             .OrderBy(x => x.Name).Select(x => new InventoryCategoryDto(x.Id, x.Name)).ToListAsync(ct));
+
         /// <summary>
         /// Creates the category.
         /// </summary>

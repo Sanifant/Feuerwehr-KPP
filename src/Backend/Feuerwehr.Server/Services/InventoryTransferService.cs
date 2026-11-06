@@ -21,7 +21,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
     public sealed class InventoryTransferService(FeuerwehrDbContext db, TimeProvider clock) : IInventoryTransferService
     {
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+
         private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+
         /// <summary>
         /// Executes export.
         /// </summary>
@@ -54,6 +56,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
             return ServiceResult.File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "inventar.csv");
         }
+
         /// <summary>
         /// Executes import.
         /// </summary>

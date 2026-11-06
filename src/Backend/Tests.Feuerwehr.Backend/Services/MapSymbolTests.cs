@@ -514,7 +514,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         private sealed class TransientCommitFailure : DbTransactionInterceptor
         {
             public bool BeforeCommit { get; set; }
+
             public bool AfterCommit { get; set; }
+
             public int Failures { get; private set; }
 
             /// <summary>

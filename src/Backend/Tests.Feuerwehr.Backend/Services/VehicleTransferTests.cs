@@ -200,13 +200,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         }
 
         private static MemoryStream Csv(string text) => new(Encoding.UTF8.GetBytes(text));
+
         private sealed class Fixture : IAsyncDisposable
         {
             public FeuerwehrDbContext Db { get; } = new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+
             public VehicleTransferService Service { get; }
+
             public TestClock Clock { get; } = new();
+
             private readonly HttpContextAccessor http = new() { HttpContext = new DefaultHttpContext() };
             private readonly Guid typeId = Guid.NewGuid();
+
             public Fixture()
             {
                 this.Db.Database.EnsureCreated();
@@ -225,12 +230,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 this.Service = new VehicleTransferService(this.Db, this.http, new UpperInvariantLookupNormalizer(), this.Clock);
                 this.As("admin", Roles.Admin);
             }
+
             /// <summary>
             /// Executes as.
             /// </summary>
             /// <param name="id">The id.</param>
             public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity([
                 new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
+
             /// <summary>
             /// Executes vehicle.
             /// </summary>
@@ -242,14 +249,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 this.Db.Vehicles.Add(vehicle);
                 return vehicle;
             }
+
             /// <summary>
             /// Executes dispose.
             /// </summary>
             public ValueTask DisposeAsync() => this.Db.DisposeAsync();
         }
+
         private sealed class TestClock : TimeProvider
         {
             public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+
             /// <summary>
             /// Gets the utc Now.
             /// </summary>

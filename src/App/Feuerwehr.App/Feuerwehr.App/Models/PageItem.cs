@@ -10,6 +10,7 @@ namespace De.Openelp.Feuerwehr.App.Models
     public class PageItem(string header, Func<object> factory, string? iconData = null, Func<bool>? isVisible = null)
     {
         private Func<bool> _isVisible = isVisible ?? (() => true);
+
         /// <summary>
         /// Gets the header.
         /// </summary>

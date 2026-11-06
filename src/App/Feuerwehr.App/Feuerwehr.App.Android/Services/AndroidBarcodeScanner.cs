@@ -10,6 +10,7 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
     public sealed class AndroidBarcodeScanner : IBarcodeScanner
     {
         public bool IsSupported => true;
+
         /// <summary>
         /// Executes scan.
         /// </summary>

@@ -33,6 +33,7 @@ namespace De.Openelp.Feuerwehr.Common.Models
 
         // Computed Read-Only Properties (Excluded from Database Mapping)
         public bool IsUnderground => this.Type == HydrantType.Underground;
+
         public bool IsOperational => this.Status == HydrantStatus.Operational;
 
         public string DiameterDescription => $"DIN {this.NominalDiameter}";

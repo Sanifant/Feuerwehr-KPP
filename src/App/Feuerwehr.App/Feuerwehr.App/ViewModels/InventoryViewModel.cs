@@ -30,21 +30,32 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         [ObservableProperty] private int selectedStatus;
 
         public ObservableCollection<EquipmentInspectionDto> History { get; } = [];
+
         public string[] StatusOptions { get; } = ["Einsatzklar", "Defekt", "In Reparatur"];
+
         public bool CanView => auth.IsAuthenticated && auth.UserRoles.Any(x => x is "Admin" or "EquipmentOfficer" or "InventoryViewer");
+
         public bool CanInspect => this.CanView && this.Detail?.Equipment.IsActive == true && auth.UserRoles.Any(x => x is "Admin" or "EquipmentOfficer");
+
         public bool CanScan => this.CanView && scanner.IsSupported;
+
         public string DeviceTitle => this.Detail is null ? "Gerät scannen" : $"{this.Detail.Equipment.Barcode} Â· {this.Detail.Equipment.EquipmentTypeName}";
+
         public string DeviceDescription => this.Detail is null ? "" : $"{this.Detail.Equipment.CategoryName}\n{this.Detail.Equipment.Manufacturer} Â· Seriennummer {this.Detail.Equipment.SerialNumber}\nID: {this.Detail.Equipment.Id}";
+
         public string DeviceStatus => this.Detail is null ? "" : $"{this.StatusOptions[(int)this.Detail.Equipment.Status]} Â· {(this.Detail.Equipment.IsActive ? "Aktiv" : "Deaktiviert")}";
+
         public string NextInspection => this.Detail is null ? "" : $"Nächste Prüfung: {this.Detail.Equipment.NextInspectionOn:dd.MM.yyyy} Â· Intervall: {this.Detail.Equipment.InspectionIntervalMonths} Monate";
+
         public string LastInspection => this.Detail is null ? "" : this.Detail.Equipment.LastInspectedOn is { } date ? $"Letzte Prüfung: {date:dd.MM.yyyy}" : "Noch nicht geprüft";
+
         public string Instructions => this.Detail?.Equipment.InspectionInstructions ?? "";
 
         /// <summary>
         /// Executes activate.
         /// </summary>
         public void Activate() => auth.AuthStateChanged += this.AuthChanged;
+
         /// <summary>
         /// Executes deactivate.
         /// </summary>
@@ -56,6 +67,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.ScanCommand.Cancel();
             this.SaveInspectionCommand.Cancel();
         }
+
         [RelayCommand(CanExecute = nameof(CanView), IncludeCancelCommand = true)]
         /// <summary>
         /// Executes lookup.
@@ -90,6 +102,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 }
             }
         }
+
         [RelayCommand(CanExecute = nameof(CanScan), IncludeCancelCommand = true)]
         /// <summary>
         /// Executes scan.
@@ -193,6 +206,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.InspectedOn = DateTimeOffset.UtcNow;
             this.commandId = Guid.NewGuid();
         }
+
         private static string ErrorMessage(Exception exception) => exception switch
         {
             HttpRequestException { StatusCode: HttpStatusCode.NotFound } => "Kein Gerät zu diesem Barcode gefunden.",

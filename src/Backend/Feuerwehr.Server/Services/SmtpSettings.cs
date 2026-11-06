@@ -8,12 +8,19 @@ namespace De.Openelp.Feuerwehr.Server.Services
     public sealed class SmtpSettings
     {
         public required string Host { get; init; }
+
         public required int Port { get; init; }
+
         public required SecureSocketOptions Security { get; init; }
+
         public string? Username { get; init; }
+
         public string? Password { get; init; }
+
         public required string From { get; init; }
+
         public required string FromName { get; init; }
+
         public required int TimeoutMilliseconds { get; init; }
 
         /// <summary>

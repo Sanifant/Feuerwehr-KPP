@@ -237,13 +237,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
     public sealed class InventoryApiFixture : IAsyncLifetime
     {
         public PostgreSqlContainer Postgres { get; } = new PostgreSqlBuilder("postgres:17-alpine").Build();
+
         private readonly RedisContainer redis = new RedisBuilder("redis:7.4-alpine").Build();
         private readonly IContainer mailpit = new ContainerBuilder("axllent/mailpit:v1.27")
             .WithPortBinding(1025, true).WithPortBinding(8025, true)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(8025))).Build();
+
         public WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program> Factory { get; private set; } = null!;
+
         public DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
+
         public Uri MailpitUrl => new($"http://{this.mailpit.Hostname}:{this.mailpit.GetMappedPublicPort(8025)}");
+
         private const string Password = "InventoryTest123456";
 
         /// <summary>
@@ -272,6 +277,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             catch { await this.DisposeAsync();
                 throw; }
         }
+
         /// <summary>
         /// Creates the user.
         /// </summary>
@@ -286,6 +292,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.True((await users.CreateAsync(user, Password)).Succeeded);
             Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
         }
+
         /// <summary>
         /// Executes client.
         /// </summary>
@@ -299,6 +306,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken);
             return client;
         }
+
         /// <summary>
         /// Creates the type.
         /// </summary>
@@ -312,6 +320,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             response.EnsureSuccessStatusCode();
             return (await response.Content.ReadFromJsonAsync<EquipmentTypeDto>())!;
         }
+
         /// <summary>
         /// Creates the equipment.
         /// </summary>
@@ -323,6 +332,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             response.EnsureSuccessStatusCode();
             return (await response.Content.ReadFromJsonAsync<EquipmentDto>())!;
         }
+
         /// <summary>
         /// Executes dispose.
         /// </summary>
@@ -335,6 +345,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 
             await Task.WhenAll(this.Postgres.DisposeAsync().AsTask(), this.redis.DisposeAsync().AsTask(), this.mailpit.DisposeAsync().AsTask());
         }
+
         private sealed class InventoryFactory(Dictionary<string, string> settings) : WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program>
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder)

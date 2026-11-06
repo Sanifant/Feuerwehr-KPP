@@ -22,26 +22,47 @@ namespace De.Openelp.Feuerwehr.Server.Data
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 
         public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
+
         public DbSet<Incident> Incidents { get; set; }
+
         public DbSet<MapElement> MapElements { get; set; }
+
         public DbSet<MapSymbol> MapSymbols { get; set; }
+
         public DbSet<MapSymbolCategory> MapSymbolCategories { get; set; }
+
         public DbSet<MapAuditEvent> MapAuditEvents { get; set; }
+
         public DbSet<EditorLease> EditorLeases { get; set; }
+
         public DbSet<DiaryCategory> DiaryCategories { get; set; }
+
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
+
         public DbSet<DiaryEntryRevision> DiaryEntryRevisions { get; set; }
+
         public DbSet<ProcessedCommand> ProcessedCommands { get; set; }
+
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
+
         public DbSet<InventoryCategory> InventoryCategories { get; set; }
+
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
+
         public DbSet<Equipment> Equipment { get; set; }
+
         public DbSet<EquipmentInspection> EquipmentInspections { get; set; }
+
         public DbSet<EquipmentReminderDelivery> EquipmentReminderDeliveries { get; set; }
+
         public DbSet<Vehicle> Vehicles { get; set; }
+
         public DbSet<VehicleReservation> VehicleReservations { get; set; }
+
         public DbSet<VehicleBookingDay> VehicleBookingDays { get; set; }
+
         public DbSet<VehicleEvent> VehicleEvents { get; set; }
+
         public DbSet<VehicleMailMessage> VehicleMailMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

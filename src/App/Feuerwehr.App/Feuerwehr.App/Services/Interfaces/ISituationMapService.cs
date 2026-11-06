@@ -9,6 +9,7 @@ namespace De.Openelp.Feuerwehr.App.Services
     public interface ISituationMapService
     {
         Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken);
+
         Task<MapStateResponse> GetStateAsync(Guid incidentId, CancellationToken cancellationToken);
     }
 }

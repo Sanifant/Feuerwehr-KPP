@@ -9,6 +9,7 @@ namespace De.Openelp.Feuerwehr.App.Services
     public interface IInventoryService
     {
         Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct);
+
         Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct);
     }
 }

@@ -13,6 +13,7 @@ namespace De.Openelp.Feuerwehr.App.Pages
             this.InitializeComponent();
             this.DataContext = App.Services.GetRequiredService<InventoryViewModel>();
         }
+
         protected override void OnLoaded(RoutedEventArgs e)
         {
             base.OnLoaded(e);
@@ -23,6 +24,7 @@ namespace De.Openelp.Feuerwehr.App.Pages
 
             this.BarcodeInput.Focus();
         }
+
         protected override void OnUnloaded(RoutedEventArgs e)
         {
             if (this.DataContext is InventoryViewModel vm)
@@ -32,6 +34,7 @@ namespace De.Openelp.Feuerwehr.App.Pages
 
             base.OnUnloaded(e);
         }
+
         private async void OnBarcodeKeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && this.DataContext is InventoryViewModel vm && vm.LookupCommand.CanExecute(null))

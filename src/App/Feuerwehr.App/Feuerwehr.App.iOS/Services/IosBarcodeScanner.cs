@@ -13,6 +13,7 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
     public sealed class IosBarcodeScanner : IBarcodeScanner
     {
         private readonly SemaphoreSlim gate = new(1, 1);
+
         public bool IsSupported => true;
 
         /// <summary>
@@ -95,11 +96,13 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
                 }
                 catch (Exception ex) { Complete(null, ex); }
             }
+
             /// <summary>
             /// Executes view Did Layout Subviews.
             /// </summary>
             public override void ViewDidLayoutSubviews()
             { base.ViewDidLayoutSubviews(); if (preview is not null) preview.Frame = View!.Bounds; }
+
             /// <summary>
             /// Executes complete.
             /// </summary>
@@ -112,6 +115,7 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
                 sessionQueue.DispatchAsync(() => session.StopRunning());
                 DismissViewController(true, () => { if (error is null) completion.TrySetResult(barcode); else completion.TrySetException(error); });
             }
+
             /// <summary>
             /// Executes view Did Disappear.
             /// </summary>
@@ -121,6 +125,7 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
                 base.ViewDidDisappear(animated);
                 if (!completed) Complete(null);
             }
+
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -130,6 +135,7 @@ namespace De.Openelp.Feuerwehr.App.iOS.Services
                 }
                 base.Dispose(disposing);
             }
+
             private sealed class MetadataDelegate(BarcodeViewController owner) : AVCaptureMetadataOutputObjectsDelegate
             {
                 /// <summary>

@@ -10,6 +10,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
     internal static class VehicleCsv
     {
         internal static readonly string[] Columns = ["id", "radioCallSign", "name", "licensePlate", "fireDepartment", "fireDepartmentId", "vehicleType", "status", "equipmentOfficerEmail", "isActive"];
+
         internal static string Quote(string? value)
         {
             value ??= "";
@@ -20,6 +21,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
+
         internal static (List<VehicleCsvRow> Rows, List<VehicleImportError> Errors) Read(Stream stream, CancellationToken ct)
         {
             List<VehicleCsvRow> rows = [];
@@ -110,6 +112,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             catch (DecoderFallbackException) { errors.Add(new(null, "Die CSV-Datei muss als UTF-8 gespeichert sein.")); }
             return (rows, errors);
         }
+
         private static bool NeedsPrefix(string value) => value.StartsWith('\'') || value.Length > 0 &&
             ("\t\r\n".Contains(value[0]) || value.TrimStart() is { Length: > 0 } trimmed && "=+-@".Contains(trimmed[0]));
 

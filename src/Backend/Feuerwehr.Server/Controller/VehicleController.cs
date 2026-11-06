@@ -20,12 +20,14 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         /// <param name="includeInactive">The include Inactive.</param>
         public async Task<IActionResult> Statuses([FromQuery] bool includeInactive, CancellationToken ct) => this.ToActionResult(await service.Statuses(includeInactive, ct));
+
         [HttpPost("statuses")]
         /// <summary>
         /// Creates the status.
         /// </summary>
         /// <param name="request">The request.</param>
         public async Task<IActionResult> CreateStatus(SaveVehicleStatusRequest request, CancellationToken ct) => this.ToActionResult(await service.SaveStatus(null, request, ct));
+
         [HttpPut("statuses/{id:guid}")]
         /// <summary>
         /// Updates the status.
@@ -33,6 +35,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
         public async Task<IActionResult> UpdateStatus(Guid id, SaveVehicleStatusRequest request, CancellationToken ct) => this.ToActionResult(await service.SaveStatus(id, request, ct));
+
         [HttpGet("types")]
         /// <summary>
         /// Executes types.

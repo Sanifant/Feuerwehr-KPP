@@ -62,6 +62,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             .Product;
 
         public string? UserEmail => this._authService.UserEmail;
+
         public string? UserName => this._authService.UserFullName;
 
         public IncidentSummaryDto Incident => this._incident;
@@ -69,7 +70,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         public INavigation? Navigation { get; internal set; }
 
         public bool IsAuthenticated => this._authService.IsAuthenticated;
+
         public bool CanViewSituationMap => this.IsAuthenticated && (this._authService.UserRoles.Contains("SituationMapViewer") || this._authService.UserRoles.Contains("SituationMapEditor"));
+
         public bool CanViewInventory => this.IsAuthenticated && this._authService.UserRoles.Any(role => role is "Admin" or "EquipmentOfficer" or "InventoryViewer");
 
         public MainViewModel(IAuthService authService)

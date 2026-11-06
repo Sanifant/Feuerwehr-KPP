@@ -22,11 +22,13 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Executes export Equipment.
         /// </summary>
         public async Task<IActionResult> ExportEquipment(CancellationToken ct) => this.ToActionResult(await service.Export(InventoryTransferKind.Equipment, ct));
+
         [HttpGet("types/export")]
         /// <summary>
         /// Executes export Types.
         /// </summary>
         public async Task<IActionResult> ExportTypes(CancellationToken ct) => this.ToActionResult(await service.Export(InventoryTransferKind.Types, ct));
+
         [HttpGet("categories/export")]
         /// <summary>
         /// Executes export Categories.
@@ -39,12 +41,14 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         /// <param name="file">The file.</param>
         public Task<IActionResult> ImportEquipment([FromForm] IFormFile? file, CancellationToken ct) => this.Import(InventoryTransferKind.Equipment, file, ct);
+
         [HttpPost("types/import"), Consumes("multipart/form-data"), Authorize(Policy = PolicyNames.CanManageInventory)]
         /// <summary>
         /// Executes import Types.
         /// </summary>
         /// <param name="file">The file.</param>
         public Task<IActionResult> ImportTypes([FromForm] IFormFile? file, CancellationToken ct) => this.Import(InventoryTransferKind.Types, file, ct);
+
         [HttpPost("categories/import"), Consumes("multipart/form-data"), Authorize(Policy = PolicyNames.RequireAdmin)]
         /// <summary>
         /// Executes import Categories.

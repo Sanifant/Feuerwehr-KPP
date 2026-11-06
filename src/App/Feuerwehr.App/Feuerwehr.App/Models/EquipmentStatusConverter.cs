@@ -18,6 +18,7 @@ namespace De.Openelp.Feuerwehr.App.Models
         {
             EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", EquipmentStatus.InRepair => "In Reparatur", _ => "",
         };
+
         /// <summary>
         /// Executes convert Back.
         /// </summary>

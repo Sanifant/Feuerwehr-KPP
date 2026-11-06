@@ -26,16 +26,26 @@ namespace De.Openelp.Feuerwehr.Server.Services
         IVehicleMailComposer mail) : IVehicleService
     {
         private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
+
         private string UserId => this.Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
         private bool IsAdmin => this.Principal.IsInRole(Roles.Admin);
+
         private bool IsOfficer => this.Principal.IsInRole(Roles.EquipmentOfficer);
+
         private bool CanManage => this.IsAdmin || this.IsOfficer;
+
         private bool CanRequest => this.Principal.IsInRole(Roles.Commander) || this.Principal.IsInRole(Roles.Firefighter);
+
         private bool Owns(Vehicle vehicle) => this.IsOfficer && vehicle.EquipmentOfficerId == this.UserId;
+
         private IQueryable<Vehicle> Vehicles => db.Vehicles.Include(x => x.FireDepartment).Include(x => x.EquipmentOfficer).Include(x => x.VehicleType).Include(x => x.VehicleStatus);
+
         private DateTime Now => clock.GetUtcNow().UtcDateTime;
+
         private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(),
             TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin")).DateTime);
+
         /// <summary>
         /// Executes statuses.
         /// </summary>
@@ -43,6 +53,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<ServiceResult> Statuses(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleStatus>()
             .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderByDescending(x => x.Id == VehicleStatusDefaults.ReadyId).ThenBy(x => x.Name)
             .Select(x => new VehicleStatusDto(x.Id, x.Name, x.AllowsBooking, x.IsActive, x.Version, x.Id == VehicleStatusDefaults.ReadyId)).ToListAsync(ct));
+
         /// <summary>
         /// Saves the status.
         /// </summary>
@@ -683,11 +694,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
             db.ChangeTracker.Clear();
             return await operation();
         });
+
         private Task<bool> HasOfficerRole(string id, CancellationToken ct) =>
             (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id
              where membership.UserId == id && role.Name == Roles.EquipmentOfficer select membership).AnyAsync(ct);
+
         private Task<IDbContextTransaction?> Begin(CancellationToken ct) => db.Database.IsRelational() ? this.BeginRelational(ct) : Task.FromResult<IDbContextTransaction?>(null);
+
         private async Task<IDbContextTransaction?> BeginRelational(CancellationToken ct) => await db.Database.BeginTransactionAsync(ct);
+
         private async Task<Vehicle?> LockVehicle(Guid id, CancellationToken ct)
         {
             // Serialize all writes for this vehicle across API instances, including deactivation.
@@ -698,12 +713,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             return await this.Vehicles.SingleOrDefaultAsync(x => x.Id == id, ct);
         }
+
         private async Task<ServiceResult?> Collision(Guid id, DateOnly from, DateOnly to, CancellationToken ct)
         {
             List<DateOnly> dates = await db.VehicleBookingDays.Where(x => x.VehicleId == id && x.Date >= from && x.Date <= to)
                 .OrderBy(x => x.Date).Select(x => x.Date).ToListAsync(ct);
             return dates.Count == 0 ? null : Conflict("Das Fahrzeug ist bereits gebucht am " + string.Join(", ", dates.Select(x => x.ToString("dd.MM.yyyy"))) + ".");
         }
+
         private void AddDays(VehicleReservation reservation)
         {
             for (DateOnly day = reservation.From; day <= reservation.To; day = day.AddDays(1))
@@ -711,21 +728,27 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = reservation.VehicleId, Date = day, ReservationId = reservation.Id });
             }
         }
+
         private ServiceResult Replay(VehicleReservation existing, string hash) => existing.RequesterId == this.UserId && existing.PayloadHash == hash
             ? ServiceResult.Ok(this.ToDto(existing)) : Conflict("Die CommandId wurde bereits für eine andere Anfrage verwendet.");
+
         private void Audit(Vehicle vehicle, VehicleReservation? reservation, string action, string details) => db.VehicleEvents.Add(new VehicleEvent
         { Id = Guid.NewGuid(), VehicleId = vehicle.Id, ReservationId = reservation?.Id, ActorId = this.UserId, Action = action, Details = details, OccurredAtUtc = this.Now });
+
         private VehicleDto ToDto(Vehicle vehicle) => new(vehicle.Id, vehicle.FireDepartmentId, vehicle.FireDepartment.Name,
             vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate, vehicle.EquipmentOfficerId, vehicle.EquipmentOfficer.FullName,
             vehicle.IsActive, vehicle.Version, this.IsAdmin || this.Owns(vehicle), this.Owns(vehicle), vehicle.VehicleTypeId, vehicle.VehicleType?.Name,
             vehicle.VehicleStatusId, vehicle.VehicleStatus.Name, vehicle.VehicleStatus.AllowsBooking, vehicle.StatusChangedAtUtc);
+
         private VehicleReservationDto ToDto(VehicleReservation reservation) => new(reservation.Id, reservation.VehicleId, reservation.RadioCallSign,
             reservation.FireDepartmentName, reservation.From, reservation.To, reservation.Comment, reservation.Status, reservation.RequesterName,
             reservation.CreatedAtUtc, reservation.DecidedAtUtc, reservation.IsDirectBooking, reservation.Version,
             this.Owns(reservation.Vehicle) && reservation.Status == VehicleReservationStatus.Pending,
             (this.Owns(reservation.Vehicle) && reservation.Status is VehicleReservationStatus.Pending or VehicleReservationStatus.Confirmed) ||
             (reservation.RequesterId == this.UserId && reservation.Status == VehicleReservationStatus.Pending));
+
         private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
         private static bool IsConflict(DbUpdateException exception) => exception is DbUpdateConcurrencyException ||
             exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }

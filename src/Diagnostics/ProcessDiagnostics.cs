@@ -8,6 +8,7 @@ namespace De.Openelp.Feuerwehr.Diagnostics
         private readonly object _sync = new();
         private readonly string _name;
         private readonly string _path;
+
         private ProcessDiagnostics(string name)
         {
             this._name = name;
@@ -82,8 +83,10 @@ namespace De.Openelp.Feuerwehr.Diagnostics
 
         private void Unhandled(object sender, UnhandledExceptionEventArgs args)
             => this.Record("Process.UnhandledException", $"IsTerminating={args.IsTerminating}", args.ExceptionObject as Exception);
+
         private void Unobserved(object? sender, UnobservedTaskExceptionEventArgs args)
             => this.Record("Process.UnobservedTaskException", exception: args.Exception);
+
         private void Exited(object? sender, EventArgs args)
             => this.Record("Process.Exit", $"ExitCode={Environment.ExitCode}");
 

@@ -20,6 +20,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
     {
         private readonly FeuerwehrDbContext _db = new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+
         private readonly Mock<IUserContextAccessor> _user = new();
         private readonly IncidentDiaryService _diary;
         private readonly IncidentService _incidents;

@@ -118,17 +118,22 @@ namespace De.Openelp.Feuerwehr.Tests.App
             auth.SetupGet(x => x.UserRoles).Returns(new[] { role });
             return auth;
         }
+
         private static EquipmentDetailDto Detail(bool active = true)
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
             return new(new EquipmentDto(Guid.Parse("30500200-0000-0000-0000-000000000001"), "KPP-001", Guid.NewGuid(), "Strahlrohr", "Armaturen", "SN-123", "Hersteller", EquipmentStatus.Ready,
                 active, today, null, today.AddMonths(12), 12, "Sicht- und Funktionsprüfung", 7), []);
         }
+
         private sealed class InventoryHandler : HttpMessageHandler
         {
             public string? Path { get; private set; }
+
             public string? Authorization { get; private set; }
+
             public JsonElement? Payload { get; private set; }
+
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 this.Path = request.RequestUri!.AbsolutePath;

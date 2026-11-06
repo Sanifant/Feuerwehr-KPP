@@ -64,6 +64,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 }
             }
         }
+
         /// <summary>
         /// Executes on Image Available.
         /// </summary>
@@ -166,6 +167,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             else { pending = null;
                 completion.TrySetResult(null); }
         }
+
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             TextView hint = null!;
@@ -192,6 +194,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 this.RequestPermissions([global::Android.Manifest.Permission.Camera], 3050);
             }
         }
+
         protected override void OnPause()
         {
             if (this.permissionPending) { base.OnPause();
@@ -217,6 +220,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 this.Finish();
             }
         }
+
         protected override void OnResume()
         {
             base.OnResume();
@@ -226,6 +230,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 this.OpenCamera();
             }
         }
+
         protected override void OnDestroy()
         {
             pending?.TrySetResult(null);
@@ -233,6 +238,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             current = null;
             base.OnDestroy();
         }
+
         private void OpenCamera()
         {
             if (this.camera is not null || this.thread is not null || this.closing || ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted)
@@ -256,6 +262,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
             catch (Exception) { this.Fail("Die Kamera konnte nicht geöffnet werden."); }
         }
+
         private void StartPreview(CameraDevice device)
         {
             if (this.closing)
@@ -280,6 +287,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 device.CreateCaptureSession([this.previewSurface, this.reader!.Surface!], this.sessionState, this.handler);
             }
         }
+
         private void Fail(string message) => this.RunOnUiThread(() => { pending?.TrySetException(new InvalidOperationException(message));
             this.Finish(); });
 
@@ -289,11 +297,13 @@ namespace De.Openelp.Feuerwehr.App.Android
             /// Executes on Opened.
             /// </summary>
             public override void OnOpened(CameraDevice camera) => owner.RunOnUiThread(() => owner.StartPreview(camera));
+
             /// <summary>
             /// Executes on Disconnected.
             /// </summary>
             public override void OnDisconnected(CameraDevice camera) { camera.Close();
                 owner.Fail("Kamera getrennt."); }
+
             /// <summary>
             /// Executes on Error.
             /// </summary>
@@ -301,6 +311,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             public override void OnError(CameraDevice camera, CameraError error) { camera.Close();
                 owner.Fail("Kamerafehler."); }
         }
+
         private sealed class SessionState(BarcodeScannerActivity owner) : CameraCaptureSession.StateCallback
         {
             /// <summary>
@@ -322,6 +333,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 }
                 catch (Exception) { owner.Fail("Kameravorschau konnte nicht gestartet werden."); }
             }
+
             /// <summary>
             /// Executes on Configure Failed.
             /// </summary>
