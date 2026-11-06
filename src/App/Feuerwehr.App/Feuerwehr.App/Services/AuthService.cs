@@ -14,11 +14,11 @@ namespace De.Openelp.Feuerwehr.App.Services
         private const string AccessTokenKey = "access_token";
         private const string RefreshTokenKey = "refresh_token";
 
-        private const string emailClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
+        private const string EmailClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress";
 
-        private const string nameClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
+        private const string NameClaim = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name";
 
-        private const string roleClaim = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+        private const string RoleClaim = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
 
         private readonly HttpClient _httpClient;
         private readonly ISecureStorage _secureStorage;
@@ -30,9 +30,9 @@ namespace De.Openelp.Feuerwehr.App.Services
 
         public bool IsAuthenticated => this._decodedToken != null && this._decodedToken.ValidTo > DateTime.UtcNow;
 
-        public string? UserEmail => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == emailClaim)?.Value;
+        public string? UserEmail => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == EmailClaim)?.Value;
 
-        public string? UserFullName => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
+        public string? UserFullName => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == NameClaim)?.Value;
 
         public IReadOnlyList<string> UserRoles
         {
@@ -44,7 +44,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 }
 
                 return this._decodedToken.Claims
-                    .Where(c => c.Type == roleClaim)
+                    .Where(c => c.Type == RoleClaim)
                     .Select(c => c.Value)
                     .ToList();
             }

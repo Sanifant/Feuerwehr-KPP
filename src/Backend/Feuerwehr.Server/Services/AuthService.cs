@@ -29,7 +29,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Login with email and password
+        /// Login with email and password.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
@@ -89,7 +89,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Refresh access token using refresh token
+        /// Refresh access token using refresh token.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="bearerToken">The bearer Token.</param>
@@ -205,7 +205,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Logout and revoke refresh token
+        /// Logout and revoke refresh token.
         /// </summary>
         /// <param name="currentUserId">The current User Id.</param>
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
@@ -224,7 +224,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Get current user info
+        /// Get current user info.
         /// </summary>
         /// <param name="currentUserId">The current User Id.</param>
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>

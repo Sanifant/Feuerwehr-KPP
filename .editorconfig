@@ -141,3 +141,9 @@ dotnet_diagnostic.SA1611.severity = warning
 dotnet_diagnostic.SA1615.severity = warning
 dotnet_diagnostic.SA1633.severity = none
 dotnet_diagnostic.SA1413.severity = none
+
+# SA1309: Field names should not begin with underscore
+dotnet_diagnostic.SA1309.severity = none
+
+# SA1009: Closing parenthesis should be spaced correctly
+dotnet_diagnostic.SA1009.severity = none

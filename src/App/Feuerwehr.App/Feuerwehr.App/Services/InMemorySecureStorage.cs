@@ -8,7 +8,7 @@ namespace De.Openelp.Feuerwehr.App.Services
     /// NOTE: For production mobile apps, use platform-specific secure storage:
     /// - Android: KeyStore
     /// - iOS: Keychain
-    /// - Windows: Data Protection API (DPAPI)
+    /// - Windows: Data Protection API (DPAPI).
     /// </summary>
     public class InMemorySecureStorage : ISecureStorage
     {

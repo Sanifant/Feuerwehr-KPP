@@ -26,7 +26,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Get all users (Admin only)
+        /// Get all users (Admin only).
         /// </summary>
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> GetAllUsers()
@@ -48,7 +48,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Get user by ID (Admin only)
+        /// Get user by ID (Admin only).
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
@@ -66,7 +66,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Create new user (Admin only)
+        /// Create new user (Admin only).
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
@@ -173,7 +173,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Update user (Admin only)
+        /// Update user (Admin only).
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="request">The request.</param>
@@ -271,7 +271,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Delete user (Admin only) - Soft delete by setting IsActive = false
+        /// Delete user (Admin only) - Soft delete by setting IsActive = false.
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="currentUserId">The current User Id.</param>
@@ -304,7 +304,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         }
 
         /// <summary>
-        /// Hard delete user (Admin only) - Permanently remove from database
+        /// Hard delete user (Admin only) - Permanently remove from database.
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="currentUserId">The current User Id.</param>
