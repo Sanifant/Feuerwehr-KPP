@@ -47,7 +47,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             string? previousStamp = user.SecurityStamp;
             bool previouslyRequired = user.PasswordResetRequired;
             user.PasswordResetRequired = true;
-            // Persist the lock and invalidate previous invitations and access tokens before sending.
+
             IdentityResult locked = await users.UpdateSecurityStampAsync(user);
             if (!locked.Succeeded)
             {

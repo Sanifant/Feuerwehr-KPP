@@ -81,7 +81,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     DueOn = x.NextInspectionOn,
                     SentAtUtc = now,
                 }));
-                // Erst nach erfolgreicher SMTP-Annahme markieren; fehlgeschlagene Empfänger bleiben offen.
+
                 _ = await db.SaveChangesAsync(ct);
             }
         }

@@ -141,7 +141,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
             _ = Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { FireDepartmentId = second.Id }));
             Assert.Equal(second.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
-            // Existing clients can still update unrelated fields without removing the assignment.
             _ = Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { FirstName = "Bea" }));
             Assert.Equal(second.Id, (await db.Users.AsNoTracking().SingleAsync(x => x.Id == created.Id)).FireDepartmentId);
             _ = Assert.IsType<OkObjectResult>(await this._usersApi.UpdateUser(created.Id, new UpdateUserRequest { ClearFireDepartment = true }));
@@ -162,7 +161,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Empty(this._store.Entries);
             this._tokens.Verify(tokens => tokens.RevokeRefreshTokenAsync(user.Id), Times.Exactly(2));
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
-            // Even a stale cache copy cannot replay the underlying Identity token.
             this._store.Entries[id] = staleInvitation;
             _ = Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id, password: "AnotherPassword123")));
             Assert.True(await this._users.CheckPasswordAsync(user, "MyNewPassword123"));

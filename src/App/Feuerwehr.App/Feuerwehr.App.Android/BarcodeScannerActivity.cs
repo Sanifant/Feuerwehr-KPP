@@ -262,7 +262,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             this.handler = null;
             this.thread = null;
             base.OnPause();
-            // Auch bei App-Wechsel wird die Kamera freigegeben und der Scan beendet.
+
             if (!this.IsFinishing)
             {
                 this.Finish();
@@ -332,7 +332,6 @@ namespace De.Openelp.Feuerwehr.App.Android
             this.preview.SurfaceTexture!.SetDefaultBufferSize(640, 480);
             this.previewSurface = new Surface(this.preview.SurfaceTexture);
             this.sessionState = new SessionState(this);
-            // Der kompatible Camera2-Overload unterstützt auch die minimale Android-Version 24.
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
                 SessionConfiguration configuration = new (

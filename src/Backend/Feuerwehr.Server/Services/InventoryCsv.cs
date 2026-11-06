@@ -51,7 +51,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         internal static string Quote(string? value)
         {
             value ??= string.Empty;
-            // Escape formula prefixes and existing leading apostrophes reversibly for Excel round trips.
+
             if (NeedsPrefix(value))
             {
                 value = "'" + value;

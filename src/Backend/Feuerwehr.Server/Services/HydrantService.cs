@@ -65,7 +65,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return entity;
             }).ToList();
             context.Hydrants.AddRange(entities);
-            // One SaveChanges transaction persists the complete file, never individual rows.
+
             _ = await context.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(new HydrantImportResponse(entities.Count, []));
         }
@@ -143,7 +143,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private static string CsvText(string? value)
         {
             value ??= string.Empty;
-            // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
             string trimmed = value.TrimStart();
             if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
                 || value.Length > 0 && "\t\r\n".Contains(value[0]))

@@ -294,8 +294,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.NotFound(new MessageResponse("User not found"));
             }
 
-            // Prevent self-deletion
-
             if (currentUserId == id)
             {
                 return ServiceResult.BadRequest(new MessageResponse("Cannot delete your own account"));
@@ -326,8 +324,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 return ServiceResult.NotFound(new MessageResponse("User not found"));
             }
-
-            // Prevent self-deletion
 
             if (currentUserId == id)
             {

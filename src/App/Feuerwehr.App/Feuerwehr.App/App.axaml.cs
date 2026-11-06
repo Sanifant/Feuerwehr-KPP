@@ -39,7 +39,6 @@ namespace De.Openelp.Feuerwehr.App
         /// </summary>
         public override void OnFrameworkInitializationCompleted()
         {
-            //var appConfiguration = AppConfiguration.Current;
             this.ReloadServices();
 
             if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -57,7 +56,7 @@ namespace De.Openelp.Feuerwehr.App
             else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
                 IAuthService authService = Services.GetRequiredService<IAuthService>();
-                // For single view platforms, check auth state
+
                 if (authService.IsAuthenticated)
                 {
                     singleViewPlatform.MainView = new MainView
@@ -107,7 +106,6 @@ namespace De.Openelp.Feuerwehr.App
             string? baseUrl = Environment.GetEnvironmentVariable("webapi")
                 ?? Environment.GetEnvironmentVariable("services__server__https__0")
                 ?? Environment.GetEnvironmentVariable("services__server__http__0");
-            // Explicit override takes precedence over Aspire's server endpoint references.
 
             if (string.IsNullOrEmpty(baseUrl))
             {

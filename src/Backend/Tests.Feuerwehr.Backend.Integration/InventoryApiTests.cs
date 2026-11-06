@@ -106,7 +106,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.NotEmpty(entry.InspectorName);
             Assert.Equal(type.InspectionInstructions, entry.InspectionInstructions);
             Assert.Equal(fixture.Today, result.Equipment.LastInspectedOn);
-            // Safe retry does not create another inspection; altered payload is rejected.
             Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", request)).StatusCode);
             request.Comment = "Andere Nutzlast";
             Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", request)).StatusCode);

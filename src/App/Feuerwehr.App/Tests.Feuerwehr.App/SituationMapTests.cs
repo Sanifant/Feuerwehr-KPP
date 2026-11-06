@@ -68,7 +68,6 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
             await viewModel.RefreshCommand.ExecuteAsync(null);
             Map map = Assert.IsType<Mapsui.Map>(viewModel.Map);
-            // A real MapControl supplies the size; suppress tile downloads in this unit test.
             map.Layers.First().Enabled = false;
             map.Navigator.SetSize(800, 450);
             (double x, double y) origin = SphericalMercator.FromLonLat(incident.OriginLongitude, incident.OriginLatitude);

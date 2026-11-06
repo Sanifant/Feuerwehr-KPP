@@ -60,8 +60,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             static string? NonBlank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
             string? configuredHost = NonBlank(configuration["MAIL_HOST"]);
-            // A fully configured provider must not depend on an old Mailpit connection string.
+
             Uri? endpoint = configuredHost is null ? ReadEndpoint(configuration.GetConnectionString("mail")) : null;
+
             string host = configuredHost ?? endpoint?.Host ?? "localhost";
             bool localDefaults = configuredHost is null && endpoint?.Scheme != "smtps";
             string? configuredPort = NonBlank(configuration["MAIL_PORT"]);

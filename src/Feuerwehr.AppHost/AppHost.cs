@@ -52,7 +52,6 @@ if (builder.ExecutionContext.IsRunMode)
     IResourceBuilder<MailPitContainerResource> mailpit = builder.AddMailPit("mail");
     _ = server.WithReference(mailpit)
         .WaitFor(mailpit)
-        // Override inherited provider settings: local debugging always delivers to Mailpit.
         .WithEnvironment("MAIL_HOST", string.Empty)
         .WithEnvironment("MAIL_PORT", string.Empty)
         .WithEnvironment("MAIL_USERNAME", string.Empty)

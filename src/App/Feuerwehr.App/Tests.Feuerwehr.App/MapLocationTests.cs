@@ -158,7 +158,6 @@ namespace De.Openelp.Feuerwehr.Tests.App
         private static MapViewModel CreateViewModel(IGpsService gps)
         {
             Mock<IHydrantService> hydrants = new ();
-            // Hydrant loading is unrelated to these tests and must not mutate map layers concurrently.
             _ = hydrants.Setup(service => service.GetAllAsync()).Returns(Task.FromCanceled<IEnumerable<Hydrant>>(new CancellationToken(true)));
             return new MapViewModel(hydrants.Object, gps);
         }

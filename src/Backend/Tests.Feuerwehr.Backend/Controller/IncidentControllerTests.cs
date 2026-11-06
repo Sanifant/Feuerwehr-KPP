@@ -75,7 +75,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             CreateIncidentRequest request = Request();
             IncidentCreatedResponse original = Assert.IsType<IncidentCreatedResponse>((await this._service.CreateIncident(request, default)).Value);
-            // The same point in time with a different offset has the same command payload hash.
             request.AlarmedAtUtc = request.AlarmedAtUtc!.Value.ToUniversalTime();
             ServiceResult replay = await this._service.CreateIncident(request, default);
             Assert.Equal(201, replay.Code);
