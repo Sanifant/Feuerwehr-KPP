@@ -1,8 +1,8 @@
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Inventory;
-using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -20,8 +20,7 @@ public sealed class InventorySchedulingTests
         var category = new InventoryCategory { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
         var type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = interval, InspectionInstructions = "Sichtprüfung" };
         var item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = DateOnly.Parse(created), LastInspectedOn = inspected is null ? null : DateOnly.Parse(inspected) };
-        db.Equipment.Add(item);
-        await db.SaveChangesAsync();
+        db.Equipment.Add(item); await db.SaveChangesAsync();
         var service = new InventoryService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);
         var response = await service.Get(item.Id, CancellationToken.None);
         Assert.Equal(DateOnly.Parse(expected), Assert.IsType<EquipmentDetailDto>(response.Value).Equipment.NextInspectionOn);

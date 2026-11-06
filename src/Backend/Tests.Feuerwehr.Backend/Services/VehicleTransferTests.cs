@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Services;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,17 +20,14 @@ public sealed class VehicleTransferTests
     {
         await using var fixture = new Fixture();
         const string csv = "radioCallSign;fireDepartment;equipmentOfficerEmail;status\nFlorian 19-01;Feuerwehr A;owner@example.test;Betriebsbereit";
-        using (var stream = Csv(csv))
-            Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        using (var stream = Csv(csv)) Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
         var initial = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(initial, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-        using (var stream = Csv(csv))
-            Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        using (var stream = Csv(csv)) Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
         Assert.Equal(initial, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-        using (var stream = Csv(csv.Replace("Betriebsbereit", "Wartung")))
-            Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        using (var stream = Csv(csv.Replace("Betriebsbereit", "Wartung"))) Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
         var changedAt = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(changedAt, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
@@ -45,15 +42,8 @@ public sealed class VehicleTransferTests
         await using var fixture = new Fixture();
         var vehicle = fixture.Vehicle();
         vehicle.Name = "=SUM(1;2)\n\"Übung\"";
-        var booking = new VehicleReservation
-        {
-            Id = Guid.NewGuid(),
-            VehicleId = vehicle.Id,
-            CommandId = Guid.NewGuid(),
-            From = new DateOnly(2026, 11, 1),
-            To = new DateOnly(2026, 11, 1),
-            Status = VehicleReservationStatus.Confirmed
-        };
+        var booking = new VehicleReservation { Id = Guid.NewGuid(), VehicleId = vehicle.Id, CommandId = Guid.NewGuid(),
+            From = new DateOnly(2026, 11, 1), To = new DateOnly(2026, 11, 1), Status = VehicleReservationStatus.Confirmed };
         fixture.Db.VehicleReservations.Add(booking);
         fixture.Db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = vehicle.Id, ReservationId = booking.Id, Date = booking.From });
         await fixture.Db.SaveChangesAsync();
@@ -66,9 +56,7 @@ public sealed class VehicleTransferTests
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv.Replace("owner@example.test", " OTHER@EXAMPLE.TEST ").Replace("Betriebsbereit", "Wartung")));
         var imported = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
         var result = Assert.IsType<VehicleImportResponse>(imported.Value);
-        Assert.Equal(200, imported.Code);
-        Assert.Equal(0, result.CreatedCount);
-        Assert.Equal(1, result.UpdatedCount);
+        Assert.Equal(200, imported.Code); Assert.Equal(0, result.CreatedCount); Assert.Equal(1, result.UpdatedCount);
         var stored = Assert.Single(await fixture.Db.Vehicles.AsNoTracking().ToListAsync());
         Assert.Equal(vehicle.Id, stored.Id);
         Assert.Equal("other", stored.EquipmentOfficerId);
@@ -78,22 +66,26 @@ public sealed class VehicleTransferTests
         Assert.Single(fixture.Db.VehicleBookingDays);
     }
 
-    [Theory]
-    [InlineData("missing@example.test")]
-    [InlineData("viewer@example.test")]
-    [InlineData("inactive@example.test")]
-    [InlineData("foreign@example.test")]
-    public async Task InvalidOfficerRejectsTheWholeFileWithoutCreatingUsersOrPartialVehicles(string email)
-    {
-        await using var fixture = new Fixture();
-        using var stream = Csv("radioCallSign;fireDepartment;equipmentOfficerEmail\nFlorian 19-01;Feuerwehr A;owner@example.test\nFlorian 19-02;Feuerwehr A;" + email);
-        var usersBefore = await fixture.Db.Users.CountAsync();
-        var result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
-        Assert.Equal(400, result.Code);
-        Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.LineNumber == 3 && x.Description.Contains("Gerätewart"));
-        Assert.Empty(fixture.Db.Vehicles);
-        Assert.Equal(usersBefore, await fixture.Db.Users.CountAsync());
-    }
+        [Theory]
+        [InlineData("missing@example.test")]
+        [InlineData("viewer@example.test")]
+        [InlineData("inactive@example.test")]
+        [InlineData("foreign@example.test")]
+        /// <summary>
+        /// Executes invalid Officer Rejects The Whole File Without Creating Users Or Partial Vehicles.
+        /// </summary>
+        /// <param name="email">The email.</param>
+        public async Task InvalidOfficerRejectsTheWholeFileWithoutCreatingUsersOrPartialVehicles(string email)
+        {
+            await using Fixture fixture = new Fixture();
+            using MemoryStream stream = Csv("radioCallSign;fireDepartment;equipmentOfficerEmail\nFlorian 19-01;Feuerwehr A;owner@example.test\nFlorian 19-02;Feuerwehr A;" + email);
+            int usersBefore = await fixture.Db.Users.CountAsync();
+            ServiceResult result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
+            Assert.Equal(400, result.Code);
+            Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.LineNumber == 3 && x.Description.Contains("Gerätewart"));
+            Assert.Empty(fixture.Db.Vehicles);
+            Assert.Equal(usersBefore, await fixture.Db.Users.CountAsync());
+        }
 
     [Theory]
     [InlineData("radioCallSign;radioCallSign;fireDepartment;equipmentOfficerEmail\nA;A;Feuerwehr A;owner@example.test", "mehrfach")]
@@ -102,8 +94,7 @@ public sealed class VehicleTransferTests
     [InlineData("radioCallSign;fireDepartment;equipmentOfficerEmail;status\nA;Feuerwehr A;owner@example.test;Unbekannt", "Status")]
     public async Task InvalidFilesHaveActionableErrorsAndDoNotChangeData(string csv, string expected)
     {
-        await using var fixture = new Fixture();
-        using var stream = Csv(csv);
+        await using var fixture = new Fixture(); using var stream = Csv(csv);
         var result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
         Assert.Equal(400, result.Code);
         Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.Description.Contains(expected));
@@ -120,8 +111,7 @@ public sealed class VehicleTransferTests
         fixture.As("owner", Roles.EquipmentOfficer);
         var export = await fixture.Service.Export(VehicleTransferKind.Vehicles, default);
         var csv = Encoding.UTF8.GetString(export.Content!);
-        Assert.Contains(owned.RadioCallSign, csv);
-        Assert.DoesNotContain(other.RadioCallSign, csv);
+        Assert.Contains(owned.RadioCallSign, csv); Assert.DoesNotContain(other.RadioCallSign, csv);
         using var stream = Csv($"id;radioCallSign;fireDepartment;equipmentOfficerEmail\n{other.Id};{other.RadioCallSign};Feuerwehr A;owner@example.test");
         Assert.Equal(403, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
         Assert.Equal("other", (await fixture.Db.Vehicles.AsNoTracking().SingleAsync(x => x.Id == other.Id)).EquipmentOfficerId);
@@ -136,18 +126,14 @@ public sealed class VehicleTransferTests
     public async Task ReimportWithoutIdsUpdatesByDepartmentAndCallSignAndMissingColumnsPreserveValues()
     {
         await using var fixture = new Fixture();
-        var vehicle = fixture.Vehicle();
-        vehicle.Name = "Bestehender Name";
-        vehicle.IsActive = false;
+        var vehicle = fixture.Vehicle(); vehicle.Name = "Bestehender Name"; vehicle.IsActive = false;
         vehicle.VehicleStatusId = VehicleStatusDefaults.DeregisteredId;
         await fixture.Db.SaveChangesAsync();
         using var stream = Csv($"radioCallSign;fireDepartment;equipmentOfficerEmail\n{vehicle.RadioCallSign};Feuerwehr A;owner@example.test");
         var result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
         Assert.Equal(200, result.Code);
         var stored = Assert.Single(await fixture.Db.Vehicles.AsNoTracking().ToListAsync());
-        Assert.Equal(vehicle.Id, stored.Id);
-        Assert.Equal("Bestehender Name", stored.Name);
-        Assert.False(stored.IsActive);
+        Assert.Equal(vehicle.Id, stored.Id); Assert.Equal("Bestehender Name", stored.Name); Assert.False(stored.IsActive);
         Assert.Equal(VehicleStatusDefaults.DeregisteredId, stored.VehicleStatusId);
     }
 
@@ -155,12 +141,10 @@ public sealed class VehicleTransferTests
     public async Task VehicleTypesRoundTripAndRenameInPlaceWhileDuplicateNamesRollbackTheEntireBatch()
     {
         await using var fixture = new Fixture();
-        var vehicle = fixture.Vehicle();
-        await fixture.Db.SaveChangesAsync();
+        var vehicle = fixture.Vehicle(); await fixture.Db.SaveChangesAsync();
         var exported = await fixture.Service.Export(VehicleTransferKind.Types, default);
         var rows = JsonSerializer.Deserialize<List<VehicleTypeImportDto>>(exported.Content!, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
-        var type = Assert.Single(rows);
-        type.Name = "Mannschaftstransportwagen";
+        var type = Assert.Single(rows); type.Name = "Mannschaftstransportwagen";
         using var updated = new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(rows));
         Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Types, updated, default)).Code);
         Assert.Equal(type.Id, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync(x => x.Id == vehicle.Id)).VehicleTypeId);
@@ -187,8 +171,7 @@ public sealed class VehicleTransferTests
             foreach (var id in new[] { "admin", "owner", "other", "viewer", "inactive", "foreign" })
             {
                 Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, IsActive = id != "inactive", FireDepartmentId = id == "foreign" ? 2 : 1 });
-                if (id is "owner" or "other" or "inactive" or "foreign")
-                    Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                if (id is "owner" or "other" or "inactive" or "foreign") Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
             }
             Db.SaveChanges();
             Service = new VehicleTransferService(Db, http, new UpperInvariantLookupNormalizer(), Clock);
@@ -199,8 +182,7 @@ public sealed class VehicleTransferTests
         public Vehicle Vehicle(string callSign = "Florian 19-01", string owner = "owner")
         {
             var vehicle = new Vehicle { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = typeId };
-            Db.Vehicles.Add(vehicle);
-            return vehicle;
+            Db.Vehicles.Add(vehicle); return vehicle;
         }
         public ValueTask DisposeAsync() => Db.DisposeAsync();
     }

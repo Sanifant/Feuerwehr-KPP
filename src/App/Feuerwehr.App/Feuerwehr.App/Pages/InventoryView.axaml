@@ -1,9 +1,9 @@
 <ContentPage xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:de.openelp.feuerwehr.App.ViewModels"
-             xmlns:inventory="using:de.openelp.feuerwehr.Common.Models.Inventory"
-             xmlns:models="using:de.openelp.feuerwehr.App.Models"
-             x:Class="de.openelp.feuerwehr.App.Pages.InventoryView"
+             xmlns:vm="using:De.Openelp.Feuerwehr.App.ViewModels"
+             xmlns:inventory="using:De.Openelp.Feuerwehr.Common.Models.Inventory"
+             xmlns:models="using:De.Openelp.Feuerwehr.App.Models"
+             x:Class="De.Openelp.Feuerwehr.App.Pages.InventoryView"
              x:DataType="vm:InventoryViewModel" Header="Inventar / Geräteprüfung">
     <ContentPage.Resources><models:EquipmentStatusConverter x:Key="EquipmentStatus" /></ContentPage.Resources>
     <ScrollViewer>

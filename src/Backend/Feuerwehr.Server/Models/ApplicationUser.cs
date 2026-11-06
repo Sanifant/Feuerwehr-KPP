@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace de.openelp.feuerwehr.Server.Models
+namespace De.Openelp.Feuerwehr.Server.Models
 {
     public class ApplicationUser : IdentityUser
     {
@@ -18,3 +18,4 @@ namespace de.openelp.feuerwehr.Server.Models
         public string FullName => $"{FirstName} {LastName}".Trim();
     }
 }
+

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace de.openelp.feuerwehr.Common.Models.Auth
+namespace De.Openelp.Feuerwehr.Common.Models.Auth
 {
     public class RegisterUserRequest
     {
@@ -20,3 +20,4 @@ namespace de.openelp.feuerwehr.Common.Models.Auth
         public int? FireDepartmentId { get; set; }
     }
 }
+

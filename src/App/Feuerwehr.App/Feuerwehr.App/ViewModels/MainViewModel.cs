@@ -1,17 +1,23 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using de.openelp.feuerwehr.App.Services;
+using Mapsui;
+using Mapsui.Tiling;
+using Mapsui.Projections;
+using Mapsui.Layers;
+using Mapsui.Styles;
+using System.Collections.Generic;
+using System;
+using System.Reflection;
+using System.Linq;
+using System.Threading.Tasks;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using System.Collections.ObjectModel;
 using de.openelp.feuerwehr.App.Models;
 using de.openelp.feuerwehr.App.Pages;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using Avalonia.Controls;
 
-namespace de.openelp.feuerwehr.App.ViewModels
+namespace De.Openelp.Feuerwehr.App.ViewModels
 {
     public partial class MainViewModel : ViewModelBase
     {
@@ -97,13 +103,13 @@ namespace de.openelp.feuerwehr.App.ViewModels
             if (selectedIndex < 0 || selectedIndex >= Pages.Count || Navigation is null)
                 throw new ArgumentOutOfRangeException(nameof(selectedIndex));
 
-            var item = Pages[selectedIndex];
+            PageItem item = Pages[selectedIndex];
 
             if (item != null)
             {
 
                 var view = item.Factory();
-                if (view is Page page)
+                if(view is Page page)
                     return Navigation.ReplaceAsync(page);
             }
 
@@ -117,3 +123,4 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
     }
 }
+

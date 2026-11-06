@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { isAxiosError } from 'axios';
 import { Fragment } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { HubConnection } from '@microsoft/signalr';
 import { useRole } from '../hooks/useRole';
 import {
     buildCommandId,
@@ -12,7 +14,7 @@ import {
     updateDiaryEntry,
 } from '../api/incidentApi';
 import { ensureIncidentConnection } from '../api/incidentLive';
-import type { DiaryCategory, DiaryEntry } from '../api/incidentApi';
+import type { DiaryCategory, DiaryEntry, IncidentSummary } from '../api/incidentApi';
 
 const displayTimezone = 'Europe/Berlin';
 
@@ -20,13 +22,35 @@ function toInputUtc(value: Date) {
     return value.toISOString().slice(0, 16);
 }
 
+type DiaryDraft = {
+    eventTimestampUtc: string;
+    categoryCode: string;
+    text: string;
+    sender: string;
+    recipient: string;
+    transmissionType: string;
+};
+
+type DiaryEditDraft = DiaryDraft & {
+    expectedRevision: number;
+    cancellationReason: string;
+};
+
+function getErrorTitle(error: unknown, fallback: string) {
+    if (isAxiosError<{ title?: string }>(error)) {
+        return error.response?.data?.title ?? fallback;
+    }
+
+    return fallback;
+}
+
 export function IncidentDiaryPage() {
     const { canViewIncidentDiary, canEditIncidentDiary } = useRole();
-    const [incident, setIncident] = useState<any | null>(null);
+    const [incident, setIncident] = useState<IncidentSummary | null>(null);
     const [entries, setEntries] = useState<DiaryEntry[]>([]);
     const [categories, setCategories] = useState<DiaryCategory[]>([]);
     const [statusText, setStatusText] = useState('Lade...');
-    const [draft, setDraft] = useState({
+    const [draft, setDraft] = useState<DiaryDraft>({
         eventTimestampUtc: toInputUtc(new Date()),
         categoryCode: 'meldung',
         text: '',
@@ -34,7 +58,7 @@ export function IncidentDiaryPage() {
         recipient: '',
         transmissionType: '',
     });
-    const [editDrafts, setEditDrafts] = useState<Record<string, any>>({});
+    const [editDrafts, setEditDrafts] = useState<Record<string, DiaryEditDraft>>({});
     const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null);
 
     const loadData = async () => {
@@ -66,19 +90,21 @@ export function IncidentDiaryPage() {
         loadData();
     }, [canViewIncidentDiary]);
 
+    const incidentId = incident?.id;
+
     useEffect(() => {
-        if (!incident) {
+        if (!incidentId) {
             return;
         }
 
         let disposed = false;
-        let connection: any;
+        let connection: HubConnection | null = null;
         let diaryUpdatedHandler: (() => Promise<void>) | null = null;
 
         ensureIncidentConnection().then(async (conn) => {
             connection = conn;
-            await conn.invoke('SubscribeIncident', incident.id);
-            await conn.invoke('SubscribeDiary', incident.id);
+            await conn.invoke('SubscribeIncident', incidentId);
+            await conn.invoke('SubscribeDiary', incidentId);
 
             diaryUpdatedHandler = async () => {
                 if (!disposed) {
@@ -97,7 +123,7 @@ export function IncidentDiaryPage() {
                 connection.off('DiaryUpdated', diaryUpdatedHandler);
             }
         };
-    }, [incident?.id]);
+    }, [incidentId]);
 
     const activeCategories = useMemo(() => categories.filter(c => c.isActive), [categories]);
 
@@ -129,8 +155,8 @@ export function IncidentDiaryPage() {
             setDraft((prev) => ({ ...prev, text: '', sender: '', recipient: '', transmissionType: '' }));
             setStatusText('Eintrag gespeichert.');
             await loadData();
-        } catch (error: any) {
-            setStatusText(error?.response?.data?.title ?? 'Eintrag konnte nicht gespeichert werden.');
+        } catch (error: unknown) {
+            setStatusText(getErrorTitle(error, 'Eintrag konnte nicht gespeichert werden.'));
         }
     };
 
@@ -176,8 +202,8 @@ export function IncidentDiaryPage() {
             });
             setStatusText('Korrektur gespeichert.');
             await loadData();
-        } catch (error: any) {
-            setStatusText(error?.response?.data?.title ?? 'Korrektur fehlgeschlagen. Lokaler Entwurf bleibt erhalten.');
+        } catch (error: unknown) {
+            setStatusText(getErrorTitle(error, 'Korrektur fehlgeschlagen. Lokaler Entwurf bleibt erhalten.'));
         }
     };
 
@@ -200,8 +226,8 @@ export function IncidentDiaryPage() {
             });
             setStatusText('Eintrag storniert.');
             await loadData();
-        } catch (error: any) {
-            setStatusText(error?.response?.data?.title ?? 'Stornierung fehlgeschlagen.');
+        } catch (error: unknown) {
+            setStatusText(getErrorTitle(error, 'Stornierung fehlgeschlagen.'));
         }
     };
 

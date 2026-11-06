@@ -1,27 +1,35 @@
 using System.Net;
 using System.Net.Http.Json;
-using de.openelp.feuerwehr.Common.Models.Auth;
-using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
+using De.Openelp.Feuerwehr.Common.Models.Auth;
+using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace de.openelp.feuerwehr.Tests.Backend.Integration;
-
-[Collection(IntegrationTestCollection.Name)]
-public sealed class AuthIntegrationTests(IntegrationTestFixture fixture)
+namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 {
-    [Fact]
-    public async Task Login_WithSeededAdmin_ReturnsAccessAndRefreshToken()
+    [Collection(IntegrationTestCollection.Name)]
+    /// <summary>
+    /// Executes auth Integration Tests.
+    /// </summary>
+    /// <param name="fixture">The fixture.</param>
+    public sealed class AuthIntegrationTests(IntegrationTestFixture fixture)
     {
-        var response = await fixture.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+        [Fact]
+        /// <summary>
+        /// Executes login With Seeded Admin Returns Access And Refresh Token.
+        /// </summary>
+        public async Task Login_WithSeededAdmin_ReturnsAccessAndRefreshToken()
         {
-            Email = IntegrationTestFixture.SeedAdminEmail,
-            Password = IntegrationTestFixture.SeedAdminPassword,
-        });
+            HttpResponseMessage response = await fixture.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+            {
+                Email = IntegrationTestFixture.SeedAdminEmail,
+                Password = IntegrationTestFixture.SeedAdminPassword,
+            });
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var payload = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        Assert.NotNull(payload);
-        Assert.False(string.IsNullOrWhiteSpace(payload.AccessToken));
-        Assert.False(string.IsNullOrWhiteSpace(payload.RefreshToken));
-        Assert.Contains("Admin", payload.Roles);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            LoginResponse? payload = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            Assert.NotNull(payload);
+            Assert.False(string.IsNullOrWhiteSpace(payload.AccessToken));
+            Assert.False(string.IsNullOrWhiteSpace(payload.RefreshToken));
+            Assert.Contains("Admin", payload.Roles);
+        }
     }
 }

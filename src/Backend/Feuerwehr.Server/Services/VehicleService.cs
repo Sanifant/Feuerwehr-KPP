@@ -2,130 +2,108 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.Vehicles;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models;
-using de.openelp.feuerwehr.Server.Models.Vehicles;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.Vehicles;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models;
+using De.Openelp.Feuerwehr.Server.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
-namespace de.openelp.feuerwehr.Server.Services;
-
-public interface IVehicleService
+namespace De.Openelp.Feuerwehr.Server.Services
 {
-    Task<ServiceResult> Types(bool includeInactive, CancellationToken ct);
-    Task<ServiceResult> Statuses(bool includeInactive, CancellationToken ct);
-    Task<ServiceResult> SaveStatus(Guid? id, SaveVehicleStatusRequest request, CancellationToken ct);
-    Task<ServiceResult> SaveType(Guid? id, SaveVehicleTypeRequest request, CancellationToken ct);
-    Task<ServiceResult> SetTypeActive(Guid id, SetVehicleTypeActiveRequest request, CancellationToken ct);
-    Task<ServiceResult> List(bool includeInactive, CancellationToken ct);
-    Task<ServiceResult> Availability(DateOnly from, DateOnly to, CancellationToken ct, string? vehicleType = null);
-    Task<ServiceResult> ManagementOptions(CancellationToken ct);
-    Task<ServiceResult> Save(Guid? id, SaveVehicleRequest request, CancellationToken ct);
-    Task<ServiceResult> SetActive(Guid id, SetVehicleActiveRequest request, CancellationToken ct);
-    Task<ServiceResult> Reservations(string scope, CancellationToken ct);
-    Task<ServiceResult> Reserve(Guid id, CreateVehicleReservationRequest request, bool direct, CancellationToken ct);
-    Task<ServiceResult> Decide(Guid id, DecideVehicleReservationRequest request, VehicleReservationStatus status, CancellationToken ct);
-}
 
-public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor http, TimeProvider clock,
-    IVehicleMailComposer mail) : IVehicleService
-{
-    private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
-    private string UserId => Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
-    private bool IsAdmin => Principal.IsInRole(Roles.Admin);
-    private bool IsOfficer => Principal.IsInRole(Roles.EquipmentOfficer);
-    private bool CanManage => IsAdmin || IsOfficer;
-    private bool CanRequest => Principal.IsInRole(Roles.Commander) || Principal.IsInRole(Roles.Firefighter);
-    private bool Owns(Vehicle vehicle) => IsOfficer && vehicle.EquipmentOfficerId == UserId;
-    private IQueryable<Vehicle> Vehicles => db.Vehicles.Include(x => x.FireDepartment).Include(x => x.EquipmentOfficer).Include(x => x.VehicleType).Include(x => x.VehicleStatus);
-    private DateTime Now => clock.GetUtcNow().UtcDateTime;
-    private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(),
-        TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin")).DateTime);
-    private static ServiceResult Invalid(string message) => ServiceResult.BadRequest(new MessageResponse(message));
-    private static ServiceResult Conflict(string message) => ServiceResult.StatusCode(409, new MessageResponse(message));
+    /// <summary>
+    /// Executes vehicle Service.
+    /// </summary>
+    /// <param name="db">The db.</param>
+    /// <param name="http">The http.</param>
+    /// <param name="clock">The clock.</param>
+    /// <param name="mail">The mail.</param>
+    public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor http, TimeProvider clock,
+        IVehicleMailComposer mail) : IVehicleService
+    {
+        private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
+        private string UserId => Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+        private bool IsAdmin => Principal.IsInRole(Roles.Admin);
+        private bool IsOfficer => Principal.IsInRole(Roles.EquipmentOfficer);
+        private bool CanManage => IsAdmin || IsOfficer;
+        private bool CanRequest => Principal.IsInRole(Roles.Commander) || Principal.IsInRole(Roles.Firefighter);
+        private bool Owns(Vehicle vehicle) => IsOfficer && vehicle.EquipmentOfficerId == UserId;
+        private IQueryable<Vehicle> Vehicles => db.Vehicles.Include(x => x.FireDepartment).Include(x => x.EquipmentOfficer).Include(x => x.VehicleType).Include(x => x.VehicleStatus);
+        private DateTime Now => clock.GetUtcNow().UtcDateTime;
+        private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(),
+            TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin")).DateTime);
+        private static ServiceResult Invalid(string message) => ServiceResult.BadRequest(new MessageResponse(message));
+        private static ServiceResult Conflict(string message) => ServiceResult.StatusCode(409, new MessageResponse(message));
 
-    public async Task<ServiceResult> Statuses(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleStatus>()
-        .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderByDescending(x => x.Id == VehicleStatusDefaults.ReadyId).ThenBy(x => x.Name)
-        .Select(x => new VehicleStatusDto(x.Id, x.Name, x.AllowsBooking, x.IsActive, x.Version, x.Id == VehicleStatusDefaults.ReadyId)).ToListAsync(ct));
+        /// <summary>
+        /// Executes statuses.
+        /// </summary>
+        /// <param name="includeInactive">The include Inactive.</param>
+        public async Task<ServiceResult> Statuses(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleStatus>()
+            .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderByDescending(x => x.Id == VehicleStatusDefaults.ReadyId).ThenBy(x => x.Name)
+            .Select(x => new VehicleStatusDto(x.Id, x.Name, x.AllowsBooking, x.IsActive, x.Version, x.Id == VehicleStatusDefaults.ReadyId)).ToListAsync(ct));
 
     public Task<ServiceResult> SaveStatus(Guid? id, SaveVehicleStatusRequest request, CancellationToken ct) => Execute(async () =>
     {
-        if (!IsAdmin)
-            return ServiceResult.Forbid();
+        if (!IsAdmin) return ServiceResult.Forbid();
         if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 100)
             return Invalid("Bitte einen Status mit höchstens 100 Zeichen angeben.");
         var status = id.HasValue ? await db.Set<VehicleStatus>().SingleOrDefaultAsync(x => x.Id == id.Value, ct) : new VehicleStatus { Id = Guid.NewGuid() };
-        if (status is null)
-            return ServiceResult.NotFound();
-        if (id.HasValue && status.Version != request.ExpectedVersion)
-            return Conflict("Der Status wurde inzwischen geändert. Bitte neu laden.");
-        if (status.Id == VehicleStatusDefaults.ReadyId && !request.IsActive)
-            return Invalid("Der Standardstatus kann nicht deaktiviert werden.");
+        if (status is null) return ServiceResult.NotFound();
+        if (id.HasValue && status.Version != request.ExpectedVersion) return Conflict("Der Status wurde inzwischen geändert. Bitte neu laden.");
+        if (status.Id == VehicleStatusDefaults.ReadyId && !request.IsActive) return Invalid("Der Standardstatus kann nicht deaktiviert werden.");
         var normalized = request.Name.Trim().ToUpperInvariant();
         if (await db.Set<VehicleStatus>().AnyAsync(x => x.NormalizedName == normalized && x.Id != status.Id, ct))
             return Conflict("Ein Status mit diesem Namen existiert bereits.");
-        status.Name = request.Name.Trim();
-        status.NormalizedName = normalized;
-        status.AllowsBooking = request.AllowsBooking;
-        status.IsActive = request.IsActive;
-        if (id.HasValue)
-            status.Version++;
-        else
-            db.Set<VehicleStatus>().Add(status);
-        try
-        { await db.SaveChangesAsync(ct); }
+        status.Name = request.Name.Trim(); status.NormalizedName = normalized;
+        status.AllowsBooking = request.AllowsBooking; status.IsActive = request.IsActive;
+        if (id.HasValue) status.Version++; else db.Set<VehicleStatus>().Add(status);
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Status wurde inzwischen geändert oder existiert bereits."); }
         return ServiceResult.Ok(new VehicleStatusDto(status.Id, status.Name, status.AllowsBooking, status.IsActive, status.Version, status.Id == VehicleStatusDefaults.ReadyId));
     });
 
-    public async Task<ServiceResult> Types(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleType>()
-        .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.Name)
-        .Select(x => new VehicleTypeDto(x.Id, x.Name, x.IsActive, x.Version)).ToListAsync(ct));
+        /// <summary>
+        /// Executes types.
+        /// </summary>
+        /// <param name="includeInactive">The include Inactive.</param>
+        public async Task<ServiceResult> Types(bool includeInactive, CancellationToken ct) => ServiceResult.Ok(await db.Set<VehicleType>()
+            .AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.Name)
+            .Select(x => new VehicleTypeDto(x.Id, x.Name, x.IsActive, x.Version)).ToListAsync(ct));
 
     public Task<ServiceResult> SaveType(Guid? id, SaveVehicleTypeRequest request, CancellationToken ct) => Execute(async () =>
     {
-        if (!IsAdmin)
-            return ServiceResult.Forbid();
+        if (!IsAdmin) return ServiceResult.Forbid();
         if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 100)
             return Invalid("Bitte einen Fahrzeugtyp mit höchstens 100 Zeichen angeben.");
         var name = request.Name.Trim();
         var normalized = name.ToUpperInvariant();
         var type = id.HasValue ? await db.Set<VehicleType>().SingleOrDefaultAsync(x => x.Id == id.Value, ct) : new VehicleType { Id = Guid.NewGuid() };
-        if (type is null)
-            return ServiceResult.NotFound();
-        if (id.HasValue && type.Version != request.ExpectedVersion)
-            return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
+        if (type is null) return ServiceResult.NotFound();
+        if (id.HasValue && type.Version != request.ExpectedVersion) return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
         if (await db.Set<VehicleType>().AnyAsync(x => x.NormalizedName == normalized && x.Id != type.Id, ct))
             return Conflict("Ein Fahrzeugtyp mit diesem Namen existiert bereits.");
         type.Name = name;
         type.NormalizedName = normalized;
-        if (id.HasValue)
-            type.Version++;
-        else
-            db.Set<VehicleType>().Add(type);
-        try
-        { await db.SaveChangesAsync(ct); }
+        if (id.HasValue) type.Version++; else db.Set<VehicleType>().Add(type);
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert oder existiert bereits. Bitte neu laden."); }
         return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
     });
 
     public Task<ServiceResult> SetTypeActive(Guid id, SetVehicleTypeActiveRequest request, CancellationToken ct) => Execute(async () =>
     {
-        if (!IsAdmin)
-            return ServiceResult.Forbid();
+        if (!IsAdmin) return ServiceResult.Forbid();
         var type = await db.Set<VehicleType>().SingleOrDefaultAsync(x => x.Id == id, ct);
-        if (type is null)
-            return ServiceResult.NotFound();
-        if (type.Version != request.ExpectedVersion)
-            return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
+        if (type is null) return ServiceResult.NotFound();
+        if (type.Version != request.ExpectedVersion) return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
         type.IsActive = request.IsActive;
         type.Version++;
-        try
-        { await db.SaveChangesAsync(ct); }
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden."); }
         return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
     });
@@ -133,47 +111,50 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
     public async Task<ServiceResult> List(bool includeInactive, CancellationToken ct)
     {
         var query = Vehicles.AsNoTracking();
-        if (!includeInactive || !CanManage)
-            query = query.Where(x => x.IsActive);
+        if (!includeInactive || !CanManage) query = query.Where(x => x.IsActive);
         return ServiceResult.Ok((await query.OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct)).Select(ToDto).ToList());
     }
 
-    public async Task<ServiceResult> Availability(DateOnly from, DateOnly to, CancellationToken ct, string? vehicleType = null)
-    {
-        if (from == default || to < from || to.DayNumber - from.DayNumber > 365)
-            return Invalid("Bitte einen gültigen Kalenderzeitraum von höchstens 366 Tagen wählen.");
-        var query = Vehicles.AsNoTracking().Where(x => x.IsActive);
-        if (!string.IsNullOrWhiteSpace(vehicleType))
+        /// <summary>
+        /// Executes availability.
+        /// </summary>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <param name="ct">The ct.</param>
+        /// <param name="vehicleType">The vehicle Type.</param>
+        public async Task<ServiceResult> Availability(DateOnly from, DateOnly to, CancellationToken ct, string? vehicleType = null)
         {
-            var normalizedType = vehicleType.Trim().ToUpperInvariant();
-            query = query.Where(x => x.VehicleType != null && x.VehicleType.NormalizedName == normalizedType);
-        }
-        var vehicles = await query
-            .OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct);
-        var bookings = await db.VehicleBookingDays.AsNoTracking().Where(x => x.Date >= from && x.Date <= to).ToListAsync(ct);
-        var pending = await db.VehicleReservations.AsNoTracking().Where(x => x.Status == VehicleReservationStatus.Pending && x.From <= to && x.To >= from)
-            .Select(x => new { x.VehicleId, x.From, x.To }).ToListAsync(ct);
-        var booked = bookings.Select(x => (x.VehicleId, x.Date)).ToHashSet();
-        return ServiceResult.Ok(vehicles.Select(vehicle => new VehicleAvailabilityDto(ToDto(vehicle),
-            Enumerable.Range(0, to.DayNumber - from.DayNumber + 1).Select(offset =>
+            if (from == default || to < from || to.DayNumber - from.DayNumber > 365)
+                return Invalid("Bitte einen gültigen Kalenderzeitraum von höchstens 366 Tagen wählen.");
+            IQueryable<Vehicle> query = Vehicles.AsNoTracking().Where(x => x.IsActive);
+            if (!string.IsNullOrWhiteSpace(vehicleType))
             {
-                var day = from.AddDays(offset);
-                var status = booked.Contains((vehicle.Id, day)) ? VehicleDayStatus.Booked : !vehicle.VehicleStatus.AllowsBooking ? VehicleDayStatus.Unavailable :
-                    pending.Any(x => x.VehicleId == vehicle.Id && x.From <= day && x.To >= day) ? VehicleDayStatus.Pending : VehicleDayStatus.Free;
-                return new VehicleDayDto(day, status);
-            }).ToList())).ToList());
-    }
+                string normalizedType = vehicleType.Trim().ToUpperInvariant();
+                query = query.Where(x => x.VehicleType != null && x.VehicleType.NormalizedName == normalizedType);
+            }
+            List<Vehicle> vehicles = await query
+                .OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct);
+            List<VehicleBookingDay> bookings = await db.VehicleBookingDays.AsNoTracking().Where(x => x.Date >= from && x.Date <= to).ToListAsync(ct);
+            var pending = await db.VehicleReservations.AsNoTracking().Where(x => x.Status == VehicleReservationStatus.Pending && x.From <= to && x.To >= from)
+                .Select(x => new { x.VehicleId, x.From, x.To }).ToListAsync(ct);
+            HashSet<(Guid VehicleId, DateOnly Date)> booked = bookings.Select(x => (x.VehicleId, x.Date)).ToHashSet();
+            return ServiceResult.Ok(vehicles.Select(vehicle => new VehicleAvailabilityDto(ToDto(vehicle),
+                Enumerable.Range(0, to.DayNumber - from.DayNumber + 1).Select(offset =>
+                {
+                    DateOnly day = from.AddDays(offset);
+                    VehicleDayStatus status = booked.Contains((vehicle.Id, day)) ? VehicleDayStatus.Booked : !vehicle.VehicleStatus.AllowsBooking ? VehicleDayStatus.Unavailable :
+                        pending.Any(x => x.VehicleId == vehicle.Id && x.From <= day && x.To >= day) ? VehicleDayStatus.Pending : VehicleDayStatus.Free;
+                    return new VehicleDayDto(day, status);
+                }).ToList())).ToList());
+        }
 
     public async Task<ServiceResult> ManagementOptions(CancellationToken ct)
     {
-        if (!CanManage)
-            return ServiceResult.Forbid();
+        if (!CanManage) return ServiceResult.Forbid();
         var actor = await Actor(ct);
-        if (actor is null)
-            return ServiceResult.Forbid();
+        if (actor is null) return ServiceResult.Forbid();
         var departments = db.FireDepartments.AsNoTracking();
-        if (!IsAdmin)
-            departments = departments.Where(x => x.Id == actor.FireDepartmentId);
+        if (!IsAdmin) departments = departments.Where(x => x.Id == actor.FireDepartmentId);
         var departmentList = await departments.OrderBy(x => x.Name).Select(x => new VehicleDepartmentDto(x.Id, x.Name)).ToListAsync(ct);
         var ids = departmentList.Select(x => x.Id).ToArray();
         var officers = await (from user in db.Users
@@ -186,23 +167,23 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
         return ServiceResult.Ok(new VehicleManagementOptionsDto(departmentList, officers, VehicleStatusDefaults.ReadyId));
     }
 
-    public Task<ServiceResult> Save(Guid? id, SaveVehicleRequest request, CancellationToken ct) => Execute(() => SaveCore(id, request, ct));
+        /// <summary>
+        /// Saves the operation.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="request">The request.</param>
+        public Task<ServiceResult> Save(Guid? id, SaveVehicleRequest request, CancellationToken ct) => Execute(() => SaveCore(id, request, ct));
 
     private async Task<ServiceResult> SaveCore(Guid? id, SaveVehicleRequest request, CancellationToken ct)
     {
-        if (!CanManage)
-            return ServiceResult.Forbid();
+        if (!CanManage) return ServiceResult.Forbid();
         var actor = await Actor(ct);
-        if (actor is null)
-            return ServiceResult.Forbid();
+        if (actor is null) return ServiceResult.Forbid();
         await using var transaction = await Begin(ct);
         var vehicle = id.HasValue ? await LockVehicle(id.Value, ct) : new Vehicle { Id = Guid.NewGuid() };
-        if (vehicle is null)
-            return ServiceResult.NotFound();
-        if (id.HasValue && !IsAdmin && !Owns(vehicle))
-            return ServiceResult.Forbid();
-        if (!IsAdmin && request.FireDepartmentId != actor.FireDepartmentId)
-            return ServiceResult.Forbid();
+        if (vehicle is null) return ServiceResult.NotFound();
+        if (id.HasValue && !IsAdmin && !Owns(vehicle)) return ServiceResult.Forbid();
+        if (!IsAdmin && request.FireDepartmentId != actor.FireDepartmentId) return ServiceResult.Forbid();
         if (string.IsNullOrWhiteSpace(request.RadioCallSign) || request.RadioCallSign.Trim().Length > 100 ||
             request.Name?.Length > 150 || request.LicensePlate?.Length > 30)
             return Invalid("Ein Funkrufname ist erforderlich; bitte die maximalen Feldlängen beachten.");
@@ -222,8 +203,7 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
             if (vehicleType is null || (!vehicleType.IsActive && (!id.HasValue || vehicle.VehicleTypeId != vehicleType.Id)))
                 return Invalid("Bitte einen aktiven Fahrzeugtyp wählen.");
         }
-        if (id.HasValue && vehicle.Version != request.ExpectedVersion)
-            return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
+        if (id.HasValue && vehicle.Version != request.ExpectedVersion) return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
         vehicle.FireDepartmentId = department.Id;
         vehicle.FireDepartment = department;
         vehicle.EquipmentOfficerId = officer.Id;
@@ -237,41 +217,38 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
             vehicle.StatusChangedAtUtc = Now;
         vehicle.VehicleStatusId = vehicleStatus.Id;
         vehicle.VehicleStatus = vehicleStatus;
-        if (id.HasValue)
-            vehicle.Version++;
-        else
-            db.Vehicles.Add(vehicle);
+        if (id.HasValue) vehicle.Version++; else db.Vehicles.Add(vehicle);
         Audit(vehicle, null, id.HasValue ? "VehicleUpdated" : "VehicleCreated", JsonSerializer.Serialize(request));
         try
         {
             await db.SaveChangesAsync(ct);
-            if (transaction is not null)
-                await transaction.CommitAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
         }
         catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden."); }
         return ServiceResult.Ok(ToDto(vehicle));
     }
 
-    public Task<ServiceResult> SetActive(Guid id, SetVehicleActiveRequest request, CancellationToken ct) => Execute(() => SetActiveCore(id, request, ct));
+        /// <summary>
+        /// Sets the active.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="request">The request.</param>
+        public Task<ServiceResult> SetActive(Guid id, SetVehicleActiveRequest request, CancellationToken ct) => Execute(() => SetActiveCore(id, request, ct));
 
     private async Task<ServiceResult> SetActiveCore(Guid id, SetVehicleActiveRequest request, CancellationToken ct)
     {
         await using var transaction = await Begin(ct);
         var vehicle = await LockVehicle(id, ct);
-        if (vehicle is null)
-            return ServiceResult.NotFound();
-        if (!IsAdmin && !Owns(vehicle))
-            return ServiceResult.Forbid();
-        if (vehicle.Version != request.ExpectedVersion)
-            return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
+        if (vehicle is null) return ServiceResult.NotFound();
+        if (!IsAdmin && !Owns(vehicle)) return ServiceResult.Forbid();
+        if (vehicle.Version != request.ExpectedVersion) return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
         vehicle.IsActive = request.IsActive;
         vehicle.Version++;
         Audit(vehicle, null, request.IsActive ? "VehicleActivated" : "VehicleDeactivated", "Bestehende Buchungen bleiben erhalten.");
         try
         {
             await db.SaveChangesAsync(ct);
-            if (transaction is not null)
-                await transaction.CommitAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
         }
         catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden."); }
         return ServiceResult.Ok(ToDto(vehicle));
@@ -280,96 +257,72 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
     public async Task<ServiceResult> Reservations(string scope, CancellationToken ct)
     {
         var query = db.VehicleReservations.AsNoTracking().Include(x => x.Vehicle).AsQueryable();
-        if (scope == "mine")
-            query = query.Where(x => x.RequesterId == UserId);
+        if (scope == "mine") query = query.Where(x => x.RequesterId == UserId);
         else if (scope == "assigned")
         {
-            if (!IsOfficer)
-                return ServiceResult.Forbid();
+            if (!IsOfficer) return ServiceResult.Forbid();
             query = query.Where(x => x.Vehicle.EquipmentOfficerId == UserId);
         }
-        else
-            return Invalid("Als Bereich bitte mine oder assigned angeben.");
+        else return Invalid("Als Bereich bitte mine oder assigned angeben.");
         return ServiceResult.Ok((await query.OrderByDescending(x => x.CreatedAtUtc).ToListAsync(ct)).Select(ToDto).ToList());
     }
 
-    public Task<ServiceResult> Reserve(Guid id, CreateVehicleReservationRequest request, bool direct, CancellationToken ct) => Execute(() => ReserveCore(id, request, direct, ct));
+        /// <summary>
+        /// Executes reserve.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="direct">The direct.</param>
+        public Task<ServiceResult> Reserve(Guid id, CreateVehicleReservationRequest request, bool direct, CancellationToken ct) => Execute(() => ReserveCore(id, request, direct, ct));
 
     private async Task<ServiceResult> ReserveCore(Guid id, CreateVehicleReservationRequest request, bool direct, CancellationToken ct)
     {
-        if (!direct && !CanRequest)
-            return ServiceResult.Forbid();
-        if (direct && !IsOfficer)
-            return ServiceResult.Forbid();
-        if (request.CommandId == Guid.Empty)
-            return Invalid("Eine CommandId ist erforderlich.");
+        if (!direct && !CanRequest) return ServiceResult.Forbid();
+        if (direct && !IsOfficer) return ServiceResult.Forbid();
+        if (request.CommandId == Guid.Empty) return Invalid("Eine CommandId ist erforderlich.");
         if (request.From == default || request.To < request.From || request.To.DayNumber - request.From.DayNumber > 365 || request.To == DateOnly.MaxValue)
             return Invalid("Bitte einen gültigen Zeitraum von höchstens 366 Tagen wählen.");
-        if (request.Comment?.Length > 2000)
-            return Invalid("Der Kommentar darf höchstens 2000 Zeichen enthalten.");
+        if (request.Comment?.Length > 2000) return Invalid("Der Kommentar darf höchstens 2000 Zeichen enthalten.");
         var actor = await Actor(ct);
-        if (actor is null || string.IsNullOrWhiteSpace(actor.Email))
-            return ServiceResult.Forbid();
+        if (actor is null || string.IsNullOrWhiteSpace(actor.Email)) return ServiceResult.Forbid();
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
-        { VehicleId = id, request.From, request.To, Comment = Clean(request.Comment), Direct = direct }))));
+            { VehicleId = id, request.From, request.To, Comment = Clean(request.Comment), Direct = direct }))));
         await using var transaction = await Begin(ct);
         var vehicle = await LockVehicle(id, ct);
-        if (vehicle is null)
-            return ServiceResult.NotFound();
-        if (direct && !Owns(vehicle))
-            return ServiceResult.Forbid();
+        if (vehicle is null) return ServiceResult.NotFound();
+        if (direct && !Owns(vehicle)) return ServiceResult.Forbid();
         var existing = await db.VehicleReservations.SingleOrDefaultAsync(x => x.CommandId == request.CommandId, ct);
-        if (existing is not null)
-            return Replay(existing, hash);
-        if (!vehicle.IsActive)
-            return Conflict("Dieses Fahrzeug ist deaktiviert und kann nicht gebucht werden.");
-        if (!vehicle.VehicleStatus.AllowsBooking)
-            return Conflict($"Das Fahrzeug kann im Status {vehicle.VehicleStatus.Name} nicht gebucht werden.");
-        if (request.From < Today)
-            return Invalid("Buchungen in der Vergangenheit sind nicht möglich.");
+        if (existing is not null) return Replay(existing, hash);
+        if (!vehicle.IsActive) return Conflict("Dieses Fahrzeug ist deaktiviert und kann nicht gebucht werden.");
+        if (!vehicle.VehicleStatus.AllowsBooking) return Conflict($"Das Fahrzeug kann im Status {vehicle.VehicleStatus.Name} nicht gebucht werden.");
+        if (request.From < Today) return Invalid("Buchungen in der Vergangenheit sind nicht möglich.");
         if (!vehicle.EquipmentOfficer.IsActive || string.IsNullOrWhiteSpace(vehicle.EquipmentOfficer.Email) ||
             !await HasOfficerRole(vehicle.EquipmentOfficerId, ct))
             return Conflict("Der zuständige Gerätewart ist nicht verfügbar. Bitte die Fahrzeugverwaltung kontaktieren.");
         var collision = await Collision(id, request.From, request.To, ct);
-        if (collision is not null)
-            return collision;
+        if (collision is not null) return collision;
         var reservation = new VehicleReservation
         {
-            Id = Guid.NewGuid(),
-            VehicleId = id,
-            Vehicle = vehicle,
-            CommandId = request.CommandId,
-            PayloadHash = hash,
-            RequesterId = actor.Id,
-            RequesterName = actor.FullName,
-            RequesterEmail = actor.Email!,
-            RadioCallSign = vehicle.RadioCallSign,
-            FireDepartmentName = vehicle.FireDepartment.Name,
-            From = request.From,
-            To = request.To,
-            Comment = Clean(request.Comment),
-            CreatedAtUtc = Now,
-            Status = direct ? VehicleReservationStatus.Confirmed : VehicleReservationStatus.Pending,
-            IsDirectBooking = direct,
-            DecidedAtUtc = direct ? Now : null,
-            DecidedById = direct ? UserId : null
+            Id = Guid.NewGuid(), VehicleId = id, Vehicle = vehicle, CommandId = request.CommandId, PayloadHash = hash,
+            RequesterId = actor.Id, RequesterName = actor.FullName, RequesterEmail = actor.Email!,
+            RadioCallSign = vehicle.RadioCallSign, FireDepartmentName = vehicle.FireDepartment.Name,
+            From = request.From, To = request.To, Comment = Clean(request.Comment), CreatedAtUtc = Now,
+            Status = direct ? VehicleReservationStatus.Confirmed : VehicleReservationStatus.Pending, IsDirectBooking = direct,
+            DecidedAtUtc = direct ? Now : null, DecidedById = direct ? UserId : null
         };
         db.VehicleReservations.Add(reservation);
-        if (direct)
-            AddDays(reservation);
+        if (direct) AddDays(reservation);
         vehicle.Version++;
         Audit(vehicle, reservation, direct ? "DirectBooking" : "ReservationRequested", reservation.Comment ?? "");
         db.VehicleMailMessages.Add(mail.Compose(reservation, direct ? actor.Email! : vehicle.EquipmentOfficer.Email!, !direct));
         try
         {
             await db.SaveChangesAsync(ct);
-            if (transaction is not null)
-                await transaction.CommitAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
         }
         catch (DbUpdateException exception) when (IsConflict(exception))
         {
-            if (transaction is not null)
-                await transaction.RollbackAsync(ct);
+            if (transaction is not null) await transaction.RollbackAsync(ct);
             db.ChangeTracker.Clear();
             existing = await db.VehicleReservations.Include(x => x.Vehicle).SingleOrDefaultAsync(x => x.CommandId == request.CommandId, ct);
             return existing is not null ? Replay(existing, hash) : Conflict("Der Zeitraum oder das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
@@ -377,42 +330,41 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
         return ServiceResult.Ok(ToDto(reservation));
     }
 
-    public Task<ServiceResult> Decide(Guid id, DecideVehicleReservationRequest request, VehicleReservationStatus status, CancellationToken ct) => Execute(() => DecideCore(id, request, status, ct));
+        /// <summary>
+        /// Executes decide.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="status">The status.</param>
+        public Task<ServiceResult> Decide(Guid id, DecideVehicleReservationRequest request, VehicleReservationStatus status, CancellationToken ct) => Execute(() => DecideCore(id, request, status, ct));
 
     private async Task<ServiceResult> DecideCore(Guid id, DecideVehicleReservationRequest request, VehicleReservationStatus status, CancellationToken ct)
     {
         if (status is not (VehicleReservationStatus.Confirmed or VehicleReservationStatus.Rejected or VehicleReservationStatus.Cancelled))
             return Invalid("Ungültige Entscheidung.");
         var vehicleId = await db.VehicleReservations.Where(x => x.Id == id).Select(x => (Guid?)x.VehicleId).SingleOrDefaultAsync(ct);
-        if (!vehicleId.HasValue)
-            return ServiceResult.NotFound();
+        if (!vehicleId.HasValue) return ServiceResult.NotFound();
         await using var transaction = await Begin(ct);
         var vehicle = (await LockVehicle(vehicleId.Value, ct))!;
-        var reservation = await db.VehicleReservations.SingleAsync(x => x.Id == id, ct);
+        var reservation = (await db.VehicleReservations.SingleAsync(x => x.Id == id, ct));
         var owns = Owns(vehicle);
         if (status == VehicleReservationStatus.Cancelled)
         {
             if (!owns && !(reservation.RequesterId == UserId && reservation.Status is VehicleReservationStatus.Pending or VehicleReservationStatus.Cancelled))
                 return ServiceResult.Forbid();
         }
-        else if (!owns)
-            return ServiceResult.Forbid();
-        if (reservation.Status == status)
-            return ServiceResult.Ok(ToDto(reservation));
+        else if (!owns) return ServiceResult.Forbid();
+        if (reservation.Status == status) return ServiceResult.Ok(ToDto(reservation));
         if (reservation.Version != request.ExpectedVersion || reservation.Status is VehicleReservationStatus.Rejected or VehicleReservationStatus.Cancelled ||
             (reservation.Status == VehicleReservationStatus.Confirmed && status != VehicleReservationStatus.Cancelled))
             return Conflict("Die Anfrage wurde inzwischen bearbeitet. Bitte neu laden.");
         if (status == VehicleReservationStatus.Confirmed)
         {
-            if (!vehicle.IsActive)
-                return Conflict("Das Fahrzeug wurde deaktiviert und kann nicht mehr gebucht werden.");
-            if (!vehicle.VehicleStatus.AllowsBooking)
-                return Conflict($"Das Fahrzeug kann im Status {vehicle.VehicleStatus.Name} nicht gebucht werden.");
-            if (reservation.From < Today)
-                return Conflict("Der angefragte Zeitraum liegt inzwischen in der Vergangenheit.");
+            if (!vehicle.IsActive) return Conflict("Das Fahrzeug wurde deaktiviert und kann nicht mehr gebucht werden.");
+            if (!vehicle.VehicleStatus.AllowsBooking) return Conflict($"Das Fahrzeug kann im Status {vehicle.VehicleStatus.Name} nicht gebucht werden.");
+            if (reservation.From < Today) return Conflict("Der angefragte Zeitraum liegt inzwischen in der Vergangenheit.");
             var collision = await Collision(vehicle.Id, reservation.From, reservation.To, ct);
-            if (collision is not null)
-                return collision;
+            if (collision is not null) return collision;
             AddDays(reservation);
             db.VehicleMailMessages.Add(mail.Compose(reservation, reservation.RequesterEmail, false));
         }
@@ -427,15 +379,14 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
         try
         {
             await db.SaveChangesAsync(ct);
-            if (transaction is not null)
-                await transaction.CommitAsync(ct);
+            if (transaction is not null) await transaction.CommitAsync(ct);
         }
         catch (DbUpdateException exception) when (IsConflict(exception))
         { return Conflict("Der Zeitraum oder die Anfrage wurde inzwischen geändert. Bitte neu laden."); }
         return ServiceResult.Ok(ToDto(reservation));
     }
 
-    private Task<ApplicationUser?> Actor(CancellationToken ct) => db.Users.SingleOrDefaultAsync(x => x.Id == UserId && x.IsActive, ct);
+        private Task<ApplicationUser?> Actor(CancellationToken ct) => db.Users.SingleOrDefaultAsync(x => x.Id == UserId && x.IsActive, ct);
 
     private Task<ServiceResult> Execute(Func<Task<ServiceResult>> operation) => db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
     {
@@ -444,10 +395,8 @@ public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor h
         return await operation();
     });
     private Task<bool> HasOfficerRole(string id, CancellationToken ct) =>
-        (from membership in db.UserRoles
-         join role in db.Roles on membership.RoleId equals role.Id
-         where membership.UserId == id && role.Name == Roles.EquipmentOfficer
-         select membership).AnyAsync(ct);
+        (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id
+         where membership.UserId == id && role.Name == Roles.EquipmentOfficer select membership).AnyAsync(ct);
     private Task<IDbContextTransaction?> Begin(CancellationToken ct) => db.Database.IsRelational() ? BeginRelational(ct) : Task.FromResult<IDbContextTransaction?>(null);
     private async Task<IDbContextTransaction?> BeginRelational(CancellationToken ct) => await db.Database.BeginTransactionAsync(ct);
     private async Task<Vehicle?> LockVehicle(Guid id, CancellationToken ct)

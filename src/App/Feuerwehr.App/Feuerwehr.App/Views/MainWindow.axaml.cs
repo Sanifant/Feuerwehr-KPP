@@ -2,8 +2,9 @@ using System;
 using Avalonia.Controls;
 using de.openelp.feuerwehr.App.Services;
 using de.openelp.feuerwehr.App.ViewModels;
+using System;
 
-namespace de.openelp.feuerwehr.App.Views
+namespace De.Openelp.Feuerwehr.App.Views
 {
     public partial class MainWindow : Window
     {
@@ -48,10 +49,10 @@ namespace de.openelp.feuerwehr.App.Views
 
         private void ShowLoginView()
         {
-            var loginViewModel = _loginViewModelFactory();
+            LoginViewModel loginViewModel = _loginViewModelFactory();
             loginViewModel.LoginSuccessful += OnLoginSuccessful;
 
-            var loginView = new LoginView
+            LoginView loginView = new LoginView
             {
                 DataContext = loginViewModel
             };
@@ -61,9 +62,9 @@ namespace de.openelp.feuerwehr.App.Views
 
         private void ShowMainView()
         {
-            var mainViewModel = _mainViewModelFactory();
+            MainViewModel mainViewModel = _mainViewModelFactory();
 
-            var mainView = new MainView
+            MainView mainView = new MainView
             {
                 DataContext = mainViewModel
             };

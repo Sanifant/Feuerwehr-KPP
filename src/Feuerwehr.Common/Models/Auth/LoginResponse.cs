@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Common.Models.Auth
+namespace De.Openelp.Feuerwehr.Common.Models.Auth
 {
     public class LoginResponse
     {
@@ -11,3 +11,4 @@ namespace de.openelp.feuerwehr.Common.Models.Auth
         public DateTime ExpiresAt { get; set; }
     }
 }
+

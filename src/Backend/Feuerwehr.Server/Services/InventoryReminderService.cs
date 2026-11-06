@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Authorization;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Authorization;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -25,8 +25,7 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
             .Where(x => x.IsActive).ToListAsync(ct);
         var due = items.Select(InventoryService.ToDto).Where(x => x.NextInspectionOn <= today.AddDays(14))
             .OrderBy(x => x.NextInspectionOn).ThenBy(x => x.Barcode).ToList();
-        if (due.Count == 0)
-            return;
+        if (due.Count == 0) return;
 
         var recipients = await (from user in db.Users
                                 join membership in db.UserRoles on user.Id equals membership.UserId
@@ -38,8 +37,7 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
             ct.ThrowIfCancellationRequested();
             var sent = await db.EquipmentReminderDeliveries.AsNoTracking().Where(x => x.RecipientId == recipient.Id).ToListAsync(ct);
             var pending = due.Where(x => !sent.Any(s => s.EquipmentId == x.Id && s.DueOn == x.NextInspectionOn)).ToList();
-            if (pending.Count == 0)
-                continue;
+            if (pending.Count == 0) continue;
             var body = new StringBuilder("Folgende Geräte sind innerhalb der nächsten zwei Wochen zur Prüfung fällig oder bereits überfällig:\n\n");
             foreach (var item in pending)
             {
@@ -59,11 +57,7 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
             }
             db.EquipmentReminderDeliveries.AddRange(pending.Select(x => new EquipmentReminderDelivery
             {
-                Id = Guid.NewGuid(),
-                EquipmentId = x.Id,
-                RecipientId = recipient.Id,
-                DueOn = x.NextInspectionOn,
-                SentAtUtc = now,
+                Id = Guid.NewGuid(), EquipmentId = x.Id, RecipientId = recipient.Id, DueOn = x.NextInspectionOn, SentAtUtc = now,
             }));
             // Erst nach erfolgreicher SMTP-Annahme markieren; fehlgeschlagene Empfänger bleiben offen.
             await db.SaveChangesAsync(ct);
@@ -89,8 +83,7 @@ public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimePro
                 await using var command = new NpgsqlCommand("SELECT pg_try_advisory_lock(305002014)", mutex);
                 if (await command.ExecuteScalarAsync(stoppingToken) is true)
                 {
-                    try
-                    { await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken); }
+                    try { await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken); }
                     finally
                     {
                         // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schließt die Verbindung.
@@ -102,8 +95,7 @@ public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimePro
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception ex) { logger.LogError(ex, "Fehler beim Versand der Inventarerinnerungen."); }
 
-            try
-            { await Task.Delay(TimeSpan.FromHours(6), clock, stoppingToken); }
+            try { await Task.Delay(TimeSpan.FromHours(6), clock, stoppingToken); }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
         }
     }

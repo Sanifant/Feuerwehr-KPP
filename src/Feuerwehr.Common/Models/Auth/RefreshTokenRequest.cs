@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace de.openelp.feuerwehr.Common.Models.Auth
+namespace De.Openelp.Feuerwehr.Common.Models.Auth
 {
     public class RefreshTokenRequest
     {
@@ -8,3 +8,4 @@ namespace de.openelp.feuerwehr.Common.Models.Auth
         public string RefreshToken { get; set; } = string.Empty;
     }
 }
+

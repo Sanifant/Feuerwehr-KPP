@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { isAxiosError } from 'axios';
 import apiClient from './api/apiClient';
 import { jwtDecode } from 'jwt-decode';
 
@@ -56,6 +57,10 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
     children: ReactNode;
+}
+
+interface AuthErrorResponse {
+    message?: string;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -123,26 +128,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setRefreshToken(data.refreshToken);
 
             return { success: true };
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Authentication Error:', error);
 
             let errorMessage = 'Login fehlgeschlagen';
 
-            if (error.response) {
-                // Account lockout
-                if (error.response.status === 423) {
-                    errorMessage = error.response.data?.message || 'Konto gesperrt aufgrund mehrerer fehlgeschlagener Anmeldeversuche';
+            if (isAxiosError<AuthErrorResponse>(error)) {
+                if (error.response) {
+                    // Account lockout
+                    if (error.response.status === 423) {
+                        errorMessage = error.response.data?.message || 'Konto gesperrt aufgrund mehrerer fehlgeschlagener Anmeldeversuche';
+                    }
+                    // Unauthorized
+                    else if (error.response.status === 401) {
+                        errorMessage = 'Ungültige Anmeldedaten';
+                    }
+                    // Other errors
+                    else if (error.response.data?.message) {
+                        errorMessage = error.response.data.message;
+                    }
+                } else if (error.request) {
+                    errorMessage = 'Server nicht erreichbar';
                 }
-                // Unauthorized
-                else if (error.response.status === 401) {
-                    errorMessage = 'Ungültige Anmeldedaten';
-                }
-                // Other errors
-                else if (error.response.data?.message) {
-                    errorMessage = error.response.data.message;
-                }
-            } else if (error.request) {
-                errorMessage = 'Server nicht erreichbar';
             }
 
             setError(errorMessage);

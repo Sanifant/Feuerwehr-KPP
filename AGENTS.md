@@ -13,9 +13,6 @@
 - Das React-/TypeScript-Frontend liegt in `src/frontend/`.
 - Avalonia-Clients liegen in `src/App/Feuerwehr.App/` (Desktop, Android und iOS).
 - Der .NET-Aspire-AppHost liegt in `src/Feuerwehr.AppHost/AppHost.cs` und verdrahtet API, Frontend, Desktop-App, PostgreSQL mit PgWeb, Redis und Mailpit.
--Interfaces sollen immer im Unterordner Interfaces/platziert werden.
--Pro Klasse soll jeweils eine eigene Datei erstellt werden.
--Alle öffentlichen Klassen und Funktionen sollen einen XMLDOC Header haben der die Funktion beschreibt, die Parameter beschreibt und die Rückgabewerte
 
 ## Projekte und Abhaengigkeiten
 - `Feuerwehr.Common`: unabhaengige Vertragsbibliothek fuer .NET 10.
@@ -68,6 +65,9 @@
 - Fuer alle Aenderungen im Repository ist die `.editorconfig` im Repository-Root verbindlich.
 - Formatierung, Einrueckung, Zeilenenden und C#-Code-Style sind nach `.editorconfig` umzusetzen.
 - Bei Konflikten mit Standard-Tooling oder persoenlichen Defaults hat `.editorconfig` Vorrang.
+- C#: Immer explizite Typen statt `var` verwenden (IDE0008, in `.editorconfig` als Warnung erzwungen). Ausnahme: anonyme Typen, bei denen `var` technisch erforderlich ist.
+- C#: Namespaces immer block-scoped (`namespace X { ... }`), keine file-scoped Namespaces (IDE0160).
+- C#: Pro Datei genau ein Typ (Klasse, Record, Enum); Interfaces liegen in einem Unterordner `Interfaces`.
 
 ## Konfiguration und Integrationen
 - API-Konfiguration: `src/Backend/Feuerwehr.Server/appsettings.json` und `appsettings.Development.json`.
@@ -98,4 +98,4 @@
 - NuGet-Abhaengigkeitsgrenzen beachten: insbesondere `Microsoft.OpenApi` passend zu `Microsoft.AspNetCore.OpenApi` waehlen. NU1608 nicht bloss unterdruecken.
 - Test-Stack: xUnit + Moq, EF InMemory und SQLite; vorhandene Controller-Tests: `UsersControllerTests` und `IncidentDiaryControllerTests`. Service-Tests unter `Services/`, Architekturregeln in `ArchitectureTests.cs`.
 - Relevante Service-/Controller-Tests und bei Common-Aenderungen betroffene Clients pruefen. EF-InMemory/SQLite ersetzen keine PostgreSQL-Integrationstests, etwa fuer Sequenzen.
-- Bekannte Grenzen: `UnitTest1` ist ein leerer Platzhalter, einige Tests sind auskommentiert. Ein gruener Testlauf bedeutet keine vollstaendige Funktionsabdeckung. Einladungs-API-Tests nutzen echtes Identity/EF mit austauschbaren Mail-/Redis-Grenzen; sie ersetzen keinen externen SMTP-/Redis-Integrationstest.
+

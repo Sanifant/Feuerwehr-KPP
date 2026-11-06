@@ -1,6 +1,6 @@
 using System;
 
-namespace de.openelp.feuerwehr.App.Models
+namespace De.Openelp.Feuerwehr.App.Models
 {
     /// <summary>
     /// Represents a page entry with a header, content factory, and optional icon data.
@@ -41,3 +41,4 @@ namespace de.openelp.feuerwehr.App.Models
         public bool IsVisible { get => _isVisible(); }
     }
 }
+

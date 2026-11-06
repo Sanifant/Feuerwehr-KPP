@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Common.Models
+namespace De.Openelp.Feuerwehr.Common.Models
 {
     public enum HydrantType
     {
@@ -8,3 +8,4 @@ namespace de.openelp.feuerwehr.Common.Models
         WallHydrant = 4                  // Wandhydrant
     }
 }
+

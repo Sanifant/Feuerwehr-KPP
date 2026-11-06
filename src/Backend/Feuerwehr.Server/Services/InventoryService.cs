@@ -1,101 +1,93 @@
 using System.Globalization;
 using System.Text;
-using de.openelp.feuerwehr.Common.Models.Inventory;
-using de.openelp.feuerwehr.Server.Data;
-using de.openelp.feuerwehr.Server.Models.Inventory;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Server.Models.Inventory;
+using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using ZXing;
 
-namespace de.openelp.feuerwehr.Server.Services;
-
-public interface IInventoryService
+namespace De.Openelp.Feuerwehr.Server.Services
 {
-    Task<ServiceResult> GetCategories(CancellationToken ct);
-    Task<ServiceResult> CreateCategory(CreateInventoryCategoryRequest request, CancellationToken ct);
-    Task<ServiceResult> GetTypes(CancellationToken ct);
-    Task<ServiceResult> SaveType(Guid? id, SaveEquipmentTypeRequest request, CancellationToken ct);
-    Task<ServiceResult> GetAll(bool includeInactive, CancellationToken ct);
-    Task<ServiceResult> Get(Guid id, CancellationToken ct);
-    Task<ServiceResult> FindBarcode(string barcode, CancellationToken ct);
-    Task<ServiceResult> BarcodeLabel(Guid id, CancellationToken ct);
-    Task<ServiceResult> Save(Guid? id, SaveEquipmentRequest request, CancellationToken ct);
-    Task<ServiceResult> SetActive(Guid id, SetEquipmentActiveRequest request, CancellationToken ct);
-    Task<ServiceResult> Inspect(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct);
-}
+    /// <summary>
+    /// Executes inventory Service.
+    /// </summary>
+    /// <param name="db">The db.</param>
+    /// <param name="user">The user.</param>
+    /// <param name="clock">The clock.</param>
+    public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor user, TimeProvider clock) : IInventoryService
+    {
+        private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+        private IQueryable<Equipment> EquipmentQuery => db.Equipment.Include(x => x.EquipmentType).ThenInclude(x => x.Category);
+        private static ServiceResult Conflict(string title) => ServiceResult.Problem(409, title);
+        private static ServiceResult Invalid(string title) => ServiceResult.Problem(400, title);
 
-public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor user, TimeProvider clock) : IInventoryService
-{
-    private DateOnly Today => DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
-    private IQueryable<Equipment> EquipmentQuery => db.Equipment.Include(x => x.EquipmentType).ThenInclude(x => x.Category);
-    private static ServiceResult Conflict(string title) => ServiceResult.Problem(409, title);
-    private static ServiceResult Invalid(string title) => ServiceResult.Problem(400, title);
-
-    public async Task<ServiceResult> GetCategories(CancellationToken ct) => ServiceResult.Ok(await db.InventoryCategories
-        .OrderBy(x => x.Name).Select(x => new InventoryCategoryDto(x.Id, x.Name)).ToListAsync(ct));
+        /// <summary>
+        /// Gets the categories.
+        /// </summary>
+        public async Task<ServiceResult> GetCategories(CancellationToken ct) => ServiceResult.Ok(await db.InventoryCategories
+            .OrderBy(x => x.Name).Select(x => new InventoryCategoryDto(x.Id, x.Name)).ToListAsync(ct));
 
     public async Task<ServiceResult> CreateCategory(CreateInventoryCategoryRequest request, CancellationToken ct)
     {
         var name = request.Name.Trim();
-        if (name.Length is 0 or > 100)
-            return Invalid("Ein Kategoriename ist erforderlich (maximal 100 Zeichen).");
+        if (name.Length is 0 or > 100) return Invalid("Ein Kategoriename ist erforderlich (maximal 100 Zeichen).");
         var normalized = name.ToUpperInvariant();
-        if (await db.InventoryCategories.AnyAsync(x => x.NormalizedName == normalized, ct))
-            return Conflict("Diese Kategorie existiert bereits.");
+        if (await db.InventoryCategories.AnyAsync(x => x.NormalizedName == normalized, ct)) return Conflict("Diese Kategorie existiert bereits.");
         var category = new InventoryCategory { Id = Guid.NewGuid(), Name = name, NormalizedName = normalized };
         db.InventoryCategories.Add(category);
-        try
-        { await db.SaveChangesAsync(ct); }
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
         { return Conflict("Diese Kategorie existiert bereits."); }
         return ServiceResult.StatusCode(201, new InventoryCategoryDto(category.Id, category.Name));
     }
 
-    public async Task<ServiceResult> GetTypes(CancellationToken ct) => ServiceResult.Ok(await db.EquipmentTypes
-        .Include(x => x.Category).OrderBy(x => x.Name)
-        .Select(x => new EquipmentTypeDto(x.Id, x.CategoryId, x.Category.Name, x.Name, x.InspectionIntervalMonths, x.InspectionInstructions, x.Version)).ToListAsync(ct));
+        /// <summary>
+        /// Gets the types.
+        /// </summary>
+        public async Task<ServiceResult> GetTypes(CancellationToken ct) => ServiceResult.Ok(await db.EquipmentTypes
+            .Include(x => x.Category).OrderBy(x => x.Name)
+            .Select(x => new EquipmentTypeDto(x.Id, x.CategoryId, x.Category.Name, x.Name, x.InspectionIntervalMonths, x.InspectionInstructions, x.Version)).ToListAsync(ct));
 
     public async Task<ServiceResult> SaveType(Guid? id, SaveEquipmentTypeRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 150 ||
             string.IsNullOrWhiteSpace(request.InspectionInstructions) || request.InspectionInstructions.Length > 8000 ||
-            request.InspectionIntervalMonths is < 1 or > 120)
-            return Invalid("Gerätetyp, Prüfanweisung und ein Intervall von 1 bis 120 Monaten sind erforderlich.");
+            request.InspectionIntervalMonths is < 1 or > 120) return Invalid("Gerätetyp, Prüfanweisung und ein Intervall von 1 bis 120 Monaten sind erforderlich.");
         var category = await db.InventoryCategories.FindAsync([request.CategoryId], ct);
-        if (category is null)
-            return Invalid("Die Kategorie existiert nicht.");
+        if (category is null) return Invalid("Die Kategorie existiert nicht.");
         var type = id.HasValue ? await db.EquipmentTypes.FindAsync([id.Value], ct) : new EquipmentType { Id = Guid.NewGuid() };
-        if (type is null)
-            return ServiceResult.NotFound();
-        if (id.HasValue && type.Version != request.ExpectedVersion)
-            return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden.");
-        if (id.HasValue)
-            type.Version++;
-        else
-            db.EquipmentTypes.Add(type);
+        if (type is null) return ServiceResult.NotFound();
+        if (id.HasValue && type.Version != request.ExpectedVersion) return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden.");
+        if (id.HasValue) type.Version++;
+        else db.EquipmentTypes.Add(type);
         type.Category = category;
         type.CategoryId = category.Id;
         type.Name = request.Name.Trim();
         type.InspectionIntervalMonths = request.InspectionIntervalMonths;
         type.InspectionInstructions = request.InspectionInstructions.Trim();
-        try
-        { await db.SaveChangesAsync(ct); }
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException) { return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden."); }
         return ServiceResult.StatusCode(id.HasValue ? 200 : 201, new EquipmentTypeDto(type.Id, category.Id, category.Name,
             type.Name, type.InspectionIntervalMonths, type.InspectionInstructions, type.Version));
     }
 
-    public async Task<ServiceResult> GetAll(bool includeInactive, CancellationToken ct)
-    {
-        var items = await EquipmentQuery.AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.BarcodeNumber).ToListAsync(ct);
-        return ServiceResult.Ok(items.Select(ToDto).ToList());
-    }
+        /// <summary>
+        /// Gets the all.
+        /// </summary>
+        /// <param name="includeInactive">The include Inactive.</param>
+        /// <param name="ct">The ct.</param>
+        public async Task<ServiceResult> GetAll(bool includeInactive, CancellationToken ct)
+        {
+            List<Equipment> items = await EquipmentQuery.AsNoTracking().Where(x => includeInactive || x.IsActive).OrderBy(x => x.BarcodeNumber).ToListAsync(ct);
+            return ServiceResult.Ok(items.Select(ToDto).ToList());
+        }
 
     public async Task<ServiceResult> Get(Guid id, CancellationToken ct)
     {
         var item = await EquipmentQuery.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (item is null)
-            return ServiceResult.NotFound();
+        if (item is null) return ServiceResult.NotFound();
         var history = await db.EquipmentInspections.AsNoTracking().Where(x => x.EquipmentId == id)
             .OrderByDescending(x => x.RecordedAtUtc)
             .Select(x => new EquipmentInspectionDto(x.Id, x.InspectedOn, x.RecordedAtUtc, x.InspectorName, x.Comment,
@@ -103,21 +95,25 @@ public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor
         return ServiceResult.Ok(new EquipmentDetailDto(ToDto(item), history));
     }
 
-    public async Task<ServiceResult> FindBarcode(string barcode, CancellationToken ct)
-    {
-        barcode = barcode.Trim().ToUpperInvariant();
-        if (barcode.Length != 7 || !barcode.StartsWith("KPP-", StringComparison.Ordinal) ||
-            !int.TryParse(barcode.AsSpan(4), NumberStyles.None, CultureInfo.InvariantCulture, out var number) || number is < 1 or > 999)
-            return Invalid("Der Barcode muss dem Muster KPP-001 bis KPP-999 entsprechen.");
-        var item = await db.Equipment.AsNoTracking().FirstOrDefaultAsync(x => x.BarcodeNumber == number, ct);
-        return item is null ? ServiceResult.NotFound() : await Get(item.Id, ct);
-    }
+        /// <summary>
+        /// Executes find Barcode.
+        /// </summary>
+        /// <param name="barcode">The barcode.</param>
+        /// <param name="ct">The ct.</param>
+        public async Task<ServiceResult> FindBarcode(string barcode, CancellationToken ct)
+        {
+            barcode = barcode.Trim().ToUpperInvariant();
+            if (barcode.Length != 7 || !barcode.StartsWith("KPP-", StringComparison.Ordinal) ||
+                !int.TryParse(barcode.AsSpan(4), NumberStyles.None, CultureInfo.InvariantCulture, out int number) || number is < 1 or > 999)
+                return Invalid("Der Barcode muss dem Muster KPP-001 bis KPP-999 entsprechen.");
+            Equipment? item = await db.Equipment.AsNoTracking().FirstOrDefaultAsync(x => x.BarcodeNumber == number, ct);
+            return item is null ? ServiceResult.NotFound() : await Get(item.Id, ct);
+        }
 
     public async Task<ServiceResult> BarcodeLabel(Guid id, CancellationToken ct)
     {
         var item = await db.Equipment.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (item is null)
-            return ServiceResult.NotFound();
+        if (item is null) return ServiceResult.NotFound();
         var barcode = $"KPP-{item.BarcodeNumber:D3}";
         var writer = new ZXing.BarcodeWriterSvg
         {
@@ -133,29 +129,21 @@ public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor
             string.IsNullOrWhiteSpace(request.Manufacturer) || request.Manufacturer.Length > 150 || !Enum.IsDefined(request.Status))
             return Invalid("Hersteller, Seriennummer und ein gültiger Gerätestatus sind erforderlich.");
         var type = await db.EquipmentTypes.Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == request.EquipmentTypeId, ct);
-        if (type is null)
-            return Invalid("Der Gerätetyp existiert nicht.");
+        if (type is null) return Invalid("Der Gerätetyp existiert nicht.");
         var item = id.HasValue ? await db.Equipment.FindAsync([id.Value], ct) : new Equipment { Id = Guid.NewGuid(), CreatedOn = Today };
-        if (item is null)
-            return ServiceResult.NotFound();
-        if (id.HasValue && item.Version != request.ExpectedVersion)
-            return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
-        if (id.HasValue && !item.IsActive)
-            return Conflict("Deaktivierte Geräte können nicht bearbeitet werden.");
+        if (item is null) return ServiceResult.NotFound();
+        if (id.HasValue && item.Version != request.ExpectedVersion) return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
+        if (id.HasValue && !item.IsActive) return Conflict("Deaktivierte Geräte können nicht bearbeitet werden.");
         // Statusänderungen bestehender Geräte werden ausschließlich als Prüfung protokolliert.
-        if (id.HasValue && request.Status != item.Status)
-            return Invalid("Den Gerätestatus bitte über eine Prüfung ändern.");
-        if (id.HasValue)
-            item.Version++;
-        else
-            db.Equipment.Add(item);
+        if (id.HasValue && request.Status != item.Status) return Invalid("Den Gerätestatus bitte über eine Prüfung ändern.");
+        if (id.HasValue) item.Version++;
+        else db.Equipment.Add(item);
         item.EquipmentType = type;
         item.EquipmentTypeId = type.Id;
         item.SerialNumber = request.SerialNumber.Trim();
         item.Manufacturer = request.Manufacturer.Trim();
         item.Status = request.Status;
-        try
-        { await db.SaveChangesAsync(ct); }
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "2200H" })
         { return Conflict("Der Barcodevorrat KPP-001 bis KPP-999 ist ausgeschöpft. Es können keine weiteren Geräte angelegt werden."); }
@@ -165,14 +153,11 @@ public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor
     public async Task<ServiceResult> SetActive(Guid id, SetEquipmentActiveRequest request, CancellationToken ct)
     {
         var item = await db.Equipment.FindAsync([id], ct);
-        if (item is null)
-            return ServiceResult.NotFound();
-        if (item.Version != request.ExpectedVersion)
-            return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
+        if (item is null) return ServiceResult.NotFound();
+        if (item.Version != request.ExpectedVersion) return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
         item.IsActive = request.IsActive;
         item.Version++;
-        try
-        { await db.SaveChangesAsync(ct); }
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
         return await Get(id, ct);
     }
@@ -186,17 +171,13 @@ public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor
         if (previous is not null)
         {
             if (previous.EquipmentId != id || previous.InspectorId != user.UserId || previous.InspectedOn != request.InspectedOn ||
-                previous.Status != request.Status || previous.Comment != comment)
-                return Conflict("Dieser Prüfauftrag wurde bereits mit anderen Angaben verwendet.");
+                previous.Status != request.Status || previous.Comment != comment) return Conflict("Dieser Prüfauftrag wurde bereits mit anderen Angaben verwendet.");
             return await Get(id, ct);
         }
         var item = await EquipmentQuery.FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (item is null)
-            return ServiceResult.NotFound();
-        if (!item.IsActive)
-            return Conflict("Deaktivierte Geräte können nicht geprüft werden.");
-        if (item.Version != request.ExpectedVersion)
-            return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
+        if (item is null) return ServiceResult.NotFound();
+        if (!item.IsActive) return Conflict("Deaktivierte Geräte können nicht geprüft werden.");
+        if (item.Version != request.ExpectedVersion) return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
         if (request.InspectedOn > Today || request.InspectedOn < (item.LastInspectedOn ?? item.CreatedOn))
             return Invalid("Das Prüfdatum darf weder in der Zukunft noch vor der Anlage bzw. letzten Prüfung liegen.");
         item.LastInspectedOn = request.InspectedOn;
@@ -204,29 +185,22 @@ public sealed class InventoryService(FeuerwehrDbContext db, IUserContextAccessor
         item.Version++;
         db.EquipmentInspections.Add(new EquipmentInspection
         {
-            Id = Guid.NewGuid(),
-            EquipmentId = id,
-            CommandId = request.CommandId,
-            InspectedOn = request.InspectedOn,
-            RecordedAtUtc = clock.GetUtcNow().UtcDateTime,
-            InspectorId = user.UserId,
-            InspectorName = user.DisplayName,
-            Comment = comment,
-            Status = request.Status,
-            EquipmentTypeName = item.EquipmentType.Name,
-            InspectionIntervalMonths = item.EquipmentType.InspectionIntervalMonths,
+            Id = Guid.NewGuid(), EquipmentId = id, CommandId = request.CommandId,
+            InspectedOn = request.InspectedOn, RecordedAtUtc = clock.GetUtcNow().UtcDateTime,
+            InspectorId = user.UserId, InspectorName = user.DisplayName, Comment = comment, Status = request.Status,
+            EquipmentTypeName = item.EquipmentType.Name, InspectionIntervalMonths = item.EquipmentType.InspectionIntervalMonths,
             InspectionInstructions = item.EquipmentType.InspectionInstructions,
         });
-        try
-        { await db.SaveChangesAsync(ct); }
+        try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
         { return Conflict("Der Prüfauftrag wird bereits verarbeitet. Bitte das Gerät neu laden."); }
         return await Get(id, ct);
     }
 
-    internal static EquipmentDto ToDto(Equipment item) => new(item.Id, $"KPP-{item.BarcodeNumber:D3}", item.EquipmentTypeId,
-        item.EquipmentType.Name, item.EquipmentType.Category.Name, item.SerialNumber, item.Manufacturer, item.Status, item.IsActive,
-        item.CreatedOn, item.LastInspectedOn, (item.LastInspectedOn ?? item.CreatedOn).AddMonths(item.EquipmentType.InspectionIntervalMonths),
-        item.EquipmentType.InspectionIntervalMonths, item.EquipmentType.InspectionInstructions, item.Version);
+        internal static EquipmentDto ToDto(Equipment item) => new(item.Id, $"KPP-{item.BarcodeNumber:D3}", item.EquipmentTypeId,
+            item.EquipmentType.Name, item.EquipmentType.Category.Name, item.SerialNumber, item.Manufacturer, item.Status, item.IsActive,
+            item.CreatedOn, item.LastInspectedOn, (item.LastInspectedOn ?? item.CreatedOn).AddMonths(item.EquipmentType.InspectionIntervalMonths),
+            item.EquipmentType.InspectionIntervalMonths, item.EquipmentType.InspectionInstructions, item.Version);
+    }
 }

@@ -4,12 +4,12 @@ using Avalonia.iOS;
 using Avalonia.Media;
 using Foundation;
 using UIKit;
-using de.openelp.feuerwehr.App.Services;
-using de.openelp.feuerwehr.App.iOS.Services;
+using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.iOS.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace de.openelp.feuerwehr.App.iOS
+namespace De.Openelp.Feuerwehr.App.iOS
 {
     // The UIApplicationDelegate for the application. This class is responsible for launching the
     // User Interface of the application, as well as listening (and optionally responding) to
@@ -28,3 +28,4 @@ namespace de.openelp.feuerwehr.App.iOS
         }
     }
 }
+

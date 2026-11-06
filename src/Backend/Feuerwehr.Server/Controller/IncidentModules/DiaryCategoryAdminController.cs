@@ -1,27 +1,31 @@
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace de.openelp.feuerwehr.Server.Controller.IncidentModules;
-
-[Route("api/diary-categories")]
-[ApiController]
-[Authorize(Policy = PolicyNames.RequireAdmin)]
-public class DiaryCategoryAdminController(IDiaryCategoryAdminService service) : ControllerBase
+namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
 {
-    [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    [Route("api/diary-categories")]
+    [ApiController]
+    [Authorize(Policy = PolicyNames.RequireAdmin)]
+    public class DiaryCategoryAdminController(IDiaryCategoryAdminService service) : ControllerBase
     {
-        return this.ToActionResult(await service.GetAll(cancellationToken));
-    }
+        [HttpGet]
+        /// <summary>
+        /// Gets the all.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        {
+            return this.ToActionResult(await service.GetAll(cancellationToken));
+        }
 
     [HttpPost]
     public async Task<IActionResult> Upsert([FromBody] UpsertDiaryCategoryRequest request, CancellationToken cancellationToken)
     {
-        if (!ModelState.IsValid)
-            return ValidationProblem(ModelState);
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
         return this.ToActionResult(await service.Upsert(request, cancellationToken));
     }
 

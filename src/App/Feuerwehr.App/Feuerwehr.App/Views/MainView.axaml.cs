@@ -1,8 +1,11 @@
 using System;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using de.openelp.feuerwehr.App.Pages;
 using de.openelp.feuerwehr.App.ViewModels;
+using System;
 
-namespace de.openelp.feuerwehr.App.Views
+namespace De.Openelp.Feuerwehr.App.Views
 {
     public partial class MainView : DrawerPage
     {
@@ -22,3 +25,4 @@ namespace de.openelp.feuerwehr.App.Views
         }
     }
 }
+

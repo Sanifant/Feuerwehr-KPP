@@ -1,22 +1,24 @@
-using de.openelp.feuerwehr.Common.Models.Dto;
+using De.Openelp.Feuerwehr.Common.Models.Dto;
 
-namespace de.openelp.feuerwehr.Server.Models;
-
-public class TrainingCourse
+namespace De.Openelp.Feuerwehr.Server.Models
 {
-    public int Id { get; set; }
+    public class TrainingCourse
+    {
+        public int Id { get; set; }
 
-    public string Title { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
 
-    public string? Description { get; set; }
+        public string? Description { get; set; }
 
-    public TrainingLevel Level { get; set; }
+        public TrainingLevel Level { get; set; }
 
-    public DateOnly StartDate { get; set; }
+        public DateOnly StartDate { get; set; }
 
-    public DateOnly EndDate { get; set; }
+        public DateOnly EndDate { get; set; }
 
-    public TrainingStatus Status { get; set; }
+        public TrainingStatus Status { get; set; }
 
-    public ICollection<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; } = new List<FireDepartmentTrainingCourse>();
+        public ICollection<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; } = new List<FireDepartmentTrainingCourse>();
+    }
+
 }

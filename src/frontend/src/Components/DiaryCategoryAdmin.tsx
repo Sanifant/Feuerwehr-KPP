@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRole } from '../hooks/useRole';
 import { getDiaryCategoryAdmin, upsertDiaryCategory } from '../api/incidentApi';
+import type { DiaryCategory } from '../api/incidentApi';
 
 export function DiaryCategoryAdmin() {
     const { isAdmin } = useRole();
-    const [categories, setCategories] = useState<any[]>([]);
+    const [categories, setCategories] = useState<DiaryCategory[]>([]);
     const [draft, setDraft] = useState({ code: '', name: '', isActive: true });
     const [status, setStatus] = useState('');
 

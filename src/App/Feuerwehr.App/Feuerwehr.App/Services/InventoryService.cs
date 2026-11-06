@@ -1,37 +1,48 @@
 using System;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
 
-namespace de.openelp.feuerwehr.App.Services;
-
-public interface IInventoryService
+namespace De.Openelp.Feuerwehr.App.Services
 {
-    Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct);
-    Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct);
-}
-
-public sealed class InventoryService(AuthenticatedHttpClient http) : IInventoryService
-{
-    public async Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct)
+    /// <summary>
+    /// Executes inventory Service.
+    /// </summary>
+    /// <param name="http">The http.</param>
+    public sealed class InventoryService(AuthenticatedHttpClient http) : IInventoryService
     {
-        using var response = await http.GetAsync($"/api/inventory/barcode/{Uri.EscapeDataString(barcode)}", ct);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Die Geräteantwort ist leer.");
-    }
-
-    public async Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct)
-    {
-        using var content = JsonContent.Create(request);
-        using var response = await http.PostAsync($"/api/inventory/{id}/inspections", content, ct);
-        if (!response.IsSuccessStatusCode)
+        /// <summary>
+        /// Executes find Barcode.
+        /// </summary>
+        /// <param name="barcode">The barcode.</param>
+        /// <param name="ct">The ct.</param>
+        public async Task<EquipmentDetailDto> FindBarcodeAsync(string barcode, CancellationToken ct)
         {
-            // Status bleibt für die Benutzerführung auswertbar; Antwortinhalte werden nicht protokolliert.
-            throw new System.Net.Http.HttpRequestException("Die Prüfung konnte nicht gespeichert werden.", null, response.StatusCode);
+            using HttpResponseMessage response = await http.GetAsync($"/api/inventory/barcode/{Uri.EscapeDataString(barcode)}", ct);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
+                ?? throw new InvalidOperationException("Die Geräteantwort ist leer.");
         }
-        return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
-            ?? throw new InvalidOperationException("Die Prüfantwort ist leer.");
+
+        /// <summary>
+        /// Executes inspect.
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="ct">The ct.</param>
+        public async Task<EquipmentDetailDto> InspectAsync(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct)
+        {
+            using JsonContent content = JsonContent.Create(request);
+            using HttpResponseMessage response = await http.PostAsync($"/api/inventory/{id}/inspections", content, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                // Status bleibt für die Benutzerführung auswertbar; Antwortinhalte werden nicht protokolliert.
+                throw new System.Net.Http.HttpRequestException("Die Prüfung konnte nicht gespeichert werden.", null, response.StatusCode);
+            }
+            return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
+                ?? throw new InvalidOperationException("Die Prüfantwort ist leer.");
+        }
     }
 }

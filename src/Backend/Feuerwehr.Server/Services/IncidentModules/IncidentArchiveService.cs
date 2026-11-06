@@ -1,5 +1,5 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Data;
+using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using De.Openelp.Feuerwehr.Server.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
@@ -15,8 +15,7 @@ public sealed class IncidentArchiveService(FeuerwehrDbContext dbContext, IIncide
 {
     public async Task<ServiceResult> GetDiary(Guid incidentId, CancellationToken cancellationToken)
     {
-        if (!userContext.IsAdmin)
-            return ServiceResult.Forbid();
+        if (!userContext.IsAdmin) return ServiceResult.Forbid();
         if (!await dbContext.Incidents.AnyAsync(x => x.Id == incidentId && x.Status == IncidentStatus.Closed, cancellationToken))
             return ServiceResult.NotFound();
         return await diaryService.GetEntries(incidentId, cancellationToken);
@@ -24,8 +23,7 @@ public sealed class IncidentArchiveService(FeuerwehrDbContext dbContext, IIncide
 
     public async Task<ServiceResult> ExportPdf(Guid incidentId, CancellationToken cancellationToken)
     {
-        if (!userContext.IsAdmin)
-            return ServiceResult.Forbid();
+        if (!userContext.IsAdmin) return ServiceResult.Forbid();
         if (!await dbContext.Incidents.AnyAsync(x => x.Id == incidentId && x.Status == IncidentStatus.Closed, cancellationToken))
             return ServiceResult.NotFound();
         return await diaryService.ExportDiaryPdf(incidentId, cancellationToken);
