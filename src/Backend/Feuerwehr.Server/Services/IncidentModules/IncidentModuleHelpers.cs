@@ -310,7 +310,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
         {
             List<string[]> pages = Paginate(lines.SelectMany(WrapLine));
-            int fontId = 3 + pages.Count * 2;
+            int fontId = 3 + (pages.Count * 2);
             using MemoryStream ms = new MemoryStream();
             using StreamWriter writer = new StreamWriter(ms, Encoding.ASCII, leaveOpen: true);
             writer.Write("%PDF-1.4\n");
@@ -324,11 +324,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
 
             WriteObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
-            string pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
+            string pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + (index * 2)} 0 R"));
             WriteObject(2, $"<< /Type /Pages /Kids [{pageReferences}] /Count {pages.Count} >>");
             for (int index = 0; index < pages.Count; index++)
             {
-                int pageId = 3 + index * 2;
+                int pageId = 3 + (index * 2);
                 int contentId = pageId + 1;
                 StringBuilder content = new StringBuilder();
                 content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");

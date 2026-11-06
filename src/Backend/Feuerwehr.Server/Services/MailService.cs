@@ -61,7 +61,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (client.IsConnected)
                 {
                     try
-                    { await client.DisconnectAsync(true); }
+                    {
+                        await client.DisconnectAsync(true);
+                    }
                     catch (Exception exception)
                     {
                         // A cleanup error must not roll back an invitation whose email was already accepted.

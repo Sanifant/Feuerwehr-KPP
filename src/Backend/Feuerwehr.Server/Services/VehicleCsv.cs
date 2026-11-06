@@ -129,8 +129,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     errors.Add(new(null, "Die CSV-Datei enthält keine Fahrzeuge."));
                 }
             }
-            catch (MalformedLineException) { errors.Add(new(parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Semikolon und Anführungszeichen prüfen.")); }
-            catch (DecoderFallbackException) { errors.Add(new(null, "Die CSV-Datei muss als UTF-8 gespeichert sein.")); }
+            catch (MalformedLineException)
+            {
+                errors.Add(new(parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Semikolon und Anführungszeichen prüfen."));
+            }
+            catch (DecoderFallbackException)
+            {
+                errors.Add(new(null, "Die CSV-Datei muss als UTF-8 gespeichert sein."));
+            }
             return (rows, errors);
         }
 

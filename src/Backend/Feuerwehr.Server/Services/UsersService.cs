@@ -329,7 +329,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             IdentityResult result;
             try
-            { result = await this._userManager.DeleteAsync(user); }
+            {
+                result = await this._userManager.DeleteAsync(user);
+            }
             catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
             { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
             {

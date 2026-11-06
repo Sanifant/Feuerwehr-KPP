@@ -35,7 +35,15 @@ namespace De.Openelp.Feuerwehr.App.Android
         private SessionState? sessionState;
         private bool closing;
         private bool permissionPending;
-        private readonly BarcodeReaderGeneric decoder = new() { AutoRotate = true, Options = new() { TryHarder = true, PossibleFormats = [BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.QR_CODE] } };
+        private readonly BarcodeReaderGeneric decoder = new()
+        {
+            AutoRotate = true,
+            Options = new()
+            {
+                TryHarder = true,
+                PossibleFormats = [BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.QR_CODE]
+            }
+        };
 
         /// <summary>
         /// Executes on Request Permissions Result.
@@ -87,13 +95,13 @@ namespace De.Openelp.Feuerwehr.App.Android
                 Image.Plane plane = image.GetPlanes()![0];
                 ByteBuffer buffer = plane.Buffer!;
                 byte[] raw = new byte[buffer.Remaining()];
-                buffer.Get(raw);
+                _ = buffer.Get(raw);
                 byte[] luminance = new byte[image.Width * image.Height];
                 for (int y = 0; y < image.Height; y++)
                 {
                     for (int x = 0; x < image.Width; x++)
                     {
-                        luminance[y * image.Width + x] = raw[y * plane.RowStride + x * plane.PixelStride];
+                        luminance[(y * image.Width) + x] = raw[(y * plane.RowStride) + (x * plane.PixelStride)];
                     }
                 }
 
@@ -116,7 +124,9 @@ namespace De.Openelp.Feuerwehr.App.Android
                     this.Finish();
                 });
             }
-            catch (Exception) { /* Einzelne unlesbare Frames überspringen. */ }
+            catch (Exception)
+            { /* Einzelne unlesbare Frames überspringen. */
+            }
         }
 
         /// <summary>
@@ -155,7 +165,9 @@ namespace De.Openelp.Feuerwehr.App.Android
 
             pending = completion;
             try
-            { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
+            {
+                owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity)));
+            }
             catch
             {
                 pending = null;
@@ -274,7 +286,10 @@ namespace De.Openelp.Feuerwehr.App.Android
                 this.cameraState = new CameraState(this);
                 manager.OpenCamera(id, this.cameraState, this.handler);
             }
-            catch (Exception) { this.Fail("Die Kamera konnte nicht geöffnet werden."); }
+            catch (Exception)
+            {
+                this.Fail("Die Kamera konnte nicht geöffnet werden.");
+            }
         }
 
         private void StartPreview(CameraDevice device)
@@ -360,7 +375,10 @@ namespace De.Openelp.Feuerwehr.App.Android
                     request.Set(CaptureRequest.ControlAfMode!, (int)ControlAFMode.ContinuousPicture);
                     session.SetRepeatingRequest(request.Build(), null, owner.handler);
                 }
-                catch (Exception) { owner.Fail("Kameravorschau konnte nicht gestartet werden."); }
+                catch (Exception)
+                {
+                    owner.Fail("Kameravorschau konnte nicht gestartet werden.");
+                }
             }
 
             /// <summary>

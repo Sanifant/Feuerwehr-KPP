@@ -154,7 +154,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             byte[] bytes;
             try
-            { bytes = Convert.FromBase64String(value[(separator + 1)..]); }
+            {
+                bytes = Convert.FromBase64String(value[(separator + 1)..]);
+            }
             catch (FormatException)
             {
                 throw new ArgumentException("Ein eingebettetes Bild enthält ungültige Base64-Daten.");

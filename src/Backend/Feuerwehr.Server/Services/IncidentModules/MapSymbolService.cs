@@ -97,7 +97,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             logger.LogInformation("Map symbol save started. SymbolId: {SymbolId}, Category: {Category}, SvgCharacters: {Length}", id, categoryForLog, content.Length);
             string svg;
             try
-            { svg = SvgSymbolValidator.Validate(content); }
+            {
+                svg = SvgSymbolValidator.Validate(content);
+            }
             catch (Exception error) when (error is XmlException or ArgumentException)
             {
                 logger.LogWarning("Map symbol SVG validation rejected. SymbolId: {SymbolId}, ErrorType: {ErrorType}", id, error.GetType().Name);
@@ -127,7 +129,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             logger.LogDebug("Map symbol database save started. SymbolId: {SymbolId}", symbol.Id);
             try
-            { await dbContext.SaveChangesAsync(cancellationToken); }
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
             catch (Exception error) when (error is not OperationCanceledException)
             {
                 logger.LogError(error, "Map symbol database save failed. SymbolId: {SymbolId}", symbol.Id);

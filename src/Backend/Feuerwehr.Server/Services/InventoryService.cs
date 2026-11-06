@@ -50,9 +50,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = name, NormalizedName = normalized };
             db.InventoryCategories.Add(category);
             try
-            { await db.SaveChangesAsync(ct); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
-            { return Conflict("Diese Kategorie existiert bereits."); }
+            {
+                return Conflict("Diese Kategorie existiert bereits.");
+            }
             return ServiceResult.StatusCode(201, new InventoryCategoryDto(category.Id, category.Name));
         }
 
@@ -110,8 +114,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             type.InspectionIntervalMonths = request.InspectionIntervalMonths;
             type.InspectionInstructions = request.InspectionInstructions.Trim();
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateConcurrencyException) { return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden.");
+            }
             return ServiceResult.StatusCode(id.HasValue ? 200 : 201, new EquipmentTypeDto(
                 type.Id,
                 category.Id,
@@ -257,10 +266,17 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.Manufacturer = request.Manufacturer.Trim();
             item.Status = request.Status;
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
+            }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "2200H" })
-            { return Conflict("Der Barcodevorrat KPP-001 bis KPP-999 ist ausgeschöpft. Es können keine weiteren Geräte angelegt werden."); }
+            {
+                return Conflict("Der Barcodevorrat KPP-001 bis KPP-999 ist ausgeschöpft. Es können keine weiteren Geräte angelegt werden.");
+            }
             return ServiceResult.StatusCode(id.HasValue ? 200 : 201, ToDto(item));
         }
 
@@ -286,8 +302,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.IsActive = request.IsActive;
             item.Version++;
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
+            }
             return await this.Get(id, ct);
         }
 
@@ -356,10 +377,17 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 InspectionInstructions = item.EquipmentType.InspectionInstructions,
             });
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden.");
+            }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
-            { return Conflict("Der Prüfauftrag wird bereits verarbeitet. Bitte das Gerät neu laden."); }
+            {
+                return Conflict("Der Prüfauftrag wird bereits verarbeitet. Bitte das Gerät neu laden.");
+            }
             return await this.Get(id, ct);
         }
 

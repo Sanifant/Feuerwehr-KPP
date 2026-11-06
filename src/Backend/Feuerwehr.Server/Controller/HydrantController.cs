@@ -32,7 +32,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         [HttpPost("import")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
         [Consumes("multipart/form-data")]
-        [RequestSizeLimit(MaximumImportBytes + 64 * 1024)]
+        [RequestSizeLimit(MaximumImportBytes + (64 * 1024))]
         public async Task<IActionResult> Import([FromForm] IFormFile? file, CancellationToken cancellationToken)
         {
             if (file is null || file.Length == 0)

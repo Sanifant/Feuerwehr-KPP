@@ -112,7 +112,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     if (await command.ExecuteScalarAsync(stoppingToken) is true)
                     {
                         try
-                        { await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken); }
+                        {
+                            await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken);
+                        }
                         finally
                         {
                             // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schlieÃŸt die Verbindung.
@@ -121,12 +123,23 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         }
                     }
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
-                catch (Exception ex) { logger.LogError(ex, "Fehler beim Versand der Inventarerinnerungen."); }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Fehler beim Versand der Inventarerinnerungen.");
+                }
 
                 try
-                { await Task.Delay(TimeSpan.FromHours(6), clock, stoppingToken); }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+                {
+                    await Task.Delay(TimeSpan.FromHours(6), clock, stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
             }
         }
     }

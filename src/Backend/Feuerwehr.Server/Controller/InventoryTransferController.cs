@@ -8,7 +8,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
 {
     [ApiController, Route("api/inventory")]
     [Authorize(Policy = PolicyNames.CanViewInventory)]
-    [RequestSizeLimit(MaximumImportBytes + 64 * 1024)]
+    [RequestSizeLimit(MaximumImportBytes + (64 * 1024))]
     /// <summary>
     /// Executes inventory Transfer Controller.
     /// </summary>

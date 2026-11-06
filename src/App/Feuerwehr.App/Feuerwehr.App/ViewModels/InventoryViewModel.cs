@@ -95,7 +95,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
                 this.SetDetail(result);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+            }
             catch (Exception ex)
             {
                 if (version == this.lookupVersion)
@@ -129,8 +131,13 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.Barcode = value;
                 await this.LookupAsync(ct);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
-            catch (Exception) { this.Message = "Kamera nicht verfügbar oder Zugriff verweigert. Bitte Barcode eingeben oder Scanner verwenden."; }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+            }
+            catch (Exception)
+            {
+                this.Message = "Kamera nicht verfügbar oder Zugriff verweigert. Bitte Barcode eingeben oder Scanner verwenden.";
+            }
         }
 
         [RelayCommand(CanExecute = nameof(CanInspect), IncludeCancelCommand = true)]
@@ -178,8 +185,13 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.SetDetail(result);
                 this.Message = "Prüfung dokumentiert.";
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
-            catch (Exception ex) { this.Message = ErrorMessage(ex); }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+            }
+            catch (Exception ex)
+            {
+                this.Message = ErrorMessage(ex);
+            }
         }
 
         private void AuthChanged(object? sender, EventArgs e)

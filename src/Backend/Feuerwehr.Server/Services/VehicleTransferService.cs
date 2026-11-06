@@ -113,7 +113,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 List<VehicleImportError> errors = rows.SelectMany((row, index) => Validate(row, index + 1)).Take(100).ToList();
                 return errors.Count > 0 ? Invalid(errors) : await this.InTransaction(kind, () => this.ImportTypes(rows, ct), ct);
             }
-            catch (JsonException) { return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gültigen Feldwerten.")]); }
+            catch (JsonException)
+            {
+                return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gültigen Feldwerten.")]);
+            }
         }
 
         private bool Allowed(VehicleTransferKind kind) => this.IsAdmin || kind == VehicleTransferKind.Vehicles && this.Principal.IsInRole(Roles.EquipmentOfficer);
@@ -167,9 +170,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return result;
                 });
             }
-            catch (DbUpdateConcurrencyException) { return Invalid([new(null, "Die Daten wurden gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Invalid([new(null, "Die Daten wurden gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409);
+            }
             catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" or "23503" })
-            { return Invalid([new(null, "Eine Zuordnung oder ein Name wurde gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
+            {
+                return Invalid([new(null, "Eine Zuordnung oder ein Name wurde gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409);
+            }
         }
 
         private async Task<ServiceResult> ImportTypes(List<VehicleTypeImportDto> rows, CancellationToken ct)

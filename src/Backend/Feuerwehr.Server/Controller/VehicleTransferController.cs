@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace De.Openelp.Feuerwehr.Server.Controller
 {
     [ApiController, Route("api/vehicles"), Authorize]
-    [RequestSizeLimit(MaximumImportBytes + 64 * 1024)]
+    [RequestSizeLimit(MaximumImportBytes + (64 * 1024))]
     /// <summary>
     /// Executes vehicle Transfer Controller.
     /// </summary>

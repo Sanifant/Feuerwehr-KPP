@@ -90,7 +90,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return errors.Count > 0 ? Invalid(errors) : await this.InTransaction(kind, () => this.ImportTypes(rows!, ct), ct);
                 }
             }
-            catch (JsonException) { return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Kategorien bzw. Gerätetypen mit gültigen UUIDs und Feldwerten.")]); }
+            catch (JsonException)
+            {
+                return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Kategorien bzw. Gerätetypen mit gültigen UUIDs und Feldwerten.")]);
+            }
         }
 
         private static string Normalize(string value) => value.Trim().ToUpperInvariant();
@@ -167,9 +170,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return result;
                 });
             }
-            catch (DbUpdateConcurrencyException) { return ServiceResult.Problem(409, "Die Daten wurden gleichzeitig geändert. Bitte die Datei und den aktuellen Bestand prüfen und erneut importieren."); }
+            catch (DbUpdateConcurrencyException)
+            {
+                return ServiceResult.Problem(409, "Die Daten wurden gleichzeitig geändert. Bitte die Datei und den aktuellen Bestand prüfen und erneut importieren.");
+            }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" or "23503" })
-            { return ServiceResult.Problem(409, "Ein Barcode, eine Kategorie oder eine Zuordnung wurde gleichzeitig geändert. Es wurden keine Importzeilen gespeichert."); }
+            {
+                return ServiceResult.Problem(409, "Ein Barcode, eine Kategorie oder eine Zuordnung wurde gleichzeitig geändert. Es wurden keine Importzeilen gespeichert.");
+            }
         }
 
         private async Task<ServiceResult> ImportCategories(List<InventoryCategoryImportDto> rows, CancellationToken ct)

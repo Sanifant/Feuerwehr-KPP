@@ -111,8 +111,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Status wurde inzwischen geändert oder existiert bereits."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException exception) when (IsConflict(exception))
+            {
+                return Conflict("Der Status wurde inzwischen geändert oder existiert bereits.");
+            }
             return ServiceResult.Ok(new VehicleStatusDto(status.Id, status.Name, status.AllowsBooking, status.IsActive, status.Version, status.Id == VehicleStatusDefaults.ReadyId));
         });
 
@@ -171,8 +176,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert oder existiert bereits. Bitte neu laden."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException exception) when (IsConflict(exception))
+            {
+                return Conflict("Der Fahrzeugtyp wurde inzwischen geändert oder existiert bereits. Bitte neu laden.");
+            }
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
 
@@ -202,8 +212,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
             type.IsActive = request.IsActive;
             type.Version++;
             try
-            { await db.SaveChangesAsync(ct); }
-            catch (DbUpdateConcurrencyException) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden."); }
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden.");
+            }
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
 
@@ -453,7 +468,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     await transaction.CommitAsync(ct);
                 }
             }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden."); }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
+            }
             return ServiceResult.Ok(this.ToDto(vehicle));
         }
 
@@ -487,7 +505,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     await transaction.CommitAsync(ct);
                 }
             }
-            catch (DbUpdateConcurrencyException) { return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden."); }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
+            }
             return ServiceResult.Ok(this.ToDto(vehicle));
         }
 
@@ -706,7 +727,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 }
             }
             catch (DbUpdateException exception) when (IsConflict(exception))
-            { return Conflict("Der Zeitraum oder die Anfrage wurde inzwischen geändert. Bitte neu laden."); }
+            {
+                return Conflict("Der Zeitraum oder die Anfrage wurde inzwischen geändert. Bitte neu laden.");
+            }
             return ServiceResult.Ok(this.ToDto(reservation));
         }
 

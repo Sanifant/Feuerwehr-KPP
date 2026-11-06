@@ -132,7 +132,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.LastUpdated = $"Stand: {state.ServerUtc.ToLocalTime():dd.MM.yyyy HH:mm:ss}";
                 this.StatusMessage = string.Empty;
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+            }
             catch (Exception exception)
             {
                 this.Clear();

@@ -156,11 +156,22 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     using IServiceScope scope = scopes.CreateScope();
                     await scope.ServiceProvider.GetRequiredService<IVehicleMailDispatcher>().Dispatch(stoppingToken);
                 }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
-                catch (Exception exception) { logger.LogError(exception, "MTW-Mailversand fehlgeschlagen."); }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    logger.LogError(exception, "MTW-Mailversand fehlgeschlagen.");
+                }
                 try
-                { await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
             }
         }
     }

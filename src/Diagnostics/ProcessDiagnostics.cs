@@ -52,7 +52,9 @@ namespace De.Openelp.Feuerwehr.Diagnostics
                     Console.Error.WriteLine(text);
                 }
             }
-            catch (Exception) { /* Diagnostics must not terminate a process with a closed output stream. */ }
+            catch (Exception)
+            { /* Diagnostics must not terminate a process with a closed output stream. */
+            }
             try
             {
                 lock (this._sync)
@@ -66,7 +68,9 @@ namespace De.Openelp.Feuerwehr.Diagnostics
                     File.AppendAllText(this._path, text + Environment.NewLine);
                 }
             }
-            catch (Exception) { /* A read-only/full filesystem must not affect application behavior. */ }
+            catch (Exception)
+            { /* A read-only/full filesystem must not affect application behavior. */
+            }
         }
 
         /// <summary>
