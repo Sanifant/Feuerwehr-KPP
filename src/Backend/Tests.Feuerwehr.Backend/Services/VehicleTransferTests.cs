@@ -63,8 +63,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             await using Fixture fixture = new Fixture();
             Vehicle vehicle = fixture.Vehicle();
             vehicle.Name = "=SUM(1;2)\n\"Ãœbung\"";
-            VehicleReservation booking = new VehicleReservation { Id = Guid.NewGuid(), VehicleId = vehicle.Id, CommandId = Guid.NewGuid(),
-                From = new DateOnly(2026, 11, 1), To = new DateOnly(2026, 11, 1), Status = VehicleReservationStatus.Confirmed };
+            VehicleReservation booking = new VehicleReservation
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = vehicle.Id,
+                CommandId = Guid.NewGuid(),
+                From = new DateOnly(2026, 11, 1),
+                To = new DateOnly(2026, 11, 1),
+                Status = VehicleReservationStatus.Confirmed
+            };
             fixture.Db.VehicleReservations.Add(booking);
             fixture.Db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = vehicle.Id, ReservationId = booking.Id, Date = booking.From });
             await fixture.Db.SaveChangesAsync();
@@ -235,7 +242,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// Executes as.
             /// </summary>
             /// <param name="id">The id.</param>
-            public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity([
+            public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
+                [
                 new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
 
             /// <summary>

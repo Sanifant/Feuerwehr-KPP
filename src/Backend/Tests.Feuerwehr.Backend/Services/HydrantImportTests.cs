@@ -58,8 +58,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             using FeuerwehrDbContext db = CreateDatabase();
             ServiceResult result = await Import(
                 db,
-                Header.Replace(";notes", string.Empty) + "\n" +
-                "DorfstraÃŸe;12;02361;Testort;123;456;80;1;1;1");
+                Header.Replace(";notes", string.Empty) + "\n" + "DorfstraÃŸe;12;02361;Testort;123;456;80;1;1;1");
 
             Assert.Equal(200, result.Code);
             Server.Models.Hydrant entity = Assert.Single(db.Hydrants);

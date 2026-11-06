@@ -110,8 +110,11 @@ namespace De.Openelp.Feuerwehr.App.Android
                     return;
                 }
 
-                this.RunOnUiThread(() => { pending?.TrySetResult(code);
-                    this.Finish(); });
+                this.RunOnUiThread(() =>
+                {
+                    pending?.TrySetResult(code);
+                    this.Finish();
+                });
             }
             catch (Exception) { /* Einzelne unlesbare Frames überspringen. */ }
         }
@@ -151,9 +154,13 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
 
             pending = completion;
-            try { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
-            catch { pending = null;
-                throw; }
+            try
+            { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
+            catch
+            {
+                pending = null;
+                throw;
+            }
         }
 
         internal static void Cancel(TaskCompletionSource<string?> completion)
@@ -163,9 +170,13 @@ namespace De.Openelp.Feuerwehr.App.Android
                 return;
             }
 
-            if (current is not null && current.TryGetTarget(out BarcodeScannerActivity? activity)) activity.Finish();
-            else { pending = null;
-                completion.TrySetResult(null); }
+            if (current is not null && current.TryGetTarget(out BarcodeScannerActivity? activity))
+                activity.Finish();
+            else
+            {
+                pending = null;
+                completion.TrySetResult(null);
+            }
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
@@ -197,8 +208,11 @@ namespace De.Openelp.Feuerwehr.App.Android
 
         protected override void OnPause()
         {
-            if (this.permissionPending) { base.OnPause();
-                return; }
+            if (this.permissionPending)
+            {
+                base.OnPause();
+                return;
+            }
             this.closing = true;
             this.session?.Close();
             this.camera?.Close();
@@ -278,8 +292,11 @@ namespace De.Openelp.Feuerwehr.App.Android
             // Der kompatible Camera2-Overload unterstützt auch die minimale Android-Version 24.
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
-                SessionConfiguration configuration = new SessionConfiguration((int)SessionType.Regular,
-                    [new OutputConfiguration(this.previewSurface), new OutputConfiguration(this.reader!.Surface!)], this.MainExecutor!, this.sessionState);
+                SessionConfiguration configuration = new SessionConfiguration(
+                    (int)SessionType.Regular,
+                    [new OutputConfiguration(this.previewSurface), new OutputConfiguration(this.reader!.Surface!)],
+                    this.MainExecutor!,
+                    this.sessionState);
                 device.CreateCaptureSession(configuration);
             }
             else
@@ -288,8 +305,11 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
         }
 
-        private void Fail(string message) => this.RunOnUiThread(() => { pending?.TrySetException(new InvalidOperationException(message));
-            this.Finish(); });
+        private void Fail(string message) => this.RunOnUiThread(() =>
+        {
+            pending?.TrySetException(new InvalidOperationException(message));
+            this.Finish();
+        });
 
         private sealed class CameraState(BarcodeScannerActivity owner) : CameraDevice.StateCallback
         {
@@ -301,15 +321,21 @@ namespace De.Openelp.Feuerwehr.App.Android
             /// <summary>
             /// Executes on Disconnected.
             /// </summary>
-            public override void OnDisconnected(CameraDevice camera) { camera.Close();
-                owner.Fail("Kamera getrennt."); }
+            public override void OnDisconnected(CameraDevice camera)
+            {
+                camera.Close();
+                owner.Fail("Kamera getrennt.");
+            }
 
             /// <summary>
             /// Executes on Error.
             /// </summary>
             /// <param name="camera">The camera.</param>
-            public override void OnError(CameraDevice camera, CameraError error) { camera.Close();
-                owner.Fail("Kamerafehler."); }
+            public override void OnError(CameraDevice camera, CameraError error)
+            {
+                camera.Close();
+                owner.Fail("Kamerafehler.");
+            }
         }
 
         private sealed class SessionState(BarcodeScannerActivity owner) : CameraCaptureSession.StateCallback
@@ -320,8 +346,11 @@ namespace De.Openelp.Feuerwehr.App.Android
             /// <param name="session">The session.</param>
             public override void OnConfigured(CameraCaptureSession session)
             {
-                if (owner.closing) { session.Close();
-                    return; }
+                if (owner.closing)
+                {
+                    session.Close();
+                    return;
+                }
                 try
                 {
                     owner.session = session;

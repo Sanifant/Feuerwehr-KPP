@@ -49,7 +49,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = name, NormalizedName = normalized };
             db.InventoryCategories.Add(category);
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             { return Conflict("Diese Kategorie existiert bereits."); }
             return ServiceResult.StatusCode(201, new InventoryCategoryDto(category.Id, category.Name));
@@ -108,10 +109,17 @@ namespace De.Openelp.Feuerwehr.Server.Services
             type.Name = request.Name.Trim();
             type.InspectionIntervalMonths = request.InspectionIntervalMonths;
             type.InspectionInstructions = request.InspectionInstructions.Trim();
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateConcurrencyException) { return Conflict("Der Gerätetyp wurde zwischenzeitlich geändert. Bitte neu laden."); }
-            return ServiceResult.StatusCode(id.HasValue ? 200 : 201, new EquipmentTypeDto(type.Id, category.Id, category.Name,
-                type.Name, type.InspectionIntervalMonths, type.InspectionInstructions, type.Version));
+            return ServiceResult.StatusCode(id.HasValue ? 200 : 201, new EquipmentTypeDto(
+                type.Id,
+                category.Id,
+                category.Name,
+                type.Name,
+                type.InspectionIntervalMonths,
+                type.InspectionInstructions,
+                type.Version));
         }
 
         /// <summary>
@@ -140,8 +148,16 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             List<EquipmentInspectionDto> history = await db.EquipmentInspections.AsNoTracking().Where(x => x.EquipmentId == id)
                 .OrderByDescending(x => x.RecordedAtUtc)
-                .Select(x => new EquipmentInspectionDto(x.Id, x.InspectedOn, x.RecordedAtUtc, x.InspectorName, x.Comment,
-                    x.Status, x.EquipmentTypeName, x.InspectionIntervalMonths, x.InspectionInstructions)).ToListAsync(ct);
+                .Select(x => new EquipmentInspectionDto(
+                    x.Id,
+                    x.InspectedOn,
+                    x.RecordedAtUtc,
+                    x.InspectorName,
+                    x.Comment,
+                    x.Status,
+                    x.EquipmentTypeName,
+                    x.InspectionIntervalMonths,
+                    x.InspectionInstructions)).ToListAsync(ct);
             return ServiceResult.Ok(new EquipmentDetailDto(ToDto(item), history));
         }
 
@@ -240,7 +256,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.SerialNumber = request.SerialNumber.Trim();
             item.Manufacturer = request.Manufacturer.Trim();
             item.Status = request.Status;
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "2200H" })
             { return Conflict("Der Barcodevorrat KPP-001 bis KPP-999 ist ausgeschöpft. Es können keine weiteren Geräte angelegt werden."); }
@@ -268,7 +285,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             item.IsActive = request.IsActive;
             item.Version++;
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
             return await this.Get(id, ct);
         }
@@ -324,23 +342,43 @@ namespace De.Openelp.Feuerwehr.Server.Services
             item.Version++;
             db.EquipmentInspections.Add(new EquipmentInspection
             {
-                Id = Guid.NewGuid(), EquipmentId = id, CommandId = request.CommandId,
-                InspectedOn = request.InspectedOn, RecordedAtUtc = clock.GetUtcNow().UtcDateTime,
-                InspectorId = user.UserId, InspectorName = user.DisplayName, Comment = comment, Status = request.Status,
-                EquipmentTypeName = item.EquipmentType.Name, InspectionIntervalMonths = item.EquipmentType.InspectionIntervalMonths,
+                Id = Guid.NewGuid(),
+                EquipmentId = id,
+                CommandId = request.CommandId,
+                InspectedOn = request.InspectedOn,
+                RecordedAtUtc = clock.GetUtcNow().UtcDateTime,
+                InspectorId = user.UserId,
+                InspectorName = user.DisplayName,
+                Comment = comment,
+                Status = request.Status,
+                EquipmentTypeName = item.EquipmentType.Name,
+                InspectionIntervalMonths = item.EquipmentType.InspectionIntervalMonths,
                 InspectionInstructions = item.EquipmentType.InspectionInstructions,
             });
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateConcurrencyException) { return Conflict("Das Gerät wurde zwischenzeitlich geändert. Bitte neu laden."); }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
             { return Conflict("Der Prüfauftrag wird bereits verarbeitet. Bitte das Gerät neu laden."); }
             return await this.Get(id, ct);
         }
 
-        internal static EquipmentDto ToDto(Equipment item) => new(item.Id, $"KPP-{item.BarcodeNumber:D3}", item.EquipmentTypeId,
-            item.EquipmentType.Name, item.EquipmentType.Category.Name, item.SerialNumber, item.Manufacturer, item.Status, item.IsActive,
-            item.CreatedOn, item.LastInspectedOn, (item.LastInspectedOn ?? item.CreatedOn).AddMonths(item.EquipmentType.InspectionIntervalMonths),
-            item.EquipmentType.InspectionIntervalMonths, item.EquipmentType.InspectionInstructions, item.Version);
+        internal static EquipmentDto ToDto(Equipment item) => new(
+            item.Id,
+            $"KPP-{item.BarcodeNumber:D3}",
+            item.EquipmentTypeId,
+            item.EquipmentType.Name,
+            item.EquipmentType.Category.Name,
+            item.SerialNumber,
+            item.Manufacturer,
+            item.Status,
+            item.IsActive,
+            item.CreatedOn,
+            item.LastInspectedOn,
+            (item.LastInspectedOn ?? item.CreatedOn).AddMonths(item.EquipmentType.InspectionIntervalMonths),
+            item.EquipmentType.InspectionIntervalMonths,
+            item.EquipmentType.InspectionInstructions,
+            item.Version);
 
         private static ServiceResult Conflict(string title) => ServiceResult.Problem(409, title);
 

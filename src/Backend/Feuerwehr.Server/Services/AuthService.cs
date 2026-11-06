@@ -195,7 +195,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort ist falsch."));
                 }
 
-                return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geändert werden.",
+                return ServiceResult.BadRequest(new IdentityErrorResponse(
+                    "Das Passwort konnte nicht geändert werden.",
                     result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
             }
 

@@ -1,4 +1,4 @@
-﻿using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using De.Openelp.Feuerwehr.Common.Models.Inventory;
 using De.Openelp.Feuerwehr.Server.Authorization;
 using De.Openelp.Feuerwehr.Server.Data;
 using De.Openelp.Feuerwehr.Server.Models;

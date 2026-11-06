@@ -32,7 +32,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             string instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Ãœbersicht prüfen und bestätigen oder ablehnen." :
                 "Die Buchung ist verbindlich bestätigt.";
-            string link = "";
+            string link = string.Empty;
             if (Uri.TryCreate(configuration["Frontend:BaseUrl"], UriKind.Absolute, out Uri? baseUri) &&
                 (baseUri.Scheme == Uri.UriSchemeHttps || baseUri.Scheme == Uri.UriSchemeHttp) && string.IsNullOrEmpty(baseUri.Query) && string.IsNullOrEmpty(baseUri.Fragment))
             {
@@ -44,14 +44,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 "<table role=\"presentation\" style=\"width:100%;max-width:640px;margin:24px auto;background:#fff;border:1px solid #cbd5e1\"><tr><td style=\"padding:24px;border-top:6px solid #b91c1c\">" +
                 "<img src=\"cid:feuerwehr-logo\" width=\"80\" alt=\"Feuerwehr\"><h1 style=\"font-size:24px;color:#b91c1c\">" + Encode(title) + "</h1>" +
                 "<p>" + Encode(instruction) + "</p><p style=\"line-height:1.7\">" + Encode(lines).Replace("\n", "<br>") + "</p>" +
-                (link.Length == 0 ? "" : "<p><a style=\"color:#b91c1c\" href=\"" + Encode(link) + "\">MTW-Ãœbersicht öffnen</a></p>") +
+                (link.Length == 0 ? string.Empty : "<p><a style=\"color:#b91c1c\" href=\"" + Encode(link) + "\">MTW-Ãœbersicht öffnen</a></p>") +
                 "</td></tr></table></body></html>";
             DateTime now = clock.GetUtcNow().UtcDateTime;
             return new VehicleMailMessage
             {
-                Id = Guid.NewGuid(), ReservationId = reservation.Id, Kind = request ? "Requested" : "Confirmed", Recipient = recipient,
-                Subject = $"{title}: {reservation.RadioCallSign}", TextBody = $"{title}\n\n{instruction}\n\n{lines}\n{link}",
-                HtmlBody = html, CreatedAtUtc = now, NextAttemptAtUtc = now
+                Id = Guid.NewGuid(),
+                ReservationId = reservation.Id,
+                Kind = request ? "Requested" : "Confirmed",
+                Recipient = recipient,
+                Subject = $"{title}: {reservation.RadioCallSign}",
+                TextBody = $"{title}\n\n{instruction}\n\n{lines}\n{link}",
+                HtmlBody = html,
+                CreatedAtUtc = now,
+                NextAttemptAtUtc = now
             };
         }
     }
@@ -63,7 +69,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
     /// <param name="mail">The mail.</param>
     /// <param name="clock">The clock.</param>
     /// <param name="logger">The logger.</param>
-    public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailService mail, TimeProvider clock,
+    public sealed class VehicleMailDispatcher(
+        FeuerwehrDbContext db,
+        IHtmlMailService mail,
+        TimeProvider clock,
         ILogger<VehicleMailDispatcher> logger) : IVehicleMailDispatcher
     {
         /// <summary>
@@ -83,7 +92,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (db.Database.IsRelational())
                 {
                     int claimed = await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.SentAtUtc == null && x.NextAttemptAtUtc <= now &&
-                        (x.LeaseUntilUtc == null || x.LeaseUntilUtc < now)).ExecuteUpdateAsync(update => update
+                        (x.LeaseUntilUtc == null || x.LeaseUntilUtc < now)).ExecuteUpdateAsync(
+                            update => update
                             .SetProperty(x => x.LeaseUntilUtc, leaseUntil).SetProperty(x => x.Attempts, x => x.Attempts + 1), ct);
                     if (claimed == 0)
                     {
@@ -113,7 +123,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 DateTime next = clock.GetUtcNow().UtcDateTime.AddMinutes(Math.Min(60, Math.Pow(2, Math.Min(message.Attempts + 1, 6))));
                 if (db.Database.IsRelational())
                 {
-                    await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.LeaseUntilUtc == leaseUntil).ExecuteUpdateAsync(update => update
+                    await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.LeaseUntilUtc == leaseUntil).ExecuteUpdateAsync(
+                        update => update
                         .SetProperty(x => x.SentAtUtc, sent).SetProperty(x => x.LastError, error)
                         .SetProperty(x => x.NextAttemptAtUtc, next).SetProperty(x => x.LeaseUntilUtc, (DateTime?)null), ct);
                 }
@@ -147,7 +158,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                 catch (Exception exception) { logger.LogError(exception, "MTW-Mailversand fehlgeschlagen."); }
-                try { await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); }
+                try
+                { await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             }
         }

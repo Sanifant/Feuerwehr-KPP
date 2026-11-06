@@ -10,11 +10,11 @@ namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
 
         public Guid? ReservationId { get; set; }
 
-        public string ActorId { get; set; } = "";
+        public string ActorId { get; set; } = string.Empty;
 
-        public string Action { get; set; } = "";
+        public string Action { get; set; } = string.Empty;
 
-        public string Details { get; set; } = "";
+        public string Details { get; set; } = string.Empty;
 
         public DateTime OccurredAtUtc { get; set; }
     }

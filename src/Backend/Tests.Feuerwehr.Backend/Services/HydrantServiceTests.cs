@@ -1,4 +1,4 @@
-﻿using De.Openelp.Feuerwehr.Common.Models;
+using De.Openelp.Feuerwehr.Common.Models;
 using De.Openelp.Feuerwehr.Server.Data;
 using De.Openelp.Feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
@@ -19,8 +19,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Hydrant request = new Hydrant
             {
                 Address = new Address { Street = "DorfstraÃŸe", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
-                Latitude = 53.9, Longitude = 10.7, NominalDiameter = 100,
-                Status = HydrantStatus.Operational, Type = HydrantType.Underground,
+                Latitude = 53.9,
+                Longitude = 10.7,
+                NominalDiameter = 100,
+                Status = HydrantStatus.Operational,
+                Type = HydrantType.Underground,
             };
 
             ServiceResult created = service.Post(request);
@@ -33,9 +36,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
             Hydrant update = new Hydrant
             {
-                Id = response.Id, Address = new Address { Street = "Neue StraÃŸe", City = "Stockelsdorf" },
-                Latitude = 54, Longitude = 11, NominalDiameter = 150,
-                Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "Geprüft",
+                Id = response.Id,
+                Address = new Address { Street = "Neue StraÃŸe", City = "Stockelsdorf" },
+                Latitude = 54,
+                Longitude = 11,
+                NominalDiameter = 150,
+                Status = HydrantStatus.Operational,
+                Type = HydrantType.Underground,
+                Notes = "Geprüft",
             };
             Assert.Equal(204, service.Put(response.Id, update).Code);
             Assert.Same(entity, Assert.Single(db.Hydrants));

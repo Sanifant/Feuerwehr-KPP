@@ -14,10 +14,16 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <param name="targetType">The target Type.</param>
         /// <param name="parameter">The parameter.</param>
         /// <param name="culture">The culture.</param>
-        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", EquipmentStatus.InRepair => "In Reparatur", _ => "",
-        };
+            return value switch
+            {
+                EquipmentStatus.Ready => "Einsatzklar",
+                EquipmentStatus.Defective => "Defekt",
+                EquipmentStatus.InRepair => "In Reparatur",
+                _ => string.Empty,
+            };
+        }
 
         /// <summary>
         /// Executes convert Back.
@@ -25,6 +31,9 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <param name="value">The value.</param>
         /// <param name="targetType">The target Type.</param>
         /// <param name="parameter">The parameter.</param>
-        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

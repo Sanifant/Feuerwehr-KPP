@@ -16,7 +16,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
     /// <param name="mail">The mail.</param>
     /// <param name="clock">The clock.</param>
     /// <param name="logger">The logger.</param>
-    public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService mail, TimeProvider clock,
+    public sealed class InventoryReminderService(
+        FeuerwehrDbContext db,
+        IMailService mail,
+        TimeProvider clock,
         ILogger<InventoryReminderService> logger) : IInventoryReminderService
     {
         /// <summary>
@@ -70,7 +73,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 }
                 db.EquipmentReminderDeliveries.AddRange(pending.Select(x => new EquipmentReminderDelivery
                 {
-                    Id = Guid.NewGuid(), EquipmentId = x.Id, RecipientId = recipient.Id, DueOn = x.NextInspectionOn, SentAtUtc = now,
+                    Id = Guid.NewGuid(),
+                    EquipmentId = x.Id,
+                    RecipientId = recipient.Id,
+                    DueOn = x.NextInspectionOn,
+                    SentAtUtc = now,
                 }));
                 // Erst nach erfolgreicher SMTP-Annahme markieren; fehlgeschlagene Empfänger bleiben offen.
                 await db.SaveChangesAsync(ct);
@@ -84,7 +91,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
     /// <param name="scopes">The scopes.</param>
     /// <param name="clock">The clock.</param>
     /// <param name="logger">The logger.</param>
-    public sealed class InventoryReminderWorker(IServiceScopeFactory scopes, TimeProvider clock,
+    public sealed class InventoryReminderWorker(
+        IServiceScopeFactory scopes,
+        TimeProvider clock,
         ILogger<InventoryReminderWorker> logger) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -102,7 +111,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     await using NpgsqlCommand command = new NpgsqlCommand("SELECT pg_try_advisory_lock(305002014)", mutex);
                     if (await command.ExecuteScalarAsync(stoppingToken) is true)
                     {
-                        try { await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken); }
+                        try
+                        { await scope.ServiceProvider.GetRequiredService<IInventoryReminderService>().SendDueReminders(stoppingToken); }
                         finally
                         {
                             // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schlieÃŸt die Verbindung.
@@ -114,7 +124,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                 catch (Exception ex) { logger.LogError(ex, "Fehler beim Versand der Inventarerinnerungen."); }
 
-                try { await Task.Delay(TimeSpan.FromHours(6), clock, stoppingToken); }
+                try
+                { await Task.Delay(TimeSpan.FromHours(6), clock, stoppingToken); }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             }
         }

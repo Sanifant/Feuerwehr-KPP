@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using De.Openelp.Feuerwehr.Common.Models.Dto;
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
@@ -112,10 +112,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task Close_PreservesAlarmTimeInArchiveAndRemovesActiveIncident()
         {
             IncidentCreatedResponse created = Assert.IsType<IncidentCreatedResponse>((await this._service.CreateIncident(Request(), default)).Value);
-            ServiceResult closed = await this._service.CloseIncident(created.Incident.Id, new CloseIncidentRequest
-            {
-                SessionId = created.Lease.SessionId, LeaseToken = created.Lease.LeaseToken, CommandId = Guid.NewGuid().ToString(),
-            }, default);
+            ServiceResult closed = await this._service.CloseIncident(
+                created.Incident.Id,
+                new CloseIncidentRequest
+                {
+                    SessionId = created.Lease.SessionId,
+                    LeaseToken = created.Lease.LeaseToken,
+                    CommandId = Guid.NewGuid().ToString(),
+                }, default);
             IncidentClosedResponse response = Assert.IsType<IncidentClosedResponse>(closed.Value);
             Assert.Equal(created.Incident.AlarmedAtUtc, response.Incident.AlarmedAtUtc);
             Assert.Equal(IncidentStatus.Closed, response.Incident.Status);
@@ -131,10 +135,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         private static CreateIncidentRequest Request() => new()
         {
-            Name = "Wohnungsbrand", Keyword = "B3", IncidentNumber = "123",
-            OriginLatitude = 51.5, OriginLongitude = 10.25,
+            Name = "Wohnungsbrand",
+            Keyword = "B3",
+            IncidentNumber = "123",
+            OriginLatitude = 51.5,
+            OriginLongitude = 10.25,
             AlarmedAtUtc = DateTimeOffset.Parse("2026-10-26T09:15:00+01:00"),
-            CommandId = Guid.NewGuid().ToString(), SessionId = "session-1",
+            CommandId = Guid.NewGuid().ToString(),
+            SessionId = "session-1",
         };
     }
 }

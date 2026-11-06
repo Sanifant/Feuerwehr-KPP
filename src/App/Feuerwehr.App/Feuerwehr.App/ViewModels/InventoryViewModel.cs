@@ -22,10 +22,10 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
     {
         private Guid commandId = Guid.NewGuid();
         private int lookupVersion;
-        [ObservableProperty] private string barcode = "";
+        [ObservableProperty] private string barcode = string.Empty;
         [ObservableProperty] private EquipmentDetailDto? detail;
-        [ObservableProperty] private string message = "";
-        [ObservableProperty] private string comment = "";
+        [ObservableProperty] private string message = string.Empty;
+        [ObservableProperty] private string comment = string.Empty;
         [ObservableProperty] private DateTimeOffset? inspectedOn = DateTimeOffset.UtcNow;
         [ObservableProperty] private int selectedStatus;
 
@@ -41,15 +41,15 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         public string DeviceTitle => this.Detail is null ? "Gerät scannen" : $"{this.Detail.Equipment.Barcode} Â· {this.Detail.Equipment.EquipmentTypeName}";
 
-        public string DeviceDescription => this.Detail is null ? "" : $"{this.Detail.Equipment.CategoryName}\n{this.Detail.Equipment.Manufacturer} Â· Seriennummer {this.Detail.Equipment.SerialNumber}\nID: {this.Detail.Equipment.Id}";
+        public string DeviceDescription => this.Detail is null ? string.Empty : $"{this.Detail.Equipment.CategoryName}\n{this.Detail.Equipment.Manufacturer} Â· Seriennummer {this.Detail.Equipment.SerialNumber}\nID: {this.Detail.Equipment.Id}";
 
-        public string DeviceStatus => this.Detail is null ? "" : $"{this.StatusOptions[(int)this.Detail.Equipment.Status]} Â· {(this.Detail.Equipment.IsActive ? "Aktiv" : "Deaktiviert")}";
+        public string DeviceStatus => this.Detail is null ? string.Empty : $"{this.StatusOptions[(int)this.Detail.Equipment.Status]} Â· {(this.Detail.Equipment.IsActive ? "Aktiv" : "Deaktiviert")}";
 
-        public string NextInspection => this.Detail is null ? "" : $"Nächste Prüfung: {this.Detail.Equipment.NextInspectionOn:dd.MM.yyyy} Â· Intervall: {this.Detail.Equipment.InspectionIntervalMonths} Monate";
+        public string NextInspection => this.Detail is null ? string.Empty : $"Nächste Prüfung: {this.Detail.Equipment.NextInspectionOn:dd.MM.yyyy} Â· Intervall: {this.Detail.Equipment.InspectionIntervalMonths} Monate";
 
-        public string LastInspection => this.Detail is null ? "" : this.Detail.Equipment.LastInspectedOn is { } date ? $"Letzte Prüfung: {date:dd.MM.yyyy}" : "Noch nicht geprüft";
+        public string LastInspection => this.Detail is null ? string.Empty : this.Detail.Equipment.LastInspectedOn is { } date ? $"Letzte Prüfung: {date:dd.MM.yyyy}" : "Noch nicht geprüft";
 
-        public string Instructions => this.Detail?.Equipment.InspectionInstructions ?? "";
+        public string Instructions => this.Detail?.Equipment.InspectionInstructions ?? string.Empty;
 
         /// <summary>
         /// Executes activate.
@@ -83,7 +83,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             int version = ++this.lookupVersion;
             this.Detail = null;
             this.History.Clear();
-            this.Message = "";
+            this.Message = string.Empty;
             try
             {
                 EquipmentDetailDto result = await service.FindBarcodeAsync(this.Barcode.Trim().ToUpperInvariant(), ct);
@@ -96,7 +96,9 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.SetDetail(result);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
-            catch (Exception ex) { if (version == this.lookupVersion)
+            catch (Exception ex)
+            {
+                if (version == this.lookupVersion)
                 {
                     this.Message = ErrorMessage(ex);
                 }
@@ -145,18 +147,28 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             }
 
             if (this.InspectedOn is null || this.SelectedStatus is < 0 or > 2 || this.Comment.Length > 4000)
-            { this.Message = "Bitte Prüfdatum, Status und einen Kommentar mit höchstens 4000 Zeichen angeben.";
-                return; }
+            {
+                this.Message = "Bitte Prüfdatum, Status und einen Kommentar mit höchstens 4000 Zeichen angeben.";
+                return;
+            }
             DateOnly date = DateOnly.FromDateTime(this.InspectedOn.Value.Date);
             if (date > DateOnly.FromDateTime(DateTime.UtcNow) || date < (equipment.LastInspectedOn ?? equipment.CreatedOn))
-            { this.Message = "Das Prüfdatum darf nicht in der Zukunft oder vor der Anlage bzw. letzten Prüfung liegen.";
-                return; }
+            {
+                this.Message = "Das Prüfdatum darf nicht in der Zukunft oder vor der Anlage bzw. letzten Prüfung liegen.";
+                return;
+            }
             try
             {
-                EquipmentDetailDto result = await service.InspectAsync(equipment.Id, new RecordEquipmentInspectionRequest
-                {
-                    CommandId = this.commandId, InspectedOn = date, Comment = this.Comment, Status = (EquipmentStatus)this.SelectedStatus, ExpectedVersion = equipment.Version,
-                }, ct);
+                EquipmentDetailDto result = await service.InspectAsync(
+                    equipment.Id,
+                    new RecordEquipmentInspectionRequest
+                    {
+                        CommandId = this.commandId,
+                        InspectedOn = date,
+                        Comment = this.Comment,
+                        Status = (EquipmentStatus)this.SelectedStatus,
+                        ExpectedVersion = equipment.Version,
+                    }, ct);
                 ct.ThrowIfCancellationRequested();
                 if (!this.CanView || this.Detail?.Equipment.Id != equipment.Id)
                 {
@@ -178,7 +190,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             this.SaveInspectionCommand.Cancel();
             this.Detail = null;
             this.History.Clear();
-            this.Comment = "";
+            this.Comment = string.Empty;
             this.OnPropertyChanged(nameof(this.CanView));
             this.OnPropertyChanged(nameof(this.CanScan));
             this.LookupCommand.NotifyCanExecuteChanged();
@@ -188,7 +200,8 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         partial void OnDetailChanged(EquipmentDetailDto? value)
         {
-            foreach (string name in new[] { nameof(CanInspect), nameof(DeviceTitle), nameof(DeviceDescription), nameof(DeviceStatus), nameof(NextInspection), nameof(LastInspection), nameof(Instructions) }) OnPropertyChanged(name);
+            foreach (string name in new[] { nameof(CanInspect), nameof(DeviceTitle), nameof(DeviceDescription), nameof(DeviceStatus), nameof(NextInspection), nameof(LastInspection), nameof(Instructions) })
+                OnPropertyChanged(name);
             SaveInspectionCommand.NotifyCanExecuteChanged();
         }
 
@@ -201,7 +214,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 this.History.Add(entry);
             }
 
-            this.Comment = "";
+            this.Comment = string.Empty;
             this.SelectedStatus = (int)result.Equipment.Status;
             this.InspectedOn = DateTimeOffset.UtcNow;
             this.commandId = Guid.NewGuid();

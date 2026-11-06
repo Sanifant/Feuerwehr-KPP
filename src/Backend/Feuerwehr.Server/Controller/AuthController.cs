@@ -46,7 +46,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
                 return this.BadRequest(this.ModelState);
             }
 
-            return this.ToActionResult(await service.RefreshToken(request, this.Request.Headers["Authorization"].ToString().Replace("Bearer ", "")));
+            return this.ToActionResult(await service.RefreshToken(request, this.Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty)));
         }
 
         [HttpPost("reset-password")]
@@ -78,7 +78,8 @@ namespace De.Openelp.Feuerwehr.Server.Controller
                 return this.BadRequest(this.ModelState);
             }
 
-            return this.ToActionResult(await service.ChangePassword(request,
+            return this.ToActionResult(await service.ChangePassword(
+                request,
                 this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 

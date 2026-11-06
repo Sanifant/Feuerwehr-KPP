@@ -151,10 +151,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             Incident incident = new Incident
             {
-                Id = Guid.NewGuid(), Name = "Brand Gerätehaus", Keyword = "B3", IncidentNumber = "2026-123",
-                Description = "Löschzug StraÃŸe", Status = status, CreatedAtUtc = DateTime.UtcNow.AddHours(-6),
-                AlarmedAtUtc = DateTime.UtcNow.AddHours(-7), ClosedAtUtc = status == IncidentStatus.Closed ? DateTime.UtcNow.AddHours(-closedHoursAgo) : null,
-                ClosedByDisplayName = "Ada Muster", Revision = 3,
+                Id = Guid.NewGuid(),
+                Name = "Brand Gerätehaus",
+                Keyword = "B3",
+                IncidentNumber = "2026-123",
+                Description = "Löschzug StraÃŸe",
+                Status = status,
+                CreatedAtUtc = DateTime.UtcNow.AddHours(-6),
+                AlarmedAtUtc = DateTime.UtcNow.AddHours(-7),
+                ClosedAtUtc = status == IncidentStatus.Closed ? DateTime.UtcNow.AddHours(-closedHoursAgo) : null,
+                ClosedByDisplayName = "Ada Muster",
+                Revision = 3,
             };
             this._db.Incidents.Add(incident);
             return incident;
@@ -164,29 +171,51 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             DiaryEntry entry = new DiaryEntry
             {
-                Id = Guid.NewGuid(), IncidentId = incident.Id, EntryNumber = number, CurrentRevision = canceled ? 2 : 1,
-                IsCanceled = canceled, CancellationReason = canceled ? "Doppelte Meldung" : null,
-                CreatedAtUtc = incident.CreatedAtUtc, UpdatedAtUtc = incident.CreatedAtUtc,
+                Id = Guid.NewGuid(),
+                IncidentId = incident.Id,
+                EntryNumber = number,
+                CurrentRevision = canceled ? 2 : 1,
+                IsCanceled = canceled,
+                CancellationReason = canceled ? "Doppelte Meldung" : null,
+                CreatedAtUtc = incident.CreatedAtUtc,
+                UpdatedAtUtc = incident.CreatedAtUtc,
             };
             this._db.DiaryEntries.Add(entry);
             DiaryEntryRevision revision = new DiaryEntryRevision
             {
-                Id = Guid.NewGuid(), DiaryEntryId = entry.Id, RevisionNumber = 1, RevisionType = DiaryRevisionType.Created,
-                EventTimestampUtc = incident.CreatedAtUtc, CategoryCode = "meldung", CategoryNameSnapshot = "Meldung",
+                Id = Guid.NewGuid(),
+                DiaryEntryId = entry.Id,
+                RevisionNumber = 1,
+                RevisionType = DiaryRevisionType.Created,
+                EventTimestampUtc = incident.CreatedAtUtc,
+                CategoryCode = "meldung",
+                CategoryNameSnapshot = "Meldung",
                 Text = number == 70 ? "LetzteMeldung" : "Löschzug StraÃŸe: Wasser am Rohr. " + new string('X', 180) + "\nWeitere Informationen zur Einsatzlage.",
-                Sender = "Florian 1", Recipient = "Einsatzleitung", TransmissionType = "Funk",
-                CreatedAtUtc = incident.CreatedAtUtc, CreatedByUserId = "admin-1", CreatedByDisplayName = "Ada Muster",
+                Sender = "Florian 1",
+                Recipient = "Einsatzleitung",
+                TransmissionType = "Funk",
+                CreatedAtUtc = incident.CreatedAtUtc,
+                CreatedByUserId = "admin-1",
+                CreatedByDisplayName = "Ada Muster",
             };
             this._db.DiaryEntryRevisions.Add(revision);
             if (canceled)
             {
                 this._db.DiaryEntryRevisions.Add(new DiaryEntryRevision
-            {
-                Id = Guid.NewGuid(), DiaryEntryId = entry.Id, RevisionNumber = 2, RevisionType = DiaryRevisionType.Canceled,
-                EventTimestampUtc = revision.EventTimestampUtc, CategoryCode = revision.CategoryCode, CategoryNameSnapshot = revision.CategoryNameSnapshot,
-                Text = "Stornierte Meldung", CancellationReason = "Doppelte Meldung", CreatedAtUtc = revision.CreatedAtUtc,
-                CreatedByUserId = "admin-1", CreatedByDisplayName = "Ada Muster",
-            });
+                {
+                    Id = Guid.NewGuid(),
+                    DiaryEntryId = entry.Id,
+                    RevisionNumber = 2,
+                    RevisionType = DiaryRevisionType.Canceled,
+                    EventTimestampUtc = revision.EventTimestampUtc,
+                    CategoryCode = revision.CategoryCode,
+                    CategoryNameSnapshot = revision.CategoryNameSnapshot,
+                    Text = "Stornierte Meldung",
+                    CancellationReason = "Doppelte Meldung",
+                    CreatedAtUtc = revision.CreatedAtUtc,
+                    CreatedByUserId = "admin-1",
+                    CreatedByDisplayName = "Ada Muster",
+                });
             }
         }
     }

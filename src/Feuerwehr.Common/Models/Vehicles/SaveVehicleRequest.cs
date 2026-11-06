@@ -7,7 +7,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
     {
         [Range(1, int.MaxValue)] public int FireDepartmentId { get; set; }
 
-        [Required, StringLength(100)] public string RadioCallSign { get; set; } = "";
+        [Required, StringLength(100)] public string RadioCallSign { get; set; } = string.Empty;
 
         [StringLength(150)] public string? Name { get; set; }
 
@@ -17,7 +17,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
 
         public Guid? VehicleStatusId { get; set; }
 
-        [Required] public string EquipmentOfficerId { get; set; } = "";
+        [Required] public string EquipmentOfficerId { get; set; } = string.Empty;
 
         [Range(1, int.MaxValue)] public int ExpectedVersion { get; set; } = 1;
     }

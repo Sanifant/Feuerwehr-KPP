@@ -194,8 +194,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             InventoryCategoryDto[] categories = (await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!;
             SaveEquipmentTypeRequest request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "Prüfen" };
-            for (int i = 0; i < 2; i++) { using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory/types", request);
-                create.EnsureSuccessStatusCode(); }
+            for (int i = 0; i < 2; i++)
+            {
+                using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory/types", request);
+                create.EnsureSuccessStatusCode();
+            }
             using HttpResponseMessage export = await officer.GetAsync("/api/inventory/types/export");
             export.EnsureSuccessStatusCode();
             using HttpResponseMessage import = await Upload(officer, "/api/inventory/types/import", await export.Content.ReadAsStringAsync(), "types.json");
@@ -211,7 +214,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient viewer = await fixture.Client(Roles.InventoryViewer);
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
-            foreach (string? suffix in new[] { "", "/types", "/categories" })
+            foreach (string? suffix in new[] { string.Empty, "/types", "/categories" })
             {
                 using HttpResponseMessage export = await viewer.GetAsync($"/api/inventory{suffix}/export");
                 Assert.Equal(HttpStatusCode.OK, export.StatusCode);

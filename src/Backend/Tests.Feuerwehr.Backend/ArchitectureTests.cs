@@ -40,7 +40,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
                 assembly.Name == "Feuerwehr.Server" || assembly.Name!.StartsWith("Microsoft.EntityFrameworkCore"));
             using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-            Assert.All(db.Model.GetEntityTypes().Where(entity => !entity.ClrType.Namespace!.StartsWith("Microsoft.")),
+            Assert.All(
+                db.Model.GetEntityTypes().Where(entity => !entity.ClrType.Namespace!.StartsWith("Microsoft.")),
                 entity => Assert.Equal(typeof(FeuerwehrDbContext).Assembly, entity.ClrType.Assembly));
         }
 

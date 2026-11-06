@@ -56,7 +56,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             currentMap.Navigator.ZoomTo(this.zoomFactor);
 
             this.Map = currentMap;
-            }
+        }
 
         /// <summary>
         /// Executes deactivate.
@@ -119,7 +119,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
                     this.displayedIncidentId = incident.Id;
                 }
-            
+
                 foreach (ILayer? layer in currentMap.Layers.Where(layer => layer.Name is "Lage" or "Hydranten").ToArray())
                 {
                     currentMap.Layers.Remove(layer);

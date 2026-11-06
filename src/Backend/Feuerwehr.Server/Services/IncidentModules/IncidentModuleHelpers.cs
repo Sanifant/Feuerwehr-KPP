@@ -284,7 +284,8 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             sb.AppendLine("Sequence;OccurredAtUtc;Action;User;ElementId;CommandId;Before;After");
             foreach (MapAuditEvent e in events)
             {
-                sb.AppendLine(string.Join(';',
+                sb.AppendLine(string.Join(
+                    ';',
                     e.SequenceNumber.ToString(CultureInfo.InvariantCulture),
                     SanitizeCsvCell(e.OccurredAtUtc.ToString("O", CultureInfo.InvariantCulture)),
                     SanitizeCsvCell(e.Action),
@@ -382,9 +383,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     page.Add(line);
                 }
                 block.Clear();
-                if (separator && page.Count is > 0 and < 56 && page[^1] != "")
+                if (separator && page.Count is > 0 and < 56 && page[^1] != string.Empty)
                 {
-                    page.Add("");
+                    page.Add(string.Empty);
                 }
             }
             foreach (string line in lines)

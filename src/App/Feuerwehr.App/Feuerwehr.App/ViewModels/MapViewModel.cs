@@ -69,7 +69,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         /// </summary>
         public void ZoomIn()
         {
-            if(this.zoomFactor == 1)
+            if (this.zoomFactor == 1)
             {
                 this.CanZoomIn = false;
                 return;

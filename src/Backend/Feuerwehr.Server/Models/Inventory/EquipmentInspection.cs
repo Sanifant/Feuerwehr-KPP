@@ -16,18 +16,18 @@ namespace De.Openelp.Feuerwehr.Server.Models.Inventory
 
         public DateTime RecordedAtUtc { get; set; }
 
-        public string InspectorId { get; set; } = "";
+        public string InspectorId { get; set; } = string.Empty;
 
-        public string InspectorName { get; set; } = "";
+        public string InspectorName { get; set; } = string.Empty;
 
         public string? Comment { get; set; }
 
         public EquipmentStatus Status { get; set; }
 
-        public string EquipmentTypeName { get; set; } = "";
+        public string EquipmentTypeName { get; set; } = string.Empty;
 
         public int InspectionIntervalMonths { get; set; }
 
-        public string InspectionInstructions { get; set; } = "";
+        public string InspectionInstructions { get; set; } = string.Empty;
     }
 }

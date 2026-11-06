@@ -1,4 +1,4 @@
-﻿namespace De.Openelp.Feuerwehr.App.iOS
+namespace De.Openelp.Feuerwehr.App.iOS
 {
     internal static class DummyMain
     {

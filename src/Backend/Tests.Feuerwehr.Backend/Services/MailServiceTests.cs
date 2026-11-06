@@ -112,7 +112,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Security = authenticate ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None,
             Username = authenticate ? "mail@example.org" : null,
             Password = authenticate ? "test-only-password" : null,
-            From = "mail@example.org", FromName = "Feuerwehr Ãœbung", TimeoutMilliseconds = 45000,
+            From = "mail@example.org",
+            FromName = "Feuerwehr Ãœbung",
+            TimeoutMilliseconds = 45000,
         };
     }
 }

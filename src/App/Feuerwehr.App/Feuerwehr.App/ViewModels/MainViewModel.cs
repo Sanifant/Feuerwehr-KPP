@@ -76,7 +76,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         public bool CanViewInventory => this.IsAuthenticated && this._authService.UserRoles.Any(role => role is "Admin" or "EquipmentOfficer" or "InventoryViewer");
 
         public MainViewModel(IAuthService authService)
-        { 
+        {
             this._authService = authService ?? throw new ArgumentNullException(nameof(authService));
             this._authService.AuthStateChanged += this.OnAuthStateChanged;
             this.OnPropertyChanged(nameof(this.Incident));
@@ -94,7 +94,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         }
 
         private void PreparePages()
-        {  
+        {
             this.Pages.Add(new PageItem("Hydranten", () => new MapView()));
             this.Pages.Add(new PageItem("Einsatzkarte", () => new SituationMapView(), "M 0,0 L 1,0 L 1,1 L 0,1 Z", () => this.CanViewSituationMap));
             this.Pages.Add(new PageItem("Inventar / Geräteprüfung", () => new InventoryView(), isVisible: () => this.CanViewInventory));
@@ -110,11 +110,11 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
             PageItem item = this.Pages[selectedIndex];
 
-            if(item != null)
+            if (item != null)
             {
 
                 object view = item.Factory();
-                if(view is Page page)
+                if (view is Page page)
                 {
                     return this.Navigation.ReplaceAsync(page);
                 }

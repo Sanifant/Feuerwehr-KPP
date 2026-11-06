@@ -74,10 +74,18 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             return new SmtpSettings
             {
-                Host = host, Port = port, Security = security, Username = username, Password = password,
-                From = sender.Address, FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? "",
-                TimeoutMilliseconds = 1000 * ReadPositiveInteger(NonBlank(configuration["MAIL_TIMEOUT_SECONDS"]),
-                    "MAIL_TIMEOUT_SECONDS", 30, int.MaxValue / 1000),
+                Host = host,
+                Port = port,
+                Security = security,
+                Username = username,
+                Password = password,
+                From = sender.Address,
+                FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? string.Empty,
+                TimeoutMilliseconds = 1000 * ReadPositiveInteger(
+                    NonBlank(configuration["MAIL_TIMEOUT_SECONDS"]),
+                    "MAIL_TIMEOUT_SECONDS",
+                    30,
+                    int.MaxValue / 1000),
             };
         }
 

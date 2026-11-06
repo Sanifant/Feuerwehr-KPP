@@ -7,6 +7,6 @@ namespace De.Openelp.Feuerwehr.Common.Models.Inventory
         public Guid? Id { get; set; }
 
         [Required(ErrorMessage = "Der Kategoriename ist erforderlich."), StringLength(100, ErrorMessage = "Der Kategoriename darf höchstens 100 Zeichen enthalten.")]
-        public string Name { get; set; } = "";
+        public string Name { get; set; } = string.Empty;
     }
 }

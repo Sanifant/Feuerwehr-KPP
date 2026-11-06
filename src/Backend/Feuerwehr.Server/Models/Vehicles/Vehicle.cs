@@ -10,7 +10,7 @@ namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
 
         public FireDepartment FireDepartment { get; set; } = null!;
 
-        public string RadioCallSign { get; set; } = "";
+        public string RadioCallSign { get; set; } = string.Empty;
 
         public string? Name { get; set; }
 
@@ -26,7 +26,7 @@ namespace De.Openelp.Feuerwehr.Server.Models.Vehicles
 
         public DateTime? StatusChangedAtUtc { get; set; }
 
-        public string EquipmentOfficerId { get; set; } = "";
+        public string EquipmentOfficerId { get; set; } = string.Empty;
 
         public ApplicationUser EquipmentOfficer { get; set; } = null!;
 

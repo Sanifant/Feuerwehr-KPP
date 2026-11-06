@@ -241,7 +241,8 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         {
             IExecutionStrategy strategy = dbContext.Database.CreateExecutionStrategy();
             int attempt = 0;
-            return await strategy.ExecuteAsync(async token =>
+            return await strategy.ExecuteAsync(
+                async token =>
             {
                 // A rolled-back attempt may have accepted tracked changes already. Reload
                 // entities and recheck CommandId so retries cannot duplicate committed work.
@@ -403,7 +404,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 $"Status: {incident.Status}",
                 $"Stand UTC: {DateTime.UtcNow:O}",
                 "Kartenquelle: OpenStreetMap contributors (https://www.openstreetmap.org/copyright)",
-                ""
+                string.Empty
             };
 
             if (elements.Count == 0)

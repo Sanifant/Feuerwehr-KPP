@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace De.Openelp.Feuerwehr.Server.Data
 {
-    public class FeuerwehrDbContextFactory: IDesignTimeDbContextFactory<FeuerwehrDbContext>
+    public class FeuerwehrDbContextFactory : IDesignTimeDbContextFactory<FeuerwehrDbContext>
     {
         /// <summary>
         /// Creates the db Context.

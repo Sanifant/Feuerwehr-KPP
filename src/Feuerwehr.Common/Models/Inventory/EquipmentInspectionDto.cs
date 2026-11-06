@@ -15,7 +15,14 @@ namespace De.Openelp.Feuerwehr.Common.Models.Inventory
     /// <param name="EquipmentTypeName">The equipment Type Name.</param>
     /// <param name="InspectionIntervalMonths">The inspection Interval Months.</param>
     /// <param name="InspectionInstructions">The inspection Instructions.</param>
-    public sealed record EquipmentInspectionDto(Guid Id, DateOnly InspectedOn, DateTime RecordedAtUtc,
-        string InspectorName, string? Comment, EquipmentStatus Status, string EquipmentTypeName,
-        int InspectionIntervalMonths, string InspectionInstructions);
+    public sealed record EquipmentInspectionDto(
+        Guid Id,
+        DateOnly InspectedOn,
+        DateTime RecordedAtUtc,
+        string InspectorName,
+        string? Comment,
+        EquipmentStatus Status,
+        string EquipmentTypeName,
+        int InspectionIntervalMonths,
+        string InspectionInstructions);
 }

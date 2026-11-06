@@ -23,7 +23,8 @@ namespace De.Openelp.Feuerwehr.Server
         private static async Task Main(string[] args)
         {
             using ProcessDiagnostics diagnostics = ProcessDiagnostics.Start("Server");
-            try { await RunAsync(args, diagnostics); }
+            try
+            { await RunAsync(args, diagnostics); }
             catch (Exception error)
             {
                 diagnostics.Record("Server.FatalException", exception: error);

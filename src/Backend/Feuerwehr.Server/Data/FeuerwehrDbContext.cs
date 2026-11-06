@@ -17,7 +17,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
 
         public DbSet<Hydrant> Hydrants { get; set; }
 
-        public DbSet<FireDepartment>  FireDepartments { get; set; }
+        public DbSet<FireDepartment> FireDepartments { get; set; }
 
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 

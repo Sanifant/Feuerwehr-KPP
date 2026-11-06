@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using De.Openelp.Feuerwehr.Common.Models.Auth;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;

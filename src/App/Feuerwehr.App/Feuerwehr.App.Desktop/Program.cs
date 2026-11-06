@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using Avalonia;
 using De.Openelp.Feuerwehr.App.Desktop.Services;

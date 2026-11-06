@@ -17,9 +17,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private readonly IUserInvitationService _invitations;
         private readonly ILogger<UsersService> _logger;
 
-        public UsersService(UserManager<ApplicationUser> userManager,
+        public UsersService(
+            UserManager<ApplicationUser> userManager,
                 RoleManager<IdentityRole> roleManager,
-                IUserInvitationService invitations, ILogger<UsersService> logger)
+                IUserInvitationService invitations,
+            ILogger<UsersService> logger)
         {
             this._userManager = userManager;
             this._roleManager = roleManager;
@@ -326,9 +328,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             IdentityResult result;
-            try { result = await this._userManager.DeleteAsync(user); }
+            try
+            { result = await this._userManager.DeleteAsync(user); }
             catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
-                { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
+            { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
             {
                 return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als Gerätewart Fahrzeugen zugeordnet. Bitte die Zuständigkeit vor dem endgültigen Löschen übertragen."));
             }

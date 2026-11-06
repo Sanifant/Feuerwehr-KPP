@@ -12,9 +12,9 @@ namespace De.Openelp.Feuerwehr.Server.Models.Inventory
 
         public EquipmentType EquipmentType { get; set; } = null!;
 
-        public string SerialNumber { get; set; } = "";
+        public string SerialNumber { get; set; } = string.Empty;
 
-        public string Manufacturer { get; set; } = "";
+        public string Manufacturer { get; set; } = string.Empty;
 
         public EquipmentStatus Status { get; set; }
 

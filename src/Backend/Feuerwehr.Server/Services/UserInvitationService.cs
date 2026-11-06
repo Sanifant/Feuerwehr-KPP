@@ -58,11 +58,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 UserInvitation invitation = new UserInvitation(user.Id, user.Email!, resetToken, clock.GetUtcNow().Add(Lifetime));
                 await store.StoreAsync(id, invitation, Lifetime);
                 await tokens.RevokeRefreshTokenAsync(user.Id);
-                await mail.SendAsync(user.Email!, "Ihr Feuerwehr-Benutzerkonto â€“ Passwort festlegen",
-                    $"Hallo {user.FirstName},\n\nSie wurden zur Passwortvergabe für Ihr Benutzerkonto eingeladen.\n" +
+                string body = $"Hallo {user.FirstName},\n\nSie wurden zur Passwortvergabe für Ihr Benutzerkonto eingeladen.\n" +
                     $"Ã–ffnen Sie diesen Link und geben Sie Ihre E-Mail-Adresse ein, um Ihr Passwort festzulegen:\n\n{link.AbsoluteUri}\n\n" +
                     $"Der Link ist {Lifetime.TotalMinutes:0} Minuten gültig und kann einmal verwendet werden.\n" +
-                    "Ihr Konto ist bis zur erfolgreichen Passwortvergabe gesperrt. Frühere Einladungslinks sind ungültig.");
+                    "Ihr Konto ist bis zur erfolgreichen Passwortvergabe gesperrt. Frühere Einladungslinks sind ungültig.";
+                await mail.SendAsync(
+                    user.Email!,
+                    "Ihr Feuerwehr-Benutzerkonto â€“ Passwort festlegen",
+                    body);
             }
             catch
             {
@@ -137,7 +140,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return InvalidInvitation();
                 }
 
-                return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht gesetzt werden.",
+                return ServiceResult.BadRequest(new IdentityErrorResponse(
+                    "Das Passwort konnte nicht gesetzt werden.",
                     result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
             }
 

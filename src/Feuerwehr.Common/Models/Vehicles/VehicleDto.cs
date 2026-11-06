@@ -24,8 +24,23 @@ namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
     /// <param name="VehicleStatusName">The vehicle Status Name.</param>
     /// <param name="AllowsBooking">The allows Booking.</param>
     /// <param name="StatusChangedAtUtc">The status Changed At Utc.</param>
-    public sealed record VehicleDto(Guid Id, int FireDepartmentId, string FireDepartmentName, string RadioCallSign,
-        string? Name, string? LicensePlate, string EquipmentOfficerId, string EquipmentOfficerName,
-        bool IsActive, int Version, bool CanEdit, bool CanBookDirectly, Guid? VehicleTypeId = null, string? VehicleTypeName = null,
-        Guid VehicleStatusId = default, string VehicleStatusName = "Betriebsbereit", bool AllowsBooking = true, DateTime? StatusChangedAtUtc = null);
+    public sealed record VehicleDto(
+        Guid Id,
+        int FireDepartmentId,
+        string FireDepartmentName,
+        string RadioCallSign,
+        string? Name,
+        string? LicensePlate,
+        string EquipmentOfficerId,
+        string EquipmentOfficerName,
+        bool IsActive,
+        int Version,
+        bool CanEdit,
+        bool CanBookDirectly,
+        Guid? VehicleTypeId = null,
+        string? VehicleTypeName = null,
+        Guid VehicleStatusId = default,
+        string VehicleStatusName = "Betriebsbereit",
+        bool AllowsBooking = true,
+        DateTime? StatusChangedAtUtc = null);
 }

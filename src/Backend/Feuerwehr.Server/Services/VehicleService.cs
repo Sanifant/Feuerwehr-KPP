@@ -22,12 +22,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
     /// <param name="http">The http.</param>
     /// <param name="clock">The clock.</param>
     /// <param name="mail">The mail.</param>
-    public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor http, TimeProvider clock,
+    public sealed class VehicleService(
+        FeuerwehrDbContext db,
+        IHttpContextAccessor http,
+        TimeProvider clock,
         IVehicleMailComposer mail) : IVehicleService
     {
         private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
 
-        private string UserId => this.Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+        private string UserId => this.Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
         private bool IsAdmin => this.Principal.IsInRole(Roles.Admin);
 
@@ -43,7 +46,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         private DateTime Now => clock.GetUtcNow().UtcDateTime;
 
-        private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(),
+        private DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(
+            clock.GetUtcNow(),
             TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin")).DateTime);
 
         /// <summary>
@@ -106,7 +110,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 db.Set<VehicleStatus>().Add(status);
             }
 
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Status wurde inzwischen geändert oder existiert bereits."); }
             return ServiceResult.Ok(new VehicleStatusDto(status.Id, status.Name, status.AllowsBooking, status.IsActive, status.Version, status.Id == VehicleStatusDefaults.ReadyId));
         });
@@ -165,7 +170,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 db.Set<VehicleType>().Add(type);
             }
 
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateException exception) when (IsConflict(exception)) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert oder existiert bereits. Bitte neu laden."); }
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
@@ -195,7 +201,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             type.IsActive = request.IsActive;
             type.Version++;
-            try { await db.SaveChangesAsync(ct); }
+            try
+            { await db.SaveChangesAsync(ct); }
             catch (DbUpdateConcurrencyException) { return Conflict("Der Fahrzeugtyp wurde inzwischen geändert. Bitte neu laden."); }
             return ServiceResult.Ok(new VehicleTypeDto(type.Id, type.Name, type.IsActive, type.Version));
         });
@@ -242,7 +249,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
             var pending = await db.VehicleReservations.AsNoTracking().Where(x => x.Status == VehicleReservationStatus.Pending && x.From <= to && x.To >= from)
                 .Select(x => new { x.VehicleId, x.From, x.To }).ToListAsync(ct);
             HashSet<(Guid VehicleId, DateOnly Date)> booked = bookings.Select(x => (x.VehicleId, x.Date)).ToHashSet();
-            return ServiceResult.Ok(vehicles.Select(vehicle => new VehicleAvailabilityDto(this.ToDto(vehicle),
+            return ServiceResult.Ok(vehicles.Select(vehicle => new VehicleAvailabilityDto(
+                this.ToDto(vehicle),
                 Enumerable.Range(0, to.DayNumber - from.DayNumber + 1).Select(offset =>
                 {
                     DateOnly day = from.AddDays(offset);
@@ -278,12 +286,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
             List<VehicleDepartmentDto> departmentList = await departments.OrderBy(x => x.Name).Select(x => new VehicleDepartmentDto(x.Id, x.Name)).ToListAsync(ct);
             int[] ids = departmentList.Select(x => x.Id).ToArray();
             List<VehicleOfficerDto> officers = await (from user in db.Users
-                                  join membership in db.UserRoles on user.Id equals membership.UserId
-                                  join role in db.Roles on membership.RoleId equals role.Id
-                                  where user.IsActive && user.Email != null && user.FireDepartmentId.HasValue && ids.Contains(user.FireDepartmentId.Value)
-                                      && role.Name == Roles.EquipmentOfficer
-                                  orderby user.LastName, user.FirstName
-                                  select new VehicleOfficerDto(user.Id, user.FirstName + " " + user.LastName, user.FireDepartmentId!.Value)).ToListAsync(ct);
+                                                      join membership in db.UserRoles on user.Id equals membership.UserId
+                                                      join role in db.Roles on membership.RoleId equals role.Id
+                                                      where user.IsActive && user.Email != null && user.FireDepartmentId.HasValue && ids.Contains(user.FireDepartmentId.Value)
+                                                          && role.Name == Roles.EquipmentOfficer
+                                                      orderby user.LastName, user.FirstName
+                                                      select new VehicleOfficerDto(user.Id, user.FirstName + " " + user.LastName, user.FireDepartmentId!.Value)).ToListAsync(ct);
             return ServiceResult.Ok(new VehicleManagementOptionsDto(departmentList, officers, VehicleStatusDefaults.ReadyId));
         }
 
@@ -309,7 +317,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<ServiceResult> Reservations(string scope, CancellationToken ct)
         {
             IQueryable<VehicleReservation> query = db.VehicleReservations.AsNoTracking().Include(x => x.Vehicle).AsQueryable();
-            if (scope == "mine") query = query.Where(x => x.RequesterId == this.UserId);
+            if (scope == "mine")
+                query = query.Where(x => x.RequesterId == this.UserId);
             else if (scope == "assigned")
             {
                 if (!this.IsOfficer)
@@ -319,7 +328,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
                 query = query.Where(x => x.Vehicle.EquipmentOfficerId == this.UserId);
             }
-            else return Invalid("Als Bereich bitte mine oder assigned angeben.");
+            else
+                return Invalid("Als Bereich bitte mine oder assigned angeben.");
             return ServiceResult.Ok((await query.OrderByDescending(x => x.CreatedAtUtc).ToListAsync(ct)).Select(this.ToDto).ToList());
         }
 
@@ -380,7 +390,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             FireDepartment? department = await db.FireDepartments.FindAsync([request.FireDepartmentId], ct);
-            ApplicationUser? officer = await db.Users.SingleOrDefaultAsync(x => x.Id == request.EquipmentOfficerId && x.IsActive && x.Email != null &&
+            ApplicationUser? officer = await db.Users.SingleOrDefaultAsync(
+                x => x.Id == request.EquipmentOfficerId && x.IsActive && x.Email != null &&
                 x.FireDepartmentId == request.FireDepartmentId, ct);
             if (department is null || officer is null || !await this.HasOfficerRole(officer.Id, ct))
             {
@@ -514,7 +525,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
-                { VehicleId = id, request.From, request.To, Comment = Clean(request.Comment), Direct = direct }))));
+            { VehicleId = id, request.From, request.To, Comment = Clean(request.Comment), Direct = direct }))));
             await using IDbContextTransaction? transaction = await this.Begin(ct);
             Vehicle? vehicle = await this.LockVehicle(id, ct);
             if (vehicle is null)
@@ -562,12 +573,24 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             VehicleReservation reservation = new VehicleReservation
             {
-                Id = Guid.NewGuid(), VehicleId = id, Vehicle = vehicle, CommandId = request.CommandId, PayloadHash = hash,
-                RequesterId = actor.Id, RequesterName = actor.FullName, RequesterEmail = actor.Email!,
-                RadioCallSign = vehicle.RadioCallSign, FireDepartmentName = vehicle.FireDepartment.Name,
-                From = request.From, To = request.To, Comment = Clean(request.Comment), CreatedAtUtc = this.Now,
-                Status = direct ? VehicleReservationStatus.Confirmed : VehicleReservationStatus.Pending, IsDirectBooking = direct,
-                DecidedAtUtc = direct ? this.Now : null, DecidedById = direct ? this.UserId : null
+                Id = Guid.NewGuid(),
+                VehicleId = id,
+                Vehicle = vehicle,
+                CommandId = request.CommandId,
+                PayloadHash = hash,
+                RequesterId = actor.Id,
+                RequesterName = actor.FullName,
+                RequesterEmail = actor.Email!,
+                RadioCallSign = vehicle.RadioCallSign,
+                FireDepartmentName = vehicle.FireDepartment.Name,
+                From = request.From,
+                To = request.To,
+                Comment = Clean(request.Comment),
+                CreatedAtUtc = this.Now,
+                Status = direct ? VehicleReservationStatus.Confirmed : VehicleReservationStatus.Pending,
+                IsDirectBooking = direct,
+                DecidedAtUtc = direct ? this.Now : null,
+                DecidedById = direct ? this.UserId : null
             };
             db.VehicleReservations.Add(reservation);
             if (direct)
@@ -576,7 +599,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             vehicle.Version++;
-            this.Audit(vehicle, reservation, direct ? "DirectBooking" : "ReservationRequested", reservation.Comment ?? "");
+            this.Audit(vehicle, reservation, direct ? "DirectBooking" : "ReservationRequested", reservation.Comment ?? string.Empty);
             db.VehicleMailMessages.Add(mail.Compose(reservation, direct ? actor.Email! : vehicle.EquipmentOfficer.Email!, !direct));
             try
             {
@@ -624,7 +647,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return ServiceResult.Forbid();
                 }
             }
-            else if (!owns) return ServiceResult.Forbid();
+            else if (!owns)
+                return ServiceResult.Forbid();
             if (reservation.Status == status)
             {
                 return ServiceResult.Ok(this.ToDto(reservation));
@@ -672,7 +696,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             reservation.DecidedById = this.UserId;
             reservation.Version++;
             vehicle.Version++;
-            this.Audit(vehicle, reservation, status.ToString(), "");
+            this.Audit(vehicle, reservation, status.ToString(), string.Empty);
             try
             {
                 await db.SaveChangesAsync(ct);
@@ -696,8 +720,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         });
 
         private Task<bool> HasOfficerRole(string id, CancellationToken ct) =>
-            (from membership in db.UserRoles join role in db.Roles on membership.RoleId equals role.Id
-             where membership.UserId == id && role.Name == Roles.EquipmentOfficer select membership).AnyAsync(ct);
+            (from membership in db.UserRoles
+             join role in db.Roles on membership.RoleId equals role.Id
+             where membership.UserId == id && role.Name == Roles.EquipmentOfficer
+             select membership).AnyAsync(ct);
 
         private Task<IDbContextTransaction?> Begin(CancellationToken ct) => db.Database.IsRelational() ? this.BeginRelational(ct) : Task.FromResult<IDbContextTransaction?>(null);
 
@@ -735,17 +761,42 @@ namespace De.Openelp.Feuerwehr.Server.Services
         private void Audit(Vehicle vehicle, VehicleReservation? reservation, string action, string details) => db.VehicleEvents.Add(new VehicleEvent
         { Id = Guid.NewGuid(), VehicleId = vehicle.Id, ReservationId = reservation?.Id, ActorId = this.UserId, Action = action, Details = details, OccurredAtUtc = this.Now });
 
-        private VehicleDto ToDto(Vehicle vehicle) => new(vehicle.Id, vehicle.FireDepartmentId, vehicle.FireDepartment.Name,
-            vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate, vehicle.EquipmentOfficerId, vehicle.EquipmentOfficer.FullName,
-            vehicle.IsActive, vehicle.Version, this.IsAdmin || this.Owns(vehicle), this.Owns(vehicle), vehicle.VehicleTypeId, vehicle.VehicleType?.Name,
-            vehicle.VehicleStatusId, vehicle.VehicleStatus.Name, vehicle.VehicleStatus.AllowsBooking, vehicle.StatusChangedAtUtc);
+        private VehicleDto ToDto(Vehicle vehicle) => new(
+            vehicle.Id,
+            vehicle.FireDepartmentId,
+            vehicle.FireDepartment.Name,
+            vehicle.RadioCallSign,
+            vehicle.Name,
+            vehicle.LicensePlate,
+            vehicle.EquipmentOfficerId,
+            vehicle.EquipmentOfficer.FullName,
+            vehicle.IsActive,
+            vehicle.Version,
+            this.IsAdmin || this.Owns(vehicle),
+            this.Owns(vehicle),
+            vehicle.VehicleTypeId,
+            vehicle.VehicleType?.Name,
+            vehicle.VehicleStatusId,
+            vehicle.VehicleStatus.Name,
+            vehicle.VehicleStatus.AllowsBooking,
+            vehicle.StatusChangedAtUtc);
 
-        private VehicleReservationDto ToDto(VehicleReservation reservation) => new(reservation.Id, reservation.VehicleId, reservation.RadioCallSign,
-            reservation.FireDepartmentName, reservation.From, reservation.To, reservation.Comment, reservation.Status, reservation.RequesterName,
-            reservation.CreatedAtUtc, reservation.DecidedAtUtc, reservation.IsDirectBooking, reservation.Version,
+        private VehicleReservationDto ToDto(VehicleReservation reservation) => new(
+            reservation.Id,
+            reservation.VehicleId,
+            reservation.RadioCallSign,
+            reservation.FireDepartmentName,
+            reservation.From,
+            reservation.To,
+            reservation.Comment,
+            reservation.Status,
+            reservation.RequesterName,
+            reservation.CreatedAtUtc,
+            reservation.DecidedAtUtc,
+            reservation.IsDirectBooking,
+            reservation.Version,
             this.Owns(reservation.Vehicle) && reservation.Status == VehicleReservationStatus.Pending,
-            (this.Owns(reservation.Vehicle) && reservation.Status is VehicleReservationStatus.Pending or VehicleReservationStatus.Confirmed) ||
-            (reservation.RequesterId == this.UserId && reservation.Status == VehicleReservationStatus.Pending));
+            (this.Owns(reservation.Vehicle) && reservation.Status is VehicleReservationStatus.Pending or VehicleReservationStatus.Confirmed) || (reservation.RequesterId == this.UserId && reservation.Status == VehicleReservationStatus.Pending));
 
         private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

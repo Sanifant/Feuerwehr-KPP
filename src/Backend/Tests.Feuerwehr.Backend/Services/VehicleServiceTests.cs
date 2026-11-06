@@ -27,18 +27,28 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             DateTime initial = fixture.Clock.GetUtcNow().UtcDateTime;
             Assert.Equal(initial, vehicle.StatusChangedAtUtc);
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-            VehicleDto renamed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
-            {
-                FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-                Name = "Neuer Name", ExpectedVersion = vehicle.Version
-            }, default)).Value);
+            VehicleDto renamed = Assert.IsType<VehicleDto>((await fixture.Service.Save(
+                vehicle.Id,
+                new SaveVehicleRequest
+                {
+                    FireDepartmentId = 1,
+                    EquipmentOfficerId = "officer",
+                    RadioCallSign = vehicle.RadioCallSign,
+                    Name = "Neuer Name",
+                    ExpectedVersion = vehicle.Version
+                }, default)).Value);
             Assert.Equal(initial, renamed.StatusChangedAtUtc);
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-            VehicleDto changed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
-            {
-                FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-                VehicleStatusId = VehicleStatusDefaults.MaintenanceId, ExpectedVersion = renamed.Version
-            }, default)).Value);
+            VehicleDto changed = Assert.IsType<VehicleDto>((await fixture.Service.Save(
+                vehicle.Id,
+                new SaveVehicleRequest
+                {
+                    FireDepartmentId = 1,
+                    EquipmentOfficerId = "officer",
+                    RadioCallSign = vehicle.RadioCallSign,
+                    VehicleStatusId = VehicleStatusDefaults.MaintenanceId,
+                    ExpectedVersion = renamed.Version
+                }, default)).Value);
             DateTime changedAt = fixture.Clock.GetUtcNow().UtcDateTime;
             Assert.Equal(changedAt, changed.StatusChangedAtUtc);
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
@@ -58,11 +68,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             VehicleDto vehicle = await fixture.Vehicle();
             (await fixture.Db.Vehicles.FindAsync(vehicle.Id))!.StatusChangedAtUtc = null;
             await fixture.Db.SaveChangesAsync();
-            VehicleDto updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
-            {
-                FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = vehicle.RadioCallSign,
-                Name = "Name geändert", ExpectedVersion = vehicle.Version
-            }, default)).Value);
+            VehicleDto updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(
+                vehicle.Id,
+                new SaveVehicleRequest
+                {
+                    FireDepartmentId = 1,
+                    EquipmentOfficerId = "officer",
+                    RadioCallSign = vehicle.RadioCallSign,
+                    Name = "Name geändert",
+                    ExpectedVersion = vehicle.Version
+                }, default)).Value);
             Assert.Null(updated.StatusChangedAtUtc);
         }
 
@@ -86,8 +101,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             VehicleReservationDto pending = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
             fixture.As("officer", Roles.EquipmentOfficer);
             VehicleDto current = Assert.Single(Assert.IsType<List<VehicleDto>>((await fixture.Service.List(false, default)).Value));
-            ServiceResult changed = await fixture.Service.Save(vehicle.Id, new() { FireDepartmentId = 1, RadioCallSign = current.RadioCallSign,
-                EquipmentOfficerId = "officer", ExpectedVersion = current.Version, VehicleStatusId = VehicleStatusDefaults.MaintenanceId }, default);
+            ServiceResult changed = await fixture.Service.Save(
+                vehicle.Id,
+                new SaveVehicleRequest
+                {
+                    FireDepartmentId = 1,
+                    RadioCallSign = current.RadioCallSign,
+                    EquipmentOfficerId = "officer",
+                    ExpectedVersion = current.Version,
+                    VehicleStatusId = VehicleStatusDefaults.MaintenanceId
+                }, default);
             Assert.Equal("Wartung", Assert.IsType<VehicleDto>(changed.Value).VehicleStatusName);
             Assert.Equal(409, (await fixture.Service.Reserve(vehicle.Id, fixture.Request(), true, default)).Code);
             Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new() { ExpectedVersion = pending.Version }, VehicleReservationStatus.Confirmed, default)).Code);
@@ -128,7 +151,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal("MTW", type.Name);
             Assert.Equal(409, (await fixture.Service.SaveType(null, new() { Name = "mtw" }, default)).Code);
             fixture.As("officer", Roles.EquipmentOfficer);
-            VehicleDto vehicle = Assert.IsType<VehicleDto>((await fixture.Service.Save(null, new()
+            VehicleDto vehicle = Assert.IsType<VehicleDto>((await fixture.Service.Save(
+                null,
+                new SaveVehicleRequest
                 { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Value);
             Assert.Equal(type.Id, vehicle.VehicleTypeId);
             Assert.Equal(type.Name, vehicle.VehicleTypeName);
@@ -140,16 +165,27 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Single(Assert.IsType<List<VehicleTypeDto>>((await fixture.Service.Types(true, default)).Value));
             fixture.As("officer", Roles.EquipmentOfficer);
             Assert.Equal(403, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = 3, IsActive = true }, default)).Code);
-            VehicleDto retained = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
-            {
-                FireDepartmentId = 1, RadioCallSign = vehicle.RadioCallSign, EquipmentOfficerId = "officer",
-                VehicleTypeId = type.Id, ExpectedVersion = vehicle.Version
-            }, default)).Value);
+            VehicleDto retained = Assert.IsType<VehicleDto>((await fixture.Service.Save(
+                vehicle.Id,
+                new SaveVehicleRequest
+                {
+                    FireDepartmentId = 1,
+                    RadioCallSign = vehicle.RadioCallSign,
+                    EquipmentOfficerId = "officer",
+                    VehicleTypeId = type.Id,
+                    ExpectedVersion = vehicle.Version
+                }, default)).Value);
             Assert.Equal("Mannschaftstransportwagen", retained.VehicleTypeName);
-            Assert.Equal(400, (await fixture.Service.Save(null, new()
-                { FireDepartmentId = 1, RadioCallSign = "Florian 19-02", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Code);
-            Assert.Equal(400, (await fixture.Service.Save(null, new()
-                { FireDepartmentId = 1, RadioCallSign = "Florian 19-03", EquipmentOfficerId = "officer", VehicleTypeId = Guid.NewGuid() }, default)).Code);
+            ServiceResult inactiveTypeSave = await fixture.Service.Save(
+                null,
+                new SaveVehicleRequest
+                { FireDepartmentId = 1, RadioCallSign = "Florian 19-02", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default);
+            Assert.Equal(400, inactiveTypeSave.Code);
+            ServiceResult unknownTypeSave = await fixture.Service.Save(
+                null,
+                new SaveVehicleRequest
+                { FireDepartmentId = 1, RadioCallSign = "Florian 19-03", EquipmentOfficerId = "officer", VehicleTypeId = Guid.NewGuid() }, default);
+            Assert.Equal(400, unknownTypeSave.Code);
         }
 
         [Theory]
@@ -343,7 +379,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 }
 
                 this.Db.SaveChanges();
-                this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailComposer(new ConfigurationBuilder().AddInMemoryCollection(
+                this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailComposer(
+                    new ConfigurationBuilder().AddInMemoryCollection(
                     new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), this.Clock));
                 this.As("officer", Roles.EquipmentOfficer);
             }
@@ -358,7 +395,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <summary>
             /// Executes vehicle.
             /// </summary>
-            public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await this.Service.Save(null, new()
+            public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await this.Service.Save(
+                null,
+                new SaveVehicleRequest
                 { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
 
             /// <summary>
@@ -366,7 +405,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// </summary>
             /// <param name="comment">The comment.</param>
             public CreateVehicleReservationRequest Request(string? comment = null) => new()
-                { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
+            { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
 
             /// <summary>
             /// Executes dispose.

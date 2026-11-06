@@ -129,8 +129,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.DoesNotContain((await client.GetFromJsonAsync<EquipmentDto[]>("/api/inventory"))!, x => x.Id == item.Id);
             Assert.Contains((await client.GetFromJsonAsync<EquipmentDto[]>("/api/inventory?includeInactive=true"))!, x => x.Id == item.Id);
             EquipmentDetailDto detail = (await result.Content.ReadFromJsonAsync<EquipmentDetailDto>())!;
-            Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", new RecordEquipmentInspectionRequest
-            { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, ExpectedVersion = detail.Equipment.Version })).StatusCode);
+            HttpResponseMessage inactiveInspection = await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", new RecordEquipmentInspectionRequest
+            { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, ExpectedVersion = detail.Equipment.Version });
+            Assert.Equal(HttpStatusCode.Conflict, inactiveInspection.StatusCode);
             Assert.NotEqual(item.Barcode, (await fixture.CreateEquipment(client, type.Id)).Barcode);
         }
 
@@ -145,8 +146,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/inventory/barcode/KPP-000")).StatusCode);
             EquipmentTypeDto type = await fixture.CreateType(client);
             EquipmentDto item = await fixture.CreateEquipment(client, type.Id);
-            Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", new RecordEquipmentInspectionRequest
-            { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today.AddDays(1), ExpectedVersion = item.Version })).StatusCode);
+            HttpResponseMessage futureInspection = await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", new RecordEquipmentInspectionRequest
+            { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today.AddDays(1), ExpectedVersion = item.Version });
+            Assert.Equal(HttpStatusCode.BadRequest, futureInspection.StatusCode);
             RecordEquipmentInspectionRequest[] requests = Enumerable.Range(0, 2).Select(_ => new RecordEquipmentInspectionRequest
             { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, ExpectedVersion = item.Version, Status = EquipmentStatus.InRepair }).ToArray();
             HttpResponseMessage[] results = await Task.WhenAll(requests.Select(x => client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", x)));
@@ -261,12 +263,21 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                 await Task.WhenAll(this.Postgres.StartAsync(), this.redis.StartAsync(), this.mailpit.StartAsync());
                 this.Factory = new InventoryFactory(new Dictionary<string, string>
                 {
-                    ["ConnectionStrings:postgresdb"] = this.Postgres.GetConnectionString(), ["ConnectionStrings:cache"] = this.redis.GetConnectionString(),
-                    ["MAIL_HOST"] = this.mailpit.Hostname, ["MAIL_PORT"] = this.mailpit.GetMappedPublicPort(1025).ToString(), ["MAIL_SECURITY"] = "None",
-                    ["MAIL_USERNAME"] = "", ["MAIL_PASSWORD"] = "", ["MAIL_FROM"] = "noreply@integration.test",
-                    ["Frontend:BaseUrl"] = "https://frontend.integration.test", ["SeedAdmin:Email"] = "admin@integration.test", ["SeedAdmin:Password"] = Password,
-                    ["JwtSettings:SecretKey"] = "inventory-integration-tests-only-signing-key-1234567890", ["JwtSettings:Issuer"] = "inventory-tests", ["JwtSettings:Audience"] = "inventory-tests",
-                    ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "",
+                    ["ConnectionStrings:postgresdb"] = this.Postgres.GetConnectionString(),
+                    ["ConnectionStrings:cache"] = this.redis.GetConnectionString(),
+                    ["MAIL_HOST"] = this.mailpit.Hostname,
+                    ["MAIL_PORT"] = this.mailpit.GetMappedPublicPort(1025).ToString(),
+                    ["MAIL_SECURITY"] = "None",
+                    ["MAIL_USERNAME"] = string.Empty,
+                    ["MAIL_PASSWORD"] = string.Empty,
+                    ["MAIL_FROM"] = "noreply@integration.test",
+                    ["Frontend:BaseUrl"] = "https://frontend.integration.test",
+                    ["SeedAdmin:Email"] = "admin@integration.test",
+                    ["SeedAdmin:Password"] = Password,
+                    ["JwtSettings:SecretKey"] = "inventory-integration-tests-only-signing-key-1234567890",
+                    ["JwtSettings:Issuer"] = "inventory-tests",
+                    ["JwtSettings:Audience"] = "inventory-tests",
+                    ["OTEL_EXPORTER_OTLP_ENDPOINT"] = string.Empty,
                 });
                 using HttpClient startup = this.Factory.CreateClient();
                 foreach (string? role in new[] { Roles.EquipmentOfficer, Roles.InventoryViewer, Roles.Firefighter })
@@ -274,8 +285,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
                     await this.CreateUser(role, $"{role}@integration.test");
                 }
             }
-            catch { await this.DisposeAsync();
-                throw; }
+            catch
+            {
+                await this.DisposeAsync();
+                throw;
+            }
         }
 
         /// <summary>
@@ -349,7 +363,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         private sealed class InventoryFactory(Dictionary<string, string> settings) : WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program>
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder)
-            { builder.UseEnvironment("Testing");
+            {
+                builder.UseEnvironment("Testing");
                 foreach (KeyValuePair<string, string> pair in settings)
                 {
                     builder.UseSetting(pair.Key, pair.Value);

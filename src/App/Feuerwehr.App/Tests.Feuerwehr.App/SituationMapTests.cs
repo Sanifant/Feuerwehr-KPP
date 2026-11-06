@@ -216,11 +216,35 @@ namespace De.Openelp.Feuerwehr.Tests.App
             return auth;
         }
 
-        private static IncidentSummaryDto Incident() => new(Guid.NewGuid(), "Einsatz", "123", null, null,
-            10.6, 53.9, IncidentStatus.Active, DateTime.UtcNow, DateTime.UtcNow, null, 1);
+        private static IncidentSummaryDto Incident() => new(
+            Guid.NewGuid(),
+            "Einsatz",
+            "123",
+            null,
+            null,
+            10.6,
+            53.9,
+            IncidentStatus.Active,
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            null,
+            1);
 
-        private static MapElementDto Element(string coordinates) => new(Guid.NewGuid(), Guid.NewGuid(), MapElementType.Symbol,
-            null, null, "Fahrzeug", null, null, null, "#d62828", "{\"type\":\"Point\",\"coordinates\":" + coordinates + "}", 1, DateTime.UtcNow, "Test");
+        private static MapElementDto Element(string coordinates) => new(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            MapElementType.Symbol,
+            null,
+            null,
+            "Fahrzeug",
+            null,
+            null,
+            null,
+            "#d62828",
+            "{\"type\":\"Point\",\"coordinates\":" + coordinates + "}",
+            1,
+            DateTime.UtcNow,
+            "Test");
 
         private static MapStateResponse State(Guid incidentId, params MapElementDto[] elements) =>
             new(incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);

@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
 using global::De.Openelp.Feuerwehr.Server.Controller.IncidentModules;

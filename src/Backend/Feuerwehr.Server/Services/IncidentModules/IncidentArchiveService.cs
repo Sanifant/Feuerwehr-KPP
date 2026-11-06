@@ -10,7 +10,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
     /// <param name="dbContext">The db Context.</param>
     /// <param name="diaryService">The diary Service.</param>
     /// <param name="userContext">The user Context.</param>
-    public sealed class IncidentArchiveService(FeuerwehrDbContext dbContext, IIncidentDiaryService diaryService,
+    public sealed class IncidentArchiveService(
+        FeuerwehrDbContext dbContext,
+        IIncidentDiaryService diaryService,
         IUserContextAccessor userContext) : IIncidentArchiveService
     {
         /// <summary>

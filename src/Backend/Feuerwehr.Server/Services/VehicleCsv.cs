@@ -13,7 +13,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         internal static string Quote(string? value)
         {
-            value ??= "";
+            value ??= string.Empty;
             if (NeedsPrefix(value))
             {
                 value = "'" + value;
@@ -27,7 +27,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             List<VehicleCsvRow> rows = [];
             List<VehicleImportError> errors = [];
             using TextFieldParser parser = new TextFieldParser(stream, new UTF8Encoding(false, true), true, true)
-                { TextFieldType = FieldType.Delimited, HasFieldsEnclosedInQuotes = true, TrimWhiteSpace = false };
+            { TextFieldType = FieldType.Delimited, HasFieldsEnclosedInQuotes = true, TrimWhiteSpace = false };
             parser.SetDelimiters(";");
             try
             {
@@ -69,38 +69,59 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     ct.ThrowIfCancellationRequested();
                     long line = parser.LineNumber;
                     string[] fields = parser.ReadFields()!;
-                    if (++count > 10_000) { errors.Add(new(line, "Pro Import sind höchstens 10.000 Fahrzeuge erlaubt."));
-                        break; }
-                    if (fields.Length > headers.Length) { errors.Add(new(line, "Die Zeile enthält mehr Werte als Überschriften."));
-                        continue; }
-                    string? Field(string name) => columns.TryGetValue(name, out int index) ? index < fields.Length ? Decode(fields[index]).Trim() : "" : null;
+                    if (++count > 10_000)
+                    {
+                        errors.Add(new(line, "Pro Import sind höchstens 10.000 Fahrzeuge erlaubt."));
+                        break;
+                    }
+                    if (fields.Length > headers.Length)
+                    {
+                        errors.Add(new(line, "Die Zeile enthält mehr Werte als Überschriften."));
+                        continue;
+                    }
+                    string? Field(string name) => columns.TryGetValue(name, out int index) ? index < fields.Length ? Decode(fields[index]).Trim() : string.Empty : null;
                     Guid? id = null;
                     if (Field("id") is { Length: > 0 } idText)
                     {
-                        if (!Guid.TryParse(idText, out Guid parsed) || parsed == Guid.Empty) { errors.Add(new(line, "id muss eine gültige UUID sein."));
-                            continue; }
+                        if (!Guid.TryParse(idText, out Guid parsed) || parsed == Guid.Empty)
+                        {
+                            errors.Add(new(line, "id muss eine gültige UUID sein."));
+                            continue;
+                        }
                         id = parsed;
                     }
                     int? departmentId = null;
                     if (Field("fireDepartmentId") is { Length: > 0 } departmentText)
                     {
                         if (!int.TryParse(departmentText, NumberStyles.None, CultureInfo.InvariantCulture, out int parsed) || parsed < 1)
-                        { errors.Add(new(line, "fireDepartmentId muss eine positive Zahl sein."));
-                            continue; }
+                        {
+                            errors.Add(new(line, "fireDepartmentId muss eine positive Zahl sein."));
+                            continue;
+                        }
                         departmentId = parsed;
                     }
                     bool? active = null;
                     if (Field("isActive") is { Length: > 0 } activeText)
                     {
                         active = activeText.ToLowerInvariant() switch { "true" or "1" or "ja" => true, "false" or "0" or "nein" => false, _ => null };
-                        if (active is null) { errors.Add(new(line, "isActive muss true oder false sein."));
-                            continue; }
+                        if (active is null)
+                        {
+                            errors.Add(new(line, "isActive muss true oder false sein."));
+                            continue;
+                        }
                     }
                     rows.Add(new(line, new VehicleImportDto
                     {
-                        Id = id, RadioCallSign = Field("radioCallSign") ?? "", FireDepartment = Field("fireDepartment") ?? "",
-                        FireDepartmentId = departmentId, EquipmentOfficerEmail = Field("equipmentOfficerEmail") ?? "", Name = Field("name"),
-                        LicensePlate = Field("licensePlate"), VehicleType = Field("vehicleType"), Status = Field("status"), IsActive = active
+                        Id = id,
+                        RadioCallSign = Field("radioCallSign") ?? string.Empty,
+                        FireDepartment = Field("fireDepartment") ?? string.Empty,
+                        FireDepartmentId = departmentId,
+                        EquipmentOfficerEmail = Field("equipmentOfficerEmail") ?? string.Empty,
+                        Name = Field("name"),
+                        LicensePlate = Field("licensePlate"),
+                        VehicleType = Field("vehicleType"),
+                        Status = Field("status"),
+                        IsActive = active
                     }));
                 }
                 if (count == 0)

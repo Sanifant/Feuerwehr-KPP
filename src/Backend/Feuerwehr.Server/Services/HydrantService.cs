@@ -25,7 +25,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             foreach (HydrantEntity? hydrant in hydrants)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                csv.AppendJoin(';', new[]
+                string[] values = new[]
                 {
                     CsvText(hydrant.Address.Street), CsvText(hydrant.Address.HouseNumber),
                     CsvText(hydrant.Address.PostalCode), CsvText(hydrant.Address.City),
@@ -35,7 +35,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     ((int)hydrant.Type).ToString(CultureInfo.InvariantCulture),
                     ((int)hydrant.WaterSource).ToString(CultureInfo.InvariantCulture),
                     ((int)hydrant.Status).ToString(CultureInfo.InvariantCulture), CsvText(hydrant.Notes),
-                }).Append("\r\n");
+                };
+                csv.AppendJoin(';', values).Append("\r\n");
             }
 
             // A UTF-8 BOM lets spreadsheet applications recognize German characters.
@@ -133,7 +134,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         private static string CsvText(string? value)
         {
-            value ??= "";
+            value ??= string.Empty;
             // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
             string trimmed = value.TrimStart();
             if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])

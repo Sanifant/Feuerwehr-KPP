@@ -26,7 +26,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             using XmlReader reader = XmlReader.Create(new StringReader(content), new XmlReaderSettings
             {
-                DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 262144,
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null,
+                MaxCharactersInDocument = 262144,
             });
             XDocument document = XDocument.Load(reader);
             XElement? root = document.Root;
@@ -73,8 +75,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         throw new ArgumentException("Skripte und Ereignisbehandlung sind in SVG-Bildern nicht erlaubt.");
                     }
 
-                    if (!Attributes.Contains(name)) { attribute.Remove();
-                        continue; }
+                    if (!Attributes.Contains(name))
+                    {
+                        attribute.Remove();
+                        continue;
+                    }
                     if (name == "href")
                     {
                         if (node.Name.LocalName == "image")
@@ -122,7 +127,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
         private static double Dimension(string? value)
         {
-            string number = Regex.Replace(value ?? "", @"px$", "", RegexOptions.IgnoreCase);
+            string number = Regex.Replace(value ?? string.Empty, @"px$", string.Empty, RegexOptions.IgnoreCase);
             if (!double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out double result) || !double.IsFinite(result) || result <= 0)
             {
                 throw new ArgumentException("Das SVG benötigt eine viewBox oder gültige Breiten- und Höhenangaben.");
@@ -148,7 +153,8 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
 
             byte[] bytes;
-            try { bytes = Convert.FromBase64String(value[(separator + 1)..]); }
+            try
+            { bytes = Convert.FromBase64String(value[(separator + 1)..]); }
             catch (FormatException)
             {
                 throw new ArgumentException("Ein eingebettetes Bild enthält ungültige Base64-Daten.");
@@ -173,7 +179,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 throw new ArgumentException("Das SVG enthält nicht unterstützte aktive Inhalte.");
             }
 
-            string remaining = Regex.Replace(value, "url\\(\\s*(['\"]?)#[A-Za-z_][\\w:.-]*\\1\\s*\\)", "", RegexOptions.IgnoreCase);
+            string remaining = Regex.Replace(value, "url\\(\\s*(['\"]?)#[A-Za-z_][\\w:.-]*\\1\\s*\\)", string.Empty, RegexOptions.IgnoreCase);
             if (remaining.Contains("url", StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Externe Ressourcen sind in SVG-Bildern nicht erlaubt.");
@@ -196,7 +202,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         private static void ValidateStylesheet(string value)
         {
             ValidateValue(value);
-            string remaining = Regex.Replace(value, @"/\*.*?\*/", "", RegexOptions.Singleline);
+            string remaining = Regex.Replace(value, @"/\*.*?\*/", string.Empty, RegexOptions.Singleline);
             foreach (Match rule in Regex.Matches(remaining, @"([^{}]+)\{([^{}]*)\}"))
             {
                 if (!Regex.IsMatch(rule.Groups[1].Value, @"^[\w\s.#,>:+*-]+$"))
@@ -206,7 +212,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 ValidateDeclarations(rule.Groups[2].Value);
             }
-            if (!string.IsNullOrWhiteSpace(Regex.Replace(remaining, @"[^{}]+\{[^{}]*\}", "")))
+            if (!string.IsNullOrWhiteSpace(Regex.Replace(remaining, @"[^{}]+\{[^{}]*\}", string.Empty)))
             {
                 throw new ArgumentException("Ungültiges SVG-Stylesheet.");
             }

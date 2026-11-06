@@ -21,7 +21,20 @@ namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
     /// <param name="Version">The version.</param>
     /// <param name="CanDecide">The can Decide.</param>
     /// <param name="CanCancel">The can Cancel.</param>
-    public sealed record VehicleReservationDto(Guid Id, Guid VehicleId, string RadioCallSign, string FireDepartmentName,
-        DateOnly From, DateOnly To, string? Comment, VehicleReservationStatus Status, string RequesterName,
-        DateTime CreatedAtUtc, DateTime? DecidedAtUtc, bool IsDirectBooking, int Version, bool CanDecide, bool CanCancel);
+    public sealed record VehicleReservationDto(
+        Guid Id,
+        Guid VehicleId,
+        string RadioCallSign,
+        string FireDepartmentName,
+        DateOnly From,
+        DateOnly To,
+        string? Comment,
+        VehicleReservationStatus Status,
+        string RequesterName,
+        DateTime CreatedAtUtc,
+        DateTime? DecidedAtUtc,
+        bool IsDirectBooking,
+        int Version,
+        bool CanDecide,
+        bool CanCancel);
 }

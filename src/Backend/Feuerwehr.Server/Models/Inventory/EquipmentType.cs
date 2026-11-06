@@ -10,11 +10,11 @@ namespace De.Openelp.Feuerwehr.Server.Models.Inventory
 
         public InventoryCategory Category { get; set; } = null!;
 
-        public string Name { get; set; } = "";
+        public string Name { get; set; } = string.Empty;
 
         public int InspectionIntervalMonths { get; set; }
 
-        public string InspectionInstructions { get; set; } = "";
+        public string InspectionInstructions { get; set; } = string.Empty;
 
         public int Version { get; set; } = 1;
     }

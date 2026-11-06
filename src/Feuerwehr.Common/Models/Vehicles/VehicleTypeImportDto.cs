@@ -6,7 +6,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
     {
         public Guid? Id { get; set; }
 
-        [Required, StringLength(100)] public string Name { get; set; } = "";
+        [Required, StringLength(100)] public string Name { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
     }

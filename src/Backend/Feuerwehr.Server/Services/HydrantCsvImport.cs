@@ -86,7 +86,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         continue;
                     }
 
-                    string Field(string name) => columns.TryGetValue(name, out int index) && index < fields.Length ? fields[index] : "";
+                    string Field(string name) => columns.TryGetValue(name, out int index) && index < fields.Length ? fields[index] : string.Empty;
                     string[] missing = RequiredColumns.Where(name => string.IsNullOrWhiteSpace(Field(name))).ToArray();
                     if (missing.Length > 0)
                     {
@@ -112,11 +112,17 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     {
                         Address = new Address
                         {
-                            Street = Field("street"), HouseNumber = Field("houseNumber"),
-                            PostalCode = Field("postalCode"), City = Field("city"),
+                            Street = Field("street"),
+                            HouseNumber = Field("houseNumber"),
+                            PostalCode = Field("postalCode"),
+                            City = Field("city"),
                         },
-                        Latitude = latitude, Longitude = longitude, NominalDiameter = diameter,
-                        Type = (HydrantType)type, WaterSource = (WaterSource)source, Status = (HydrantStatus)status,
+                        Latitude = latitude,
+                        Longitude = longitude,
+                        NominalDiameter = diameter,
+                        Type = (HydrantType)type,
+                        WaterSource = (WaterSource)source,
+                        Status = (HydrantStatus)status,
                         Notes = string.IsNullOrWhiteSpace(Field("notes")) ? null : Field("notes"),
                     });
                 }

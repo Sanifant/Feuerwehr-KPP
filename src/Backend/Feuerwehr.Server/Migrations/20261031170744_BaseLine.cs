@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -794,35 +794,35 @@ namespace De.Openelp.Feuerwehr.Server.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "InventoryCategories",
-                columns: new[] { "Id", "Name", "NormalizedName" },
                 values: new object[,]
                 {
                     { new Guid("f3050002-0000-0000-0000-000000000001"), "Löschgeräte", "LÖSCHGERÄTE" },
                     { new Guid("f3050002-0000-0000-0000-000000000002"), "Armaturen", "ARMATUREN" },
                     { new Guid("f3050002-0000-0000-0000-000000000003"), "Beleuchtung", "BELEUCHTUNG" }
-                });
+                },
+                table: "InventoryCategories",
+                columns: new[] { "Id", "Name", "NormalizedName" });
 
             migrationBuilder.InsertData(
-                table: "MapSymbolCategories",
-                column: "Name",
                 values: new object[]
                 {
                     "Feuerwehr",
                     "Objekte",
                     "Personen",
                     "Rettungsdienst"
-                });
+                },
+                table: "MapSymbolCategories",
+                column: "Name");
 
             migrationBuilder.InsertData(
-                table: "VehicleStatuses",
-                columns: new[] { "Id", "AllowsBooking", "IsActive", "Name", "NormalizedName", "Version" },
                 values: new object[,]
                 {
                     { new Guid("5032f99d-4352-4000-8000-000000000001"), true, true, "Betriebsbereit", "BETRIEBSBEREIT", 1 },
                     { new Guid("5032f99d-4352-4000-8000-000000000002"), false, true, "Wartung", "WARTUNG", 1 },
                     { new Guid("5032f99d-4352-4000-8000-000000000003"), false, true, "Abgemeldet", "ABGEMELDET", 1 }
-                });
+                },
+                table: "VehicleStatuses",
+                columns: new[] { "Id", "AllowsBooking", "IsActive", "Name", "NormalizedName", "Version" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",

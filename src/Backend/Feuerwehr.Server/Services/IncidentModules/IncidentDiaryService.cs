@@ -385,7 +385,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 $"Beendet durch: {incident.ClosedByDisplayName ?? "-"}",
                 $"Beschreibung: {incident.Description ?? "-"}",
                 $"Exportiert UTC: {DateTime.UtcNow:O}",
-                ""
+                string.Empty
             };
             foreach (DiaryEntryDto entry in entries)
             {
@@ -401,7 +401,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                         AddRevisionLines(lines, previous);
                     }
                 }
-                lines.Add("");
+                lines.Add(string.Empty);
             }
             if (entries.Count == 0)
             {

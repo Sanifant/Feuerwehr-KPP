@@ -10,7 +10,7 @@ namespace De.Openelp.Feuerwehr.Server.Models.Inventory
 
         public Equipment Equipment { get; set; } = null!;
 
-        public string RecipientId { get; set; } = "";
+        public string RecipientId { get; set; } = string.Empty;
 
         public DateOnly DueOn { get; set; }
 

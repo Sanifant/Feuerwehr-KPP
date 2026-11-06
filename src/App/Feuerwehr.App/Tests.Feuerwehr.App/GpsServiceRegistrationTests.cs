@@ -1,4 +1,4 @@
-﻿using De.Openelp.Feuerwehr.App.Services;
+using De.Openelp.Feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;

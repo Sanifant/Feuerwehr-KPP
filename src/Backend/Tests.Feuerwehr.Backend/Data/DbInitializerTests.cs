@@ -248,7 +248,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
             /// <param name="logLevel">The log Level.</param>
             public bool IsEnabled(LogLevel logLevel) => true;
 
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
                 Func<TState, Exception?, string> formatter) => this.Messages.Add(formatter(state, exception) + exception);
         }
     }

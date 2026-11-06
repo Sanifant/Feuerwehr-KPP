@@ -56,8 +56,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             this._db.Incidents.Add(new Incident { Id = this._incidentId, Name = "Brand", Status = IncidentStatus.Active, Revision = 1 });
             this._db.EditorLeases.Add(new EditorLease
             {
-                Id = Guid.NewGuid(), IncidentId = this._incidentId, UserId = "editor-1", UserDisplayName = "Ada Muster", SessionId = "session-1",
-                LeaseToken = "lease-1", ExpiresAtUtc = DateTime.UtcNow.AddMinutes(2), LastHeartbeatAtUtc = DateTime.UtcNow,
+                Id = Guid.NewGuid(),
+                IncidentId = this._incidentId,
+                UserId = "editor-1",
+                UserDisplayName = "Ada Muster",
+                SessionId = "session-1",
+                LeaseToken = "lease-1",
+                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(2),
+                LastHeartbeatAtUtc = DateTime.UtcNow,
             });
             await this._db.SaveChangesAsync();
         }
@@ -225,8 +231,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(move.RadioCallName, stored.RadioCallName);
             Assert.Equal(symbol.SvgContent, stored.SymbolSvg);
             Assert.Equal(move.GeometryJson, Assert.Single(Assert.IsType<MapStateResponse>((await this._map.GetState(this._incidentId, default)).Value).Elements).GeometryJson);
-            ServiceResult deleted = await this._map.DeleteElement(this._incidentId, stored.Id, new DeleteMapElementRequest
-            { CommandId = Guid.NewGuid().ToString(), SessionId = "session-1", LeaseToken = "lease-1", ExpectedVersion = 2 }, default);
+            ServiceResult deleted = await this._map.DeleteElement(
+                this._incidentId,
+                stored.Id,
+                new DeleteMapElementRequest
+                { CommandId = Guid.NewGuid().ToString(), SessionId = "session-1", LeaseToken = "lease-1", ExpectedVersion = 2 }, default);
             Assert.Equal(200, deleted.Code);
             Assert.Empty(await this._db.MapElements.ToListAsync());
             Assert.Equal(new[] { "create", "update", "delete" }, await this._db.MapAuditEvents.OrderBy(x => x.SequenceNumber).Select(x => x.Action).ToArrayAsync());
@@ -262,8 +271,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             UpsertMapElementRequest wrongLease = this.Write(symbol.Id.ToString(), original.Id, 1);
             wrongLease.LeaseToken = "other";
             Assert.Equal(409, (await this._map.UpsertElement(this._incidentId, wrongLease, default)).Code);
-            Assert.Equal(409, (await this._map.DeleteElement(this._incidentId, original.Id, new DeleteMapElementRequest
-            { CommandId = Guid.NewGuid().ToString(), SessionId = "session-1", LeaseToken = "other", ExpectedVersion = 1 }, default)).Code);
+            ServiceResult wrongLeaseDeletion = await this._map.DeleteElement(
+                this._incidentId,
+                original.Id,
+                new DeleteMapElementRequest
+                { CommandId = Guid.NewGuid().ToString(), SessionId = "session-1", LeaseToken = "other", ExpectedVersion = 1 }, default);
+            Assert.Equal(409, wrongLeaseDeletion.Code);
             Assert.Equal(original.GeometryJson, (await this._db.MapElements.SingleAsync()).GeometryJson);
             Assert.Single(await this._db.MapAuditEvents.ToListAsync());
         }
@@ -497,8 +510,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <summary>
         /// Executes dispose.
         /// </summary>
-        public async Task DisposeAsync() { await this._db.DisposeAsync();
-            await this._connection.DisposeAsync(); }
+        public async Task DisposeAsync()
+        {
+            await this._db.DisposeAsync();
+            await this._connection.DisposeAsync();
+        }
 
         private static SaveMapSymbolRequest SymbolRequest(string svg = Svg, string category = "Feuerwehr")
             => new() { Name = "Löschfahrzeug", Category = category, SvgContent = svg, IsVehicle = true };
@@ -506,8 +522,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         private UpsertMapElementRequest Write(string symbolId, Guid? elementId = null, int? version = null, string geometry = "{\"type\":\"Point\",\"coordinates\":[10.25,51.5]}")
             => new()
             {
-                CommandId = Guid.NewGuid().ToString(), SessionId = "session-1", LeaseToken = "lease-1", SymbolId = symbolId,
-                ElementId = elementId, ExpectedVersion = version, ElementType = MapElementType.Symbol, GeometryJson = geometry,
+                CommandId = Guid.NewGuid().ToString(),
+                SessionId = "session-1",
+                LeaseToken = "lease-1",
+                SymbolId = symbolId,
+                ElementId = elementId,
+                ExpectedVersion = version,
+                ElementType = MapElementType.Symbol,
+                GeometryJson = geometry,
                 RadioCallName = "Florian 1",
             };
 

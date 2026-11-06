@@ -5,7 +5,7 @@ namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
 {
     public sealed class SaveVehicleStatusRequest
     {
-        [Required, StringLength(100)] public string Name { get; set; } = "";
+        [Required, StringLength(100)] public string Name { get; set; } = string.Empty;
 
         public bool AllowsBooking { get; set; }
 

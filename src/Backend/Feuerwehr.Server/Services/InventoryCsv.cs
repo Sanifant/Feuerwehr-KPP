@@ -5,8 +5,18 @@ using Microsoft.VisualBasic.FileIO;
 
 namespace De.Openelp.Feuerwehr.Server.Services
 {
-    internal sealed record InventoryCsvRow(long Line, int BarcodeNumber, Guid? TypeId, string TypeName, string Category,
-        string SerialNumber, string Manufacturer, EquipmentStatus Status, bool IsActive, DateOnly? CreatedOn, DateOnly? LastInspectedOn);
+    internal sealed record InventoryCsvRow(
+        long Line,
+        int BarcodeNumber,
+        Guid? TypeId,
+        string TypeName,
+        string Category,
+        string SerialNumber,
+        string Manufacturer,
+        EquipmentStatus Status,
+        bool IsActive,
+        DateOnly? CreatedOn,
+        DateOnly? LastInspectedOn);
 
     internal static class InventoryCsv
     {
@@ -15,7 +25,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         internal static string Quote(string? value)
         {
-            value ??= "";
+            value ??= string.Empty;
             // Escape formula prefixes and existing leading apostrophes reversibly for Excel round trips.
             if (NeedsPrefix(value))
             {
@@ -78,41 +88,69 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     ct.ThrowIfCancellationRequested();
                     long line = parser.LineNumber;
                     string[] fields = parser.ReadFields()!;
-                    if (++count > 999) { errors.Add(new(line, "Pro Datei sind höchstens 999 Geräte erlaubt."));
-                        break; }
-                    if (fields.Length > headers.Length) { errors.Add(new(line, "Die Zeile enthält mehr Werte als Überschriften."));
-                        continue; }
-                    string Field(string name) => columns.TryGetValue(name, out int index) && index < fields.Length ? Decode(fields[index]).Trim() : "";
+                    if (++count > 999)
+                    {
+                        errors.Add(new(line, "Pro Datei sind höchstens 999 Geräte erlaubt."));
+                        break;
+                    }
+                    if (fields.Length > headers.Length)
+                    {
+                        errors.Add(new(line, "Die Zeile enthält mehr Werte als Überschriften."));
+                        continue;
+                    }
+                    string Field(string name) => columns.TryGetValue(name, out int index) && index < fields.Length ? Decode(fields[index]).Trim() : string.Empty;
                     string barcode = Field("barcode").ToUpperInvariant();
                     if (barcode.Length != 7 || !barcode.StartsWith("KPP-", StringComparison.Ordinal) ||
                         !int.TryParse(barcode.AsSpan(4), NumberStyles.None, CultureInfo.InvariantCulture, out int number) || number is < 1 or > 999)
-                    { errors.Add(new(line, "Der Barcode muss KPP-001 bis KPP-999 entsprechen."));
-                        continue; }
-                    if (!numbers.Add(number)) { errors.Add(new(line, $"Der Barcode {barcode} ist in der Datei mehrfach vorhanden."));
-                        continue; }
+                    {
+                        errors.Add(new(line, "Der Barcode muss KPP-001 bis KPP-999 entsprechen."));
+                        continue;
+                    }
+                    if (!numbers.Add(number))
+                    {
+                        errors.Add(new(line, $"Der Barcode {barcode} ist in der Datei mehrfach vorhanden."));
+                        continue;
+                    }
                     string serial = Field("serialNumber");
                     string manufacturer = Field("manufacturer");
                     if (serial.Length is 0 or > 150 || manufacturer.Length is 0 or > 150)
-                    { errors.Add(new(line, "Seriennummer und Hersteller sind erforderlich und dürfen jeweils höchstens 150 Zeichen enthalten."));
-                        continue; }
+                    {
+                        errors.Add(new(line, "Seriennummer und Hersteller sind erforderlich und dürfen jeweils höchstens 150 Zeichen enthalten."));
+                        continue;
+                    }
                     Guid? typeId = null;
                     if (Field("equipmentTypeId") is { Length: > 0 } typeIdText)
                     {
-                        if (!Guid.TryParse(typeIdText, out Guid parsed) || parsed == Guid.Empty) { errors.Add(new(line, "equipmentTypeId muss eine gültige UUID sein."));
-                            continue; }
+                        if (!Guid.TryParse(typeIdText, out Guid parsed) || parsed == Guid.Empty)
+                        {
+                            errors.Add(new(line, "equipmentTypeId muss eine gültige UUID sein."));
+                            continue;
+                        }
                         typeId = parsed;
                     }
-                    if (typeId is null && Field("equipmentType").Length == 0) { errors.Add(new(line, "Ein Gerätetyp muss angegeben werden."));
-                        continue; }
-                    if (Field("equipmentType").Length > 150 || Field("category").Length > 100) { errors.Add(new(line, "Gerätetyp oder Kategorie ist zu lang."));
-                        continue; }
+                    if (typeId is null && Field("equipmentType").Length == 0)
+                    {
+                        errors.Add(new(line, "Ein Gerätetyp muss angegeben werden."));
+                        continue;
+                    }
+                    if (Field("equipmentType").Length > 150 || Field("category").Length > 100)
+                    {
+                        errors.Add(new(line, "Gerätetyp oder Kategorie ist zu lang."));
+                        continue;
+                    }
                     EquipmentStatus? status = Field("status").ToLowerInvariant() switch
-                    { "" or "ready" or "einsatzklar" => EquipmentStatus.Ready, "defective" or "defekt" => EquipmentStatus.Defective, "inrepair" or "in reparatur" => EquipmentStatus.InRepair, _ => null };
-                    if (status is null) { errors.Add(new(line, "status muss Einsatzklar, Defekt oder In Reparatur sein."));
-                        continue; }
-                    bool? active = Field("isActive").ToLowerInvariant() switch { "" or "true" or "1" or "ja" => true, "false" or "0" or "nein" => false, _ => null };
-                    if (active is null) { errors.Add(new(line, "isActive muss true oder false sein."));
-                        continue; }
+                    { { Length: 0 } or "ready" or "einsatzklar" => EquipmentStatus.Ready, "defective" or "defekt" => EquipmentStatus.Defective, "inrepair" or "in reparatur" => EquipmentStatus.InRepair, _ => null };
+                    if (status is null)
+                    {
+                        errors.Add(new(line, "status muss Einsatzklar, Defekt oder In Reparatur sein."));
+                        continue;
+                    }
+                    bool? active = Field("isActive").ToLowerInvariant() switch { { Length: 0 } or "true" or "1" or "ja" => true, "false" or "0" or "nein" => false, _ => null };
+                    if (active is null)
+                    {
+                        errors.Add(new(line, "isActive muss true oder false sein."));
+                        continue;
+                    }
                     bool TryDate(string column, out DateOnly? value)
                     {
                         string text = Field(column);
@@ -131,8 +169,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         return true;
                     }
                     if (!TryDate("createdOn", out DateOnly? created) || !TryDate("lastInspectedOn", out DateOnly? last))
-                    { errors.Add(new(line, "Datumswerte müssen das Format JJJJ-MM-TT haben."));
-                        continue; }
+                    {
+                        errors.Add(new(line, "Datumswerte müssen das Format JJJJ-MM-TT haben."));
+                        continue;
+                    }
                     rows.Add(new(line, number, typeId, Field("equipmentType"), Field("category"), serial, manufacturer, status.Value, active.Value, created, last));
                 }
                 if (count == 0)
