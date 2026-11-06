@@ -42,8 +42,8 @@ namespace De.Openelp.Feuerwehr.App
             if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 IAuthService authService = Services.GetRequiredService<IAuthService>();
-                Func<MainViewModel> mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
-                Func<LoginViewModel> loginViewModelFactory = new Func<LoginViewModel>(() => Services.GetRequiredService<LoginViewModel>());
+                Func<MainViewModel> mainViewModelFactory = new (() => Services.GetRequiredService<MainViewModel>());
+                Func<LoginViewModel> loginViewModelFactory = new (() => Services.GetRequiredService<LoginViewModel>());
 
                 desktop.MainWindow = new MainWindow(authService, mainViewModelFactory, loginViewModelFactory);
             }
@@ -80,7 +80,7 @@ namespace De.Openelp.Feuerwehr.App
         public void ReloadServices()
         {
 
-            ServiceCollection collection = new ServiceCollection();
+            ServiceCollection collection = new ();
 
             _ = collection.AddTransient<MainViewModel>();
             _ = collection.AddTransient<LoginViewModel>();
@@ -120,7 +120,7 @@ namespace De.Openelp.Feuerwehr.App
 
         private Control CreateActivityView()
         {
-            ContentControl root = new ContentControl();
+            ContentControl root = new ();
             IAuthService authService = Services.GetRequiredService<IAuthService>();
 
             void ShowMainView()

@@ -24,9 +24,9 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task RoleControlsNavigationLookupAndInspection(string role, bool view, bool manage)
         {
             Mock<IAuthService> auth = Auth(role);
-            Mock<IInventoryService> service = new Mock<IInventoryService>();
+            Mock<IInventoryService> service = new ();
             _ = service.Setup(x => x.FindBarcodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(Detail());
-            InventoryViewModel vm = new InventoryViewModel(service.Object, auth.Object, new UnsupportedBarcodeScanner()) { Barcode = "KPP-001" };
+            InventoryViewModel vm = new (service.Object, auth.Object, new UnsupportedBarcodeScanner()) { Barcode = "KPP-001" };
             Assert.Equal(view, new MainViewModel(auth.Object).CanViewInventory);
             Assert.Equal(view, vm.LookupCommand.CanExecute(null));
             await vm.LookupAsync(CancellationToken.None);
@@ -40,17 +40,17 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task CameraResultLoadsDeviceAndInspectionUsesItsVersionAndPreservesRetryCommand()
         {
-            Mock<IInventoryService> service = new Mock<IInventoryService>();
+            Mock<IInventoryService> service = new ();
             EquipmentDetailDto detail = Detail();
-            Mock<IBarcodeScanner> scanner = new Mock<IBarcodeScanner>();
+            Mock<IBarcodeScanner> scanner = new ();
             _ = scanner.SetupGet(x => x.IsSupported).Returns(true);
             _ = scanner.Setup(x => x.ScanAsync(It.IsAny<CancellationToken>())).ReturnsAsync(" kpp-001 ");
             _ = service.Setup(x => x.FindBarcodeAsync("KPP-001", It.IsAny<CancellationToken>())).ReturnsAsync(detail);
-            List<RecordEquipmentInspectionRequest> requests = new List<RecordEquipmentInspectionRequest>();
+            List<RecordEquipmentInspectionRequest> requests = new ();
             _ = service.Setup(x => x.InspectAsync(detail.Equipment.Id, It.IsAny<RecordEquipmentInspectionRequest>(), It.IsAny<CancellationToken>()))
                 .Callback<Guid, RecordEquipmentInspectionRequest, CancellationToken>((_, request, _) => requests.Add(request))
                 .ThrowsAsync(new HttpRequestException("offline"));
-            InventoryViewModel vm = new InventoryViewModel(service.Object, Auth("EquipmentOfficer").Object, scanner.Object);
+            InventoryViewModel vm = new (service.Object, Auth("EquipmentOfficer").Object, scanner.Object);
             await vm.ScanAsync(CancellationToken.None);
             Assert.Contains("KPP-001", vm.DeviceTitle);
             Assert.Contains("Nächste Prüfung:", vm.NextInspection);
@@ -73,13 +73,13 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task InactiveDeviceAndRoleRevocationPreventMaintenanceAndDiscardLateLookup()
         {
             Mock<IAuthService> auth = Auth("EquipmentOfficer");
-            Mock<IInventoryService> service = new Mock<IInventoryService>();
+            Mock<IInventoryService> service = new ();
             _ = service.Setup(x => x.FindBarcodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(Detail(false));
-            InventoryViewModel vm = new InventoryViewModel(service.Object, auth.Object, new UnsupportedBarcodeScanner());
+            InventoryViewModel vm = new (service.Object, auth.Object, new UnsupportedBarcodeScanner());
             vm.Activate();
             await vm.LookupCommand.ExecuteAsync(null);
             Assert.False(vm.CanInspect);
-            TaskCompletionSource<EquipmentDetailDto> completion = new TaskCompletionSource<EquipmentDetailDto>();
+            TaskCompletionSource<EquipmentDetailDto> completion = new ();
             _ = service.Setup(x => x.FindBarcodeAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(completion.Task);
             Task loading = vm.LookupCommand.ExecuteAsync(null);
             _ = auth.SetupGet(x => x.UserRoles).Returns(Array.Empty<string>());
@@ -98,11 +98,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task ClientSendsAuthenticatedJsonWithStringStatusAndEncodesBarcode()
         {
-            InventoryHandler handler = new InventoryHandler();
-            using HttpClient http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test") };
+            InventoryHandler handler = new ();
+            using HttpClient http = new (handler) { BaseAddress = new Uri("https://example.test") };
             Mock<IAuthService> auth = Auth("EquipmentOfficer");
             _ = auth.Setup(x => x.GetAccessTokenAsync()).ReturnsAsync("test-token");
-            InventoryService service = new InventoryService(new AuthenticatedHttpClient(http, auth.Object));
+            InventoryService service = new (new AuthenticatedHttpClient(http, auth.Object));
             _ = await service.FindBarcodeAsync("KPP-001", CancellationToken.None);
             Assert.Equal("/api/inventory/barcode/KPP-001", handler.Path);
             Assert.Equal("Bearer test-token", handler.Authorization);
@@ -113,7 +113,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
         private static Mock<IAuthService> Auth(string role)
         {
-            Mock<IAuthService> auth = new Mock<IAuthService>();
+            Mock<IAuthService> auth = new ();
             _ = auth.SetupGet(x => x.IsAuthenticated).Returns(true);
             _ = auth.SetupGet(x => x.UserRoles).Returns(new[] { role });
             return auth;

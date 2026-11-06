@@ -22,7 +22,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         public IncidentControllerTests()
         {
-            Mock<IUserContextAccessor> user = new Mock<IUserContextAccessor>();
+            Mock<IUserContextAccessor> user = new ();
             _ = user.SetupGet(x => x.UserId).Returns("user-1");
             _ = user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
             _ = user.SetupGet(x => x.IsAdmin).Returns(true);
@@ -98,7 +98,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             CreateIncidentRequest request = Request();
             request.AlarmedAtUtc = null;
-            List<ValidationResult> validation = new List<ValidationResult>();
+            List<ValidationResult> validation = new ();
             Assert.False(Validator.TryValidateObject(request, new ValidationContext(request), validation, validateAllProperties: true));
             Assert.Contains(validation, result => result.MemberNames.Contains(nameof(CreateIncidentRequest.AlarmedAtUtc)));
             Assert.Equal(400, (await this._service.CreateIncident(request, default)).Code);

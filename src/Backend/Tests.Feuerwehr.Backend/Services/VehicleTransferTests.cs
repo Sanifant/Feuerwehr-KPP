@@ -21,7 +21,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task ImportTimestampsOnlyActualStatusChangesAndRollsThemBackWithAnInvalidBatch()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             const string csv = "radioCallSign;fireDepartment;equipmentOfficerEmail;status\nFlorian 19-01;Feuerwehr A;owner@example.test;Betriebsbereit";
             using (MemoryStream stream = Csv(csv))
             {
@@ -60,10 +60,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task CsvRoundTripResolvesOfficerEmailAndPreservesVehicleIdentityBookingsAndQuotedText()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             Vehicle vehicle = fixture.Vehicle();
             vehicle.Name = "=SUM(1;2)\n\"Ãœbung\"";
-            VehicleReservation booking = new VehicleReservation
+            VehicleReservation booking = new ()
             {
                 Id = Guid.NewGuid(),
                 VehicleId = vehicle.Id,
@@ -81,7 +81,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Contains("owner@example.test", csv);
             Assert.DoesNotContain("equipmentOfficerId", csv);
             Assert.Contains("'=SUM", csv);
-            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(csv.Replace("owner@example.test", " OTHER@EXAMPLE.TEST ").Replace("Betriebsbereit", "Wartung")));
+            using MemoryStream stream = new (Encoding.UTF8.GetBytes(csv.Replace("owner@example.test", " OTHER@EXAMPLE.TEST ").Replace("Betriebsbereit", "Wartung")));
             ServiceResult imported = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
             VehicleImportResponse result = Assert.IsType<VehicleImportResponse>(imported.Value);
             Assert.Equal(200, imported.Code);
@@ -107,7 +107,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="email">The email.</param>
         public async Task InvalidOfficerRejectsTheWholeFileWithoutCreatingUsersOrPartialVehicles(string email)
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             using MemoryStream stream = Csv("radioCallSign;fireDepartment;equipmentOfficerEmail\nFlorian 19-01;Feuerwehr A;owner@example.test\nFlorian 19-02;Feuerwehr A;" + email);
             int usersBefore = await fixture.Db.Users.CountAsync();
             ServiceResult result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
@@ -129,7 +129,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="expected">The expected.</param>
         public async Task InvalidFilesHaveActionableErrorsAndDoNotChangeData(string csv, string expected)
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             using MemoryStream stream = Csv(csv);
             ServiceResult result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
             Assert.Equal(400, result.Code);
@@ -143,7 +143,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task OfficersOnlyExportAssignedVehiclesAndCannotImportUpdatesForOtherOfficers()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             Vehicle owned = fixture.Vehicle();
             Vehicle other = fixture.Vehicle("Florian 19-02", "other");
             _ = await fixture.Db.SaveChangesAsync();
@@ -168,7 +168,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task ReimportWithoutIdsUpdatesByDepartmentAndCallSignAndMissingColumnsPreserveValues()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             Vehicle vehicle = fixture.Vehicle();
             vehicle.Name = "Bestehender Name";
             vehicle.IsActive = false;
@@ -190,14 +190,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task VehicleTypesRoundTripAndRenameInPlaceWhileDuplicateNamesRollbackTheEntireBatch()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             Vehicle vehicle = fixture.Vehicle();
             _ = await fixture.Db.SaveChangesAsync();
             ServiceResult exported = await fixture.Service.Export(VehicleTransferKind.Types, default);
             List<VehicleTypeImportDto> rows = JsonSerializer.Deserialize<List<VehicleTypeImportDto>>(exported.Content!, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
             VehicleTypeImportDto type = Assert.Single(rows);
             type.Name = "Mannschaftstransportwagen";
-            using MemoryStream updated = new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(rows));
+            using MemoryStream updated = new (JsonSerializer.SerializeToUtf8Bytes(rows));
             Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Types, updated, default)).Code);
             Assert.Equal(type.Id, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync(x => x.Id == vehicle.Id)).VehicleTypeId);
             Assert.Equal(type.Name, (await fixture.Db.Set<VehicleType>().SingleAsync()).Name);
@@ -254,7 +254,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <param name="owner">The owner.</param>
             public Vehicle Vehicle(string callSign = "Florian 19-01", string owner = "owner")
             {
-                Vehicle vehicle = new Vehicle { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = this.typeId };
+                Vehicle vehicle = new ()
+                { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = this.typeId };
                 _ = this.Db.Vehicles.Add(vehicle);
                 return vehicle;
             }

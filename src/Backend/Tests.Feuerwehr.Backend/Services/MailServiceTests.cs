@@ -19,10 +19,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task Send_ConnectsAuthenticatesAndSendsConfiguredMessage(bool authenticate)
         {
             SmtpSettings settings = Settings(authenticate);
-            Mock<ISmtpClient> client = new Mock<ISmtpClient>(MockBehavior.Strict);
+            Mock<ISmtpClient> client = new (MockBehavior.Strict);
             _ = client.SetupSet(c => c.Timeout = settings.TimeoutMilliseconds);
             _ = client.SetupGet(c => c.IsConnected).Returns(true);
-            MockSequence sequence = new MockSequence();
+            MockSequence sequence = new ();
             _ = client.InSequence(sequence).Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
                 .Returns(Task.CompletedTask);
             if (authenticate)
@@ -66,8 +66,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task Send_PropagatesFailuresAndClosesOpenConnections(string failingStep)
         {
             SmtpSettings settings = Settings();
-            Mock<ISmtpClient> client = new Mock<ISmtpClient>();
-            IOException failure = new IOException("SMTP test failure");
+            Mock<ISmtpClient> client = new ();
+            IOException failure = new ("SMTP test failure");
             _ = client.SetupGet(c => c.IsConnected).Returns(failingStep != "connect");
             _ = client.Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
                 .Returns(failingStep == "connect" ? Task.FromException(failure) : Task.CompletedTask);
@@ -94,7 +94,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task DisconnectFailure_AfterAcceptedMessageDoesNotFailDelivery()
         {
-            Mock<ISmtpClient> client = new Mock<ISmtpClient>();
+            Mock<ISmtpClient> client = new ();
             _ = client.SetupGet(c => c.IsConnected).Returns(true);
             _ = client.Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null)).ReturnsAsync("queued");
             _ = client.Setup(c => c.DisconnectAsync(true, default)).ThrowsAsync(new IOException("Disconnect failed"));

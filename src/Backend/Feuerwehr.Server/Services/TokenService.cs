@@ -35,7 +35,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             string audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
             int expirationMinutes = int.Parse(jwtSettings["AccessTokenExpirationMinutes"] ?? "15");
 
-            List<Claim> claims = new List<Claim>
+            List<Claim> claims = new ()
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
@@ -58,11 +58,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 claims.Add(new Claim("departmentId", user.FireDepartmentId.Value.ToString()));
             }
 
-            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            SymmetricSecurityKey key = new (Encoding.UTF8.GetBytes(secretKey));
+            SigningCredentials credentials = new (key, SecurityAlgorithms.HmacSha256);
             DateTime expires = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
-            JwtSecurityToken token = new JwtSecurityToken(
+            JwtSecurityToken token = new (
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
@@ -181,7 +181,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
             string secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
 
-            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+            TokenValidationParameters tokenValidationParameters = new ()
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
@@ -192,7 +192,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
             };
 
-            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityTokenHandler tokenHandler = new ();
             try
             {
                 ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken? securityToken);

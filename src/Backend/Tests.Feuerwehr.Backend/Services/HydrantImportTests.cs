@@ -26,7 +26,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public static async Task<ServiceResult> Import(FeuerwehrDbContext db, string csv)
         {
-            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+            using MemoryStream stream = new (Encoding.UTF8.GetBytes(csv));
             return await new HydrantService(db).ImportAsync(stream);
         }
 
@@ -165,7 +165,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task Cancellation_DoesNotPersistAnything()
         {
             using FeuerwehrDbContext db = CreateDatabase();
-            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(Header + "\n" + Row));
+            using MemoryStream stream = new (Encoding.UTF8.GetBytes(Header + "\n" + Row));
             _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
                 new HydrantService(db).ImportAsync(stream, new CancellationToken(true)));
             Assert.Empty(db.Hydrants);
@@ -178,7 +178,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task InvalidUtf8_IsReportedAsAnImportError()
         {
             using FeuerwehrDbContext db = CreateDatabase();
-            using MemoryStream stream = new MemoryStream([0xff, 0xff, 0xff]);
+            using MemoryStream stream = new ([0xff, 0xff, 0xff]);
             ServiceResult result = await new HydrantService(db).ImportAsync(stream);
             Assert.Equal(400, result.Code);
             Assert.Contains(Assert.IsType<HydrantImportResponse>(result.Value).Errors, error => error.Description.Contains("UTF-8"));

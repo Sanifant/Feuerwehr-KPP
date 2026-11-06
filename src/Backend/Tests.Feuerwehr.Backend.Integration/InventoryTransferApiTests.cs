@@ -63,7 +63,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             EquipmentTypeDto type = await fixture.CreateType(officer);
-            SaveEquipmentRequest request = new SaveEquipmentRequest { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "GröÃŸe; \"Zitat\"\nzweite Zeile" };
+            SaveEquipmentRequest request = new ()
+            { EquipmentTypeId = type.Id, Manufacturer = "=SUM(1;2)", SerialNumber = "GröÃŸe; \"Zitat\"\nzweite Zeile" };
             using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory", request);
             _ = create.EnsureSuccessStatusCode();
             EquipmentDto item = (await create.Content.ReadFromJsonAsync<EquipmentDto>())!;
@@ -193,7 +194,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             InventoryCategoryDto[] categories = (await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!;
-            SaveEquipmentTypeRequest request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "Prüfen" };
+            SaveEquipmentTypeRequest request = new ()
+            { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "Prüfen" };
             for (int i = 0; i < 2; i++)
             {
                 using HttpResponseMessage create = await officer.PostAsJsonAsync("/api/inventory/types", request);
@@ -231,8 +233,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 
         private static async Task<HttpResponseMessage> Upload(HttpClient client, string url, string content, string filename)
         {
-            using MultipartFormDataContent form = new MultipartFormDataContent();
-            using ByteArrayContent file = new ByteArrayContent(Encoding.UTF8.GetBytes(content));
+            using MultipartFormDataContent form = new ();
+            using ByteArrayContent file = new (Encoding.UTF8.GetBytes(content));
             file.Headers.ContentType = new MediaTypeHeaderValue(filename.EndsWith(".csv") ? "text/csv" : "application/json");
             form.Add(file, "file", filename);
             return await client.PostAsync(url, form);

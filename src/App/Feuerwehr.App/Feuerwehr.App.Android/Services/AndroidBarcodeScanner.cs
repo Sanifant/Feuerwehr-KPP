@@ -19,7 +19,7 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
         public async Task<string?> ScanAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TaskCompletionSource<string?> completion = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<string?> completion = new (TaskCreationOptions.RunContinuationsAsynchronously);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 MainActivity activity = MainActivity.CurrentActivity ?? throw new InvalidOperationException("Keine aktive Android-Ansicht.");

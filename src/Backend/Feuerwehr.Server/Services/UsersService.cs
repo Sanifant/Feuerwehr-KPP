@@ -39,7 +39,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 .ToListAsync();
 
             // Get roles for each user
-            List<UserDetailsDto> usersWithRoles = new List<UserDetailsDto>();
+            List<UserDetailsDto> usersWithRoles = new ();
             foreach (ApplicationUser? user in users)
             {
                 ApplicationUser? appUser = await this._userManager.FindByIdAsync(user.Id);
@@ -94,7 +94,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 }
             }
 
-            ApplicationUser user = new ApplicationUser
+            ApplicationUser user = new ()
             {
                 UserName = email,
                 Email = email,

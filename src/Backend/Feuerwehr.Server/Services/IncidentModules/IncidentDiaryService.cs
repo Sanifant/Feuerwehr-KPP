@@ -128,7 +128,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             DateTime now = DateTime.UtcNow;
             long nextNumber = await dbContext.Database.SqlQuery<long>($"SELECT nextval('\"DiaryEntryNumberSeq\"') AS \"Value\"").SingleAsync(cancellationToken);
 
-            DiaryEntry entry = new DiaryEntry
+            DiaryEntry entry = new ()
             {
                 Id = Guid.NewGuid(),
                 IncidentId = incidentId,
@@ -138,7 +138,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 UpdatedAtUtc = now,
             };
 
-            DiaryEntryRevision revision = new DiaryEntryRevision
+            DiaryEntryRevision revision = new ()
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,
@@ -160,7 +160,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             _ = dbContext.DiaryEntryRevisions.Add(revision);
             incident.Revision += 1;
 
-            DiaryEntryCreatedResponse response = new DiaryEntryCreatedResponse(entry.Id, entry.EntryNumber, entry.CurrentRevision, incident.Revision, now);
+            DiaryEntryCreatedResponse response = new (entry.Id, entry.EntryNumber, entry.CurrentRevision, incident.Revision, now);
 
             _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
@@ -245,7 +245,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             });
 
             incident.Revision += 1;
-            DiaryEntryUpdatedResponse response = new DiaryEntryUpdatedResponse(entry.Id, entry.CurrentRevision, incident.Revision, now);
+            DiaryEntryUpdatedResponse response = new (entry.Id, entry.CurrentRevision, incident.Revision, now);
 
             _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
@@ -338,7 +338,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             incident.Revision += 1;
 
-            DiaryEntryCanceledResponse response = new DiaryEntryCanceledResponse(entry.Id, entry.CurrentRevision, true, incident.Revision, now);
+            DiaryEntryCanceledResponse response = new (entry.Id, entry.CurrentRevision, true, incident.Revision, now);
             _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
                 "diary.entry.cancel",
@@ -380,7 +380,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             IReadOnlyCollection<DiaryEntryDto> entries = (IReadOnlyCollection<DiaryEntryDto>)diary.Value!;
 
-            List<string> lines = new List<string>
+            List<string> lines = new ()
             {
                 $"Einsatz: {incident.Name}",
                 $"Einsatznummer: {incident.IncidentNumber ?? "-"}",

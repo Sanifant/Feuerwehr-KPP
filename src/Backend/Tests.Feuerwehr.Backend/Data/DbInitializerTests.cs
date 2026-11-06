@@ -28,7 +28,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         public DbInitializerTests()
         {
             this._configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-            ServiceCollection services = new ServiceCollection();
+            ServiceCollection services = new ();
             _ = services.AddLogging();
             _ = services.AddSingleton<IConfiguration>(this._configuration);
             _ = services.AddSingleton<ILogger<Program>>(this._logger);
@@ -139,7 +139,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         /// <param name="configuredPassword">The configured Password.</param>
         public async Task SeedData_ExistingAdminKeepsPasswordAndRepairsMissingRoles(string email, string? configuredPassword)
         {
-            ApplicationUser admin = new ApplicationUser { UserName = email, Email = email };
+            ApplicationUser admin = new ()
+            { UserName = email, Email = email };
             Assert.True((await this._users.CreateAsync(admin, InitialPassword)).Succeeded);
             string? passwordHash = admin.PasswordHash;
             this._configuration["SeedAdmin:Password"] = configuredPassword;
@@ -168,18 +169,20 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
         public async Task SeedData_ExistingDatabaseAddsModuleRolesAndAllowsUserRoleUpdates(string moduleRole)
         {
             RoleManager<IdentityRole> roles = this._provider.GetRequiredService<RoleManager<IdentityRole>>();
-            Dictionary<string, string> originalRoleIds = new Dictionary<string, string>();
+            Dictionary<string, string> originalRoleIds = new ();
             foreach (string? name in new[] { Roles.Admin, Roles.Commander, Roles.Firefighter, Roles.Viewer })
             {
-                IdentityRole role = new IdentityRole(name);
+                IdentityRole role = new (name);
                 Assert.True((await roles.CreateAsync(role)).Succeeded);
                 originalRoleIds.Add(name, role.Id);
             }
 
-            ApplicationUser admin = new ApplicationUser { UserName = AdminEmail, Email = AdminEmail };
+            ApplicationUser admin = new ()
+            { UserName = AdminEmail, Email = AdminEmail };
             Assert.True((await this._users.CreateAsync(admin, InitialPassword)).Succeeded);
             Assert.True((await this._users.AddToRoleAsync(admin, Roles.Admin)).Succeeded);
-            ApplicationUser user = new ApplicationUser { UserName = "viewer@example.org", Email = "viewer@example.org" };
+            ApplicationUser user = new ()
+            { UserName = "viewer@example.org", Email = "viewer@example.org" };
             Assert.True((await this._users.CreateAsync(user)).Succeeded);
             Assert.True((await this._users.AddToRoleAsync(user, Roles.Viewer)).Succeeded);
             Assert.False(await roles.RoleExistsAsync(moduleRole));
@@ -195,7 +198,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Data
 
             Assert.Equal(new[] { Roles.Viewer }, await this._users.GetRolesAsync(user));
 
-            UsersController controller = new UsersController(new UsersService(
+            UsersController controller = new (new UsersService(
                 this._users,
                 roles,
                 Mock.Of<IUserInvitationService>(),

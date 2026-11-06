@@ -196,7 +196,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.All(booked!.Single(x => x.Vehicle.Id == vehicle.Id).Days, x => Assert.Equal(VehicleDayStatus.Booked, x.Status));
 
             await scope.ServiceProvider.GetRequiredService<IVehicleMailDispatcher>().Dispatch(default);
-            using HttpClient mail = new HttpClient { BaseAddress = fixture.MailpitUrl };
+            using HttpClient mail = new ()
+            { BaseAddress = fixture.MailpitUrl };
             JsonElement messages = await mail.GetFromJsonAsync<JsonElement>("/api/v1/messages");
             JsonElement[] matching = messages.GetProperty("messages").EnumerateArray().Where(x =>
                 x.GetProperty("Subject").GetString() == $"MTW-Buchung bestätigt: {vehicle.RadioCallSign}").ToArray();
@@ -264,7 +265,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             HttpResponseMessage memberDeactivation = await member.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}/active", new SetVehicleActiveRequest
             { IsActive = false, ExpectedVersion = vehicle.Version });
             Assert.Equal(HttpStatusCode.Forbidden, memberDeactivation.StatusCode);
-            CreateVehicleReservationRequest command = new CreateVehicleReservationRequest { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(1) };
+            CreateVehicleReservationRequest command = new ()
+            { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(1) };
             HttpResponseMessage created = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", command);
             _ = created.EnsureSuccessStatusCode();
             HttpResponseMessage replay = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", command);
@@ -306,7 +308,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
 
         private static MultipartFormDataContent Upload(byte[] content, string name)
         {
-            MultipartFormDataContent form = new MultipartFormDataContent();
+            MultipartFormDataContent form = new ();
             form.Add(new ByteArrayContent(content), "file", name);
             return form;
         }
@@ -318,7 +320,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             ApplicationUser officer = await db.Users.SingleAsync(x => x.Email == $"{Roles.EquipmentOfficer}@integration.test");
             if (!officer.FireDepartmentId.HasValue)
             {
-                FireDepartment department = new FireDepartment { Name = "MTW Integration" };
+                FireDepartment department = new ()
+                { Name = "MTW Integration" };
                 _ = db.FireDepartments.Add(department);
                 _ = await db.SaveChangesAsync();
                 officer.FireDepartmentId = department.Id;

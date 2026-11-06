@@ -19,13 +19,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task FailedDeliveryIsRetried_WhileSuccessfulDeliveryIsDeduplicatedPerRecipientAndDueDate()
         {
-            await using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-            DateOnly today = new DateOnly(2026, 10, 29);
-            InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
-            EquipmentType type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = 12, InspectionInstructions = "Sichtprüfung" };
-            Equipment item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = today.AddDays(15).AddYears(-1), SerialNumber = "123", Manufacturer = "Test" };
+            await using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+            DateOnly today = new (2026, 10, 29);
+            InventoryCategory category = new ()
+            { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
+            EquipmentType type = new ()
+            { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = 12, InspectionInstructions = "Sichtprüfung" };
+            Equipment item = new ()
+            { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = today.AddDays(15).AddYears(-1), SerialNumber = "123", Manufacturer = "Test" };
             _ = db.Equipment.Add(item);
-            IdentityRole role = new IdentityRole(Roles.EquipmentOfficer);
+            IdentityRole role = new (Roles.EquipmentOfficer);
             _ = db.Roles.Add(role);
             foreach ((string? id, bool active) in new[] { ("good", true), ("retry", true), ("inactive", false) })
             {
@@ -34,12 +37,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
 
             _ = await db.SaveChangesAsync();
-            Mock<IMailService> mail = new Mock<IMailService>();
+            Mock<IMailService> mail = new ();
             int attempts = 0;
             _ = mail.Setup(x => x.SendAsync("retry@example.test", It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(() => ++attempts == 1 ? Task.FromException(new IOException("SMTP down")) : Task.CompletedTask);
-            FixedClock clock = new FixedClock(today);
-            InventoryReminderService service = new InventoryReminderService(db, mail.Object, clock, NullLogger<InventoryReminderService>.Instance);
+            FixedClock clock = new (today);
+            InventoryReminderService service = new (db, mail.Object, clock, NullLogger<InventoryReminderService>.Instance);
             await service.SendDueReminders(CancellationToken.None);
             mail.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
             item.CreatedOn = today.AddDays(14).AddYears(-1);

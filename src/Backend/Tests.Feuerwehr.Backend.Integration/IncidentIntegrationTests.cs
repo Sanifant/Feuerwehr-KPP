@@ -23,7 +23,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             string token = await fixture.LoginAsAdminAndGetAccessTokenAsync();
             fixture.Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            CreateIncidentRequest createRequest = new CreateIncidentRequest
+            CreateIncidentRequest createRequest = new ()
             {
                 Name = "Container E2E Incident",
                 IncidentNumber = "IT-001",

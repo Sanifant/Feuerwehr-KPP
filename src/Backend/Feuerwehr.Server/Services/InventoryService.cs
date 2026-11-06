@@ -49,7 +49,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return Conflict("Diese Kategorie existiert bereits.");
             }
 
-            InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = name, NormalizedName = normalized };
+            InventoryCategory category = new ()
+            { Id = Guid.NewGuid(), Name = name, NormalizedName = normalized };
             _ = db.InventoryCategories.Add(category);
             try
             {
@@ -212,7 +213,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             string barcode = $"KPP-{item.BarcodeNumber:D3}";
-            BarcodeWriterSvg writer = new ZXing.BarcodeWriterSvg
+            BarcodeWriterSvg writer = new ()
             {
                 Format = ZXing.BarcodeFormat.CODE_128,
                 Options = new ZXing.Common.EncodingOptions { Width = 320, Height = 110, Margin = 12 },

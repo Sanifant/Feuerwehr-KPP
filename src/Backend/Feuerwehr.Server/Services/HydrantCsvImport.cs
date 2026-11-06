@@ -27,7 +27,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             List<Hydrant> hydrants = [];
             List<HydrantImportError> errors = [];
-            using TextFieldParser parser = new TextFieldParser(stream, new UTF8Encoding(false, true), detectEncoding: true, leaveOpen: true)
+            using TextFieldParser parser = new (stream, new UTF8Encoding(false, true), detectEncoding: true, leaveOpen: true)
             {
                 TextFieldType = FieldType.Delimited,
                 HasFieldsEnclosedInQuotes = true,
@@ -43,7 +43,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return (hydrants, [new (null, "Die CSV-Datei ist leer.")]);
                 }
 
-                Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, int> columns = new (StringComparer.OrdinalIgnoreCase);
                 for (int index = 0; index < headers.Length; index++)
                 {
                     if (!columns.TryAdd(headers[index], index))

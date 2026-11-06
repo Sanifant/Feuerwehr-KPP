@@ -285,7 +285,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <returns></returns>
         public static byte[] BuildMapAuditCsv(IEnumerable<MapAuditEvent> events)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new ();
             _ = sb.AppendLine("Sequence;OccurredAtUtc;Action;User;ElementId;CommandId;Before;After");
             foreach (MapAuditEvent e in events)
             {
@@ -317,10 +317,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         {
             List<string[]> pages = Paginate(lines.SelectMany(WrapLine));
             int fontId = 3 + (pages.Count * 2);
-            using MemoryStream ms = new MemoryStream();
-            using StreamWriter writer = new StreamWriter(ms, Encoding.ASCII, leaveOpen: true);
+            using MemoryStream ms = new ();
+            using StreamWriter writer = new (ms, Encoding.ASCII, leaveOpen: true);
             writer.Write("%PDF-1.4\n");
-            List<long> offsets = new List<long> { 0 };
+            List<long> offsets = new ()
+            { 0 };
 
             void WriteObject(int id, string obj)
             {
@@ -336,7 +337,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 int pageId = 3 + (index * 2);
                 int contentId = pageId + 1;
-                StringBuilder content = new StringBuilder();
+                StringBuilder content = new ();
                 _ = content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");
                 int y = 760;
                 foreach (string line in pages[index])
@@ -370,9 +371,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
         private static List<string[]> Paginate(IEnumerable<string> lines)
         {
-            List<string[]> pages = new List<string[]>();
-            List<string> page = new List<string>();
-            List<string> block = new List<string>();
+            List<string[]> pages = new ();
+            List<string> page = new ();
+            List<string> block = new ();
             void FlushBlock(bool separator)
             {
                 // Keep an entry together when it fits on one page; long entries still continue.
@@ -451,7 +452,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             byte[] bytes = Encoding.GetEncoding(1252).GetBytes(input);
-            StringBuilder result = new StringBuilder();
+            StringBuilder result = new ();
             foreach (byte value in bytes)
             {
                 if (value is (byte)'\\' or (byte)'(' or (byte)')')

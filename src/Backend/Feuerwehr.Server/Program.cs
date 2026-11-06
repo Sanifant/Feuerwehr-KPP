@@ -148,7 +148,7 @@ namespace De.Openelp.Feuerwehr.Server
                         _ = policy.SetIsOriginAllowed(origin =>
                         {
                             // Allow localhost and Aspire dev domains
-                            Uri uri = new Uri(origin);
+                            Uri uri = new (origin);
                             return uri.Host == "localhost" ||
                                    uri.Host.EndsWith(".dev.localhost") ||
                                    uri.Host.EndsWith(".localhost");

@@ -50,7 +50,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
         {
             authService.AuthStateChanged += this.OnAuthStateChanged;
 
-            Map currentMap = new Map();
+            Map currentMap = new ();
             currentMap.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
 
             currentMap.Navigator.ZoomTo(this.zoomFactor);
@@ -111,7 +111,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 Map? currentMap = this.Map;
                 if (currentMap != null && this.displayedIncidentId != incident.Id)
                 {
-                    MPoint startPoint = new MPoint(incident.OriginLongitude, incident.OriginLatitude);
+                    MPoint startPoint = new (incident.OriginLongitude, incident.OriginLatitude);
                     (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
 
                     currentMap.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);

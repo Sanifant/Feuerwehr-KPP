@@ -66,7 +66,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             List<Vehicle> vehicles = await query.OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct);
-            StringBuilder csv = new StringBuilder("\uFEFF" + string.Join(';', VehicleCsv.Columns) + "\r\n");
+            StringBuilder csv = new ("\uFEFF" + string.Join(';', VehicleCsv.Columns) + "\r\n");
             foreach (Vehicle? vehicle in vehicles)
             {
                 _ = csv.AppendJoin(';', new[] { vehicle.Id.ToString(), vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate,
@@ -191,9 +191,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             List<VehicleType> existing = await db.Set<VehicleType>().ToListAsync(ct);
             Dictionary<Guid, VehicleType> byId = existing.ToDictionary(x => x.Id);
             Dictionary<string, VehicleType> byName = existing.ToDictionary(x => x.NormalizedName);
-            HashSet<Guid> ids = new HashSet<Guid>();
-            HashSet<string> names = new HashSet<string>();
-            HashSet<Guid> targets = new HashSet<Guid>();
+            HashSet<Guid> ids = new ();
+            HashSet<string> names = new ();
+            HashSet<Guid> targets = new ();
             List<VehicleImportError> errors = [];
             int created = 0;
             int updated = 0;
@@ -263,9 +263,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             List<Vehicle> existing = await db.Vehicles.ToListAsync(ct);
             Dictionary<Guid, Vehicle> byId = existing.ToDictionary(x => x.Id);
             ILookup<(int FireDepartmentId, string Name), Vehicle> byKey = existing.ToLookup(x => (x.FireDepartmentId, Name: Normalize(x.RadioCallSign)));
-            HashSet<Guid> ids = new HashSet<Guid>();
-            HashSet<(int, string)> keys = new HashSet<(int, string)>();
-            HashSet<Guid> targets = new HashSet<Guid>();
+            HashSet<Guid> ids = new ();
+            HashSet<(int, string)> keys = new ();
+            HashSet<Guid> targets = new ();
             List<VehicleImportError> errors = [];
             int created = 0;
             int updated = 0;

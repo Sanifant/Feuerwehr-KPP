@@ -47,7 +47,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             List<Equipment> equipment = await db.Equipment.AsNoTracking().Include(x => x.EquipmentType).ThenInclude(x => x.Category).OrderBy(x => x.BarcodeNumber).ToListAsync(ct);
-            StringBuilder csv = new StringBuilder("\uFEFF" + string.Join(';', InventoryCsv.Columns) + "\r\n");
+            StringBuilder csv = new ("\uFEFF" + string.Join(';', InventoryCsv.Columns) + "\r\n");
             foreach (Equipment? entity in equipment)
             {
                 ct.ThrowIfCancellationRequested();
@@ -196,9 +196,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             List<InventoryCategory> existing = await db.InventoryCategories.ToListAsync(ct);
             Dictionary<Guid, InventoryCategory> byIds = existing.ToDictionary(x => x.Id);
             Dictionary<string, InventoryCategory> byNames = existing.ToDictionary(x => x.NormalizedName);
-            HashSet<Guid> ids = new HashSet<Guid>();
-            HashSet<string> names = new HashSet<string>();
-            HashSet<Guid> targets = new HashSet<Guid>();
+            HashSet<Guid> ids = new ();
+            HashSet<string> names = new ();
+            HashSet<Guid> targets = new ();
             List<InventoryImportError> errors = [];
             int created = 0;
             int updated = 0;
@@ -252,9 +252,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             Dictionary<string, InventoryCategory> categoriesByName = categories.ToDictionary(x => x.NormalizedName);
             Dictionary<Guid, EquipmentType> typesById = existing.ToDictionary(x => x.Id);
             Dictionary<(Guid CategoryId, string Name), List<EquipmentType>> typesByName = existing.GroupBy(x => (x.CategoryId, Name: Normalize(x.Name))).ToDictionary(x => x.Key, x => x.ToList());
-            HashSet<Guid> ids = new HashSet<Guid>();
-            HashSet<string> keys = new HashSet<string>();
-            HashSet<Guid> targets = new HashSet<Guid>();
+            HashSet<Guid> ids = new ();
+            HashSet<string> keys = new ();
+            HashSet<Guid> targets = new ();
             List<InventoryImportError> errors = [];
             int created = 0;
             int updated = 0;

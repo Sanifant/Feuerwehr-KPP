@@ -116,7 +116,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 if (!Uri.TryCreate(connection, UriKind.Absolute, out Uri? endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))
                 {
-                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder { ConnectionString = connection };
+                    DbConnectionStringBuilder builder = new ()
+                    { ConnectionString = connection };
                     endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
                 }
 

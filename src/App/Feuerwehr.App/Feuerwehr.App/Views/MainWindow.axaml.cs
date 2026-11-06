@@ -57,7 +57,7 @@ namespace De.Openelp.Feuerwehr.App.Views
             LoginViewModel loginViewModel = this._loginViewModelFactory();
             loginViewModel.LoginSuccessful += this.OnLoginSuccessful;
 
-            LoginView loginView = new LoginView
+            LoginView loginView = new ()
             {
                 DataContext = loginViewModel
             };
@@ -69,7 +69,7 @@ namespace De.Openelp.Feuerwehr.App.Views
         {
             MainViewModel mainViewModel = this._mainViewModelFactory();
 
-            MainView mainView = new MainView
+            MainView mainView = new ()
             {
                 DataContext = mainViewModel
             };

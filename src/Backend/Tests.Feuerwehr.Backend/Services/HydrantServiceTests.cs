@@ -13,10 +13,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public void CreateAndUpdate_MapTransportContractWithoutReplacingEntity()
         {
-            using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+            using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-            HydrantService service = new HydrantService(db);
-            Hydrant request = new Hydrant
+            HydrantService service = new (db);
+            Hydrant request = new ()
             {
                 Address = new Address { Street = "DorfstraÃŸe", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
                 Latitude = 53.9,
@@ -34,7 +34,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.NotSame(request.Address, entity.Address);
             Assert.NotSame(response.Address, entity.Address);
 
-            Hydrant update = new Hydrant
+            Hydrant update = new ()
             {
                 Id = response.Id,
                 Address = new Address { Street = "Neue StraÃŸe", City = "Stockelsdorf" },

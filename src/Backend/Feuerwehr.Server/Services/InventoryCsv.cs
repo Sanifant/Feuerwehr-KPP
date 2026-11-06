@@ -39,7 +39,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             List<InventoryCsvRow> rows = [];
             List<InventoryImportError> errors = [];
-            using TextFieldParser parser = new TextFieldParser(stream, new UTF8Encoding(false, true), detectEncoding: true, leaveOpen: true)
+            using TextFieldParser parser = new (stream, new UTF8Encoding(false, true), detectEncoding: true, leaveOpen: true)
             { TextFieldType = FieldType.Delimited, HasFieldsEnclosedInQuotes = true, TrimWhiteSpace = false };
             parser.SetDelimiters(";");
             try
@@ -50,7 +50,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return (rows, [new (null, "Die CSV-Datei ist leer.")]);
                 }
 
-                Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, int> columns = new (StringComparer.OrdinalIgnoreCase);
                 for (int i = 0; i < headers.Length; i++)
                 {
                     string header = headers[i].Trim().TrimStart('\uFEFF');
@@ -82,7 +82,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return (rows, errors);
                 }
 
-                HashSet<int> numbers = new HashSet<int>();
+                HashSet<int> numbers = new ();
                 int count = 0;
                 while (!parser.EndOfData && errors.Count < 100)
                 {

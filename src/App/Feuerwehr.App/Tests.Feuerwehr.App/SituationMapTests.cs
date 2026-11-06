@@ -31,13 +31,13 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task OnlyViewerRole_ShowsNavigationAndAllowsLoading(string role, bool allowed)
         {
             Mock<IAuthService> auth = CreateAuth(role);
-            Mock<ISituationMapService> service = new Mock<ISituationMapService>(MockBehavior.Strict);
+            Mock<ISituationMapService> service = new (MockBehavior.Strict);
             if (allowed)
             {
                 _ = service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ReturnsAsync((IncidentSummaryDto?)null);
             }
 
-            SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, auth.Object);
+            SituationMapViewModel viewModel = new (service.Object, auth.Object);
 
             Assert.Equal(allowed, new MainViewModel(auth.Object).CanViewSituationMap);
             Assert.Equal(allowed, viewModel.RefreshCommand.CanExecute(null));
@@ -54,11 +54,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task Refresh_ReplacesElementsAndKeepsViewport_ThenClearsWhenIncidentEnds()
         {
             IncidentSummaryDto incident = Incident();
-            Mock<ISituationMapService> service = new Mock<ISituationMapService>();
+            Mock<ISituationMapService> service = new ();
             _ = service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ReturnsAsync(incident);
             _ = service.Setup(s => s.GetStateAsync(incident.Id, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(State(incident.Id, Element("[10.6,53.9]")));
-            SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, CreateAuth().Object);
+            SituationMapViewModel viewModel = new (service.Object, CreateAuth().Object);
             viewModel.Activate();
 
             await viewModel.RefreshCommand.ExecuteAsync(null);
@@ -94,13 +94,13 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task RoleRevocation_CancelsLoadingAndDiscardsLateResults()
         {
-            TaskCompletionSource<MapStateResponse> completion = new TaskCompletionSource<MapStateResponse>();
+            TaskCompletionSource<MapStateResponse> completion = new ();
             IncidentSummaryDto incident = Incident();
             Mock<IAuthService> auth = CreateAuth();
-            Mock<ISituationMapService> service = new Mock<ISituationMapService>();
+            Mock<ISituationMapService> service = new ();
             _ = service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ReturnsAsync(incident);
             _ = service.Setup(s => s.GetStateAsync(incident.Id, It.IsAny<CancellationToken>())).Returns(completion.Task);
-            SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, auth.Object);
+            SituationMapViewModel viewModel = new (service.Object, auth.Object);
             viewModel.Activate();
             Task pending = viewModel.RefreshCommand.ExecuteAsync(null);
 
@@ -121,10 +121,10 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task NavigationAway_DiscardsPendingResponse()
         {
-            TaskCompletionSource<IncidentSummaryDto?> completion = new TaskCompletionSource<IncidentSummaryDto?>();
-            Mock<ISituationMapService> service = new Mock<ISituationMapService>();
+            TaskCompletionSource<IncidentSummaryDto?> completion = new ();
+            Mock<ISituationMapService> service = new ();
             _ = service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).Returns(completion.Task);
-            SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, CreateAuth().Object);
+            SituationMapViewModel viewModel = new (service.Object, CreateAuth().Object);
             viewModel.Activate();
             Task pending = viewModel.RefreshCommand.ExecuteAsync(null);
 
@@ -143,10 +143,10 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task RefreshFailure_ClearsOldMapAndAllowsRetry()
         {
             IncidentSummaryDto incident = Incident();
-            Mock<ISituationMapService> service = new Mock<ISituationMapService>();
+            Mock<ISituationMapService> service = new ();
             _ = service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ReturnsAsync(incident);
             _ = service.Setup(s => s.GetStateAsync(incident.Id, It.IsAny<CancellationToken>())).ReturnsAsync(State(incident.Id));
-            SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, CreateAuth().Object);
+            SituationMapViewModel viewModel = new (service.Object, CreateAuth().Object);
             await viewModel.RefreshCommand.ExecuteAsync(null);
 
             _ = service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new HttpRequestException());
@@ -194,11 +194,11 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public async Task HttpClient_UsesOnlyGetAndReadsStringEnums_HandlesMissingActiveIncident()
         {
             IncidentSummaryDto incident = Incident();
-            using ReadOnlyHandler handler = new ReadOnlyHandler(incident);
-            using HttpClient http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test") };
+            using ReadOnlyHandler handler = new (incident);
+            using HttpClient http = new (handler) { BaseAddress = new Uri("https://example.test") };
             Mock<IAuthService> auth = CreateAuth();
             _ = auth.Setup(s => s.GetAccessTokenAsync()).ReturnsAsync("test-token");
-            SituationMapService service = new SituationMapService(new AuthenticatedHttpClient(http, auth.Object));
+            SituationMapService service = new (new AuthenticatedHttpClient(http, auth.Object));
 
             Assert.Equal(incident, await service.GetActiveIncidentAsync(CancellationToken.None));
             MapStateResponse state = await service.GetStateAsync(incident.Id, CancellationToken.None);
@@ -210,7 +210,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
         private static Mock<IAuthService> CreateAuth(string role = "SituationMapViewer")
         {
-            Mock<IAuthService> auth = new Mock<IAuthService>();
+            Mock<IAuthService> auth = new ();
             _ = auth.SetupGet(s => s.IsAuthenticated).Returns(true);
             _ = auth.SetupGet(s => s.UserRoles).Returns(new[] { role });
             return auth;
@@ -260,7 +260,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
                 this.RequestCount++;
                 Assert.Equal(HttpMethod.Get, request.Method);
                 Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
-                JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+                JsonSerializerOptions options = new (JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
                 if (request.RequestUri!.AbsolutePath == "/api/incidents/active")
                 {
                     return Task.FromResult(this.NoActiveIncident

@@ -17,7 +17,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task Export_MatchesImportExampleAndPreservesCsvEscapingRegardlessOfCulture()
         {
             using FeuerwehrDbContext db = CreateDatabase();
-            HydrantService service = new HydrantService(db);
+            HydrantService service = new (db);
             _ = service.Post(new Hydrant
             {
                 Id = 2,
@@ -52,8 +52,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             }
 
             Assert.Equal(Encoding.UTF8.GetPreamble(), bytes[..3]);
-            using MemoryStream stream = new MemoryStream(bytes);
-            using TextFieldParser parser = new TextFieldParser(stream, Encoding.UTF8) { HasFieldsEnclosedInQuotes = true };
+            using MemoryStream stream = new (bytes);
+            using TextFieldParser parser = new (stream, Encoding.UTF8) { HasFieldsEnclosedInQuotes = true };
             parser.SetDelimiters(";");
             string[] example = await File.ReadAllLinesAsync(Path.Combine(AppContext.BaseDirectory, "Fixtures", "hydranten-import.csv"));
             Assert.Equal(example[0].Split(';'), parser.ReadFields());
@@ -78,8 +78,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task Export_CanBeImportedWithoutChangingTheCsv(string? notes)
         {
             using FeuerwehrDbContext source = CreateDatabase();
-            HydrantService service = new HydrantService(source);
-            Hydrant original = new Hydrant
+            HydrantService service = new (source);
+            Hydrant original = new ()
             {
                 Id = 42,
                 Address = new Address
@@ -99,7 +99,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 Notes = notes,
             };
             _ = service.Post(original);
-            using MemoryStream csv = new MemoryStream(await service.ExportAsync());
+            using MemoryStream csv = new (await service.ExportAsync());
             using FeuerwehrDbContext target = CreateDatabase();
 
             ServiceResult result = await new HydrantService(target).ImportAsync(csv);
@@ -132,7 +132,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task EmptyDatabase_ExportsHeadersAndCancellationIsRespected()
         {
             using FeuerwehrDbContext db = CreateDatabase();
-            HydrantService service = new HydrantService(db);
+            HydrantService service = new (db);
             string csv = Encoding.UTF8.GetString(await service.ExportAsync());
             Assert.StartsWith("\uFEFFstreet;houseNumber;", csv);
             Assert.Equal(2, csv.Split("\r\n").Length);

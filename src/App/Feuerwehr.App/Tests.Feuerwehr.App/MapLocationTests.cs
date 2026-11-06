@@ -15,7 +15,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public void ConstructingMap_DoesNotRequestLocationBeforeTheViewIsLoaded()
         {
-            Mock<IGpsService> gps = new Mock<IGpsService>(MockBehavior.Strict);
+            Mock<IGpsService> gps = new (MockBehavior.Strict);
 
             MapViewModel viewModel = CreateViewModel(gps.Object);
 
@@ -29,9 +29,9 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task Settings_WaitsAsynchronouslyAndUsesTheReturnedCoordinates()
         {
-            TaskCompletionSource<GpsLocation?> completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            Mock<IGpsService> gps = new Mock<IGpsService>();
-            using CancellationTokenSource cancellation = new CancellationTokenSource();
+            TaskCompletionSource<GpsLocation?> completion = new (TaskCreationOptions.RunContinuationsAsynchronously);
+            Mock<IGpsService> gps = new ();
+            using CancellationTokenSource cancellation = new ();
             _ = gps.Setup(service => service.GetCurrentLocationAsync(cancellation.Token)).Returns(completion.Task);
             MapViewModel viewModel = CreateViewModel(gps.Object);
 
@@ -53,7 +53,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task UnavailableLocation_DoesNotCreateAPinOrOpenHydrantCreation()
         {
-            Mock<IGpsService> gps = new Mock<IGpsService>();
+            Mock<IGpsService> gps = new ();
             _ = gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync((GpsLocation?)null);
             MapViewModel viewModel = CreateViewModel(gps.Object);
@@ -72,7 +72,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task Initialization_ReplacesExistingLocationPin()
         {
-            Mock<IGpsService> gps = new Mock<IGpsService>();
+            Mock<IGpsService> gps = new ();
             _ = gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GpsLocation { Latitude = 53.9, Longitude = 10.6 });
             MapViewModel viewModel = CreateViewModel(gps.Object);
@@ -92,9 +92,9 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// <param name="initialize">The initialize.</param>
         public async Task Cancellation_PreventsLateLocationResultsFromChangingTheView(bool initialize)
         {
-            TaskCompletionSource<GpsLocation?> completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
-            Mock<IGpsService> gps = new Mock<IGpsService>();
-            using CancellationTokenSource cancellation = new CancellationTokenSource();
+            TaskCompletionSource<GpsLocation?> completion = new (TaskCreationOptions.RunContinuationsAsynchronously);
+            Mock<IGpsService> gps = new ();
+            using CancellationTokenSource cancellation = new ();
             _ = gps.Setup(service => service.GetCurrentLocationAsync(cancellation.Token)).Returns(completion.Task);
             MapViewModel viewModel = CreateViewModel(gps.Object);
             Task pending = initialize
@@ -126,8 +126,8 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// <param name="center">The center.</param>
         public async Task CancelingBoundCommands_CompletesWithoutAnUnhandledCancellation(bool center)
         {
-            Mock<IGpsService> gps = new Mock<IGpsService>();
-            TaskCompletionSource requested = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            Mock<IGpsService> gps = new ();
+            TaskCompletionSource requested = new (TaskCreationOptions.RunContinuationsAsynchronously);
             _ = gps.Setup(service => service.GetCurrentLocationAsync(It.IsAny<CancellationToken>()))
                 .Returns(async (CancellationToken token) =>
                 {
@@ -149,7 +149,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
         private static MapViewModel CreateViewModel(IGpsService gps)
         {
-            Mock<IHydrantService> hydrants = new Mock<IHydrantService>();
+            Mock<IHydrantService> hydrants = new ();
             // Hydrant loading is unrelated to these tests and must not mutate map layers concurrently.
             _ = hydrants.Setup(service => service.GetAllAsync()).Returns(Task.FromCanceled<IEnumerable<Hydrant>>(new CancellationToken(true)));
             return new MapViewModel(hydrants.Object, gps);

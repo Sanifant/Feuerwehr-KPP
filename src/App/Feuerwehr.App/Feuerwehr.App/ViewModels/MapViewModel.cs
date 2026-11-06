@@ -102,7 +102,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             if (location != null)
             {
 
-                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                MPoint startPoint = new (location.Longitude, location.Latitude);
                 (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 this.Map?.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
                 this.zoomFactor = 10;
@@ -122,7 +122,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             if (location != null)
             {
                 this.IsAddVisible = true;
-                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                MPoint startPoint = new (location.Longitude, location.Latitude);
 
                 this.NewHydrant = new Hydrant
                 {
@@ -190,12 +190,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
             if (location != null && map != null)
             {
 
-                MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
+                MPoint startPoint = new (location.Longitude, location.Latitude);
                 (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // --- 2. Einen Pin (Marker) hinzufügen
-                PointFeature pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
+                PointFeature pinFeature = new (spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
                 // Stylen des Pins (z.B. ein roter Punkt)
                 pinFeature.Styles.Add(new SymbolStyle
@@ -205,7 +205,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 });
 
                 // Layer für den Pin erstellen und der Karte hinzufügen
-                MemoryLayer memoryLayer = new MemoryLayer
+                MemoryLayer memoryLayer = new ()
                 {
                     Name = "Pins",
                     Features = new List<IFeature> { pinFeature }
@@ -256,7 +256,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         private void InitializeMap()
         {
-            Map map = new Map();
+            Map map = new ();
             map.Layers.Add(OpenStreetMap.CreateTileLayer(userAgent: "FeuerwehrApp/1.0"));
 
             map.Navigator.ZoomTo(this.zoomFactor);
@@ -265,12 +265,12 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
 
         private IEnumerable<ILayer> HydrantLayer(List<HydrantPin> hydrants)
         {
-            List<PointFeature> hydrantFeatures = new List<PointFeature>();
+            List<PointFeature> hydrantFeatures = new ();
 
             foreach (HydrantPin hydrant in hydrants)
             {
                 (double x, double y) mercatorCordinate = SphericalMercator.FromLonLat(hydrant.Longitude, hydrant.Latitude);
-                PointFeature hydrantFeature = new PointFeature(mercatorCordinate);
+                PointFeature hydrantFeature = new (mercatorCordinate);
 
                 hydrantFeature["Model"] = hydrant;
 
@@ -284,7 +284,7 @@ namespace De.Openelp.Feuerwehr.App.ViewModels
                 hydrantFeatures.Add(hydrantFeature);
             }
 
-            MemoryLayer hydrantLayer = new MemoryLayer
+            MemoryLayer hydrantLayer = new ()
             {
                 Name = "Hydrants",
                 Features = hydrantFeatures

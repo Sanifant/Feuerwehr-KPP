@@ -12,7 +12,7 @@ namespace De.Openelp.Feuerwehr.Server.Data
         /// <returns></returns>
         public FeuerwehrDbContext CreateDbContext(string[] args)
         {
-            DbContextOptionsBuilder<FeuerwehrDbContext> optionsBuilder = new DbContextOptionsBuilder<FeuerwehrDbContext>();
+            DbContextOptionsBuilder<FeuerwehrDbContext> optionsBuilder = new ();
             _ = optionsBuilder.UseNpgsql("Host=localhost;Database=feuerwehrdb;Username=postgres;Password=yourpassword");
             return new FeuerwehrDbContext(optionsBuilder.Options);
         }

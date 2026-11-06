@@ -22,7 +22,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <returns></returns>
         public static MemoryLayer CreateElements(IEnumerable<MapElementDto> elements)
         {
-            List<IFeature> features = new List<IFeature>();
+            List<IFeature> features = new ();
             foreach (MapElementDto element in elements)
             {
                 using JsonDocument json = JsonDocument.Parse(element.GeometryJson);

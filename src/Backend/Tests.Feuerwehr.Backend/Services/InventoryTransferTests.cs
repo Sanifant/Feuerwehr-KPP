@@ -24,8 +24,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task InvalidCsvIsRejectedBeforeChangingAnyData(string content, string expected)
         {
             await using FeuerwehrDbContext db = Database();
-            InventoryTransferService service = new InventoryTransferService(db, TimeProvider.System);
-            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            InventoryTransferService service = new (db, TimeProvider.System);
+            using MemoryStream stream = new (Encoding.UTF8.GetBytes(content));
             ServiceResult response = await service.Import(InventoryTransferKind.Equipment, stream, CancellationToken.None);
             Assert.Equal(400, response.Code);
             Assert.Contains(Assert.IsType<InventoryImportResponse>(response.Value).Errors, x => x.Description.Contains(expected));
@@ -39,8 +39,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task CategoryBatchIsAtomicAndInvalidJsonEntriesHaveReadableErrors()
         {
             await using FeuerwehrDbContext db = Database();
-            InventoryTransferService service = new InventoryTransferService(db, TimeProvider.System);
-            using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes("[{\"name\":\"Neu\"},{\"name\":\" \"}]"));
+            InventoryTransferService service = new (db, TimeProvider.System);
+            using MemoryStream stream = new (Encoding.UTF8.GetBytes("[{\"name\":\"Neu\"},{\"name\":\" \"}]"));
             ServiceResult response = await service.Import(InventoryTransferKind.Categories, stream, CancellationToken.None);
             Assert.Equal(400, response.Code);
             InventoryImportError error = Assert.Single(Assert.IsType<InventoryImportResponse>(response.Value).Errors);

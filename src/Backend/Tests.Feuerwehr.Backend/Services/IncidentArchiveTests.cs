@@ -31,8 +31,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             _ = this._user.SetupGet(x => x.IsAdmin).Returns(true);
             _ = this._user.SetupGet(x => x.UserId).Returns("admin-1");
             _ = this._user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
-            CommandIdempotencyService idempotency = new CommandIdempotencyService(this._db);
-            OutboxService outbox = new OutboxService(this._db);
+            CommandIdempotencyService idempotency = new (this._db);
+            OutboxService outbox = new (this._db);
             this._diary = new IncidentDiaryService(this._db, this._user.Object, idempotency, outbox);
             this._incidents = new IncidentService(this._db, this._user.Object, idempotency, outbox);
             this._archive = new IncidentArchiveService(this._db, this._diary, this._user.Object);
@@ -120,13 +120,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="allowed">The allowed.</param>
         public async Task AllArchiveHttpEndpointsRequireAdminRole(string? role, bool allowed)
         {
-            ServiceCollection services = new ServiceCollection();
+            ServiceCollection services = new ();
             _ = services.AddLogging();
             _ = services.AddAuthorization(options => options.AddFeuerwehrPolicies());
             using ServiceProvider provider = services.BuildServiceProvider();
             IAuthorizationPolicyProvider policies = provider.GetRequiredService<IAuthorizationPolicyProvider>();
             IAuthorizationService authorization = provider.GetRequiredService<IAuthorizationService>();
-            ClaimsPrincipal principal = new ClaimsPrincipal(role is null ? new ClaimsIdentity() : new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "Test"));
+            ClaimsPrincipal principal = new (role is null ? new ClaimsIdentity() : new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "Test"));
             MethodInfo[] endpoints = new[]
             {
                 typeof(IncidentController).GetMethod(nameof(IncidentController.GetArchive))!,
@@ -149,7 +149,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
         private Incident AddIncident(IncidentStatus status = IncidentStatus.Closed, int closedHoursAgo = 1)
         {
-            Incident incident = new Incident
+            Incident incident = new ()
             {
                 Id = Guid.NewGuid(),
                 Name = "Brand Gerätehaus",
@@ -169,7 +169,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
         private void AddEntry(Incident incident, long number, bool canceled = false)
         {
-            DiaryEntry entry = new DiaryEntry
+            DiaryEntry entry = new ()
             {
                 Id = Guid.NewGuid(),
                 IncidentId = incident.Id,
@@ -181,7 +181,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
                 UpdatedAtUtc = incident.CreatedAtUtc,
             };
             _ = this._db.DiaryEntries.Add(entry);
-            DiaryEntryRevision revision = new DiaryEntryRevision
+            DiaryEntryRevision revision = new ()
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,

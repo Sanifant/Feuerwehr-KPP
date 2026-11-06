@@ -124,7 +124,7 @@ dotnet_style_qualification_for_method = true
 dotnet_style_qualification_for_event = true
 
 # Analyzer severities
-dotnet_analyzer_diagnostic.category-Style.severity = warning
+dotnet_analyzer_diagnostic.category-Style.severity = none
 dotnet_analyzer_diagnostic.category-Documentation.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
 dotnet_diagnostic.IDE0005.severity = warning

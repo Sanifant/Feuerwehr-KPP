@@ -22,7 +22,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<byte[]> ExportAsync(CancellationToken cancellationToken = default)
         {
             List<HydrantEntity> hydrants = await context.Hydrants.AsNoTracking().OrderBy(h => h.Id).ToListAsync(cancellationToken);
-            StringBuilder csv = new StringBuilder("street;houseNumber;postalCode;city;latitude;longitude;nominalDiameter;type;waterSource;status;notes\r\n");
+            StringBuilder csv = new ("street;houseNumber;postalCode;city;latitude;longitude;nominalDiameter;type;waterSource;status;notes\r\n");
             foreach (HydrantEntity? hydrant in hydrants)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -60,7 +60,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             List<HydrantEntity> entities = hydrants.Select(dto =>
             {
-                HydrantEntity entity = new HydrantEntity();
+                HydrantEntity entity = new ();
                 Apply(entity, dto);
                 return entity;
             }).ToList();
@@ -94,7 +94,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <returns></returns>
         public ServiceResult Post(Hydrant value)
         {
-            HydrantEntity entity = new HydrantEntity { Id = value.Id };
+            HydrantEntity entity = new ()
+            { Id = value.Id };
             Apply(entity, value);
             _ = context.Hydrants.Add(entity);
             _ = context.SaveChanges();

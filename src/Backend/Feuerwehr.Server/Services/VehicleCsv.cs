@@ -26,7 +26,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         {
             List<VehicleCsvRow> rows = [];
             List<VehicleImportError> errors = [];
-            using TextFieldParser parser = new TextFieldParser(stream, new UTF8Encoding(false, true), true, true)
+            using TextFieldParser parser = new (stream, new UTF8Encoding(false, true), true, true)
             { TextFieldType = FieldType.Delimited, HasFieldsEnclosedInQuotes = true, TrimWhiteSpace = false };
             parser.SetDelimiters(";");
             try
@@ -37,7 +37,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return (rows, [new (null, "Die CSV-Datei ist leer.")]);
                 }
 
-                Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, int> columns = new (StringComparer.OrdinalIgnoreCase);
                 for (int index = 0; index < headers.Length; index++)
                 {
                     string header = headers[index].Trim().TrimStart('\uFEFF');

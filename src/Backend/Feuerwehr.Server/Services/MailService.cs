@@ -32,7 +32,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task SendHtmlAsync(string recipient, string subject, string textBody, string htmlBody)
         {
-            BodyBuilder builder = new BodyBuilder { TextBody = textBody, HtmlBody = htmlBody };
+            BodyBuilder builder = new ()
+            { TextBody = textBody, HtmlBody = htmlBody };
             using Stream logoStream = typeof(MailService).Assembly.GetManifestResourceStream("De.Openelp.Feuerwehr.Server.MailLogo.png")
                 ?? throw new InvalidOperationException("Das eingebettete E-Mail-Logo fehlt.");
             MimeEntity logo = builder.LinkedResources.Add("feuerwehr.png", logoStream, new ContentType("image", "png"));
@@ -42,7 +43,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         private async Task SendMessageAsync(string recipient, string subject, MimeEntity body)
         {
-            MimeMessage message = new MimeMessage();
+            MimeMessage message = new ();
             message.From.Add(new MailboxAddress(settings.FromName, settings.From));
             message.To.Add(MailboxAddress.Parse(recipient));
             message.Subject = subject;

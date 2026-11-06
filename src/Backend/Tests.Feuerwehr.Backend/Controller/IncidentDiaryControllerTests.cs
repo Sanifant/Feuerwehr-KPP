@@ -25,7 +25,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
-            FeuerwehrDbContext context = new FeuerwehrDbContext(options);
+            FeuerwehrDbContext context = new (options);
             _ = context.Database.EnsureCreated();
             return context;
         }
@@ -38,7 +38,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <returns></returns>
         public static Mock<IUserContextAccessor> CreateUserContextMock(string userId = "user-1", string displayName = "Ada Admin")
         {
-            Mock<IUserContextAccessor> mock = new Mock<IUserContextAccessor>();
+            Mock<IUserContextAccessor> mock = new ();
             _ = mock.SetupGet(x => x.UserId).Returns(userId);
             _ = mock.SetupGet(x => x.DisplayName).Returns(displayName);
             return mock;
@@ -50,7 +50,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <returns></returns>
         public static Mock<ICommandIdempotencyService> CreateIdempotencyMock()
         {
-            Mock<ICommandIdempotencyService> mock = new Mock<ICommandIdempotencyService>();
+            Mock<ICommandIdempotencyService> mock = new ();
             _ = mock.Setup(x => x.FindExistingAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<object>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(((ProcessedCommand?)null, "payload-hash")));
             _ = mock.Setup(x => x.BuildStoredCommand(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string>(), It.IsAny<CommandEnvelopeResponse>(), It.IsAny<string>()))
@@ -288,7 +288,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             await using FeuerwehrDbContext dbContext = CreateDbContext();
             Guid existingEntryId = Guid.NewGuid();
-            ProcessedCommand existingResponse = new ProcessedCommand
+            ProcessedCommand existingResponse = new ()
             {
                 Id = Guid.NewGuid(),
                 CommandId = "cmd-1",
@@ -301,7 +301,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreatedAtUtc = DateTime.UtcNow,
             };
 
-            Mock<ICommandIdempotencyService> idempotencyMock = new Mock<ICommandIdempotencyService>();
+            Mock<ICommandIdempotencyService> idempotencyMock = new ();
             _ = idempotencyMock
                 .Setup(x => x.FindExistingAsync(It.IsAny<string>(), "diary.entry.create", It.IsAny<string?>(), It.IsAny<object>(), "user-1", It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult((existingResponse, "payload-hash")));
@@ -380,7 +380,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = dbContext.DiaryEntryRevisions.Add(existingRevision);
             _ = await dbContext.SaveChangesAsync();
 
-            Mock<IOutboxService> outboxMock = new Mock<IOutboxService>();
+            Mock<IOutboxService> outboxMock = new ();
             IncidentDiaryController controller = CreateController(dbContext, outboxMock: outboxMock);
 
             IActionResult result = await controller.UpdateEntry(
@@ -454,7 +454,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             _ = dbContext.DiaryEntryRevisions.Add(previousRevision);
             _ = await dbContext.SaveChangesAsync();
 
-            Mock<IOutboxService> outboxMock = new Mock<IOutboxService>();
+            Mock<IOutboxService> outboxMock = new ();
             IncidentDiaryController controller = CreateController(dbContext, outboxMock: outboxMock);
 
             IActionResult result = await controller.CancelEntry(

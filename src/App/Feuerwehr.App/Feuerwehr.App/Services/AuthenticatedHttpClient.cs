@@ -44,7 +44,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken = default)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            HttpRequestMessage request = new (HttpMethod.Get, requestUri);
             return await this.SendAsync(request, cancellationToken);
         }
 
@@ -57,7 +57,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent? content, CancellationToken cancellationToken = default)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
+            HttpRequestMessage request = new (HttpMethod.Post, requestUri) { Content = content };
             return await this.SendAsync(request, cancellationToken);
         }
 
@@ -70,7 +70,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> PutAsync(string requestUri, HttpContent? content, CancellationToken cancellationToken = default)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri) { Content = content };
+            HttpRequestMessage request = new (HttpMethod.Put, requestUri) { Content = content };
             return await this.SendAsync(request, cancellationToken);
         }
 
@@ -82,7 +82,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<HttpResponseMessage> DeleteAsync(string requestUri, CancellationToken cancellationToken = default)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+            HttpRequestMessage request = new (HttpMethod.Delete, requestUri);
             return await this.SendAsync(request, cancellationToken);
         }
     }

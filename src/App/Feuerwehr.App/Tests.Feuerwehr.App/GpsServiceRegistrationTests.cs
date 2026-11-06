@@ -14,7 +14,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task DefaultRegistration_DoesNotInventALocation()
         {
-            ClientApp app = new ClientApp();
+            ClientApp app = new ();
             app.ReloadServices();
 
             IGpsService service = ClientApp.Services.GetRequiredService<IGpsService>();
@@ -30,7 +30,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         public void PlatformRegistration_IsPreservedWhenServicesAreReloaded()
         {
             IGpsService gps = Mock.Of<IGpsService>();
-            ClientApp app = new ClientApp
+            ClientApp app = new ()
             {
                 ConfigurePlatformServices = services => services.Replace(ServiceDescriptor.Singleton(gps))
             };
@@ -48,7 +48,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public async Task UnsupportedService_RespectsCallerCancellation()
         {
-            using CancellationTokenSource cancellation = new CancellationTokenSource();
+            using CancellationTokenSource cancellation = new ();
             cancellation.Cancel();
 
             _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>

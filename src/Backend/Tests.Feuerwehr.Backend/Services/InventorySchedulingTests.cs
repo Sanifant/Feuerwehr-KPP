@@ -23,13 +23,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="expected">The expected.</param>
         public async Task DueDateUsesCalendarMonthsAndLastInspectionWhenPresent(string created, string? inspected, int interval, string expected)
         {
-            await using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-            InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
-            EquipmentType type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = interval, InspectionInstructions = "Sichtprüfung" };
-            Equipment item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = DateOnly.Parse(created), LastInspectedOn = inspected is null ? null : DateOnly.Parse(inspected) };
+            await using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+            InventoryCategory category = new ()
+            { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
+            EquipmentType type = new ()
+            { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = interval, InspectionInstructions = "Sichtprüfung" };
+            Equipment item = new ()
+            { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = DateOnly.Parse(created), LastInspectedOn = inspected is null ? null : DateOnly.Parse(inspected) };
             _ = db.Equipment.Add(item);
             _ = await db.SaveChangesAsync();
-            InventoryService service = new InventoryService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);
+            InventoryService service = new (db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);
             ServiceResult response = await service.Get(item.Id, CancellationToken.None);
             Assert.Equal(DateOnly.Parse(expected), Assert.IsType<EquipmentDetailDto>(response.Value).Equipment.NextInspectionOn);
         }

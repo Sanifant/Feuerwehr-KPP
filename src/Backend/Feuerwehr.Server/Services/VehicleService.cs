@@ -612,7 +612,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return collision;
             }
 
-            VehicleReservation reservation = new VehicleReservation
+            VehicleReservation reservation = new ()
             {
                 Id = Guid.NewGuid(),
                 VehicleId = id,

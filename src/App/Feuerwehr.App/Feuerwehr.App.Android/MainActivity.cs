@@ -69,7 +69,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                 return this.locationPermissionRequest.Task;
             }
 
-            TaskCompletionSource<bool> request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<bool> request = new (TaskCreationOptions.RunContinuationsAsynchronously);
             this.locationPermissionRequest = request;
             this.RequestPermissions(
                 new[] { Manifest.Permission.AccessFineLocation, Manifest.Permission.AccessCoarseLocation },

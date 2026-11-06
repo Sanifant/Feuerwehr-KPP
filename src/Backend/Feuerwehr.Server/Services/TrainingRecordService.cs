@@ -85,7 +85,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             FireDepartmentTrainingCourse? relation = training.FireDepartmentTrainingCourses.FirstOrDefault();
 
-            TrainingCourseDto dto = new TrainingCourseDto
+            TrainingCourseDto dto = new ()
             {
                 Id = training.Id,
                 Title = training.Title,
@@ -148,7 +148,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 _ = await this._db.SaveChangesAsync();
             }
 
-            FireDepartmentTrainingCourse relation = new FireDepartmentTrainingCourse
+            FireDepartmentTrainingCourse relation = new ()
             {
                 FireDepartmentId = fireDepartment.Id,
                 TrainingCourseId = trainingEntity.Id,
@@ -158,7 +158,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             _ = this._db.FireDepartmentTrainingCourses.Add(relation);
             _ = await this._db.SaveChangesAsync();
 
-            TrainingCourseDto createdDto = new TrainingCourseDto
+            TrainingCourseDto createdDto = new ()
             {
                 Id = trainingEntity.Id,
                 Title = trainingEntity.Title,

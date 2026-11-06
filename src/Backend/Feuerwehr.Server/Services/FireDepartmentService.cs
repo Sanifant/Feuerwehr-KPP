@@ -52,7 +52,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
         public async Task<ServiceResult> Add(FireDepartmentDto fireDepartmentDto)
         {
-            FireDepartment entity = new FireDepartment
+            FireDepartment entity = new ()
             {
                 Name = fireDepartmentDto.Name,
                 ContactPersonName = fireDepartmentDto.ContactPersonName,
@@ -62,7 +62,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             _ = this._db.FireDepartments.Add(entity);
             _ = await this._db.SaveChangesAsync();
 
-            FireDepartmentDto createdDto = new FireDepartmentDto
+            FireDepartmentDto createdDto = new ()
             {
                 Id = entity.Id,
                 Name = entity.Name,
@@ -91,7 +91,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.NotFound();
             }
 
-            FireDepartmentDto dto = new FireDepartmentDto
+            FireDepartmentDto dto = new ()
             {
                 Id = fireDepartment.Id,
                 Name = fireDepartment.Name,

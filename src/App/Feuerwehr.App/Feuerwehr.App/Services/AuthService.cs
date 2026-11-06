@@ -71,7 +71,8 @@ namespace De.Openelp.Feuerwehr.App.Services
         {
             try
             {
-                LoginRequest request = new LoginRequest { Email = email, Password = password };
+                LoginRequest request = new ()
+                { Email = email, Password = password };
                 HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("/api/Auth/login", request);
 
                 if (!response.IsSuccessStatusCode)
@@ -133,7 +134,8 @@ namespace De.Openelp.Feuerwehr.App.Services
 
             try
             {
-                RefreshTokenRequest request = new RefreshTokenRequest { RefreshToken = this._refreshToken };
+                RefreshTokenRequest request = new ()
+                { RefreshToken = this._refreshToken };
                 HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("/api/Auth/refresh", request);
 
                 if (!response.IsSuccessStatusCode)

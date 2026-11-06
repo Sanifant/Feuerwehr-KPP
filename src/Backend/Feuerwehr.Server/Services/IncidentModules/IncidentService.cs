@@ -114,7 +114,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
 
             DateTime now = DateTime.UtcNow;
-            Incident incident = new Incident
+            Incident incident = new ()
             {
                 Id = Guid.NewGuid(),
                 Name = request.Name.Trim(),
@@ -129,7 +129,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 Revision = 1,
             };
 
-            EditorLease lease = new EditorLease
+            EditorLease lease = new ()
             {
                 Id = Guid.NewGuid(),
                 IncidentId = incident.Id,
@@ -144,7 +144,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             _ = dbContext.Incidents.Add(incident);
             _ = dbContext.EditorLeases.Add(lease);
 
-            IncidentCreatedResponse response = new IncidentCreatedResponse(ToSummary(incident), ToLeaseDto(lease), now);
+            IncidentCreatedResponse response = new (ToSummary(incident), ToLeaseDto(lease), now);
 
             _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
@@ -214,7 +214,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
                 _ = dbContext.EditorLeases.Remove(lease);
 
-                IncidentClosedResponse response = new IncidentClosedResponse(ToSummary(incident), now);
+                IncidentClosedResponse response = new (ToSummary(incident), now);
                 _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "incident.close",

@@ -100,7 +100,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 if (lease.UserId == userContext.UserId && lease.SessionId == request.SessionId)
                 {
-                    LeaseResponse ownLeaseResponse = new LeaseResponse(ToLeaseDto(lease, now), now);
+                    LeaseResponse ownLeaseResponse = new (ToLeaseDto(lease, now), now);
                     _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                         request.CommandId,
                         "map.lease.acquire",
@@ -132,7 +132,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             lease.LastHeartbeatAtUtc = now;
             lease.ExpiresAtUtc = now.Add(IncidentModuleTime.LeaseDuration);
 
-            LeaseResponse response = new LeaseResponse(ToLeaseDto(lease, now), now);
+            LeaseResponse response = new (ToLeaseDto(lease, now), now);
 
             _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                 request.CommandId,
@@ -173,7 +173,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 lease.LastHeartbeatAtUtc = now;
                 lease.ExpiresAtUtc = now.Add(IncidentModuleTime.LeaseDuration);
 
-                LeaseResponse response = new LeaseResponse(ToLeaseDto(lease, now), now);
+                LeaseResponse response = new (ToLeaseDto(lease, now), now);
                 _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.lease.heartbeat",
@@ -214,7 +214,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 EditorLease lease = await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
                 _ = dbContext.EditorLeases.Remove(lease);
-                LeaseReleasedResponse response = new LeaseReleasedResponse(true, DateTime.UtcNow);
+                LeaseReleasedResponse response = new (true, DateTime.UtcNow);
 
                 _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
@@ -320,7 +320,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     AfterStateJson = "null",
                 });
 
-                MapElementDeletedResponse response = new MapElementDeletedResponse(true, elementId, incident.Revision, now);
+                MapElementDeletedResponse response = new (true, elementId, incident.Revision, now);
                 _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.element.delete",
@@ -407,7 +407,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
 
             List<MapElement> elements = await dbContext.MapElements.AsNoTracking().Where(x => x.IncidentId == incidentId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
-            List<string> lines = new List<string>
+            List<string> lines = new ()
             {
                 $"Einsatz: {incident.Name}",
                 $"Status: {incident.Status}",
@@ -615,7 +615,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     AfterStateJson = JsonSerializer.Serialize(ToMapElementDto(element), JsonOptionsFactory.Default),
                 });
 
-                MapElementResponse response = new MapElementResponse(ToMapElementDto(element), incident.Revision, now);
+                MapElementResponse response = new (ToMapElementDto(element), incident.Revision, now);
                 _ = dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
                     request.CommandId,
                     "map.element.upsert",

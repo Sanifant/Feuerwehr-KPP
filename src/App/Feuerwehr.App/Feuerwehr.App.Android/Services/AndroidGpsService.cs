@@ -79,9 +79,9 @@ namespace De.Openelp.Feuerwehr.App.Android.Services
 
                 using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
                 timeout.CancelAfter(LocationTimeout);
-                using CancellationSignal signal = new CancellationSignal();
-                TaskCompletionSource<GpsLocation?> completion = new TaskCompletionSource<GpsLocation?>(TaskCreationOptions.RunContinuationsAsynchronously);
-                using LocationConsumer consumer = new LocationConsumer(completion);
+                using CancellationSignal signal = new ();
+                TaskCompletionSource<GpsLocation?> completion = new (TaskCreationOptions.RunContinuationsAsynchronously);
+                using LocationConsumer consumer = new (completion);
                 using IExecutor? executor = ContextCompat.GetMainExecutor(context);
                 try
                 {

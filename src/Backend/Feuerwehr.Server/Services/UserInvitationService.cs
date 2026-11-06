@@ -52,11 +52,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             Guid id = Guid.NewGuid();
-            Uri link = new Uri(new Uri(baseUri.AbsoluteUri.TrimEnd('/') + "/"), $"password/{id:D}");
+            Uri link = new (new Uri(baseUri.AbsoluteUri.TrimEnd('/') + "/"), $"password/{id:D}");
             try
             {
                 string resetToken = await users.GeneratePasswordResetTokenAsync(user);
-                UserInvitation invitation = new UserInvitation(user.Id, user.Email!, resetToken, clock.GetUtcNow().Add(Lifetime));
+                UserInvitation invitation = new (user.Id, user.Email!, resetToken, clock.GetUtcNow().Add(Lifetime));
                 await store.StoreAsync(id, invitation, Lifetime);
                 await tokens.RevokeRefreshTokenAsync(user.Id);
                 string body = $"Hallo {user.FirstName},\n\nSie wurden zur Passwortvergabe für Ihr Benutzerkonto eingeladen.\n" +

@@ -33,7 +33,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="allowed">The allowed.</param>
         public async Task CsvPolicy_OnlyAllowsAdmins(string methodName, string? role, bool allowed)
         {
-            ServiceCollection services = new ServiceCollection();
+            ServiceCollection services = new ();
             _ = services.AddLogging();
             _ = services.AddAuthorization(options => options.AddFeuerwehrPolicies());
             using ServiceProvider provider = services.BuildServiceProvider();
@@ -43,7 +43,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             AuthorizationPolicy? policy = await AuthorizationPolicy.CombineAsync(provider.GetRequiredService<IAuthorizationPolicyProvider>(), attributes);
             Assert.NotNull(policy);
             Assert.Empty(method.GetCustomAttributes<AllowAnonymousAttribute>());
-            ClaimsPrincipal principal = new ClaimsPrincipal(role is null ? new ClaimsIdentity() :
+            ClaimsPrincipal principal = new (role is null ? new ClaimsIdentity() :
                 new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "test"));
 
             AuthorizationResult result = await provider.GetRequiredService<IAuthorizationService>().AuthorizeAsync(principal, null, policy);
@@ -57,8 +57,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task Export_ReturnsCsvDownloadAndPassesCancellation()
         {
-            Mock<IHydrantService> service = new Mock<IHydrantService>();
-            using CancellationTokenSource cancellation = new CancellationTokenSource();
+            Mock<IHydrantService> service = new ();
+            using CancellationTokenSource cancellation = new ();
             byte[] content = [0xef, 0xbb, 0xbf];
             _ = service.Setup(s => s.ExportAsync(cancellation.Token)).ReturnsAsync(content);
 
@@ -76,13 +76,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task MissingEmptyOrOversizedFile_DoesNotCallTheService()
         {
-            Mock<IHydrantService> service = new Mock<IHydrantService>(MockBehavior.Strict);
-            HydrantController controller = new HydrantController(service.Object);
+            Mock<IHydrantService> service = new (MockBehavior.Strict);
+            HydrantController controller = new (service.Object);
             _ = Assert.IsType<BadRequestObjectResult>(await controller.Import(null, default));
-            using MemoryStream stream = new MemoryStream();
-            FormFile empty = new FormFile(stream, 0, 0, "file", "empty.csv");
+            using MemoryStream stream = new ();
+            FormFile empty = new (stream, 0, 0, "file", "empty.csv");
             _ = Assert.IsType<BadRequestObjectResult>(await controller.Import(empty, default));
-            FormFile oversized = new FormFile(stream, 0, HydrantController.MaximumImportBytes + 1, "file", "large.csv");
+            FormFile oversized = new (stream, 0, HydrantController.MaximumImportBytes + 1, "file", "large.csv");
             _ = Assert.IsType<BadRequestObjectResult>(await controller.Import(oversized, default));
             service.VerifyNoOtherCalls();
         }
@@ -93,9 +93,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task FileStreamAndCancellation_ArePassedToTheService()
         {
-            Mock<IHydrantService> service = new Mock<IHydrantService>();
-            using MemoryStream stream = new MemoryStream([1, 2, 3]);
-            using CancellationTokenSource cancellation = new CancellationTokenSource();
+            Mock<IHydrantService> service = new ();
+            using MemoryStream stream = new ([1, 2, 3]);
+            using CancellationTokenSource cancellation = new ();
             _ = service.Setup(s => s.ImportAsync(It.IsAny<Stream>(), cancellation.Token))
                 .ReturnsAsync(ServiceResult.Ok(new HydrantImportResponse(2, [])));
 

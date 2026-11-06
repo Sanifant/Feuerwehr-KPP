@@ -97,7 +97,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser appUser = new ApplicationUser
+            ApplicationUser appUser = new ()
             {
                 Id = userId,
                 Email = "test@example.com",
@@ -125,8 +125,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task UpdateUser_UpdatesEmailAndUsername()
         {
-            ApplicationUser user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
-            UpdateUserRequest request = new UpdateUserRequest { Email = "new@example.com" };
+            ApplicationUser user = new ()
+            { Id = "user-1", Email = "old@example.com" };
+            UpdateUserRequest request = new ()
+            { Email = "new@example.com" };
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync((ApplicationUser)null!);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
@@ -145,9 +147,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task UpdateUser_ClearsRoles_WhenEmptyRoleListProvided()
         {
-            ApplicationUser user = new ApplicationUser { Id = "user-1" };
-            List<string> currentRoles = new List<string> { "Admin" };
-            UpdateUserRequest request = new UpdateUserRequest { Roles = new List<string>() };
+            ApplicationUser user = new ()
+            { Id = "user-1" };
+            List<string> currentRoles = new ()
+            { "Admin" };
+            UpdateUserRequest request = new ()
+            { Roles = new List<string>() };
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
             _ = this._mockUserManager.SetupSequence(um => um.GetRolesAsync(user))
@@ -174,7 +179,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// <param name="expected">The expected.</param>
         public async Task UpdateUser_PreservesChangesOrClearsFireDepartmentExplicitly(int? departmentId, bool clear, int? expected)
         {
-            ApplicationUser user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            ApplicationUser user = new ()
+            { Id = "user-1", FireDepartmentId = 1 };
             _ = this._mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(manager => manager.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
             _ = this._mockUserManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string>());
@@ -191,7 +197,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task UpdateUser_RejectsConflictingDepartmentChanges()
         {
-            ApplicationUser user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
+            ApplicationUser user = new ()
+            { Id = "user-1", FireDepartmentId = 1 };
             _ = this._mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
 
             IActionResult result = await this._controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = 2, ClearFireDepartment = true });
@@ -207,9 +214,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task UpdateUser_ReturnsBadRequest_WhenEmailBelongsToAnotherUser()
         {
-            ApplicationUser user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
-            ApplicationUser existingUser = new ApplicationUser { Id = "user-2", Email = "taken@example.com" };
-            UpdateUserRequest request = new UpdateUserRequest { Email = existingUser.Email };
+            ApplicationUser user = new ()
+            { Id = "user-1", Email = "old@example.com" };
+            ApplicationUser existingUser = new ()
+            { Id = "user-2", Email = "taken@example.com" };
+            UpdateUserRequest request = new ()
+            { Email = existingUser.Email };
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync(existingUser);
 
@@ -294,7 +304,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task CreateUser_ReturnsBadRequest_WhenUserEmailAlreadyExists()
         {
             // Arrange
-            RegisterUserRequest request = new RegisterUserRequest
+            RegisterUserRequest request = new ()
             {
                 Email = "existing@example.com",
                 FirstName = "Jane",
@@ -304,7 +314,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "User" }
             };
 
-            ApplicationUser existingUser = new ApplicationUser { Email = request.Email };
+            ApplicationUser existingUser = new ()
+            { Email = request.Email };
             _ = this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync(existingUser);
 
             // Act
@@ -322,7 +333,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task CreateUser_ReturnsBadRequest_WhenRoleDoesNotExist()
         {
             // Arrange
-            RegisterUserRequest request = new RegisterUserRequest
+            RegisterUserRequest request = new ()
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -350,7 +361,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task CreateUser_RollsBackUserCreation_WhenRoleAssignmentFails()
         {
             // Arrange
-            RegisterUserRequest request = new RegisterUserRequest
+            RegisterUserRequest request = new ()
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -360,7 +371,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "User" }
             };
 
-            ApplicationUser createdUser = new ApplicationUser
+            ApplicationUser createdUser = new ()
             {
                 Id = "new-user-1",
                 Email = request.Email
@@ -391,7 +402,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task CreateUser_ReturnsBadRequest_WhenUserCreationFails()
         {
             // Arrange
-            RegisterUserRequest request = new RegisterUserRequest
+            RegisterUserRequest request = new ()
             {
                 Email = "newuser@example.com",
                 FirstName = "Jane",
@@ -425,7 +436,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser existingUser = new ApplicationUser
+            ApplicationUser existingUser = new ()
             {
                 Id = userId,
                 Email = "test@example.com",
@@ -435,7 +446,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 IsActive = true
             };
 
-            UpdateUserRequest request = new UpdateUserRequest
+            UpdateUserRequest request = new ()
             {
                 FirstName = "Johnny",
                 LastName = "Smith",
@@ -469,7 +480,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "non-existent";
-            UpdateUserRequest request = new UpdateUserRequest { FirstName = "Jane" };
+            UpdateUserRequest request = new ()
+            { FirstName = "Jane" };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
@@ -489,7 +501,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser existingUser = new ApplicationUser
+            ApplicationUser existingUser = new ()
             {
                 Id = userId,
                 Email = "test@example.com",
@@ -499,7 +511,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 IsActive = true
             };
 
-            UpdateUserRequest request = new UpdateUserRequest { FirstName = "Johnny" };
+            UpdateUserRequest request = new ()
+            { FirstName = "Johnny" };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
@@ -521,8 +534,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser existingUser = new ApplicationUser { Id = userId };
-            UpdateUserRequest request = new UpdateUserRequest { NewPassword = "NewSecurePassword123!" };
+            ApplicationUser existingUser = new ()
+            { Id = userId };
+            UpdateUserRequest request = new ()
+            { NewPassword = "NewSecurePassword123!" };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(existingUser)).ReturnsAsync(IdentityResult.Success);
@@ -547,8 +562,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser existingUser = new ApplicationUser { Id = userId };
-            UpdateUserRequest request = new UpdateUserRequest { FirstName = "Jane" };
+            ApplicationUser existingUser = new ()
+            { Id = userId };
+            UpdateUserRequest request = new ()
+            { FirstName = "Jane" };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
@@ -570,8 +587,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser existingUser = new ApplicationUser { Id = userId };
-            UpdateUserRequest request = new UpdateUserRequest { Roles = new List<string> { "InvalidRole" } };
+            ApplicationUser existingUser = new ()
+            { Id = userId };
+            UpdateUserRequest request = new ()
+            { Roles = new List<string> { "InvalidRole" } };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
             _ = this._mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
@@ -596,7 +615,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser user = new ApplicationUser { Id = userId, IsActive = true };
+            ApplicationUser user = new ()
+            { Id = userId, IsActive = true };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
@@ -638,7 +658,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser user = new ApplicationUser { Id = userId };
+            ApplicationUser user = new ()
+            { Id = userId };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
 
@@ -660,7 +681,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser user = new ApplicationUser { Id = userId };
+            ApplicationUser user = new ()
+            { Id = userId };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
@@ -688,7 +710,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser user = new ApplicationUser { Id = userId };
+            ApplicationUser user = new ()
+            { Id = userId };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
@@ -729,7 +752,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser user = new ApplicationUser { Id = userId };
+            ApplicationUser user = new ()
+            { Id = userId };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
 
@@ -751,7 +775,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "user-1";
-            ApplicationUser user = new ApplicationUser { Id = userId };
+            ApplicationUser user = new ()
+            { Id = userId };
 
             _ = this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
             _ = this._mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>()))
@@ -773,15 +798,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         private UsersController SetupControllerWithClaims(string userId)
         {
-            UsersController controller = new UsersController(new UsersService(this._mockUserManager.Object, this._mockRoleManager.Object, this._mockInvitations.Object, NullLogger<UsersService>.Instance));
+            UsersController controller = new (new UsersService(this._mockUserManager.Object, this._mockRoleManager.Object, this._mockInvitations.Object, NullLogger<UsersService>.Instance));
 
-            List<Claim> claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
+            List<Claim> claims = new ()
             {
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId)
             };
 
-            ClaimsIdentity identity = new System.Security.Claims.ClaimsIdentity(claims);
-            ClaimsPrincipal principal = new System.Security.Claims.ClaimsPrincipal(identity);
+            ClaimsIdentity identity = new (claims);
+            ClaimsPrincipal principal = new (identity);
 
             controller.ControllerContext = new ControllerContext
             {

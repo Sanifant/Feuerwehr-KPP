@@ -38,7 +38,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
             Assembly common = typeof(LoginRequest).Assembly;
             Assert.DoesNotContain(common.GetReferencedAssemblies(), assembly =>
                 assembly.Name == "Feuerwehr.Server" || assembly.Name!.StartsWith("Microsoft.EntityFrameworkCore"));
-            using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+            using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
             Assert.All(
                 db.Model.GetEntityTypes().Where(entity => !entity.ClrType.Namespace!.StartsWith("Microsoft.")),
@@ -51,7 +51,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
         /// </summary>
         public void SharedResponses_KeepExistingJsonFieldNames()
         {
-            JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            JsonSerializerOptions options = new (JsonSerializerDefaults.Web);
             JsonElement response = JsonSerializer.SerializeToElement(new DiaryEntryUpdatedResponse(Guid.NewGuid(), 2, 8, DateTime.UtcNow), options);
             Assert.Equal(2, response.GetProperty("currentRevision").GetInt32());
             Assert.Equal(8, response.GetProperty("incidentRevision").GetInt64());
@@ -66,7 +66,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend
         /// </summary>
         public void NamespaceAndEntitySeparation_DoNotRequireSchemaChanges()
         {
-            using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+            using FeuerwehrDbContext db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
                 .UseNpgsql("Host=localhost;Database=architecture;Username=postgres;Password=unused").Options);
             Assert.False(db.Database.HasPendingModelChanges());
         }

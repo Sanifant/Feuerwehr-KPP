@@ -92,7 +92,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal("image/svg+xml", label.Content.Headers.ContentType!.MediaType);
             Assert.Contains("<svg", await label.Content.ReadAsStringAsync());
             Assert.Contains(item.Barcode, label.Content.Headers.ContentDisposition!.ToString());
-            RecordEquipmentInspectionRequest request = new RecordEquipmentInspectionRequest { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, Status = EquipmentStatus.Defective, Comment = "Dichtung undicht", ExpectedVersion = item.Version };
+            RecordEquipmentInspectionRequest request = new ()
+            { CommandId = Guid.NewGuid(), InspectedOn = fixture.Today, Status = EquipmentStatus.Defective, Comment = "Dichtung undicht", ExpectedVersion = item.Version };
             HttpResponseMessage response = await client.PostAsJsonAsync($"/api/inventory/{item.Id}/inspections", request);
             _ = response.EnsureSuccessStatusCode();
             EquipmentDetailDto result = (await response.Content.ReadFromJsonAsync<EquipmentDetailDto>())!;
@@ -166,9 +167,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);
             EquipmentTypeDto type = await fixture.CreateType(client);
-            await using NpgsqlConnection connection = new NpgsqlConnection(fixture.Postgres.GetConnectionString());
+            await using NpgsqlConnection connection = new (fixture.Postgres.GetConnectionString());
             await connection.OpenAsync();
-            await using NpgsqlCommand read = new NpgsqlCommand("SELECT last_value, is_called FROM \"InventoryBarcodeSequence\"", connection);
+            await using NpgsqlCommand read = new ("SELECT last_value, is_called FROM \"InventoryBarcodeSequence\"", connection);
             await using NpgsqlDataReader reader = await read.ExecuteReaderAsync();
             _ = await reader.ReadAsync();
             long value = reader.GetInt64(0);
@@ -176,7 +177,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             await reader.CloseAsync();
             try
             {
-                await using NpgsqlCommand advance = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', 998, true)", connection);
+                await using NpgsqlCommand advance = new ("SELECT setval('\"InventoryBarcodeSequence\"', 998, true)", connection);
                 _ = await advance.ExecuteNonQueryAsync();
                 Assert.Equal("KPP-999", (await fixture.CreateEquipment(client, type.Id)).Barcode);
                 HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type.Id, SerialNumber = "Limit", Manufacturer = "Test" });
@@ -185,7 +186,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             }
             finally
             {
-                await using NpgsqlCommand restore = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', @value, @called)", connection);
+                await using NpgsqlCommand restore = new ("SELECT setval('\"InventoryBarcodeSequence\"', @value, @called)", connection);
                 _ = restore.Parameters.AddWithValue("value", value);
                 _ = restore.Parameters.AddWithValue("called", called);
                 _ = await restore.ExecuteNonQueryAsync();
@@ -222,7 +223,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             await reminders.SendDueReminders(Ct);
             ApplicationUser user = await db.Users.SingleAsync(x => x.Email == email);
             Assert.Equal(2, await db.EquipmentReminderDeliveries.CountAsync(x => x.RecipientId == user.Id));
-            using HttpClient mail = new HttpClient { BaseAddress = fixture.MailpitUrl };
+            using HttpClient mail = new ()
+            { BaseAddress = fixture.MailpitUrl };
             JsonElement messages = await mail.GetFromJsonAsync<JsonElement>("/api/v1/messages");
             JsonElement[] received = messages.GetProperty("messages").EnumerateArray().Where(x => x.GetProperty("To").EnumerateArray().Any(to => to.GetProperty("Address").GetString() == email)).ToArray();
             JsonElement message = Assert.Single(received);
@@ -304,7 +306,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using IServiceScope scope = this.Factory.Services.CreateScope();
             UserManager<ApplicationUser> users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            ApplicationUser user = new ApplicationUser { UserName = email, Email = email, FirstName = "Test", LastName = role, IsActive = active };
+            ApplicationUser user = new ()
+            { UserName = email, Email = email, FirstName = "Test", LastName = role, IsActive = active };
             Assert.True((await users.CreateAsync(user, Password)).Succeeded);
             Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
         }

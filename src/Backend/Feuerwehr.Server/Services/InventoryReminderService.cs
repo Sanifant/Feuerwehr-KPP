@@ -55,7 +55,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     continue;
                 }
 
-                StringBuilder body = new StringBuilder("Folgende Geräte sind innerhalb der nächsten zwei Wochen zur Prüfung fällig oder bereits überfällig:\n\n");
+                StringBuilder body = new ("Folgende Geräte sind innerhalb der nächsten zwei Wochen zur Prüfung fällig oder bereits überfällig:\n\n");
                 foreach (EquipmentDto? item in pending)
                 {
                     string status = item.Status switch { EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", _ => "In Reparatur" };
@@ -109,9 +109,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
                     // Eine dedizierte PostgreSQL-Verbindung hält die Sperre auch über mehrere SaveChanges hinweg.
                     // Damit senden mehrere API-Instanzen nicht gleichzeitig dieselbe Zusammenfassung.
-                    await using NpgsqlConnection mutex = new NpgsqlConnection(db.Database.GetConnectionString());
+                    await using NpgsqlConnection mutex = new (db.Database.GetConnectionString());
                     await mutex.OpenAsync(stoppingToken);
-                    await using NpgsqlCommand command = new NpgsqlCommand("SELECT pg_try_advisory_lock(305002014)", mutex);
+                    await using NpgsqlCommand command = new ("SELECT pg_try_advisory_lock(305002014)", mutex);
                     if (await command.ExecuteScalarAsync(stoppingToken) is true)
                     {
                         try
@@ -121,7 +121,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         finally
                         {
                             // Nicht an den bereits abgebrochenen Worker-Token binden. Auch Dispose schlieÃŸt die Verbindung.
-                            await using NpgsqlCommand release = new NpgsqlCommand("SELECT pg_advisory_unlock(305002014)", mutex) { CommandTimeout = 5 };
+                            await using NpgsqlCommand release = new ("SELECT pg_advisory_unlock(305002014)", mutex) { CommandTimeout = 5 };
                             _ = await release.ExecuteNonQueryAsync(CancellationToken.None);
                         }
                     }

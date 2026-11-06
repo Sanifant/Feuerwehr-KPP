@@ -296,13 +296,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="canManage">The can Manage.</param>
         public async Task CatalogHttpPermissionsSeparateViewingAndAdministration(string role, bool canView, bool canManage)
         {
-            ServiceCollection services = new ServiceCollection();
+            ServiceCollection services = new ();
             _ = services.AddLogging();
             _ = services.AddAuthorization(options => options.AddFeuerwehrPolicies());
             using ServiceProvider provider = services.BuildServiceProvider();
             IAuthorizationPolicyProvider policies = provider.GetRequiredService<IAuthorizationPolicyProvider>();
             IAuthorizationService auth = provider.GetRequiredService<IAuthorizationService>();
-            ClaimsPrincipal user = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "Test"));
+            ClaimsPrincipal user = new (new ClaimsIdentity([new Claim(ClaimTypes.Role, role)], "Test"));
             foreach (MethodInfo? method in typeof(MapSymbolController).GetMethods().Where(x => new[] { "GetSymbols", "GetCategories", "CreateCategory", "Create", "Update" }.Contains(x.Name)))
             {
                 AuthorizationPolicy? policy = await AuthorizationPolicy.CombineAsync(policies, typeof(MapSymbolController).GetCustomAttributes<AuthorizeAttribute>().Concat(method.GetCustomAttributes<AuthorizeAttribute>()));

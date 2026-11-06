@@ -105,7 +105,7 @@ namespace De.Openelp.Feuerwehr.App.Android
                     }
                 }
 
-                PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(luminance, image.Width, image.Height, 0, 0, image.Width, image.Height, false);
+                PlanarYUVLuminanceSource source = new (luminance, image.Width, image.Height, 0, 0, image.Width, image.Height, false);
                 ZXing.Result? result = this.decoder.Decode(source);
                 if (result is null)
                 {
@@ -203,12 +203,12 @@ namespace De.Openelp.Feuerwehr.App.Android
             }
 
             current = new (this);
-            LinearLayout layout = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
+            LinearLayout layout = new (this) { Orientation = global::Android.Widget.Orientation.Vertical };
             hint = new TextView(this) { Text = "Barcode KPP-001 bis KPP-999 in die Kamera halten.", TextSize = 18 };
             layout.AddView(hint);
             this.preview = new TextureView(this) { SurfaceTextureListener = this };
             layout.AddView(this.preview, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MatchParent, 0, 1));
-            Button cancel = new Button(this) { Text = "Abbrechen" };
+            Button cancel = new (this) { Text = "Abbrechen" };
             cancel.Click += (_, _) => this.Finish();
             layout.AddView(cancel);
             this.SetContentView(layout);
@@ -309,7 +309,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             // Der kompatible Camera2-Overload unterstützt auch die minimale Android-Version 24.
             if (OperatingSystem.IsAndroidVersionAtLeast(28))
             {
-                SessionConfiguration configuration = new SessionConfiguration(
+                SessionConfiguration configuration = new (
                     (int)SessionType.Regular,
                     [new OutputConfiguration(this.previewSurface), new OutputConfiguration(this.reader!.Surface!)],
                     this.MainExecutor!,

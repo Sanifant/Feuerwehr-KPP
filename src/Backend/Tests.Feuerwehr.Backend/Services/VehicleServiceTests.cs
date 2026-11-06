@@ -22,7 +22,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task StatusTimestampTracksInitialAssignmentAndRealTransitionsButNotMasterDataOrActivationEdits()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             DateTime initial = fixture.Clock.GetUtcNow().UtcDateTime;
             Assert.Equal(initial, vehicle.StatusChangedAtUtc);
@@ -64,7 +64,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task LegacyVehicleTimestampStaysUnknownUntilItsStatusActuallyChanges()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             (await fixture.Db.Vehicles.FindAsync(vehicle.Id))!.StatusChangedAtUtc = null;
             _ = await fixture.Db.SaveChangesAsync();
@@ -87,7 +87,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task StatusCatalogIsExtensibleAndMaintenancePreventsNewBookingsAndApproval()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             List<VehicleStatusDto> statuses = Assert.IsType<List<VehicleStatusDto>>((await fixture.Service.Statuses(false, default)).Value);
             Assert.Equal(3, statuses.Count);
             Assert.Equal(new[] { "Abgemeldet", "Betriebsbereit", "Wartung" }, statuses.Select(x => x.Name).OrderBy(x => x).ToArray());
@@ -126,10 +126,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task AvailabilityCanBeFilteredByNormalizedVehicleType()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
-            VehicleType mtw = new VehicleType { Id = Guid.NewGuid(), Name = "MTW", NormalizedName = "MTW" };
-            VehicleType elw = new VehicleType { Id = Guid.NewGuid(), Name = "ELW", NormalizedName = "ELW" };
+            VehicleType mtw = new ()
+            { Id = Guid.NewGuid(), Name = "MTW", NormalizedName = "MTW" };
+            VehicleType elw = new ()
+            { Id = Guid.NewGuid(), Name = "ELW", NormalizedName = "ELW" };
             fixture.Db.Set<VehicleType>().AddRange(mtw, elw);
             (await fixture.Db.Vehicles.FindAsync(vehicle.Id))!.VehicleTypeId = mtw.Id;
             _ = fixture.Db.Vehicles.Add(new Vehicle { Id = Guid.NewGuid(), FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "ELW 01", VehicleTypeId = elw.Id });
@@ -144,7 +146,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task VehicleTypesRequireAdmin_RejectDuplicatesAndPreserveExistingAssignmentsWhenDeactivated()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             Assert.Equal(403, (await fixture.Service.SaveType(null, new () { Name = "MTW" }, default)).Code);
             fixture.As("admin", Roles.Admin);
             VehicleTypeDto type = Assert.IsType<VehicleTypeDto>((await fixture.Service.SaveType(null, new () { Name = " MTW " }, default)).Value);
@@ -201,7 +203,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="expected">The expected.</param>
         public async Task RequestsRequireAnExplicitBookingRole(string role, int expected)
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             fixture.As("member", role);
             ServiceResult result = await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default);
@@ -215,7 +217,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task PendingRequestsAreOrangeAndNonBlocking_OnlyApprovalClaimsAllDays()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             fixture.As("member", Roles.Firefighter);
             CreateVehicleReservationRequest request = fixture.Request("Fahrt zur Jugendfeuerwehr <Ãœbung>");
@@ -250,7 +252,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task RetriesDoNotCreateDuplicateRequestsBookingsOrEmails()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             fixture.As("member", Roles.Commander);
             CreateVehicleReservationRequest request = fixture.Request();
@@ -274,7 +276,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task OnlyAssignedOfficerCanDecideOrBookDirectly_AdminCanMaintain()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             fixture.As("member", Roles.Firefighter);
             VehicleReservationDto pending = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
@@ -296,7 +298,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task DirectBookingIsConfirmed_AndCancellationReleasesDaysWithoutDeletingHistory()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             VehicleReservationDto reservation = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), true, default)).Value);
             Assert.Equal(VehicleReservationStatus.Confirmed, reservation.Status);
@@ -315,7 +317,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task VehicleDataAndBookingDatesAreValidated_OfficerCannotCreateForAnotherDepartment()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             Assert.Equal(400, (await fixture.Service.Save(null, new () { FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "   " }, default)).Code);
             Assert.Equal(403, (await fixture.Service.Save(null, new () { FireDepartmentId = 2, EquipmentOfficerId = "other", RadioCallSign = "Fremd" }, default)).Code);
             VehicleDto vehicle = await fixture.Vehicle();
@@ -336,12 +338,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// </summary>
         public async Task MailFailureKeepsBookingAndRetriesLater()
         {
-            await using Fixture fixture = new Fixture();
+            await using Fixture fixture = new ();
             VehicleDto vehicle = await fixture.Vehicle();
             _ = await fixture.Service.Reserve(vehicle.Id, fixture.Request("Fahrt"), true, default);
-            Mock<IHtmlMailService> mail = new Mock<IHtmlMailService>();
+            Mock<IHtmlMailService> mail = new ();
             _ = mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new IOException("offline"));
-            VehicleMailDispatcher worker = new VehicleMailDispatcher(fixture.Db, mail.Object, fixture.Clock, NullLogger<VehicleMailDispatcher>.Instance);
+            VehicleMailDispatcher worker = new (fixture.Db, mail.Object, fixture.Clock, NullLogger<VehicleMailDispatcher>.Instance);
             await worker.Dispatch(default);
             Assert.Null(fixture.Db.VehicleMailMessages.Single().SentAtUtc);
             Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
