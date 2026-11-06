@@ -30,10 +30,12 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> Upsert([FromBody] UpsertDiaryCategoryRequest request, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!this.ModelState.IsValid)
+            {
+                return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.Upsert(request, cancellationToken));
         }
-
     }
-
 }

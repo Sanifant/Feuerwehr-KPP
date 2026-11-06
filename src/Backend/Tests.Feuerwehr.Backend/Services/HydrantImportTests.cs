@@ -197,5 +197,4 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Empty(db.Hydrants);
         }
     }
-
 }

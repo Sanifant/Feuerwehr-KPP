@@ -63,7 +63,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     lease.ExpiresAtUtc <= now);
 
             return ServiceResult.Ok(new MapStateResponse(incidentId, incident.Status, incident.Revision, now, leaseDto, elements, await dbContext.Hydrants.AsNoTracking().Select(h => new MapHydrantDto(h.Id, h.Longitude, h.Latitude, h.Status, h.NominalDiameter)).ToListAsync(cancellationToken)));
-
         }
 
         /// <summary>
@@ -146,7 +145,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return ServiceResult.Ok(response);
-
         }
 
         /// <summary>
@@ -190,7 +188,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
             }
-
         }
 
         /// <summary>
@@ -232,7 +229,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
             }
-
         }
 
         /// <summary>
@@ -249,9 +245,178 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 // A rolled-back attempt may have accepted tracked changes already. Reload
                 // entities and recheck CommandId so retries cannot duplicate committed work.
-                if (attempt++ > 0) dbContext.ChangeTracker.Clear();
-                return await UpsertElementAttempt(incidentId, request, token);
+                if (attempt++ > 0)
+                {
+                    dbContext.ChangeTracker.Clear();
+                }
+
+                return await this.UpsertElementAttempt(incidentId, request, token);
             }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Deletes the element.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        /// <param name="elementId">The element Id.</param>
+        /// <param name="request">The request.</param>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public async Task<ServiceResult> DeleteElement(Guid incidentId, Guid elementId, DeleteMapElementRequest request, CancellationToken cancellationToken)
+        {
+
+            var payload = new { incidentId, elementId, request.ExpectedVersion, request.SessionId, request.LeaseToken };
+            (ProcessedCommand? existingCommand, string? payloadHash) = await idempotency.FindExistingAsync(request.CommandId, "map.element.delete", elementId.ToString(), payload, userContext.UserId, cancellationToken);
+            if (existingCommand is not null)
+            {
+                return ServiceResult.StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
+            }
+
+            try
+            {
+                Incident? incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
+                if (incident is null)
+                {
+                    return ServiceResult.NotFound();
+                }
+
+                if (incident.Status == IncidentStatus.Closed)
+                {
+                    return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Einsatz ist abgeschlossen.");
+                }
+
+                await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
+
+                MapElement element = await dbContext.MapElements.FirstOrDefaultAsync(x => x.Id == elementId && x.IncidentId == incidentId, cancellationToken)
+                    ?? throw new InvalidOperationException("Element nicht gefunden.");
+
+                if (request.ExpectedVersion != element.Version)
+                {
+                    return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Konflikt: veraltete Elementversion.");
+                }
+
+                DateTime now = DateTime.UtcNow;
+                MapElementDto before = ToMapElementDto(element);
+                dbContext.MapElements.Remove(element);
+                incident.Revision += 1;
+
+                dbContext.MapAuditEvents.Add(new MapAuditEvent
+                {
+                    Id = Guid.NewGuid(),
+                    IncidentId = incidentId,
+                    CommandId = request.CommandId,
+                    ElementId = element.Id,
+                    Action = "delete",
+                    UserId = userContext.UserId,
+                    UserDisplayName = userContext.DisplayName,
+                    OccurredAtUtc = now,
+                    BeforeStateJson = JsonSerializer.Serialize(before, JsonOptionsFactory.Default),
+                    AfterStateJson = "null",
+                });
+
+                MapElementDeletedResponse response = new MapElementDeletedResponse(true, elementId, incident.Revision, now);
+                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
+                    request.CommandId,
+                    "map.element.delete",
+                    elementId.ToString(),
+                    payloadHash,
+                    ResponseHelpers.BuildEnvelope(StatusCodes.Status200OK, response),
+                    userContext.UserId));
+
+                outboxService.AddMessage("map", "map.element.changed", incidentId.ToString(), new MapElementChangedEvent(incidentId, incident.Revision, elementId, "delete", now));
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+
+                return ServiceResult.Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Gets the audit.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        /// <param name="page">The page.</param>
+        /// <param name="pageSize">The page Size.</param>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public async Task<ServiceResult> GetAudit(Guid incidentId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
+        {
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 500);
+            List<MapAuditEventDto> events = await dbContext.MapAuditEvents.AsNoTracking()
+                .Where(x => x.IncidentId == incidentId)
+                .OrderByDescending(x => x.SequenceNumber)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new MapAuditEventDto(
+                    x.Id,
+                    x.IncidentId,
+                    x.SequenceNumber,
+                    x.CommandId,
+                    x.ElementId,
+                    x.Action,
+                    x.UserId,
+                    x.UserDisplayName,
+                    x.OccurredAtUtc,
+                    x.BeforeStateJson,
+                    x.AfterStateJson))
+                .ToListAsync(cancellationToken);
+
+            return ServiceResult.Ok(events);
+        }
+
+        /// <summary>
+        /// Executes export Audit Csv.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public async Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken)
+        {
+            List<MapAuditEvent> events = await dbContext.MapAuditEvents.AsNoTracking()
+                .Where(x => x.IncidentId == incidentId)
+                .OrderBy(x => x.SequenceNumber)
+                .ToListAsync(cancellationToken);
+
+            byte[] bytes = CsvExportHelpers.BuildMapAuditCsv(events);
+            return ServiceResult.File(bytes, "text/csv; charset=utf-8", $"lagekartenlog-{incidentId:N}.csv");
+        }
+
+        /// <summary>
+        /// Executes export Map Pdf.
+        /// </summary>
+        /// <param name="incidentId">The incident Id.</param>
+        /// <param name="cancellationToken">The cancellation Token.</param>
+        public async Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken)
+        {
+            Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
+            if (incident is null)
+            {
+                return ServiceResult.NotFound();
+            }
+
+            List<MapElement> elements = await dbContext.MapElements.AsNoTracking().Where(x => x.IncidentId == incidentId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
+            List<string> lines = new List<string>
+            {
+                $"Einsatz: {incident.Name}",
+                $"Status: {incident.Status}",
+                $"Stand UTC: {DateTime.UtcNow:O}",
+                "Kartenquelle: OpenStreetMap contributors (https://www.openstreetmap.org/copyright)",
+                ""
+            };
+
+            if (elements.Count == 0)
+            {
+                lines.Add("Keine Lagekartenelemente vorhanden.");
+            }
+            else
+            {
+                lines.AddRange(elements.Select(x => $"{x.ElementType}: {x.Label ?? x.SymbolId ?? x.Id.ToString()} | Version {x.Version} | {x.GeometryJson}"));
+            }
+
+            byte[] pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Lagekarte", lines);
+            return ServiceResult.File(pdfBytes, "application/pdf", $"lagekarte-{incidentId:N}.pdf");
         }
 
         private async Task<ServiceResult> UpsertElementAttempt(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
@@ -339,11 +504,21 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     if (request.ElementType == MapElementType.Symbol)
                     {
                         if (!Guid.TryParse(request.SymbolId, out Guid symbolId))
+                        {
                             return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
+                        }
+
                         MapSymbol? symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
-                        if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                        if (symbol is null)
+                        {
+                            return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                        }
+
                         if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                        {
                             return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                        }
+
                         element.IsVehicle = symbol.IsVehicle;
                         if (!symbol.IsVehicle)
                         {
@@ -370,11 +545,20 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     }
 
                     if (element.ElementType != request.ElementType)
+                    {
                         return ServiceResult.Problem(400, "Der Elementtyp kann nicht geändert werden.");
+                    }
+
                     if (!string.Equals(element.SymbolId, request.SymbolId, StringComparison.Ordinal))
+                    {
                         return ServiceResult.Problem(400, "Das Symbol eines platzierten Elements kann nicht ausgetauscht werden.");
+                    }
+
                     if (element.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                    {
                         return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                    }
+
                     element.Label = request.Label;
                     bool allowsDetails = element.ElementType != MapElementType.Symbol || element.IsVehicle;
                     if (allowsDetails)
@@ -439,176 +623,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 await tx.RollbackAsync(cancellationToken);
                 return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
             }
-
-        }
-
-        /// <summary>
-        /// Deletes the element.
-        /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="elementId">The element Id.</param>
-        /// <param name="request">The request.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        public async Task<ServiceResult> DeleteElement(Guid incidentId, Guid elementId, DeleteMapElementRequest request, CancellationToken cancellationToken)
-        {
-
-            var payload = new { incidentId, elementId, request.ExpectedVersion, request.SessionId, request.LeaseToken };
-            (ProcessedCommand? existingCommand, string? payloadHash) = await idempotency.FindExistingAsync(request.CommandId, "map.element.delete", elementId.ToString(), payload, userContext.UserId, cancellationToken);
-            if (existingCommand is not null)
-            {
-                return ServiceResult.StatusCode(existingCommand.ResponseStatusCode, JsonDocument.Parse(existingCommand.ResponseJson).RootElement.Clone());
-            }
-
-            try
-            {
-                Incident? incident = await dbContext.Incidents.FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
-                if (incident is null)
-                {
-                    return ServiceResult.NotFound();
-                }
-
-                if (incident.Status == IncidentStatus.Closed)
-                {
-                    return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Einsatz ist abgeschlossen.");
-                }
-
-                await leaseService.RequireValidLeaseAsync(incidentId, request.SessionId, request.LeaseToken, userContext.UserId, cancellationToken);
-
-                MapElement element = await dbContext.MapElements.FirstOrDefaultAsync(x => x.Id == elementId && x.IncidentId == incidentId, cancellationToken)
-                    ?? throw new InvalidOperationException("Element nicht gefunden.");
-
-                if (request.ExpectedVersion != element.Version)
-                {
-                    return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: "Konflikt: veraltete Elementversion.");
-                }
-
-                DateTime now = DateTime.UtcNow;
-                MapElementDto before = ToMapElementDto(element);
-                dbContext.MapElements.Remove(element);
-                incident.Revision += 1;
-
-                dbContext.MapAuditEvents.Add(new MapAuditEvent
-                {
-                    Id = Guid.NewGuid(),
-                    IncidentId = incidentId,
-                    CommandId = request.CommandId,
-                    ElementId = element.Id,
-                    Action = "delete",
-                    UserId = userContext.UserId,
-                    UserDisplayName = userContext.DisplayName,
-                    OccurredAtUtc = now,
-                    BeforeStateJson = JsonSerializer.Serialize(before, JsonOptionsFactory.Default),
-                    AfterStateJson = "null",
-                });
-
-                MapElementDeletedResponse response = new MapElementDeletedResponse(true, elementId, incident.Revision, now);
-                dbContext.ProcessedCommands.Add(idempotency.BuildStoredCommand(
-                    request.CommandId,
-                    "map.element.delete",
-                    elementId.ToString(),
-                    payloadHash,
-                    ResponseHelpers.BuildEnvelope(StatusCodes.Status200OK, response),
-                    userContext.UserId));
-
-                outboxService.AddMessage("map", "map.element.changed", incidentId.ToString(), new MapElementChangedEvent(incidentId, incident.Revision, elementId, "delete", now));
-
-                await dbContext.SaveChangesAsync(cancellationToken);
-
-                return ServiceResult.Ok(response);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ServiceResult.Problem(statusCode: StatusCodes.Status409Conflict, title: ex.Message);
-            }
-
-        }
-
-        /// <summary>
-        /// Gets the audit.
-        /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="page">The page.</param>
-        /// <param name="pageSize">The page Size.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        public async Task<ServiceResult> GetAudit(Guid incidentId, int page = 1, int pageSize = 100, CancellationToken cancellationToken = default)
-        {
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, 1, 500);
-            List<MapAuditEventDto> events = await dbContext.MapAuditEvents.AsNoTracking()
-                .Where(x => x.IncidentId == incidentId)
-                .OrderByDescending(x => x.SequenceNumber)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(x => new MapAuditEventDto(
-                    x.Id,
-                    x.IncidentId,
-                    x.SequenceNumber,
-                    x.CommandId,
-                    x.ElementId,
-                    x.Action,
-                    x.UserId,
-                    x.UserDisplayName,
-                    x.OccurredAtUtc,
-                    x.BeforeStateJson,
-                    x.AfterStateJson))
-                .ToListAsync(cancellationToken);
-
-            return ServiceResult.Ok(events);
-
-        }
-
-        /// <summary>
-        /// Executes export Audit Csv.
-        /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        public async Task<ServiceResult> ExportAuditCsv(Guid incidentId, CancellationToken cancellationToken)
-        {
-            List<MapAuditEvent> events = await dbContext.MapAuditEvents.AsNoTracking()
-                .Where(x => x.IncidentId == incidentId)
-                .OrderBy(x => x.SequenceNumber)
-                .ToListAsync(cancellationToken);
-
-            byte[] bytes = CsvExportHelpers.BuildMapAuditCsv(events);
-            return ServiceResult.File(bytes, "text/csv; charset=utf-8", $"lagekartenlog-{incidentId:N}.csv");
-
-        }
-
-        /// <summary>
-        /// Executes export Map Pdf.
-        /// </summary>
-        /// <param name="incidentId">The incident Id.</param>
-        /// <param name="cancellationToken">The cancellation Token.</param>
-        public async Task<ServiceResult> ExportMapPdf(Guid incidentId, CancellationToken cancellationToken)
-        {
-            Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
-            if (incident is null)
-            {
-                return ServiceResult.NotFound();
-            }
-
-            List<MapElement> elements = await dbContext.MapElements.AsNoTracking().Where(x => x.IncidentId == incidentId).OrderBy(x => x.CreatedAtUtc).ToListAsync(cancellationToken);
-            List<string> lines = new List<string>
-            {
-                $"Einsatz: {incident.Name}",
-                $"Status: {incident.Status}",
-                $"Stand UTC: {DateTime.UtcNow:O}",
-                "Kartenquelle: OpenStreetMap contributors (https://www.openstreetmap.org/copyright)",
-                ""
-            };
-
-            if (elements.Count == 0)
-            {
-                lines.Add("Keine Lagekartenelemente vorhanden.");
-            }
-            else
-            {
-                lines.AddRange(elements.Select(x => $"{x.ElementType}: {x.Label ?? x.SymbolId ?? x.Id.ToString()} | Version {x.Version} | {x.GeometryJson}"));
-            }
-
-            byte[] pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Lagekarte", lines);
-            return ServiceResult.File(pdfBytes, "application/pdf", $"lagekarte-{incidentId:N}.pdf");
-
         }
 
         private static bool TryValidateGeometry(string geometryJson, MapElementType type, out string? error)
@@ -712,6 +726,5 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
         private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =
             x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
-
     }
 }

@@ -15,4 +15,3 @@ namespace De.Openelp.Feuerwehr.App.Models
         public double Longitude { get; set; }
     }
 }
-

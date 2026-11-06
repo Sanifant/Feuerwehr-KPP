@@ -12,5 +12,4 @@ namespace De.Openelp.Feuerwehr.Common.Models.Dto
 
         public ICollection<FireDepartmentTrainingCourseDto> TrainingCourses { get; set; } = new List<FireDepartmentTrainingCourseDto>();
     }
-
 }

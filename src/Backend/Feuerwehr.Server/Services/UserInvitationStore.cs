@@ -12,9 +12,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
     /// <param name="redis">The redis.</param>
     public sealed class UserInvitationStore(IConnectionMultiplexer redis) : IUserInvitationStore
     {
-        private static string Key(Guid id) => "user-invitation:" +
-            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id.ToString("D"))));
-
         /// <summary>
         /// Executes store.
         /// </summary>
@@ -24,7 +21,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
         {
             bool stored = await redis.GetDatabase().StringSetAsync(Key(id), JsonSerializer.Serialize(invitation), lifetime);
-            if (!stored) throw new InvalidOperationException("Einladung konnte nicht gespeichert werden.");
+            if (!stored)
+            {
+                throw new InvalidOperationException("Einladung konnte nicht gespeichert werden.");
+            }
         }
 
         /// <summary>
@@ -41,5 +41,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// Removes the operation.
         /// </summary>
         public async Task RemoveAsync(Guid id) => await redis.GetDatabase().KeyDeleteAsync(Key(id));
+
+        private static string Key(Guid id) => "user-invitation:" +
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id.ToString("D"))));
     }
 }

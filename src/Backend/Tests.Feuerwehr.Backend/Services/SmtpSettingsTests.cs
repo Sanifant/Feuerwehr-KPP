@@ -154,5 +154,4 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.DoesNotContain("secret-value", exception.ToString());
         }
     }
-
 }

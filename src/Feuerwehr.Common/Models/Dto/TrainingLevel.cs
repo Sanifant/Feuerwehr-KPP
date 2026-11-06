@@ -6,5 +6,4 @@ namespace De.Openelp.Feuerwehr.Common.Models.Dto
         District = 2,
         State = 3
     }
-
 }

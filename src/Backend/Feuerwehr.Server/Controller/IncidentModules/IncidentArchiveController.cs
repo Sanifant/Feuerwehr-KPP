@@ -32,5 +32,4 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> ExportPdf(Guid incidentId, CancellationToken cancellationToken)
             => this.ToActionResult(await service.ExportPdf(incidentId, cancellationToken));
     }
-
 }

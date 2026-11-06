@@ -283,11 +283,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(400, (await fixture.Service.Save(null, new() { FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "   " }, default)).Code);
             Assert.Equal(403, (await fixture.Service.Save(null, new() { FireDepartmentId = 2, EquipmentOfficerId = "other", RadioCallSign = "Fremd" }, default)).Code);
             VehicleDto vehicle = await fixture.Vehicle();
-            CreateVehicleReservationRequest backwards = fixture.Request(); backwards.To = backwards.From.AddDays(-1);
+            CreateVehicleReservationRequest backwards = fixture.Request();
+            backwards.To = backwards.From.AddDays(-1);
             Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, backwards, true, default)).Code);
-            CreateVehicleReservationRequest tooLong = fixture.Request(); tooLong.Comment = new string('x', 2001);
+            CreateVehicleReservationRequest tooLong = fixture.Request();
+            tooLong.Comment = new string('x', 2001);
             Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, tooLong, true, default)).Code);
-            CreateVehicleReservationRequest past = fixture.Request(); past.From = past.To = new DateOnly(2026, 10, 29);
+            CreateVehicleReservationRequest past = fixture.Request();
+            past.From = past.To = new DateOnly(2026, 10, 29);
             Assert.Equal(400, (await fixture.Service.Reserve(vehicle.Id, past, true, default)).Code);
         }
 
@@ -322,27 +325,34 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             public VehicleService Service { get; }
             public Fixture()
             {
-                Db.Database.EnsureCreated();
-                Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
-                Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
+                this.Db.Database.EnsureCreated();
+                this.Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
+                this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
                 foreach (string? id in new[] { "officer", "other", "member", "admin" })
-                    Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, FirstName = id, IsActive = true, FireDepartmentId = id == "other" ? 2 : 1 });
-                foreach (string? id in new[] { "officer", "other" }) Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
-                Db.SaveChanges();
-                Service = new VehicleService(Db, http, Clock, new VehicleMailComposer(new ConfigurationBuilder().AddInMemoryCollection(
-                    new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), Clock));
-                As("officer", Roles.EquipmentOfficer);
+                {
+                    this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, FirstName = id, IsActive = true, FireDepartmentId = id == "other" ? 2 : 1 });
+                }
+
+                foreach (string? id in new[] { "officer", "other" })
+                {
+                    this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                }
+
+                this.Db.SaveChanges();
+                this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailComposer(new ConfigurationBuilder().AddInMemoryCollection(
+                    new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), this.Clock));
+                this.As("officer", Roles.EquipmentOfficer);
             }
             /// <summary>
             /// Executes as.
             /// </summary>
             /// <param name="id">The id.</param>
-            public void As(string id, string role) => http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
+            public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
                 [new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
             /// <summary>
             /// Executes vehicle.
             /// </summary>
-            public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await Service.Save(null, new()
+            public async Task<VehicleDto> Vehicle() => Assert.IsType<VehicleDto>((await this.Service.Save(null, new()
                 { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
             /// <summary>
             /// Executes request.
@@ -353,7 +363,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <summary>
             /// Executes dispose.
             /// </summary>
-            public ValueTask DisposeAsync() => Db.DisposeAsync();
+            public ValueTask DisposeAsync() => this.Db.DisposeAsync();
         }
         private sealed class TestClock : TimeProvider
         {
@@ -361,8 +371,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <summary>
             /// Gets the utc Now.
             /// </summary>
-            public override DateTimeOffset GetUtcNow() => UtcNow;
+            public override DateTimeOffset GetUtcNow() => this.UtcNow;
         }
     }
-
 }

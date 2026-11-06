@@ -39,4 +39,3 @@ namespace De.Openelp.Feuerwehr.App.Desktop
                 .LogToTrace();
     }
 }
-

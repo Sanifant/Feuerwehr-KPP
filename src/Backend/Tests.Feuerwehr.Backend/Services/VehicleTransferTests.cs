@@ -23,19 +23,34 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         {
             await using Fixture fixture = new Fixture();
             const string csv = "radioCallSign;fireDepartment;equipmentOfficerEmail;status\nFlorian 19-01;Feuerwehr A;owner@example.test;Betriebsbereit";
-            using (MemoryStream stream = Csv(csv)) Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            using (MemoryStream stream = Csv(csv))
+            {
+                Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            }
+
             DateTime initial = fixture.Clock.GetUtcNow().UtcDateTime;
             Assert.Equal(initial, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-            using (MemoryStream stream = Csv(csv)) Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            using (MemoryStream stream = Csv(csv))
+            {
+                Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            }
+
             Assert.Equal(initial, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-            using (MemoryStream stream = Csv(csv.Replace("Betriebsbereit", "Wartung"))) Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            using (MemoryStream stream = Csv(csv.Replace("Betriebsbereit", "Wartung")))
+            {
+                Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            }
+
             DateTime changedAt = fixture.Clock.GetUtcNow().UtcDateTime;
             Assert.Equal(changedAt, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
             fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
             using (MemoryStream stream = Csv(csv.Replace("Betriebsbereit", "Abgemeldet") + "\nFlorian 19-02;Feuerwehr A;missing@example.test;Wartung"))
+            {
                 Assert.Equal(400, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+            }
+
             Assert.Equal(changedAt, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         }
 
@@ -62,7 +77,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(csv.Replace("owner@example.test", " OTHER@EXAMPLE.TEST ").Replace("Betriebsbereit", "Wartung")));
             ServiceResult imported = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
             VehicleImportResponse result = Assert.IsType<VehicleImportResponse>(imported.Value);
-            Assert.Equal(200, imported.Code); Assert.Equal(0, result.CreatedCount); Assert.Equal(1, result.UpdatedCount);
+            Assert.Equal(200, imported.Code);
+            Assert.Equal(0, result.CreatedCount);
+            Assert.Equal(1, result.UpdatedCount);
             Vehicle stored = Assert.Single(await fixture.Db.Vehicles.AsNoTracking().ToListAsync());
             Assert.Equal(vehicle.Id, stored.Id);
             Assert.Equal("other", stored.EquipmentOfficerId);
@@ -105,7 +122,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <param name="expected">The expected.</param>
         public async Task InvalidFilesHaveActionableErrorsAndDoNotChangeData(string csv, string expected)
         {
-            await using Fixture fixture = new Fixture(); using MemoryStream stream = Csv(csv);
+            await using Fixture fixture = new Fixture();
+            using MemoryStream stream = Csv(csv);
             ServiceResult result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
             Assert.Equal(400, result.Code);
             Assert.Contains(Assert.IsType<VehicleImportResponse>(result.Value).Errors, x => x.Description.Contains(expected));
@@ -125,7 +143,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             fixture.As("owner", Roles.EquipmentOfficer);
             ServiceResult export = await fixture.Service.Export(VehicleTransferKind.Vehicles, default);
             string csv = Encoding.UTF8.GetString(export.Content!);
-            Assert.Contains(owned.RadioCallSign, csv); Assert.DoesNotContain(other.RadioCallSign, csv);
+            Assert.Contains(owned.RadioCallSign, csv);
+            Assert.DoesNotContain(other.RadioCallSign, csv);
             using MemoryStream stream = Csv($"id;radioCallSign;fireDepartment;equipmentOfficerEmail\n{other.Id};{other.RadioCallSign};Feuerwehr A;owner@example.test");
             Assert.Equal(403, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
             Assert.Equal("other", (await fixture.Db.Vehicles.AsNoTracking().SingleAsync(x => x.Id == other.Id)).EquipmentOfficerId);
@@ -143,14 +162,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task ReimportWithoutIdsUpdatesByDepartmentAndCallSignAndMissingColumnsPreserveValues()
         {
             await using Fixture fixture = new Fixture();
-            Vehicle vehicle = fixture.Vehicle(); vehicle.Name = "Bestehender Name"; vehicle.IsActive = false;
+            Vehicle vehicle = fixture.Vehicle();
+            vehicle.Name = "Bestehender Name";
+            vehicle.IsActive = false;
             vehicle.VehicleStatusId = VehicleStatusDefaults.DeregisteredId;
             await fixture.Db.SaveChangesAsync();
             using MemoryStream stream = Csv($"radioCallSign;fireDepartment;equipmentOfficerEmail\n{vehicle.RadioCallSign};Feuerwehr A;owner@example.test");
             ServiceResult result = await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default);
             Assert.Equal(200, result.Code);
             Vehicle stored = Assert.Single(await fixture.Db.Vehicles.AsNoTracking().ToListAsync());
-            Assert.Equal(vehicle.Id, stored.Id); Assert.Equal("Bestehender Name", stored.Name); Assert.False(stored.IsActive);
+            Assert.Equal(vehicle.Id, stored.Id);
+            Assert.Equal("Bestehender Name", stored.Name);
+            Assert.False(stored.IsActive);
             Assert.Equal(VehicleStatusDefaults.DeregisteredId, stored.VehicleStatusId);
         }
 
@@ -161,10 +184,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         public async Task VehicleTypesRoundTripAndRenameInPlaceWhileDuplicateNamesRollbackTheEntireBatch()
         {
             await using Fixture fixture = new Fixture();
-            Vehicle vehicle = fixture.Vehicle(); await fixture.Db.SaveChangesAsync();
+            Vehicle vehicle = fixture.Vehicle();
+            await fixture.Db.SaveChangesAsync();
             ServiceResult exported = await fixture.Service.Export(VehicleTransferKind.Types, default);
             List<VehicleTypeImportDto> rows = JsonSerializer.Deserialize<List<VehicleTypeImportDto>>(exported.Content!, new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
-            VehicleTypeImportDto type = Assert.Single(rows); type.Name = "Mannschaftstransportwagen";
+            VehicleTypeImportDto type = Assert.Single(rows);
+            type.Name = "Mannschaftstransportwagen";
             using MemoryStream updated = new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(rows));
             Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Types, updated, default)).Code);
             Assert.Equal(type.Id, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync(x => x.Id == vehicle.Id)).VehicleTypeId);
@@ -184,24 +209,27 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             private readonly Guid typeId = Guid.NewGuid();
             public Fixture()
             {
-                Db.Database.EnsureCreated();
-                Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
-                Db.Set<VehicleType>().Add(new VehicleType { Id = typeId, Name = "MTW", NormalizedName = "MTW" });
-                Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
+                this.Db.Database.EnsureCreated();
+                this.Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
+                this.Db.Set<VehicleType>().Add(new VehicleType { Id = this.typeId, Name = "MTW", NormalizedName = "MTW" });
+                this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
                 foreach (string? id in new[] { "admin", "owner", "other", "viewer", "inactive", "foreign" })
                 {
-                    Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, IsActive = id != "inactive", FireDepartmentId = id == "foreign" ? 2 : 1 });
-                    if (id is "owner" or "other" or "inactive" or "foreign") Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                    this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, IsActive = id != "inactive", FireDepartmentId = id == "foreign" ? 2 : 1 });
+                    if (id is "owner" or "other" or "inactive" or "foreign")
+                    {
+                        this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                    }
                 }
-                Db.SaveChanges();
-                Service = new VehicleTransferService(Db, http, new UpperInvariantLookupNormalizer(), Clock);
-                As("admin", Roles.Admin);
+                this.Db.SaveChanges();
+                this.Service = new VehicleTransferService(this.Db, this.http, new UpperInvariantLookupNormalizer(), this.Clock);
+                this.As("admin", Roles.Admin);
             }
             /// <summary>
             /// Executes as.
             /// </summary>
             /// <param name="id">The id.</param>
-            public void As(string id, string role) => http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity([
+            public void As(string id, string role) => this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity([
                 new Claim(ClaimTypes.NameIdentifier, id), new Claim(ClaimTypes.Role, role)], "test"));
             /// <summary>
             /// Executes vehicle.
@@ -210,13 +238,14 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <param name="owner">The owner.</param>
             public Vehicle Vehicle(string callSign = "Florian 19-01", string owner = "owner")
             {
-                Vehicle vehicle = new Vehicle { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = typeId };
-                Db.Vehicles.Add(vehicle); return vehicle;
+                Vehicle vehicle = new Vehicle { Id = Guid.NewGuid(), RadioCallSign = callSign, FireDepartmentId = 1, EquipmentOfficerId = owner, VehicleTypeId = this.typeId };
+                this.Db.Vehicles.Add(vehicle);
+                return vehicle;
             }
             /// <summary>
             /// Executes dispose.
             /// </summary>
-            public ValueTask DisposeAsync() => Db.DisposeAsync();
+            public ValueTask DisposeAsync() => this.Db.DisposeAsync();
         }
         private sealed class TestClock : TimeProvider
         {
@@ -224,8 +253,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             /// <summary>
             /// Gets the utc Now.
             /// </summary>
-            public override DateTimeOffset GetUtcNow() => UtcNow;
+            public override DateTimeOffset GetUtcNow() => this.UtcNow;
         }
     }
-
 }

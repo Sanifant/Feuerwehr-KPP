@@ -15,5 +15,4 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
             public List<string>? Roles { get; set; }
             public string? NewPassword { get; set; }
         }
-
 }

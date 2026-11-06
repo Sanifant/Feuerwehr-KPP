@@ -25,13 +25,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
             string dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschlieÃŸlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
             string lines = $"Fahrzeug: {reservation.RadioCallSign}\nFeuerwehr: {reservation.FireDepartmentName}\n" +
                 $"Anfragende Person: {reservation.RequesterName}\nZeitraum: {dates}\nBuchungsnummer: {reservation.Id}\n";
-            if (reservation.Comment is not null) lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
+            if (reservation.Comment is not null)
+            {
+                lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
+            }
+
             string instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Ãœbersicht prüfen und bestätigen oder ablehnen." :
                 "Die Buchung ist verbindlich bestätigt.";
             string link = "";
             if (Uri.TryCreate(configuration["Frontend:BaseUrl"], UriKind.Absolute, out Uri? baseUri) &&
                 (baseUri.Scheme == Uri.UriSchemeHttps || baseUri.Scheme == Uri.UriSchemeHttp) && string.IsNullOrEmpty(baseUri.Query) && string.IsNullOrEmpty(baseUri.Fragment))
+            {
                 link = new Uri(new Uri(baseUri.AbsoluteUri.TrimEnd('/') + "/"), "vehicles").AbsoluteUri;
+            }
+
             static string Encode(string text) => WebUtility.HtmlEncode(text);
             string html = "<!doctype html><html lang=\"de\"><body style=\"margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#1f2937\">" +
                 "<table role=\"presentation\" style=\"width:100%;max-width:640px;margin:24px auto;background:#fff;border:1px solid #cbd5e1\"><tr><td style=\"padding:24px;border-top:6px solid #b91c1c\">" +
@@ -78,7 +85,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     int claimed = await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.SentAtUtc == null && x.NextAttemptAtUtc <= now &&
                         (x.LeaseUntilUtc == null || x.LeaseUntilUtc < now)).ExecuteUpdateAsync(update => update
                             .SetProperty(x => x.LeaseUntilUtc, leaseUntil).SetProperty(x => x.Attempts, x => x.Attempts + 1), ct);
-                    if (claimed == 0) continue;
+                    if (claimed == 0)
+                    {
+                        continue;
+                    }
                 }
                 else
                 {
@@ -102,12 +112,17 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 }
                 DateTime next = clock.GetUtcNow().UtcDateTime.AddMinutes(Math.Min(60, Math.Pow(2, Math.Min(message.Attempts + 1, 6))));
                 if (db.Database.IsRelational())
+                {
                     await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.LeaseUntilUtc == leaseUntil).ExecuteUpdateAsync(update => update
                         .SetProperty(x => x.SentAtUtc, sent).SetProperty(x => x.LastError, error)
                         .SetProperty(x => x.NextAttemptAtUtc, next).SetProperty(x => x.LeaseUntilUtc, (DateTime?)null), ct);
+                }
                 else
                 {
-                    message.SentAtUtc = sent; message.LastError = error; message.NextAttemptAtUtc = next; message.LeaseUntilUtc = null;
+                    message.SentAtUtc = sent;
+                    message.LastError = error;
+                    message.NextAttemptAtUtc = next;
+                    message.LeaseUntilUtc = null;
                     await db.SaveChangesAsync(ct);
                 }
             }

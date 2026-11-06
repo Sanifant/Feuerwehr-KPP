@@ -20,4 +20,3 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
         public int? FireDepartmentId { get; set; }
     }
 }
-

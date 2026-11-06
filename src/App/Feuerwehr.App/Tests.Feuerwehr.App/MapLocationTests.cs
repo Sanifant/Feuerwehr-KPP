@@ -105,9 +105,14 @@ namespace De.Openelp.Feuerwehr.Tests.App
             completion.SetResult(new GpsLocation { Latitude = 53.9, Longitude = 10.6 });
 
             if (initialize)
+            {
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pending);
+            }
             else
+            {
                 await pending;
+            }
+
             Assert.DoesNotContain(viewModel.Map!.Layers, layer => layer.Name == "Pins");
             Assert.False(viewModel.IsAddVisible);
         }
@@ -150,5 +155,4 @@ namespace De.Openelp.Feuerwehr.Tests.App
             return new MapViewModel(hydrants.Object, gps);
         }
     }
-
 }

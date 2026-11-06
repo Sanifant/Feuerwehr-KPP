@@ -32,7 +32,7 @@ stylecop.readability.allowBuiltInTypeAliases = false
 stylecop.ordering.elementOrder = kind, accessibility, constant, static, readonly
 stylecop.ordering.accessibilityOrder = public, internal, protectedInternal, protected, privateProtected, private
 dotnet_sort_system_directives_first = true
-stylecop.ordering.usingDirectivesPlacement = insideNamespace   # insideNamespace | outsideNamespace | preserve
+stylecop.ordering.usingDirectivesPlacement = outsideNamespace   # insideNamespace | outsideNamespace | preserve
 stylecop.ordering.blankLinesBetweenUsingGroups = allow         # allow | require | omit
 
 # Naming

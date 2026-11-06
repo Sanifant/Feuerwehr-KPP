@@ -28,13 +28,23 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<ServiceResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken)
         {
-            if (!user.IsAdmin) return ServiceResult.Forbid();
+            if (!user.IsAdmin)
+            {
+                return ServiceResult.Forbid();
+            }
+
             string? name = request.Name?.Trim();
             if (string.IsNullOrWhiteSpace(name) || name.Length > 40)
+            {
                 return ServiceResult.Problem(400, "Bitte einen Kategorienamen mit höchstens 40 Zeichen angeben.");
+            }
+
             string normalizedName = name.ToUpperInvariant();
             if (await dbContext.MapSymbolCategories.AnyAsync(x => x.Name.ToUpper() == normalizedName, cancellationToken))
+            {
                 return ServiceResult.Problem(409, "Diese Symbolkategorie existiert bereits.");
+            }
+
             dbContext.MapSymbolCategories.Add(new MapSymbolCategory { Name = name });
             await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.StatusCode(201, name);
@@ -109,7 +119,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             symbol.IsActive = request.IsActive;
             symbol.IsVehicle = request.IsVehicle;
             symbol.UpdatedAtUtc = DateTime.UtcNow;
-            if (created) dbContext.MapSymbols.Add(symbol);
+            if (created)
+            {
+                dbContext.MapSymbols.Add(symbol);
+            }
+
             logger.LogDebug("Map symbol database save started. SymbolId: {SymbolId}", symbol.Id);
             try { await dbContext.SaveChangesAsync(cancellationToken); }
             catch (Exception error) when (error is not OperationCanceledException)

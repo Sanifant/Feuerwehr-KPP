@@ -20,7 +20,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         public static string Validate(string content)
         {
             if (string.IsNullOrWhiteSpace(content) || Encoding.UTF8.GetByteCount(content) > 262144)
+            {
                 throw new ArgumentException("Bitte eine SVG-Datei mit höchstens 256 KB hochladen.");
+            }
+
             using XmlReader reader = XmlReader.Create(new StringReader(content), new XmlReaderSettings
             {
                 DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 262144,
@@ -28,13 +31,22 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             XDocument document = XDocument.Load(reader);
             XElement? root = document.Root;
             if (root is null || root.Name.LocalName != "svg" || (root.Name.Namespace != SvgNamespace && root.Name.Namespace != XNamespace.None))
+            {
                 throw new ArgumentException("Die Datei muss ein SVG-Bild enthalten.");
+            }
+
             if (document.DescendantNodes().OfType<XProcessingInstruction>().Any())
+            {
                 throw new ArgumentException("SVG-Verarbeitungsanweisungen sind nicht erlaubt.");
+            }
+
             root.Descendants().Where(node => node.Name.LocalName == "metadata" || node.Name.NamespaceName.Contains("inkscape") || node.Name.NamespaceName.Contains("sodipodi")).Remove();
             List<XElement> nodes = root.DescendantsAndSelf().ToList();
             if (nodes.Count > 10000 || nodes.Any(node => node.Ancestors().Count() > 40))
+            {
                 throw new ArgumentException("Das SVG ist zu komplex.");
+            }
+
             foreach (XElement? node in nodes)
             {
                 if (node.Name.LocalName == "metadata" || node.Name.NamespaceName.Contains("inkscape") || node.Name.NamespaceName.Contains("sodipodi"))
@@ -43,15 +55,26 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     continue;
                 }
                 if (!Elements.Contains(node.Name.LocalName) || (node.Name.Namespace != SvgNamespace && node.Name.Namespace != XNamespace.None))
+                {
                     throw new ArgumentException($"Das SVG-Element '{node.Name.LocalName}' wird nicht unterstützt.");
+                }
+
                 node.Name = SvgNamespace + node.Name.LocalName;
                 foreach (XAttribute? attribute in node.Attributes().ToList())
                 {
                     string name = attribute.Name.LocalName;
-                    if (attribute.IsNamespaceDeclaration) continue;
+                    if (attribute.IsNamespaceDeclaration)
+                    {
+                        continue;
+                    }
+
                     if (name.StartsWith("on", StringComparison.OrdinalIgnoreCase) || attribute.Name == XNamespace.Xml + "base")
+                    {
                         throw new ArgumentException("Skripte und Ereignisbehandlung sind in SVG-Bildern nicht erlaubt.");
-                    if (!Attributes.Contains(name)) { attribute.Remove(); continue; }
+                    }
+
+                    if (!Attributes.Contains(name)) { attribute.Remove();
+                        continue; }
                     if (name == "href")
                     {
                         if (node.Name.LocalName == "image")
@@ -60,12 +83,20 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                             continue;
                         }
                         if (!Regex.IsMatch(attribute.Value, @"^#[A-Za-z_][\w:.-]*$"))
+                        {
                             throw new ArgumentException("SVG-Bilder dürfen nur interne Verweise enthalten.");
+                        }
                     }
                     ValidateValue(attribute.Value);
-                    if (name == "style") ValidateDeclarations(attribute.Value);
+                    if (name == "style")
+                    {
+                        ValidateDeclarations(attribute.Value);
+                    }
                 }
-                if (node.Name.LocalName == "style") ValidateStylesheet(node.Value);
+                if (node.Name.LocalName == "style")
+                {
+                    ValidateStylesheet(node.Value);
+                }
             }
 
             string? viewBox = root.Attribute("viewBox")?.Value;
@@ -78,7 +109,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             string[] parts = viewBox.Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 4 || parts.Any(part => !double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) || !double.IsFinite(value))
                 || double.Parse(parts[2], CultureInfo.InvariantCulture) <= 0 || double.Parse(parts[3], CultureInfo.InvariantCulture) <= 0)
+            {
                 throw new ArgumentException("Das SVG benötigt eine gültige viewBox mit positiver Breite und Höhe.");
+            }
+
             root.SetAttributeValue("viewBox", string.Join(" ", parts));
             root.SetAttributeValue("width", "64");
             root.SetAttributeValue("height", "64");
@@ -90,19 +124,28 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         {
             string number = Regex.Replace(value ?? "", @"px$", "", RegexOptions.IgnoreCase);
             if (!double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out double result) || !double.IsFinite(result) || result <= 0)
+            {
                 throw new ArgumentException("Das SVG benötigt eine viewBox oder gültige Breiten- und Höhenangaben.");
+            }
+
             return result;
         }
 
         private static string ValidateImageReference(string value)
         {
-            if (Regex.IsMatch(value, @"^#[A-Za-z_][\w:.-]*$")) return value;
+            if (Regex.IsMatch(value, @"^#[A-Za-z_][\w:.-]*$"))
+            {
+                return value;
+            }
+
             int separator = value.IndexOf(',');
             string header = separator < 0 ? string.Empty : value[..separator];
             bool png = header.Equals("data:image/png;base64", StringComparison.OrdinalIgnoreCase);
             bool jpeg = header.Equals("data:image/jpeg;base64", StringComparison.OrdinalIgnoreCase);
             if (!png && !jpeg)
+            {
                 throw new ArgumentException("Bilder im SVG müssen als PNG oder JPEG eingebettet sein (data:image/png;base64 oder data:image/jpeg;base64). Bitte externe Bilder im SVG-Editor einbetten.");
+            }
 
             byte[] bytes;
             try { bytes = Convert.FromBase64String(value[(separator + 1)..]); }
@@ -115,7 +158,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 ? bytes.AsSpan().StartsWith(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 })
                 : bytes.AsSpan().StartsWith(new byte[] { 255, 216, 255 });
             if (!signatureValid)
+            {
                 throw new ArgumentException("Der Inhalt eines eingebetteten Bildes entspricht nicht dem angegebenen PNG- oder JPEG-Format.");
+            }
+
             return $"data:image/{(png ? "png" : "jpeg")};base64,{Convert.ToBase64String(bytes)}";
         }
 
@@ -123,10 +169,15 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         {
             if (value.Contains('\\') || value.Contains('@') || value.Contains("javascript:", StringComparison.OrdinalIgnoreCase)
                 || value.Contains("expression", StringComparison.OrdinalIgnoreCase))
+            {
                 throw new ArgumentException("Das SVG enthält nicht unterstützte aktive Inhalte.");
+            }
+
             string remaining = Regex.Replace(value, "url\\(\\s*(['\"]?)#[A-Za-z_][\\w:.-]*\\1\\s*\\)", "", RegexOptions.IgnoreCase);
             if (remaining.Contains("url", StringComparison.OrdinalIgnoreCase))
+            {
                 throw new ArgumentException("Externe Ressourcen sind in SVG-Bildern nicht erlaubt.");
+            }
         }
 
         private static void ValidateDeclarations(string value)
@@ -136,7 +187,9 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 int colon = declaration.IndexOf(':');
                 if (colon <= 0 || !CssProperties.Contains(declaration[..colon].Trim()))
+                {
                     throw new ArgumentException("Das SVG enthält nicht unterstützte CSS-Eigenschaften.");
+                }
             }
         }
 
@@ -146,12 +199,17 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             string remaining = Regex.Replace(value, @"/\*.*?\*/", "", RegexOptions.Singleline);
             foreach (Match rule in Regex.Matches(remaining, @"([^{}]+)\{([^{}]*)\}"))
             {
-                if (!Regex.IsMatch(rule.Groups[1].Value, @"^[\w\s.#,>:+*-]+$")) throw new ArgumentException("Nicht unterstützter SVG-CSS-Selektor.");
+                if (!Regex.IsMatch(rule.Groups[1].Value, @"^[\w\s.#,>:+*-]+$"))
+                {
+                    throw new ArgumentException("Nicht unterstützter SVG-CSS-Selektor.");
+                }
+
                 ValidateDeclarations(rule.Groups[2].Value);
             }
             if (!string.IsNullOrWhiteSpace(Regex.Replace(remaining, @"[^{}]+\{[^{}]*\}", "")))
+            {
                 throw new ArgumentException("Ungültiges SVG-Stylesheet.");
+            }
         }
     }
-
 }

@@ -11,4 +11,3 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
         public List<string> Roles { get; set; } = new();
     }
 }
-

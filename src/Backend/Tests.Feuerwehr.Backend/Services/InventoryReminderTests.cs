@@ -25,7 +25,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             EquipmentType type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = 12, InspectionInstructions = "Sichtprüfung" };
             Equipment item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = today.AddDays(15).AddYears(-1), SerialNumber = "123", Manufacturer = "Test" };
             db.Equipment.Add(item);
-            IdentityRole role = new IdentityRole(Roles.EquipmentOfficer); db.Roles.Add(role);
+            IdentityRole role = new IdentityRole(Roles.EquipmentOfficer);
+            db.Roles.Add(role);
             foreach ((string? id, bool active) in new[] { ("good", true), ("retry", true), ("inactive", false) })
             {
                 db.Users.Add(new ApplicationUser { Id = id, UserName = id, Email = $"{id}@example.test", IsActive = active });
@@ -40,7 +41,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             InventoryReminderService service = new InventoryReminderService(db, mail.Object, clock, NullLogger<InventoryReminderService>.Instance);
             await service.SendDueReminders(CancellationToken.None);
             mail.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
-            item.CreatedOn = today.AddDays(14).AddYears(-1); await db.SaveChangesAsync();
+            item.CreatedOn = today.AddDays(14).AddYears(-1);
+            await db.SaveChangesAsync();
             await service.SendDueReminders(CancellationToken.None);
             Assert.Single(db.EquipmentReminderDeliveries);
             Assert.Equal("good", db.EquipmentReminderDeliveries.Single().RecipientId);
@@ -67,5 +69,4 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             public override DateTimeOffset GetUtcNow() => new(this.Date.ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc));
         }
     }
-
 }

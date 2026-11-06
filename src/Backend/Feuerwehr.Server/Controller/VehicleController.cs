@@ -179,5 +179,4 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         public async Task<IActionResult> Cancel(Guid id, DecideVehicleReservationRequest request, CancellationToken ct) =>
             this.ToActionResult(await service.Decide(id, request, VehicleReservationStatus.Cancelled, ct));
     }
-
 }

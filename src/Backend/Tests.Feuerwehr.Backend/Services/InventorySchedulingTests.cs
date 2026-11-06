@@ -27,11 +27,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             InventoryCategory category = new InventoryCategory { Id = Guid.NewGuid(), Name = "Armaturen", NormalizedName = "ARMATUREN" };
             EquipmentType type = new EquipmentType { Id = Guid.NewGuid(), Category = category, CategoryId = category.Id, Name = "Strahlrohr", InspectionIntervalMonths = interval, InspectionInstructions = "Sichtprüfung" };
             Equipment item = new Equipment { Id = Guid.NewGuid(), BarcodeNumber = 1, EquipmentType = type, EquipmentTypeId = type.Id, CreatedOn = DateOnly.Parse(created), LastInspectedOn = inspected is null ? null : DateOnly.Parse(inspected) };
-            db.Equipment.Add(item); await db.SaveChangesAsync();
+            db.Equipment.Add(item);
+            await db.SaveChangesAsync();
             InventoryService service = new InventoryService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);
             ServiceResult response = await service.Get(item.Id, CancellationToken.None);
             Assert.Equal(DateOnly.Parse(expected), Assert.IsType<EquipmentDetailDto>(response.Value).Equipment.NextInspectionOn);
         }
     }
-
 }

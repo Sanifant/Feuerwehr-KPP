@@ -10,14 +10,14 @@ namespace De.Openelp.Feuerwehr.Diagnostics
         private readonly string _path;
         private ProcessDiagnostics(string name)
         {
-            _name = name;
-            _path = Path.Combine(AppContext.BaseDirectory, "logs", "process-diagnostics.log");
-            AppDomain.CurrentDomain.UnhandledException += Unhandled;
-            AppDomain.CurrentDomain.ProcessExit += Exited;
-            TaskScheduler.UnobservedTaskException += Unobserved;
-            Console.CancelKeyPress += Canceled;
-            Record("Process.Start", $"PID={Environment.ProcessId}; DebuggerAttached={Debugger.IsAttached}; Runtime={Environment.Version}");
-            Record("Diagnostics.File", _path);
+            this._name = name;
+            this._path = Path.Combine(AppContext.BaseDirectory, "logs", "process-diagnostics.log");
+            AppDomain.CurrentDomain.UnhandledException += this.Unhandled;
+            AppDomain.CurrentDomain.ProcessExit += this.Exited;
+            TaskScheduler.UnobservedTaskException += this.Unobserved;
+            Console.CancelKeyPress += this.Canceled;
+            this.Record("Process.Start", $"PID={Environment.ProcessId}; DebuggerAttached={Debugger.IsAttached}; Runtime={Environment.Version}");
+            this.Record("Diagnostics.File", this._path);
         }
 
         /// <summary>
@@ -33,48 +33,61 @@ namespace De.Openelp.Feuerwehr.Diagnostics
         /// <param name="exception">The exception.</param>
         public void Record(string step, string? details = null, Exception? exception = null)
         {
-            string text = $"{DateTime.UtcNow:O} [{_name}] {step}: {details}";
-            if (exception is not null) text += Environment.NewLine + exception;
+            string text = $"{DateTime.UtcNow:O} [{this._name}] {step}: {details}";
+            if (exception is not null)
+            {
+                text += Environment.NewLine + exception;
+            }
+
             try
             {
                 Debug.WriteLine(text);
-                if (exception is null) Console.WriteLine(text);
-                else Console.Error.WriteLine(text);
+                if (exception is null)
+                {
+                    Console.WriteLine(text);
+                }
+                else
+                {
+                    Console.Error.WriteLine(text);
+                }
             }
             catch (Exception) { /* Diagnostics must not terminate a process with a closed output stream. */ }
             try
             {
-                lock (_sync)
+                lock (this._sync)
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
-                    if (File.Exists(_path) && new FileInfo(_path).Length > 2 * 1024 * 1024)
-                        File.Move(_path, _path + ".previous", overwrite: true);
-                    File.AppendAllText(_path, text + Environment.NewLine);
+                    Directory.CreateDirectory(Path.GetDirectoryName(this._path)!);
+                    if (File.Exists(this._path) && new FileInfo(this._path).Length > 2 * 1024 * 1024)
+                    {
+                        File.Move(this._path, this._path + ".previous", overwrite: true);
+                    }
+
+                    File.AppendAllText(this._path, text + Environment.NewLine);
                 }
             }
             catch (Exception) { /* A read-only/full filesystem must not affect application behavior. */ }
         }
-
-        private void Unhandled(object sender, UnhandledExceptionEventArgs args)
-            => Record("Process.UnhandledException", $"IsTerminating={args.IsTerminating}", args.ExceptionObject as Exception);
-        private void Unobserved(object? sender, UnobservedTaskExceptionEventArgs args)
-            => Record("Process.UnobservedTaskException", exception: args.Exception);
-        private void Exited(object? sender, EventArgs args)
-            => Record("Process.Exit", $"ExitCode={Environment.ExitCode}");
-        private void Canceled(object? sender, ConsoleCancelEventArgs args)
-            => Record("Process.CancelKeyPress", $"Key={args.SpecialKey}");
 
         /// <summary>
         /// Executes dispose.
         /// </summary>
         public void Dispose()
         {
-            Record("Process.DiagnosticsDisposed", $"ExitCode={Environment.ExitCode}");
-            AppDomain.CurrentDomain.UnhandledException -= Unhandled;
-            AppDomain.CurrentDomain.ProcessExit -= Exited;
-            TaskScheduler.UnobservedTaskException -= Unobserved;
-            Console.CancelKeyPress -= Canceled;
+            this.Record("Process.DiagnosticsDisposed", $"ExitCode={Environment.ExitCode}");
+            AppDomain.CurrentDomain.UnhandledException -= this.Unhandled;
+            AppDomain.CurrentDomain.ProcessExit -= this.Exited;
+            TaskScheduler.UnobservedTaskException -= this.Unobserved;
+            Console.CancelKeyPress -= this.Canceled;
         }
-    }
 
+        private void Unhandled(object sender, UnhandledExceptionEventArgs args)
+            => this.Record("Process.UnhandledException", $"IsTerminating={args.IsTerminating}", args.ExceptionObject as Exception);
+        private void Unobserved(object? sender, UnobservedTaskExceptionEventArgs args)
+            => this.Record("Process.UnobservedTaskException", exception: args.Exception);
+        private void Exited(object? sender, EventArgs args)
+            => this.Record("Process.Exit", $"ExitCode={Environment.ExitCode}");
+
+        private void Canceled(object? sender, ConsoleCancelEventArgs args)
+            => this.Record("Process.CancelKeyPress", $"Key={args.SpecialKey}");
+    }
 }

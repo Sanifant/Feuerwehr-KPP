@@ -20,5 +20,4 @@ namespace De.Openelp.Feuerwehr.Server.Models
 
         public ICollection<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; } = new List<FireDepartmentTrainingCourse>();
     }
-
 }

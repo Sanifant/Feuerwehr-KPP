@@ -35,5 +35,4 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         public async Task<ActionResult<FireDepartmentDto>> Add([FromBody] FireDepartmentDto value) =>
             this.ToActionResult(await service.Add(value));
     }
-
 }

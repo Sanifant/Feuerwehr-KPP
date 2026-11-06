@@ -47,7 +47,11 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="request">The request.</param>
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+            {
+                return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.CreateUser(request));
         }
 
@@ -72,7 +76,11 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="request">The request.</param>
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+            {
+                return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.UpdateUser(id, request));
         }
 
@@ -86,7 +94,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         public async Task<IActionResult> DeleteUser(string id)
         {
-            return this.ToActionResult(await service.DeleteUser(id, User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.DeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
         /// <summary>
@@ -99,9 +107,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         public async Task<IActionResult> PermanentlyDeleteUser(string id)
         {
-            return this.ToActionResult(await service.PermanentlyDeleteUser(id, User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.PermanentlyDeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
-
     }
-
 }

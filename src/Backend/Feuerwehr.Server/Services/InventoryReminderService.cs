@@ -31,7 +31,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 .Where(x => x.IsActive).ToListAsync(ct);
             List<EquipmentDto> due = items.Select(InventoryService.ToDto).Where(x => x.NextInspectionOn <= today.AddDays(14))
                 .OrderBy(x => x.NextInspectionOn).ThenBy(x => x.Barcode).ToList();
-            if (due.Count == 0) return;
+            if (due.Count == 0)
+            {
+                return;
+            }
 
             var recipients = await (from user in db.Users
                                     join membership in db.UserRoles on user.Id equals membership.UserId
@@ -43,7 +46,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 ct.ThrowIfCancellationRequested();
                 List<EquipmentReminderDelivery> sent = await db.EquipmentReminderDeliveries.AsNoTracking().Where(x => x.RecipientId == recipient.Id).ToListAsync(ct);
                 List<EquipmentDto> pending = due.Where(x => !sent.Any(s => s.EquipmentId == x.Id && s.DueOn == x.NextInspectionOn)).ToList();
-                if (pending.Count == 0) continue;
+                if (pending.Count == 0)
+                {
+                    continue;
+                }
+
                 StringBuilder body = new StringBuilder("Folgende Geräte sind innerhalb der nächsten zwei Wochen zur Prüfung fällig oder bereits überfällig:\n\n");
                 foreach (EquipmentDto? item in pending)
                 {

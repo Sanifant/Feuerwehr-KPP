@@ -98,4 +98,3 @@ namespace De.Openelp.Feuerwehr.Server.Authorization
         }
     }
 }
-

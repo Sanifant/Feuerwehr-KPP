@@ -42,17 +42,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
             return Encoding.UTF8.GetBytes("\uFEFF" + csv);
         }
 
-        private static string CsvText(string? value)
-        {
-            value ??= "";
-            // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
-            string trimmed = value.TrimStart();
-            if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
-                || value.Length > 0 && "\t\r\n".Contains(value[0]))
-                value = "'" + value;
-            return "\"" + value.Replace("\"", "\"\"") + "\"";
-        }
-
         /// <summary>
         /// Executes import.
         /// </summary>
@@ -61,7 +50,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<ServiceResult> ImportAsync(Stream csv, CancellationToken cancellationToken = default)
         {
             (List<Hydrant>? hydrants, List<HydrantImportError>? errors) = HydrantCsvImport.Read(csv, cancellationToken);
-            if (errors.Count > 0) return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
+            if (errors.Count > 0)
+            {
+                return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
+            }
 
             List<HydrantEntity> entities = hydrants.Select(dto =>
             {
@@ -112,7 +104,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public ServiceResult Put(int id, Hydrant value)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
-            if (entity is null) return ServiceResult.NotFound();
+            if (entity is null)
+            {
+                return ServiceResult.NotFound();
+            }
+
             Apply(entity, value);
             context.SaveChanges();
             return ServiceResult.NoContent();
@@ -125,10 +121,28 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public ServiceResult Delete(int id)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
-            if (entity is null) return ServiceResult.NotFound();
+            if (entity is null)
+            {
+                return ServiceResult.NotFound();
+            }
+
             context.Hydrants.Remove(entity);
             context.SaveChanges();
             return ServiceResult.NoContent();
+        }
+
+        private static string CsvText(string? value)
+        {
+            value ??= "";
+            // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
+            string trimmed = value.TrimStart();
+            if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
+                || value.Length > 0 && "\t\r\n".Contains(value[0]))
+            {
+                value = "'" + value;
+            }
+
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
         private static void Apply(HydrantEntity entity, Hydrant dto)

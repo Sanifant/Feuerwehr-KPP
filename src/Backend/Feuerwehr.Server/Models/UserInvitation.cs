@@ -9,5 +9,4 @@ namespace De.Openelp.Feuerwehr.Server.Models
     /// <param name="ResetToken">The reset Token.</param>
     /// <param name="ExpiresAtUtc">The expires At Utc.</param>
     public sealed record UserInvitation(string UserId, string Email, string ResetToken, DateTimeOffset ExpiresAtUtc);
-
 }

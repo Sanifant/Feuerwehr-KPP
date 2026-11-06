@@ -25,7 +25,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 .ToListAsync(cancellationToken);
 
             return ServiceResult.Ok(categories);
-
         }
 
         /// <summary>
@@ -60,8 +59,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(new DiaryCategoryDto(existing.Id, existing.Code, existing.Name, existing.IsActive));
-
         }
-
     }
 }

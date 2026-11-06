@@ -19,7 +19,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="subject">The subject.</param>
         /// <param name="body">The body.</param>
         public Task SendAsync(string recipient, string subject, string body) =>
-            SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
+            this.SendMessageAsync(recipient, subject, new TextPart("plain") { Text = body });
 
         /// <summary>
         /// Sends the html.
@@ -35,7 +35,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 ?? throw new InvalidOperationException("Das eingebettete E-Mail-Logo fehlt.");
             MimeEntity logo = builder.LinkedResources.Add("feuerwehr.png", logoStream, new ContentType("image", "png"));
             logo.ContentId = "feuerwehr-logo";
-            await SendMessageAsync(recipient, subject, builder.ToMessageBody());
+            await this.SendMessageAsync(recipient, subject, builder.ToMessageBody());
         }
 
         private async Task SendMessageAsync(string recipient, string subject, MimeEntity body)
@@ -50,7 +50,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 await client.ConnectAsync(settings.Host, settings.Port, settings.Security);
                 if (settings.Username is not null)
+                {
                     await client.AuthenticateAsync(settings.Username, settings.Password!);
+                }
+
                 await client.SendAsync(message);
             }
             finally

@@ -36,7 +36,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (!Uri.TryCreate(configuredUrl, UriKind.Absolute, out Uri? baseUri) ||
                 (baseUri.Scheme != Uri.UriSchemeHttps && baseUri.Scheme != Uri.UriSchemeHttp) ||
                 !string.IsNullOrEmpty(baseUri.Query) || !string.IsNullOrEmpty(baseUri.Fragment))
+            {
                 throw new InvalidOperationException("Frontend:BaseUrl muss als absolute HTTP(S)-Adresse konfiguriert sein.");
+            }
 
             string? previousStamp = user.SecurityStamp;
             bool previouslyRequired = user.PasswordResetRequired;
@@ -44,7 +46,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
             // Persist the lock and invalidate previous invitations and access tokens before sending.
             IdentityResult locked = await users.UpdateSecurityStampAsync(user);
             if (!locked.Succeeded)
+            {
                 throw new InvalidOperationException("Das Konto konnte nicht für die Passwortvergabe gesperrt werden.");
+            }
 
             Guid id = Guid.NewGuid();
             Uri link = new Uri(new Uri(baseUri.AbsoluteUri.TrimEnd('/') + "/"), $"password/{id:D}");
@@ -68,7 +72,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 user.SecurityStamp = previousStamp;
                 IdentityResult restored = await users.UpdateAsync(user);
                 if (!restored.Succeeded)
+                {
                     logger.LogError("Kontostatus konnte nach fehlgeschlagenem Einladungsversand nicht wiederhergestellt werden.");
+                }
+
                 try
                 {
                     await store.RemoveAsync(id);
@@ -91,17 +98,24 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 new MessageResponse("Der Einladungslink oder die E-Mail-Adresse ist ungültig oder abgelaufen."));
 
             if (!Guid.TryParseExact(request.Token, "D", out Guid id) || id == Guid.Empty)
+            {
                 return InvalidInvitation();
+            }
+
             UserInvitation? invitation = await store.FindAsync(id);
             if (invitation is null || invitation.ExpiresAtUtc <= clock.GetUtcNow())
+            {
                 return InvalidInvitation();
+            }
 
             ApplicationUser? user = await users.FindByIdAsync(invitation.UserId);
             string email = users.NormalizeEmail(request.Email.Trim());
             if (user is null || !user.IsActive ||
                 !string.Equals(email, users.NormalizeEmail(invitation.Email), StringComparison.Ordinal) ||
                 !string.Equals(email, users.NormalizeEmail(user.Email), StringComparison.Ordinal))
+            {
                 return InvalidInvitation();
+            }
 
             // Identity validates password strength and the security-stamp-bound token. A successful
             // reset changes the stamp, so even concurrent/replayed requests cannot reuse the token.
@@ -119,7 +133,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 user.LockoutEnd = previousLockout;
                 user.AccessFailedCount = previousFailures;
                 if (result.Errors.Any(error => error.Code is "InvalidToken" or "ConcurrencyFailure"))
+                {
                     return InvalidInvitation();
+                }
+
                 return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht gesetzt werden.",
                     result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
             }

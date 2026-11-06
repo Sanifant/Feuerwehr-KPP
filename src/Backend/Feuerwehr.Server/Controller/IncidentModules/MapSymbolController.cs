@@ -64,5 +64,4 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> Update(Guid id, SaveMapSymbolRequest request, CancellationToken cancellationToken)
             => this.ToActionResult(await service.Save(id, request, cancellationToken));
     }
-
 }

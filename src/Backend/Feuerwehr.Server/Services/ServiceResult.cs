@@ -70,5 +70,4 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public static ServiceResult File(byte[] content, string contentType, string downloadName) =>
             new(200) { Content = content, ContentType = contentType, DownloadName = downloadName };
     }
-
 }

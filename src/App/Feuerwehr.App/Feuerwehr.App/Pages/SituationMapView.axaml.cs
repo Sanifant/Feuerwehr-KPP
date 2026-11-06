@@ -9,14 +9,14 @@ namespace De.Openelp.Feuerwehr.App.Pages
     {
         public SituationMapView()
         {
-            InitializeComponent();
-            DataContext = App.Services.GetRequiredService<SituationMapViewModel>();
+            this.InitializeComponent();
+            this.DataContext = App.Services.GetRequiredService<SituationMapViewModel>();
         }
 
         protected override async void OnLoaded(RoutedEventArgs e)
         {
             base.OnLoaded(e);
-            if (DataContext is SituationMapViewModel viewModel)
+            if (this.DataContext is SituationMapViewModel viewModel)
             {
                 viewModel.Activate();
                 await viewModel.RefreshCommand.ExecuteAsync(null);
@@ -25,9 +25,12 @@ namespace De.Openelp.Feuerwehr.App.Pages
 
         protected override void OnUnloaded(RoutedEventArgs e)
         {
-            if (DataContext is SituationMapViewModel viewModel) viewModel.Deactivate();
+            if (this.DataContext is SituationMapViewModel viewModel)
+            {
+                viewModel.Deactivate();
+            }
+
             base.OnUnloaded(e);
         }
     }
-
 }

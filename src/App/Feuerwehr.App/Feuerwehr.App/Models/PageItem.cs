@@ -40,7 +40,6 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <value>
         ///   <c>true</c> if this <see cref="PageItem"/> is visible; otherwise, <c>false</c>.
         /// </value>
-        public bool IsVisible { get => _isVisible(); }
+        public bool IsVisible { get => this._isVisible(); }
     }
 }
-

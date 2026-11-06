@@ -21,7 +21,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <param name="value">The value.</param>
         public Task SetAsync(string key, string value)
         {
-            _storage[key] = value;
+            this._storage[key] = value;
             return Task.CompletedTask;
         }
 
@@ -31,7 +31,7 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <param name="key">The key.</param>
         public Task<string?> GetAsync(string key)
         {
-            _storage.TryGetValue(key, out string? value);
+            this._storage.TryGetValue(key, out string? value);
             return Task.FromResult(value);
         }
 
@@ -41,9 +41,8 @@ namespace De.Openelp.Feuerwehr.App.Services
         /// <param name="key">The key.</param>
         public Task RemoveAsync(string key)
         {
-            _storage.TryRemove(key, out _);
+            this._storage.TryRemove(key, out _);
             return Task.CompletedTask;
         }
     }
-
 }

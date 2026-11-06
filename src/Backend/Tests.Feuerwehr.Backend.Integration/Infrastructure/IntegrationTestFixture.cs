@@ -28,21 +28,21 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         /// </summary>
         public async Task InitializeAsync()
         {
-            await Task.WhenAll(_postgres.StartAsync(), _redis.StartAsync());
+            await Task.WhenAll(this._postgres.StartAsync(), this._redis.StartAsync());
 
-            Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", _postgres.GetConnectionString());
-            Environment.SetEnvironmentVariable("ConnectionStrings__cache", _redis.GetConnectionString());
+            Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", this._postgres.GetConnectionString());
+            Environment.SetEnvironmentVariable("ConnectionStrings__cache", this._redis.GetConnectionString());
             Environment.SetEnvironmentVariable("SeedAdmin__Email", SeedAdminEmail);
             Environment.SetEnvironmentVariable("SeedAdmin__Password", SeedAdminPassword);
             Environment.SetEnvironmentVariable("JwtSettings__SecretKey", "YourSuperSecretKeyForJWT_MinimumLength32Characters_ChangeInProduction!");
 
-            _factory = new ApiWebApplicationFactory(
-                _postgres.GetConnectionString(),
-                _redis.GetConnectionString(),
+            this._factory = new ApiWebApplicationFactory(
+                this._postgres.GetConnectionString(),
+                this._redis.GetConnectionString(),
                 SeedAdminEmail,
                 SeedAdminPassword);
 
-            Client = _factory.CreateClient(new()
+            this.Client = this._factory.CreateClient(new()
             {
                 AllowAutoRedirect = false,
             });
@@ -53,7 +53,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         /// </summary>
         public async Task<string> LoginAsAdminAndGetAccessTokenAsync()
         {
-            HttpResponseMessage response = await Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+            HttpResponseMessage response = await this.Client.PostAsJsonAsync("/api/auth/login", new LoginRequest
             {
                 Email = SeedAdminEmail,
                 Password = SeedAdminPassword,
@@ -69,11 +69,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
         /// </summary>
         public async Task DisposeAsync()
         {
-            Client.Dispose();
+            this.Client.Dispose();
 
-            if (_factory is not null)
+            if (this._factory is not null)
             {
-                await _factory.DisposeAsync();
+                await this._factory.DisposeAsync();
             }
 
             Environment.SetEnvironmentVariable("ConnectionStrings__postgresdb", null);
@@ -82,9 +82,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure
             Environment.SetEnvironmentVariable("SeedAdmin__Password", null);
             Environment.SetEnvironmentVariable("JwtSettings__SecretKey", null);
 
-            await _redis.DisposeAsync();
-            await _postgres.DisposeAsync();
+            await this._redis.DisposeAsync();
+            await this._postgres.DisposeAsync();
         }
     }
-
 }

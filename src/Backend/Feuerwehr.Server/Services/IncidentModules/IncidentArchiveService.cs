@@ -20,9 +20,16 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<ServiceResult> GetDiary(Guid incidentId, CancellationToken cancellationToken)
         {
-            if (!userContext.IsAdmin) return ServiceResult.Forbid();
+            if (!userContext.IsAdmin)
+            {
+                return ServiceResult.Forbid();
+            }
+
             if (!await dbContext.Incidents.AnyAsync(x => x.Id == incidentId && x.Status == IncidentStatus.Closed, cancellationToken))
+            {
                 return ServiceResult.NotFound();
+            }
+
             return await diaryService.GetEntries(incidentId, cancellationToken);
         }
 
@@ -33,9 +40,16 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<ServiceResult> ExportPdf(Guid incidentId, CancellationToken cancellationToken)
         {
-            if (!userContext.IsAdmin) return ServiceResult.Forbid();
+            if (!userContext.IsAdmin)
+            {
+                return ServiceResult.Forbid();
+            }
+
             if (!await dbContext.Incidents.AnyAsync(x => x.Id == incidentId && x.Status == IncidentStatus.Closed, cancellationToken))
+            {
                 return ServiceResult.NotFound();
+            }
+
             return await diaryService.ExportDiaryPdf(incidentId, cancellationToken);
         }
     }

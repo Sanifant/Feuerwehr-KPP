@@ -23,11 +23,11 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 ITokenService tokenService,
                 IConfiguration configuration)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _invitations = invitations;
-            _tokenService = tokenService;
-            _configuration = configuration;
+            this._userManager = userManager;
+            this._signInManager = signInManager;
+            this._invitations = invitations;
+            this._tokenService = tokenService;
+            this._configuration = configuration;
         }
 
         /// <summary>
@@ -38,16 +38,18 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<ServiceResult> Login(LoginRequest request)
         {
 
-            ApplicationUser? user = await _userManager.FindByEmailAsync(request.Email);
+            ApplicationUser? user = await this._userManager.FindByEmailAsync(request.Email);
             if (user == null || !user.IsActive)
             {
                 return ServiceResult.Unauthorized(new MessageResponse("Invalid credentials"));
             }
 
             if (user.PasswordResetRequired)
+            {
                 return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe über den Einladungslink gesperrt."));
+            }
 
-            SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            SignInResult result = await this._signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
             if (result.IsLockedOut)
             {
@@ -60,20 +62,20 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             // Get user roles
-            IList<string> roles = await _userManager.GetRolesAsync(user);
+            IList<string> roles = await this._userManager.GetRolesAsync(user);
 
             // Generate tokens
-            string accessToken = await _tokenService.GenerateAccessTokenAsync(user, roles);
-            string refreshToken = _tokenService.GenerateRefreshToken();
+            string accessToken = await this._tokenService.GenerateAccessTokenAsync(user, roles);
+            string refreshToken = this._tokenService.GenerateRefreshToken();
 
             // Store refresh token
-            await _tokenService.StoreRefreshTokenAsync(user.Id, refreshToken);
+            await this._tokenService.StoreRefreshTokenAsync(user.Id, refreshToken);
 
             // Update last login
             user.LastLoginAt = DateTime.UtcNow;
-            await _userManager.UpdateAsync(user);
+            await this._userManager.UpdateAsync(user);
 
-            IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
+            IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
             int expirationMinutes = int.Parse(jwtSettings["AccessTokenExpirationMinutes"] ?? "15");
 
             return ServiceResult.Ok(new LoginResponse
@@ -86,7 +88,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 Roles = roles.ToList(),
                 ExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes)
             });
-
         }
 
         /// <summary>
@@ -106,7 +107,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.Unauthorized(new MessageResponse("Access token required"));
             }
 
-            ClaimsPrincipal? principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+            ClaimsPrincipal? principal = this._tokenService.GetPrincipalFromExpiredToken(accessToken);
             if (principal == null)
             {
                 return ServiceResult.Unauthorized(new MessageResponse("Invalid access token"));
@@ -119,27 +120,27 @@ namespace De.Openelp.Feuerwehr.Server.Services
             }
 
             // Validate refresh token
-            bool isValidRefreshToken = await _tokenService.ValidateRefreshTokenAsync(userId, request.RefreshToken);
+            bool isValidRefreshToken = await this._tokenService.ValidateRefreshTokenAsync(userId, request.RefreshToken);
             if (!isValidRefreshToken)
             {
                 return ServiceResult.Unauthorized(new MessageResponse("Invalid refresh token"));
             }
 
-            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
+            ApplicationUser? user = await this._userManager.FindByIdAsync(userId);
             if (user == null || !user.IsActive || user.PasswordResetRequired)
             {
                 return ServiceResult.Unauthorized(new MessageResponse("User not found or inactive"));
             }
 
             // Generate new tokens
-            IList<string> roles = await _userManager.GetRolesAsync(user);
-            string newAccessToken = await _tokenService.GenerateAccessTokenAsync(user, roles);
-            string newRefreshToken = _tokenService.GenerateRefreshToken();
+            IList<string> roles = await this._userManager.GetRolesAsync(user);
+            string newAccessToken = await this._tokenService.GenerateAccessTokenAsync(user, roles);
+            string newRefreshToken = this._tokenService.GenerateRefreshToken();
 
             // Store new refresh token (implements rotation)
-            await _tokenService.StoreRefreshTokenAsync(userId, newRefreshToken);
+            await this._tokenService.StoreRefreshTokenAsync(userId, newRefreshToken);
 
-            IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
+            IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
             int expirationMinutes = int.Parse(jwtSettings["AccessTokenExpirationMinutes"] ?? "15");
 
             return ServiceResult.Ok(new TokenResponse
@@ -148,13 +149,12 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 RefreshToken = newRefreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes)
             });
-
         }
 
         /// <summary>
         /// Executes reset Password.
         /// </summary>
-        public Task<ServiceResult> ResetPassword(ResetRequest request) => _invitations.CompleteAsync(request);
+        public Task<ServiceResult> ResetPassword(ResetRequest request) => this._invitations.CompleteAsync(request);
 
         /// <summary>
         /// Executes change Password.
@@ -163,28 +163,43 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="currentUserId">The current User Id.</param>
         public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
         {
-            if (string.IsNullOrWhiteSpace(currentUserId)) return ServiceResult.Unauthorized();
-            ApplicationUser? user = await _userManager.FindByIdAsync(currentUserId);
-            if (user is null || !user.IsActive || user.PasswordResetRequired) return ServiceResult.Unauthorized();
+            if (string.IsNullOrWhiteSpace(currentUserId))
+            {
+                return ServiceResult.Unauthorized();
+            }
+
+            ApplicationUser? user = await this._userManager.FindByIdAsync(currentUserId);
+            if (user is null || !user.IsActive || user.PasswordResetRequired)
+            {
+                return ServiceResult.Unauthorized();
+            }
 
             // Share the login attempt counter and honor existing account lockouts, including
             // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.
-            SignInResult passwordCheck = await _signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
+            SignInResult passwordCheck = await this._signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
             if (passwordCheck.IsLockedOut)
+            {
                 return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorübergehend gesperrt."));
-            if (!passwordCheck.Succeeded)
-                return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestätigt werden."));
+            }
 
-            IdentityResult result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            if (!passwordCheck.Succeeded)
+            {
+                return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestätigt werden."));
+            }
+
+            IdentityResult result = await this._userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
             if (!result.Succeeded)
             {
                 if (result.Errors.Any(error => error.Code == "PasswordMismatch"))
+                {
                     return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort ist falsch."));
+                }
+
                 return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geändert werden.",
                     result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
             }
 
-            await _tokenService.RevokeRefreshTokenAsync(user.Id);
+            await this._tokenService.RevokeRefreshTokenAsync(user.Id);
             return ServiceResult.Ok(new MessageResponse("Ihr Passwort wurde geändert."));
         }
 
@@ -201,11 +216,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.BadRequest(new MessageResponse("Invalid user"));
             }
 
-            await _tokenService.RevokeRefreshTokenAsync(userId);
-            await _signInManager.SignOutAsync();
+            await this._tokenService.RevokeRefreshTokenAsync(userId);
+            await this._signInManager.SignOutAsync();
 
             return ServiceResult.Ok(new MessageResponse("Logged out successfully"));
-
         }
 
         /// <summary>
@@ -221,17 +235,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.Unauthorized();
             }
 
-            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
+            ApplicationUser? user = await this._userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return ServiceResult.NotFound();
             }
 
-            IList<string> roles = await _userManager.GetRolesAsync(user);
+            IList<string> roles = await this._userManager.GetRolesAsync(user);
 
             return ServiceResult.Ok(new UserInfo { Id = user.Id, Email = user.Email ?? string.Empty, FirstName = user.FirstName, LastName = user.LastName, FullName = user.FullName, FireDepartmentId = user.FireDepartmentId, Roles = roles.ToList() });
-
         }
-
     }
 }

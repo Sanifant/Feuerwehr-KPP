@@ -33,7 +33,10 @@ namespace De.Openelp.Feuerwehr.Tests.App
             Mock<IAuthService> auth = CreateAuth(role);
             Mock<ISituationMapService> service = new Mock<ISituationMapService>(MockBehavior.Strict);
             if (allowed)
+            {
                 service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ReturnsAsync((IncidentSummaryDto?)null);
+            }
+
             SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, auth.Object);
 
             Assert.Equal(allowed, new MainViewModel(auth.Object).CanViewSituationMap);
@@ -161,6 +164,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         /// </summary>
         public void Layers_ProjectCoordinatesAndPreservePolygonHolesAndSvgSymbols()
         {
+#pragma warning disable SA1101 // StyleCop 1.1.118 misidentifies record 'with' initializer properties as local members.
             MapElementDto symbol = Element("[10.6,53.9]") with
             {
                 SymbolSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" /></svg>",
@@ -170,6 +174,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
             {
                 ElementType = MapElementType.Polygon
             };
+#pragma warning restore SA1101
             using MemoryLayer layer = SituationMapLayers.CreateElements([symbol, polygon]);
             IFeature[] features = layer.Features.ToArray();
             PointFeature point = Assert.IsType<PointFeature>(features[0]);
@@ -227,14 +232,16 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                RequestCount++;
+                this.RequestCount++;
                 Assert.Equal(HttpMethod.Get, request.Method);
                 Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
                 JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
                 if (request.RequestUri!.AbsolutePath == "/api/incidents/active")
-                    return Task.FromResult(NoActiveIncident
+                {
+                    return Task.FromResult(this.NoActiveIncident
                         ? new HttpResponseMessage(HttpStatusCode.NotFound)
                         : new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(incident, options: options) });
+                }
 
                 Assert.Equal($"/api/incidents/{incident.Id}/map/state", request.RequestUri.AbsolutePath);
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
@@ -244,5 +251,4 @@ namespace De.Openelp.Feuerwehr.Tests.App
             }
         }
     }
-
 }

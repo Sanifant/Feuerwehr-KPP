@@ -67,5 +67,4 @@ namespace De.Openelp.Feuerwehr.Server.Controller
             return this.ToActionResult(await service.Delete(id));
         }
     }
-
 }

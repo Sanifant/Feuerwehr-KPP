@@ -26,5 +26,4 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <param name="parameter">The parameter.</param>
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
     }
-
 }

@@ -39,21 +39,35 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 cancellationToken.ThrowIfCancellationRequested();
                 string[]? headers = parser.ReadFields();
                 if (headers is null)
+                {
                     return (hydrants, [new(null, "Die CSV-Datei ist leer.")]);
+                }
 
                 Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 for (int index = 0; index < headers.Length; index++)
                 {
                     if (!columns.TryAdd(headers[index], index))
+                    {
                         errors.Add(new(1, $"Die Spalte '{headers[index]}' ist mehrfach vorhanden."));
+                    }
                     else if (!RequiredColumns.Contains(headers[index], StringComparer.OrdinalIgnoreCase)
                         && !headers[index].Equals("notes", StringComparison.OrdinalIgnoreCase))
+                    {
                         errors.Add(new(1, $"Unbekannte Spalte '{headers[index]}'."));
+                    }
                 }
                 foreach (string required in RequiredColumns)
-                    if (!columns.ContainsKey(required)) errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
+                {
+                    if (!columns.ContainsKey(required))
+                    {
+                        errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
+                    }
+                }
 
-                if (errors.Count > 0) return (hydrants, errors);
+                if (errors.Count > 0)
+                {
+                    return (hydrants, errors);
+                }
 
                 int rowCount = 0;
                 while (!parser.EndOfData && errors.Count < 100)
@@ -106,7 +120,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         Notes = string.IsNullOrWhiteSpace(Field("notes")) ? null : Field("notes"),
                     });
                 }
-                if (rowCount == 0) errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
+                if (rowCount == 0)
+                {
+                    errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
+                }
             }
             catch (MalformedLineException)
             {
@@ -115,5 +132,4 @@ namespace De.Openelp.Feuerwehr.Server.Services
             return (hydrants, errors);
         }
     }
-
 }

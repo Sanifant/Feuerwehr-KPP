@@ -205,7 +205,7 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     {
                         try
                         {
-                            await PublishMessageAsync(message, stoppingToken);
+                            await this.PublishMessageAsync(message, stoppingToken);
                             message.ProcessedAtUtc = DateTime.UtcNow;
                             message.DeliveryAttempts += 1;
                             message.LastError = null;
@@ -382,16 +382,33 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                     page.Add(line);
                 }
                 block.Clear();
-                if (separator && page.Count is > 0 and < 56 && page[^1] != "") page.Add("");
+                if (separator && page.Count is > 0 and < 56 && page[^1] != "")
+                {
+                    page.Add("");
+                }
             }
             foreach (string line in lines)
             {
-                if (line.Length == 0) FlushBlock(true);
-                else block.Add(line);
+                if (line.Length == 0)
+                {
+                    FlushBlock(true);
+                }
+                else
+                {
+                    block.Add(line);
+                }
             }
             FlushBlock(false);
-            if (page.Count > 0) pages.Add(page.ToArray());
-            if (pages.Count == 0) pages.Add([]);
+            if (page.Count > 0)
+            {
+                pages.Add(page.ToArray());
+            }
+
+            if (pages.Count == 0)
+            {
+                pages.Add([]);
+            }
+
             return pages;
         }
 
@@ -403,7 +420,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 while (remaining.Length > 86)
                 {
                     int split = remaining.LastIndexOf(' ', 86, 87);
-                    if (split <= 0) split = 86;
+                    if (split <= 0)
+                    {
+                        split = 86;
+                    }
+
                     yield return remaining[..split];
                     remaining = remaining[split..].TrimStart();
                 }
@@ -418,12 +439,20 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             StringBuilder result = new StringBuilder();
             foreach (byte value in bytes)
             {
-                if (value is (byte)'\\' or (byte)'(' or (byte)')') result.Append('\\').Append((char)value);
-                else if (value is < 32 or > 126) result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
-                else result.Append((char)value);
+                if (value is (byte)'\\' or (byte)'(' or (byte)')')
+                {
+                    result.Append('\\').Append((char)value);
+                }
+                else if (value is < 32 or > 126)
+                {
+                    result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
+                }
+                else
+                {
+                    result.Append((char)value);
+                }
             }
             return result.ToString();
         }
     }
-
 }

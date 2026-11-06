@@ -10,18 +10,17 @@ namespace De.Openelp.Feuerwehr.App.Views
     {
         public MainView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
         protected override void OnDataContextChanged(EventArgs e)
         {
             base.OnDataContextChanged(e);
 
-            if (DataContext is MainViewModel vm)
+            if (this.DataContext is MainViewModel vm)
             {
-                vm.Navigation = NavPage;
+                vm.Navigation = this.NavPage;
             }
         }
     }
 }
-

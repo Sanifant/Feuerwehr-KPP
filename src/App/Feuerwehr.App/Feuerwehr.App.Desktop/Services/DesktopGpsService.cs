@@ -22,5 +22,4 @@ namespace De.Openelp.Feuerwehr.App.Desktop.Services
             });
         }
     }
-
 }

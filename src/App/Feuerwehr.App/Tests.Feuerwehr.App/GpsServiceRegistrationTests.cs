@@ -55,5 +55,4 @@ namespace De.Openelp.Feuerwehr.Tests.App
                 new UnsupportedGpsService().GetCurrentLocationAsync(cancellation.Token));
         }
     }
-
 }

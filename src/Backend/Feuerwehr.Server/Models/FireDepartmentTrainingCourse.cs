@@ -12,5 +12,4 @@ namespace De.Openelp.Feuerwehr.Server.Models
 
         public int SeatsAssigned { get; set; }
     }
-
 }

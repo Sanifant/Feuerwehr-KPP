@@ -21,7 +21,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         [Authorize(Policy = PolicyNames.RequireAdmin)]
         public async Task<IActionResult> Export(CancellationToken cancellationToken)
         {
-            return File(await service.ExportAsync(cancellationToken), "text/csv; charset=utf-8", "hydranten.csv");
+            return this.File(await service.ExportAsync(cancellationToken), "text/csv; charset=utf-8", "hydranten.csv");
         }
 
         /// <summary>
@@ -36,9 +36,14 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         public async Task<IActionResult> Import([FromForm] IFormFile? file, CancellationToken cancellationToken)
         {
             if (file is null || file.Length == 0)
-                return BadRequest(new HydrantImportResponse(0, [new(null, "Bitte eine CSV-Datei auswählen.")]));
+            {
+                return this.BadRequest(new HydrantImportResponse(0, [new(null, "Bitte eine CSV-Datei auswählen.")]));
+            }
+
             if (file.Length > MaximumImportBytes)
-                return BadRequest(new HydrantImportResponse(0, [new(null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
+            {
+                return this.BadRequest(new HydrantImportResponse(0, [new(null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
+            }
 
             await using Stream stream = file.OpenReadStream();
             return this.ToActionResult(await service.ImportAsync(stream, cancellationToken));
@@ -96,6 +101,5 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         {
             return this.ToActionResult(service.Delete(id));
         }
-
     }
 }

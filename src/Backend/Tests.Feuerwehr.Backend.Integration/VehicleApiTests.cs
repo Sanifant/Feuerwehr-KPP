@@ -27,7 +27,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             HttpResponseMessage booking = await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
                 { CommandId = Guid.NewGuid(), From = fixture.Today.AddDays(5), To = fixture.Today.AddDays(6) });
             booking.EnsureSuccessStatusCode();
@@ -35,7 +35,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.NotNull(initialStatusChange);
             byte[] types = await admin.GetByteArrayAsync("/api/vehicles/types/export");
             using (MultipartFormDataContent form = Upload(types, "fahrzeugtypen.json"))
+            {
                 (await admin.PostAsync("/api/vehicles/types/import", form)).EnsureSuccessStatusCode();
+            }
+
             string csv = await admin.GetStringAsync("/api/vehicles/export");
             Assert.Contains("equipmentOfficerEmail", csv);
             Assert.Contains($"{Roles.EquipmentOfficer}@integration.test", csv);
@@ -63,7 +66,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             string csv = $"id;radioCallSign;name;fireDepartment;equipmentOfficerEmail\n{vehicle.Id};{vehicle.RadioCallSign};Nicht speichern;MTW Integration;{Roles.EquipmentOfficer}@integration.test\n" +
                 " ;Neues Fahrzeug;Fehler;MTW Integration;missing@integration.test";
             using MultipartFormDataContent form = Upload(Encoding.UTF8.GetBytes(csv), "fahrzeuge.csv");
@@ -82,7 +85,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient admin = await fixture.Client(Roles.Admin);
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             string statusName = $"AuÃŸer Dienst {Guid.NewGuid():N}";
             Assert.Equal(HttpStatusCode.Forbidden, (await officer.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName })).StatusCode);
             HttpResponseMessage response = await admin.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName, AllowsBooking = false });
@@ -93,7 +96,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             if (mtw is null)
             {
                 HttpResponseMessage created = await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = "MTW" });
-                created.EnsureSuccessStatusCode(); mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
+                created.EnsureSuccessStatusCode();
+                mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
             }
             HttpResponseMessage changed = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
             {
@@ -102,7 +106,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             });
             changed.EnsureSuccessStatusCode();
             VehicleDto updated = (await changed.Content.ReadFromJsonAsync<VehicleDto>())!;
-            Assert.Equal(statusName, updated.VehicleStatusName); Assert.False(updated.AllowsBooking);
+            Assert.Equal(statusName, updated.VehicleStatusName);
+            Assert.False(updated.AllowsBooking);
             Assert.NotNull(updated.StatusChangedAtUtc);
             DateOnly from = fixture.Today.AddDays(2);
             VehicleAvailabilityDto[] calendar = (await officer.GetFromJsonAsync<VehicleAvailabilityDto[]>($"/api/vehicles/availability?from={from:yyyy-MM-dd}&to={from.AddDays(2):yyyy-MM-dd}&vehicleType=MTW"))!;
@@ -110,11 +115,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.All(calendar.Single(x => x.Vehicle.Id == vehicle.Id).Days, day => Assert.Equal(VehicleDayStatus.Unavailable, day.Status));
             Assert.Equal(HttpStatusCode.Conflict, (await officer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/direct-bookings", new CreateVehicleReservationRequest
                 { CommandId = Guid.NewGuid(), From = from, To = from })).StatusCode);
-        }
-
-        private static MultipartFormDataContent Upload(byte[] content, string name)
-        {
-            MultipartFormDataContent form = new MultipartFormDataContent(); form.Add(new ByteArrayContent(content), "file", name); return form;
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             response.EnsureSuccessStatusCode();
             VehicleTypeDto type = (await response.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
             Assert.Equal(HttpStatusCode.Conflict, (await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = name.ToLowerInvariant() })).StatusCode);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             HttpResponseMessage assigned = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
             {
                 FireDepartmentId = vehicle.FireDepartmentId, EquipmentOfficerId = vehicle.EquipmentOfficerId,
@@ -158,7 +158,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             using HttpClient member = await fixture.Client(Roles.Firefighter);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             DateOnly from = fixture.Today.AddDays(3);
             DateOnly to = from.AddDays(3);
             string comment = "Jugendfeuerwehr <Ausflug> & Ausbildung";
@@ -215,7 +215,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             using HttpClient member = await fixture.Client(Roles.Firefighter);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             DateOnly start = fixture.Today.AddDays(10);
             HttpResponseMessage request = await member.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
                 { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
@@ -244,7 +244,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             using HttpClient admin = await fixture.Client(Roles.Admin);
             using HttpClient member = await fixture.Client(Roles.Firefighter);
             using HttpClient viewer = await fixture.Client(Roles.InventoryViewer);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             DateOnly start = fixture.Today.AddDays(20);
             Assert.Equal(HttpStatusCode.Conflict, (await admin.DeleteAsync($"/api/Users/{vehicle.EquipmentOfficerId}/permanent")).StatusCode);
             Assert.Equal(HttpStatusCode.Forbidden, (await viewer.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
@@ -274,7 +274,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient officer = await fixture.Client(Roles.EquipmentOfficer);
             using HttpClient member = await fixture.Client(Roles.Firefighter);
-            VehicleDto vehicle = await CreateVehicle(officer);
+            VehicleDto vehicle = await this.CreateVehicle(officer);
             DateOnly start = fixture.Today.AddDays(30);
             HttpResponseMessage response = await member.PostAsJsonAsync($"/api/vehicles/{vehicle.Id}/reservations", new CreateVehicleReservationRequest
                 { CommandId = Guid.NewGuid(), From = start, To = start.AddDays(2) });
@@ -291,6 +291,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             Assert.Equal(active ? 3 : 0, await db.VehicleBookingDays.CountAsync(x => x.VehicleId == vehicle.Id));
         }
 
+        private static MultipartFormDataContent Upload(byte[] content, string name)
+        {
+            MultipartFormDataContent form = new MultipartFormDataContent();
+            form.Add(new ByteArrayContent(content), "file", name);
+            return form;
+        }
+
         private async Task<VehicleDto> CreateVehicle(HttpClient client)
         {
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
@@ -299,8 +306,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             if (!officer.FireDepartmentId.HasValue)
             {
                 FireDepartment department = new FireDepartment { Name = "MTW Integration" };
-                db.FireDepartments.Add(department); await db.SaveChangesAsync();
-                officer.FireDepartmentId = department.Id; await db.SaveChangesAsync();
+                db.FireDepartments.Add(department);
+                await db.SaveChangesAsync();
+                officer.FireDepartmentId = department.Id;
+                await db.SaveChangesAsync();
             }
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/vehicles", new SaveVehicleRequest
             { FireDepartmentId = officer.FireDepartmentId.Value, EquipmentOfficerId = officer.Id, RadioCallSign = $"Florian {Guid.NewGuid():N}" });
@@ -308,5 +317,4 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             return (await response.Content.ReadFromJsonAsync<VehicleDto>())!;
         }
     }
-
 }

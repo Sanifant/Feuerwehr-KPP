@@ -40,7 +40,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }
 
             return ServiceResult.Ok(ToSummary(incident));
-
         }
 
         /// <summary>
@@ -51,7 +50,10 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
         {
-            if (!userContext.IsAdmin) return ServiceResult.Forbid();
+            if (!userContext.IsAdmin)
+            {
+                return ServiceResult.Forbid();
+            }
 
             page = Math.Max(page, 1);
             pageSize = Math.Clamp(pageSize, 1, 100);
@@ -66,7 +68,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 .ToListAsync(cancellationToken);
 
             return ServiceResult.Ok(list);
-
         }
 
         /// <summary>
@@ -156,7 +157,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return ServiceResult.StatusCode(StatusCodes.Status201Created, response);
-
         }
 
         /// <summary>
@@ -229,7 +229,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             {
                 throw;
             }
-
         }
 
         private static IncidentSummaryDto ToSummary(Incident incident) => new(
@@ -256,6 +255,5 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             lease.LastHeartbeatAtUtc,
             true,
             false);
-
     }
 }

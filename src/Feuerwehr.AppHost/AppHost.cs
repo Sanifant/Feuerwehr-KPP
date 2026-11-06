@@ -102,4 +102,3 @@ catch (Exception error)
     diagnostics.Record("AppHost.FatalException", exception: error);
     throw;
 }
-

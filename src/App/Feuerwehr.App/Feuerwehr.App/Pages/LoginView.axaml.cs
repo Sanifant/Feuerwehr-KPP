@@ -10,14 +10,14 @@ namespace De.Openelp.Feuerwehr.App
     {
         public LoginView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
             ViewModelBase vm = App.Services.GetService<LoginViewModel>();
             if (vm is null)
             {
                 throw new System.InvalidOperationException($"{nameof(LoginViewModel)} is not registered in the application service provider.");
             }
-            DataContext = vm;
+            this.DataContext = vm;
         }
     }
 }

@@ -16,4 +16,3 @@ namespace De.Openelp.Feuerwehr.Common.Models.Dto
         public int AssignedSeats { get; set; }
     }
 }
-

@@ -22,7 +22,11 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="request">The request.</param>
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+            {
+                return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.Login(request));
         }
 
@@ -37,8 +41,12 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="request">The request.</param>
         public async Task<ActionResult<TokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            return this.ToActionResult(await service.RefreshToken(request, Request.Headers["Authorization"].ToString().Replace("Bearer ", "")));
+            if (!this.ModelState.IsValid)
+            {
+                return this.BadRequest(this.ModelState);
+            }
+
+            return this.ToActionResult(await service.RefreshToken(request, this.Request.Headers["Authorization"].ToString().Replace("Bearer ", "")));
         }
 
         [HttpPost("reset-password")]
@@ -49,7 +57,11 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="request">The request.</param>
         public async Task<IActionResult> ResetPassword([FromBody] ResetRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+            {
+                return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.ResetPassword(request));
         }
 
@@ -61,9 +73,13 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="request">The request.</param>
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!this.ModelState.IsValid)
+            {
+                return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.ChangePassword(request,
-                User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+                this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
         /// <summary>
@@ -76,7 +92,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         public async Task<IActionResult> Logout()
         {
-            return this.ToActionResult(await service.Logout(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.Logout(this.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
         /// <summary>
@@ -89,9 +105,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// </summary>
         public async Task<IActionResult> GetCurrentUser()
         {
-            return this.ToActionResult(await service.GetCurrentUser(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.GetCurrentUser(this.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
-
     }
-
 }

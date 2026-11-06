@@ -9,16 +9,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
     public class MailServiceTests
     {
-        private static SmtpSettings Settings(bool authenticate = true) => new()
-        {
-            Host = authenticate ? "smtp.strato.de" : "mailpit",
-            Port = authenticate ? 465 : 1025,
-            Security = authenticate ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None,
-            Username = authenticate ? "mail@example.org" : null,
-            Password = authenticate ? "test-only-password" : null,
-            From = "mail@example.org", FromName = "Feuerwehr Ãœbung", TimeoutMilliseconds = 45000,
-        };
-
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
@@ -36,8 +26,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             client.InSequence(sequence).Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
                 .Returns(Task.CompletedTask);
             if (authenticate)
+            {
                 client.InSequence(sequence).Setup(c => c.AuthenticateAsync(settings.Username!, settings.Password!, default))
                     .Returns(Task.CompletedTask);
+            }
+
             MimeMessage? sent = null;
             client.InSequence(sequence).Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null))
                 .Callback<MimeMessage, CancellationToken, MailKit.ITransferProgress?>((message, _, _) => sent = message)
@@ -57,7 +50,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(sent.HtmlBody);
             client.VerifyAll();
             if (!authenticate)
+            {
                 client.Verify(c => c.AuthenticateAsync(It.IsAny<string>(), It.IsAny<string>(), default), Times.Never);
+            }
         }
 
         [Theory]
@@ -87,7 +82,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
             Assert.Same(failure, exception);
             client.Verify(c => c.DisconnectAsync(true, default), failingStep == "connect" ? Times.Never() : Times.Once());
-            if (failingStep != "send") client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Never);
+            if (failingStep != "send")
+            {
+                client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Never);
+            }
         }
 
         [Fact]
@@ -106,6 +104,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 
             client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Once);
         }
-    }
 
+        private static SmtpSettings Settings(bool authenticate = true) => new()
+        {
+            Host = authenticate ? "smtp.strato.de" : "mailpit",
+            Port = authenticate ? 465 : 1025,
+            Security = authenticate ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.None,
+            Username = authenticate ? "mail@example.org" : null,
+            Password = authenticate ? "test-only-password" : null,
+            From = "mail@example.org", FromName = "Feuerwehr Ãœbung", TimeoutMilliseconds = 45000,
+        };
+    }
 }

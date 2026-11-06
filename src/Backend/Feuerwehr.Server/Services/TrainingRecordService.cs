@@ -14,8 +14,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         public TrainingRecordService(FeuerwehrDbContext dbContext, ILogger<TrainingRecordService> logger)
         {
-            _db = dbContext;
-            _logger = logger;
+            this._db = dbContext;
+            this._logger = logger;
         }
         /// <summary>
         /// Gets the operation.
@@ -24,7 +24,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="title">The title.</param>
         public async Task<ServiceResult> Get(string? level, string? title)
         {
-            IQueryable<TrainingCourse> trainingsQuery = _db.TrainingCourses
+            IQueryable<TrainingCourse> trainingsQuery = this._db.TrainingCourses
                 .Include(tc => tc.FireDepartmentTrainingCourses)
                 .ThenInclude(fdTc => fdTc.FireDepartment)
                 .AsQueryable();
@@ -62,7 +62,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 .ToListAsync();
 
             return ServiceResult.Ok(trainings);
-
         }
 
         /// <summary>
@@ -71,7 +70,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         public async Task<ServiceResult> Get(int id)
         {
-            TrainingCourse? training = await _db.TrainingCourses
+            TrainingCourse? training = await this._db.TrainingCourses
                 .Include(tc => tc.FireDepartmentTrainingCourses)
                 .ThenInclude(fdTc => fdTc.FireDepartment)
                 .FirstOrDefaultAsync(tc => tc.Id == id);
@@ -96,7 +95,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
             };
 
             return ServiceResult.Ok(dto);
-
         }
 
         /// <summary>
@@ -112,7 +110,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.BadRequest("Ein Titel ist erforderlich.");
             }
 
-            bool hasMatchingTitle = await _db.TrainingCourses
+            bool hasMatchingTitle = await this._db.TrainingCourses
                 .AnyAsync(tc => tc.Title.ToLower() == trimmedTitle.ToLower());
 
             if (!hasMatchingTitle && string.IsNullOrWhiteSpace(value.Description))
@@ -120,7 +118,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.BadRequest("Für neue Titel ist eine Beschreibung erforderlich.");
             }
 
-            FireDepartment? fireDepartment = await _db.FireDepartments
+            FireDepartment? fireDepartment = await this._db.FireDepartments
                 .FirstOrDefaultAsync(fd => fd.Id == value.AssignedFireDepartmentId);
 
             if (fireDepartment is null)
@@ -128,7 +126,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.BadRequest("Die ausgewählte Feuerwehr existiert nicht.");
             }
 
-            TrainingCourse? trainingEntity = _db.TrainingCourses.FirstOrDefault(t => t.Title.Equals(trimmedTitle));
+            TrainingCourse? trainingEntity = this._db.TrainingCourses.FirstOrDefault(t => t.Title.Equals(trimmedTitle));
 
             if (trainingEntity == null)
             {
@@ -142,8 +140,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     EndDate = DateOnly.FromDateTime(DateTime.UtcNow)
                 };
 
-                _db.TrainingCourses.Add(trainingEntity);
-                await _db.SaveChangesAsync();
+                this._db.TrainingCourses.Add(trainingEntity);
+                await this._db.SaveChangesAsync();
             }
 
             FireDepartmentTrainingCourse relation = new FireDepartmentTrainingCourse
@@ -153,8 +151,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 SeatsAssigned = value.AssignedSeats
             };
 
-            _db.FireDepartmentTrainingCourses.Add(relation);
-            await _db.SaveChangesAsync();
+            this._db.FireDepartmentTrainingCourses.Add(relation);
+            await this._db.SaveChangesAsync();
 
             TrainingCourseDto createdDto = new TrainingCourseDto
             {
@@ -168,8 +166,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 AssignedSeats = relation.SeatsAssigned
             };
 
-            return ServiceResult.CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
-
+            return ServiceResult.CreatedAtAction(nameof(this.Get), new { id = createdDto.Id }, createdDto);
         }
 
         /// <summary>
@@ -179,7 +176,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="value">The value.</param>
         public async Task<ServiceResult> Put(int id, TrainingCourseDto value)
         {
-            TrainingCourse? trainingEntity = await _db.TrainingCourses
+            TrainingCourse? trainingEntity = await this._db.TrainingCourses
                 .Include(tc => tc.FireDepartmentTrainingCourses)
                 .FirstOrDefaultAsync(tc => tc.Id == id);
 
@@ -188,7 +185,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.NotFound();
             }
 
-            FireDepartment? fireDepartment = await _db.FireDepartments
+            FireDepartment? fireDepartment = await this._db.FireDepartments
                 .FirstOrDefaultAsync(fd => fd.Id == value.AssignedFireDepartmentId);
 
             if (fireDepartment is null)
@@ -210,7 +207,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     FireDepartmentId = fireDepartment.Id,
                     SeatsAssigned = value.AssignedSeats
                 };
-                _db.FireDepartmentTrainingCourses.Add(relation);
+                this._db.FireDepartmentTrainingCourses.Add(relation);
             }
             else
             {
@@ -218,10 +215,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 relation.SeatsAssigned = value.AssignedSeats;
             }
 
-            await _db.SaveChangesAsync();
+            await this._db.SaveChangesAsync();
 
             return ServiceResult.NoContent();
-
         }
 
         /// <summary>
@@ -230,7 +226,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         public async Task<ServiceResult> Delete(int id)
         {
-            TrainingCourse? trainingEntity = await _db.TrainingCourses
+            TrainingCourse? trainingEntity = await this._db.TrainingCourses
                 .FirstOrDefaultAsync(tc => tc.Id == id);
 
             if (trainingEntity is null)
@@ -238,10 +234,9 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.NotFound();
             }
 
-            _db.TrainingCourses.Remove(trainingEntity);
-            await _db.SaveChangesAsync();
+            this._db.TrainingCourses.Remove(trainingEntity);
+            await this._db.SaveChangesAsync();
             return ServiceResult.NoContent();
-
         }
 
         private static bool TryParseTrainingLevel(string value, out TrainingLevel level)
@@ -268,6 +263,5 @@ namespace De.Openelp.Feuerwehr.Server.Services
                     return false;
             }
         }
-
     }
 }

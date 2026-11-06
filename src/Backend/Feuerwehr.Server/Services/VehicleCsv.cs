@@ -13,13 +13,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
         internal static string Quote(string? value)
         {
             value ??= "";
-            if (NeedsPrefix(value)) value = "'" + value;
+            if (NeedsPrefix(value))
+            {
+                value = "'" + value;
+            }
+
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
-        private static bool NeedsPrefix(string value) => value.StartsWith('\'') || value.Length > 0 &&
-            ("\t\r\n".Contains(value[0]) || value.TrimStart() is { Length: > 0 } trimmed && "=+-@".Contains(trimmed[0]));
-        private static string Decode(string value) => value.StartsWith('\'') && NeedsPrefix(value[1..]) ? value[1..] : value;
-
         internal static (List<VehicleCsvRow> Rows, List<VehicleImportError> Errors) Read(Stream stream, CancellationToken ct)
         {
             List<VehicleCsvRow> rows = [];
@@ -30,44 +30,69 @@ namespace De.Openelp.Feuerwehr.Server.Services
             try
             {
                 string[]? headers = parser.ReadFields();
-                if (headers is null) return (rows, [new(null, "Die CSV-Datei ist leer.")]);
+                if (headers is null)
+                {
+                    return (rows, [new(null, "Die CSV-Datei ist leer.")]);
+                }
+
                 Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 for (int index = 0; index < headers.Length; index++)
                 {
                     string header = headers[index].Trim().TrimStart('\uFEFF');
-                    if (!columns.TryAdd(header, index)) errors.Add(new(1, $"Die Spalte '{header}' ist mehrfach vorhanden."));
-                    else if (!Columns.Contains(header, StringComparer.OrdinalIgnoreCase)) errors.Add(new(1, $"Unbekannte Spalte '{header}'."));
+                    if (!columns.TryAdd(header, index))
+                    {
+                        errors.Add(new(1, $"Die Spalte '{header}' ist mehrfach vorhanden."));
+                    }
+                    else if (!Columns.Contains(header, StringComparer.OrdinalIgnoreCase))
+                    {
+                        errors.Add(new(1, $"Unbekannte Spalte '{header}'."));
+                    }
                 }
                 foreach (string? required in new[] { "radioCallSign", "fireDepartment", "equipmentOfficerEmail" })
-                    if (!columns.ContainsKey(required)) errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
-                if (errors.Count > 0) return (rows, errors);
+                {
+                    if (!columns.ContainsKey(required))
+                    {
+                        errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
+                    }
+                }
+
+                if (errors.Count > 0)
+                {
+                    return (rows, errors);
+                }
+
                 int count = 0;
                 while (!parser.EndOfData && errors.Count < 100)
                 {
                     ct.ThrowIfCancellationRequested();
                     long line = parser.LineNumber;
                     string[] fields = parser.ReadFields()!;
-                    if (++count > 10_000) { errors.Add(new(line, "Pro Import sind höchstens 10.000 Fahrzeuge erlaubt.")); break; }
-                    if (fields.Length > headers.Length) { errors.Add(new(line, "Die Zeile enthält mehr Werte als Überschriften.")); continue; }
+                    if (++count > 10_000) { errors.Add(new(line, "Pro Import sind höchstens 10.000 Fahrzeuge erlaubt."));
+                        break; }
+                    if (fields.Length > headers.Length) { errors.Add(new(line, "Die Zeile enthält mehr Werte als Überschriften."));
+                        continue; }
                     string? Field(string name) => columns.TryGetValue(name, out int index) ? index < fields.Length ? Decode(fields[index]).Trim() : "" : null;
                     Guid? id = null;
                     if (Field("id") is { Length: > 0 } idText)
                     {
-                        if (!Guid.TryParse(idText, out Guid parsed) || parsed == Guid.Empty) { errors.Add(new(line, "id muss eine gültige UUID sein.")); continue; }
+                        if (!Guid.TryParse(idText, out Guid parsed) || parsed == Guid.Empty) { errors.Add(new(line, "id muss eine gültige UUID sein."));
+                            continue; }
                         id = parsed;
                     }
                     int? departmentId = null;
                     if (Field("fireDepartmentId") is { Length: > 0 } departmentText)
                     {
                         if (!int.TryParse(departmentText, NumberStyles.None, CultureInfo.InvariantCulture, out int parsed) || parsed < 1)
-                        { errors.Add(new(line, "fireDepartmentId muss eine positive Zahl sein.")); continue; }
+                        { errors.Add(new(line, "fireDepartmentId muss eine positive Zahl sein."));
+                            continue; }
                         departmentId = parsed;
                     }
                     bool? active = null;
                     if (Field("isActive") is { Length: > 0 } activeText)
                     {
                         active = activeText.ToLowerInvariant() switch { "true" or "1" or "ja" => true, "false" or "0" or "nein" => false, _ => null };
-                        if (active is null) { errors.Add(new(line, "isActive muss true oder false sein.")); continue; }
+                        if (active is null) { errors.Add(new(line, "isActive muss true oder false sein."));
+                            continue; }
                     }
                     rows.Add(new(line, new VehicleImportDto
                     {
@@ -76,12 +101,18 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         LicensePlate = Field("licensePlate"), VehicleType = Field("vehicleType"), Status = Field("status"), IsActive = active
                     }));
                 }
-                if (count == 0) errors.Add(new(null, "Die CSV-Datei enthält keine Fahrzeuge."));
+                if (count == 0)
+                {
+                    errors.Add(new(null, "Die CSV-Datei enthält keine Fahrzeuge."));
+                }
             }
             catch (MalformedLineException) { errors.Add(new(parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Semikolon und Anführungszeichen prüfen.")); }
             catch (DecoderFallbackException) { errors.Add(new(null, "Die CSV-Datei muss als UTF-8 gespeichert sein.")); }
             return (rows, errors);
         }
-    }
+        private static bool NeedsPrefix(string value) => value.StartsWith('\'') || value.Length > 0 &&
+            ("\t\r\n".Contains(value[0]) || value.TrimStart() is { Length: > 0 } trimmed && "=+-@".Contains(trimmed[0]));
 
+        private static string Decode(string value) => value.StartsWith('\'') && NeedsPrefix(value[1..]) ? value[1..] : value;
+    }
 }

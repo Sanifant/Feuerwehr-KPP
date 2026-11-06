@@ -21,7 +21,9 @@ namespace De.Openelp.Feuerwehr.App
         public Control? Build(object? param)
         {
             if (param is null)
+            {
                 return null;
+            }
 
             string name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
             Type? type = Type.GetType(name);

@@ -17,5 +17,4 @@ namespace De.Openelp.Feuerwehr.App.Services
             return Task.FromResult<GpsLocation?>(null);
         }
     }
-
 }

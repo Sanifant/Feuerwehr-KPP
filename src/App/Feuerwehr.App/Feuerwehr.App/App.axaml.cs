@@ -37,9 +37,9 @@ namespace De.Openelp.Feuerwehr.App
         public override void OnFrameworkInitializationCompleted()
         {
             //var appConfiguration = AppConfiguration.Current;
-            ReloadServices();
+            this.ReloadServices();
 
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 IAuthService authService = Services.GetRequiredService<IAuthService>();
                 Func<MainViewModel> mainViewModelFactory = new Func<MainViewModel>(() => Services.GetRequiredService<MainViewModel>());
@@ -47,11 +47,11 @@ namespace De.Openelp.Feuerwehr.App
 
                 desktop.MainWindow = new MainWindow(authService, mainViewModelFactory, loginViewModelFactory);
             }
-            else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
+            else if (this.ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
             {
-                singleViewFactoryApplicationLifetime.MainViewFactory = CreateActivityView;
+                singleViewFactoryApplicationLifetime.MainViewFactory = this.CreateActivityView;
             }
-            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
+            else if (this.ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
             {
                 IAuthService authService = Services.GetRequiredService<IAuthService>();
                 // For single view platforms, check auth state
@@ -72,6 +72,50 @@ namespace De.Openelp.Feuerwehr.App
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        /// <summary>
+        /// Rebuilds the DI service container, including the platform registrations.
+        /// </summary>
+        public void ReloadServices()
+        {
+
+            ServiceCollection collection = new ServiceCollection();
+
+            collection.AddTransient<MainViewModel>();
+            collection.AddTransient<LoginViewModel>();
+            collection.AddTransient<MapViewModel>();
+            collection.AddTransient<SituationMapViewModel>();
+            collection.AddTransient<InventoryViewModel>();
+            collection.AddSingleton<IBarcodeScanner, UnsupportedBarcodeScanner>();
+
+            collection.AddSingleton<IGpsService, UnsupportedGpsService>();
+
+            // Authentication services
+            collection.AddSingleton<ISecureStorage, InMemorySecureStorage>();
+            collection.AddSingleton<IAuthService, AuthService>();
+            collection.AddScoped<AuthenticatedHttpClient>();
+
+            // Für Blazor WebAssembly / Web-Clients
+            collection.AddScoped<IHydrantService, HydrantService>();
+            collection.AddScoped<ISituationMapService, SituationMapService>();
+            collection.AddScoped<IInventoryService, InventoryService>();
+
+            string? baseUrl = Environment.GetEnvironmentVariable("webapi")
+                ?? Environment.GetEnvironmentVariable("services__server__https__0")
+                ?? Environment.GetEnvironmentVariable("services__server__http__0");
+            // Explicit override takes precedence over Aspire's server endpoint references.
+
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                // Standard-Fallback für lokales Testen ohne Aspire
+                baseUrl = "https://integration.ff-kleinparin-pohnsdorf.de/";
+            }
+
+            collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
+
+            this.ConfigurePlatformServices?.Invoke(collection);
+            Services = collection.BuildServiceProvider();
         }
 
         private Control CreateActivityView()
@@ -115,50 +159,5 @@ namespace De.Openelp.Feuerwehr.App
 
             return root;
         }
-
-        /// <summary>
-        /// Rebuilds the DI service container, including the platform registrations.
-        /// </summary>
-        public void ReloadServices()
-        {
-
-            ServiceCollection collection = new ServiceCollection();
-
-            collection.AddTransient<MainViewModel>();
-            collection.AddTransient<LoginViewModel>();
-            collection.AddTransient<MapViewModel>();
-            collection.AddTransient<SituationMapViewModel>();
-            collection.AddTransient<InventoryViewModel>();
-            collection.AddSingleton<IBarcodeScanner, UnsupportedBarcodeScanner>();
-
-            collection.AddSingleton<IGpsService, UnsupportedGpsService>();
-
-            // Authentication services
-            collection.AddSingleton<ISecureStorage, InMemorySecureStorage>();
-            collection.AddSingleton<IAuthService, AuthService>();
-            collection.AddScoped<AuthenticatedHttpClient>();
-
-            // Für Blazor WebAssembly / Web-Clients
-            collection.AddScoped<IHydrantService, HydrantService>();
-            collection.AddScoped<ISituationMapService, SituationMapService>();
-            collection.AddScoped<IInventoryService, InventoryService>();
-
-            string? baseUrl = Environment.GetEnvironmentVariable("webapi")
-                ?? Environment.GetEnvironmentVariable("services__server__https__0")
-                ?? Environment.GetEnvironmentVariable("services__server__http__0");
-            // Explicit override takes precedence over Aspire's server endpoint references.
-
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                // Standard-Fallback für lokales Testen ohne Aspire
-                baseUrl = "https://integration.ff-kleinparin-pohnsdorf.de/";
-            }
-
-            collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
-
-            ConfigurePlatformServices?.Invoke(collection);
-            Services = collection.BuildServiceProvider();
-        }
     }
 }
-

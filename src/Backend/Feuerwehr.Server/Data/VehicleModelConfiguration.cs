@@ -85,5 +85,4 @@ namespace De.Openelp.Feuerwehr.Server.Data
             });
         }
     }
-
 }

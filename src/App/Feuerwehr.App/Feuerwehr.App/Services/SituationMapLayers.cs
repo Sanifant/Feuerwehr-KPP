@@ -59,6 +59,7 @@ namespace De.Openelp.Feuerwehr.App.Services
                 string? label = element.ElementType == MapElementType.Symbol
                     ? element.RadioCallName ?? element.Label : element.Label;
                 if (!string.IsNullOrWhiteSpace(label))
+                {
                     feature.Styles.Add(new LabelStyle
                     {
                         Text = label,
@@ -66,6 +67,8 @@ namespace De.Openelp.Feuerwehr.App.Services
                         Halo = new Pen(Color.White, 2),
                         Offset = new Offset(0, -32)
                     });
+                }
+
                 features.Add(feature);
             }
             return new MemoryLayer { Name = "Lage", Style = null, Features = features };
@@ -95,5 +98,4 @@ namespace De.Openelp.Feuerwehr.App.Services
             return new Coordinate(point.x, point.y);
         }
     }
-
 }

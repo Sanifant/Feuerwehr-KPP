@@ -8,4 +8,3 @@ namespace De.Openelp.Feuerwehr.Common.Models
         UnderMaintenance = 4             // In Wartung
     }
 }
-

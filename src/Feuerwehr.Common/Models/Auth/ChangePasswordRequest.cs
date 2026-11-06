@@ -11,5 +11,4 @@ namespace De.Openelp.Feuerwehr.Common.Models.Auth
         [MinLength(8)]
         public string NewPassword { get; set; } = string.Empty;
     }
-
 }

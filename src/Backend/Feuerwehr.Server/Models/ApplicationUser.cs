@@ -15,7 +15,6 @@ namespace De.Openelp.Feuerwehr.Server.Models
         // Navigation property
         public FireDepartment? FireDepartment { get; set; }
 
-        public string FullName => $"{FirstName} {LastName}".Trim();
+        public string FullName => $"{this.FirstName} {this.LastName}".Trim();
     }
 }
-

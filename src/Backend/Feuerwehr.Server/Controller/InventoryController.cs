@@ -124,5 +124,4 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         public async Task<IActionResult> Inspect(Guid id, RecordEquipmentInspectionRequest request, CancellationToken ct) =>
             this.ToActionResult(await service.Inspect(id, request, ct));
     }
-
 }

@@ -98,7 +98,6 @@ namespace De.Openelp.Feuerwehr.Server.Data
 
                 entity.Property(e => e.Notes)
                     .HasMaxLength(1000);
-
             });
             modelBuilder.Entity<FireDepartment>(entity =>
                 {
@@ -249,4 +248,3 @@ namespace De.Openelp.Feuerwehr.Server.Data
         }
     }
 }
-

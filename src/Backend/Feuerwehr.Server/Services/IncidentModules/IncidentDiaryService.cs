@@ -31,8 +31,15 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
         public async Task<ServiceResult> GetEntries(Guid incidentId, CancellationToken cancellationToken)
         {
             Incident? incident = await dbContext.Incidents.AsNoTracking().FirstOrDefaultAsync(x => x.Id == incidentId, cancellationToken);
-            if (incident is null) return ServiceResult.NotFound();
-            if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin) return ServiceResult.Forbid();
+            if (incident is null)
+            {
+                return ServiceResult.NotFound();
+            }
+
+            if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin)
+            {
+                return ServiceResult.Forbid();
+            }
 
             List<DiaryEntry> entries = await dbContext.DiaryEntries.AsNoTracking()
                 .Where(x => x.IncidentId == incidentId)
@@ -66,7 +73,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             }).Where(x => x is not null).Cast<DiaryEntryDto>().ToList();
 
             return ServiceResult.Ok(response);
-
         }
 
         /// <summary>
@@ -81,7 +87,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 .ToListAsync(cancellationToken);
 
             return ServiceResult.Ok(categories);
-
         }
 
         /// <summary>
@@ -166,7 +171,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.StatusCode(StatusCodes.Status201Created, response);
-
         }
 
         /// <summary>
@@ -251,7 +255,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(response);
-
         }
 
         /// <summary>
@@ -343,7 +346,6 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
 
             await dbContext.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(response);
-
         }
 
         /// <summary>
@@ -359,10 +361,17 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 return ServiceResult.NotFound();
             }
 
-            if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin) return ServiceResult.Forbid();
+            if (incident.Status == IncidentStatus.Closed && !userContext.IsAdmin)
+            {
+                return ServiceResult.Forbid();
+            }
 
-            ServiceResult diary = await GetEntries(incidentId, cancellationToken);
-            if (diary.Code != StatusCodes.Status200OK) return diary;
+            ServiceResult diary = await this.GetEntries(incidentId, cancellationToken);
+            if (diary.Code != StatusCodes.Status200OK)
+            {
+                return diary;
+            }
+
             IReadOnlyCollection<DiaryEntryDto> entries = (IReadOnlyCollection<DiaryEntryDto>)diary.Value!;
 
             List<string> lines = new List<string>
@@ -388,15 +397,19 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 {
                     lines.Add("Versionshistorie:");
                     foreach (DiaryRevisionDto? previous in entry.Revisions.Where(x => x.RevisionNumber != entry.CurrentRevision))
+                    {
                         AddRevisionLines(lines, previous);
+                    }
                 }
                 lines.Add("");
             }
-            if (entries.Count == 0) lines.Add("Keine Tagebucheinträge vorhanden.");
+            if (entries.Count == 0)
+            {
+                lines.Add("Keine Tagebucheinträge vorhanden.");
+            }
 
             byte[] pdfBytes = MinimalPdfBuilder.BuildSimplePdf("Einsatztagebuch", lines);
             return ServiceResult.File(pdfBytes, "application/pdf", $"einsatztagebuch-{incidentId:N}.pdf");
-
         }
 
         private static void AddRevisionLines(List<string> lines, DiaryRevisionDto revision)
@@ -405,7 +418,11 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
             lines.Add($"Kategorie: {revision.CategoryNameSnapshot} | Ãœbermittlung: {revision.TransmissionType ?? "-"}");
             lines.Add($"Absender: {revision.Sender ?? "-"} | Empfänger: {revision.Recipient ?? "-"}");
             lines.Add(revision.Text);
-            if (!string.IsNullOrWhiteSpace(revision.CancellationReason)) lines.Add($"Grund: {revision.CancellationReason}");
+            if (!string.IsNullOrWhiteSpace(revision.CancellationReason))
+            {
+                lines.Add($"Grund: {revision.CancellationReason}");
+            }
+
             lines.Add($"Erfasst UTC: {revision.CreatedAtUtc:dd.MM.yyyy HH:mm:ss} durch {revision.CreatedByDisplayName}");
         }
 
@@ -424,6 +441,5 @@ namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
                 x.CancellationReason,
                 x.CreatedAtUtc,
                 x.CreatedByDisplayName);
-
     }
 }

@@ -4,7 +4,7 @@ namespace De.Openelp.Feuerwehr.App.Models
     public sealed class GpsLocation
     {
         public double Latitude { get; init; }
+
         public double Longitude { get; init; }
     }
-
 }

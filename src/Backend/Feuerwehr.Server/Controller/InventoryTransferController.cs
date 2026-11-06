@@ -38,27 +38,34 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Executes import Equipment.
         /// </summary>
         /// <param name="file">The file.</param>
-        public Task<IActionResult> ImportEquipment([FromForm] IFormFile? file, CancellationToken ct) => Import(InventoryTransferKind.Equipment, file, ct);
+        public Task<IActionResult> ImportEquipment([FromForm] IFormFile? file, CancellationToken ct) => this.Import(InventoryTransferKind.Equipment, file, ct);
         [HttpPost("types/import"), Consumes("multipart/form-data"), Authorize(Policy = PolicyNames.CanManageInventory)]
         /// <summary>
         /// Executes import Types.
         /// </summary>
         /// <param name="file">The file.</param>
-        public Task<IActionResult> ImportTypes([FromForm] IFormFile? file, CancellationToken ct) => Import(InventoryTransferKind.Types, file, ct);
+        public Task<IActionResult> ImportTypes([FromForm] IFormFile? file, CancellationToken ct) => this.Import(InventoryTransferKind.Types, file, ct);
         [HttpPost("categories/import"), Consumes("multipart/form-data"), Authorize(Policy = PolicyNames.RequireAdmin)]
         /// <summary>
         /// Executes import Categories.
         /// </summary>
         /// <param name="file">The file.</param>
-        public Task<IActionResult> ImportCategories([FromForm] IFormFile? file, CancellationToken ct) => Import(InventoryTransferKind.Categories, file, ct);
+        public Task<IActionResult> ImportCategories([FromForm] IFormFile? file, CancellationToken ct) => this.Import(InventoryTransferKind.Categories, file, ct);
 
         private async Task<IActionResult> Import(InventoryTransferKind kind, IFormFile? file, CancellationToken ct)
         {
-            if (file is null || file.Length == 0) return BadRequest(new InventoryImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
-            if (file.Length > MaximumImportBytes) return BadRequest(new InventoryImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groÃŸ sein.")]));
+            if (file is null || file.Length == 0)
+            {
+                return this.BadRequest(new InventoryImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
+            }
+
+            if (file.Length > MaximumImportBytes)
+            {
+                return this.BadRequest(new InventoryImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groÃŸ sein.")]));
+            }
+
             await using Stream stream = file.OpenReadStream();
             return this.ToActionResult(await service.Import(kind, stream, ct));
         }
     }
-
 }

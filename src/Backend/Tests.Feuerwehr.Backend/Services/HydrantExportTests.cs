@@ -10,9 +10,6 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
 {
     public class HydrantExportTests
     {
-        private static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-
         [Fact]
         /// <summary>
         /// Executes export Matches Import Example And Preserves Csv Escaping Regardless Of Culture.
@@ -126,6 +123,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(2, csv.Split("\r\n").Length);
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(new CancellationToken(true)));
         }
-    }
 
+        private static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+    }
 }

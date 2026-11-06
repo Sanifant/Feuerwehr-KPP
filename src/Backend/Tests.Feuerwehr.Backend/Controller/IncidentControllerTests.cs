@@ -25,17 +25,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             user.SetupGet(x => x.UserId).Returns("user-1");
             user.SetupGet(x => x.DisplayName).Returns("Ada Muster");
             user.SetupGet(x => x.IsAdmin).Returns(true);
-            _service = new IncidentService(_db, user.Object, new CommandIdempotencyService(_db), new OutboxService(_db));
-            _controller = new IncidentController(_service);
+            this._service = new IncidentService(this._db, user.Object, new CommandIdempotencyService(this._db), new OutboxService(this._db));
+            this._controller = new IncidentController(this._service);
         }
-
-        private static CreateIncidentRequest Request() => new()
-        {
-            Name = "Wohnungsbrand", Keyword = "B3", IncidentNumber = "123",
-            OriginLatitude = 51.5, OriginLongitude = 10.25,
-            AlarmedAtUtc = DateTimeOffset.Parse("2026-10-26T09:15:00+01:00"),
-            CommandId = Guid.NewGuid().ToString(), SessionId = "session-1",
-        };
 
         [Fact]
         /// <summary>
@@ -44,7 +36,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task Create_ReturnsPersistedIncidentWithAlarmTimeAndLease_AndActiveReturnsSameIncident()
         {
             CreateIncidentRequest request = Request();
-            ObjectResult result = Assert.IsType<ObjectResult>(await _controller.CreateIncident(request, default));
+            ObjectResult result = Assert.IsType<ObjectResult>(await this._controller.CreateIncident(request, default));
             Assert.Equal(201, result.StatusCode);
             IncidentCreatedResponse created = Assert.IsType<IncidentCreatedResponse>(result.Value);
             Assert.Equal(request.Name, created.Incident.Name);
@@ -53,10 +45,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             Assert.Equal(IncidentStatus.Active, created.Incident.Status);
             Assert.Equal(request.SessionId, created.Lease.SessionId);
             Assert.False(string.IsNullOrWhiteSpace(created.Lease.LeaseToken));
-            Assert.Equal(created.Incident.AlarmedAtUtc, (await _db.Incidents.SingleAsync()).AlarmedAtUtc);
-            Assert.Equal(2, await _db.OutboxMessages.CountAsync());
+            Assert.Equal(created.Incident.AlarmedAtUtc, (await this._db.Incidents.SingleAsync()).AlarmedAtUtc);
+            Assert.Equal(2, await this._db.OutboxMessages.CountAsync());
 
-            ActionResult<IncidentSummaryDto> activeResult = await _controller.GetActiveIncident(default);
+            ActionResult<IncidentSummaryDto> activeResult = await this._controller.GetActiveIncident(default);
             IncidentSummaryDto active = Assert.IsType<IncidentSummaryDto>(Assert.IsType<OkObjectResult>(activeResult.Result).Value);
             Assert.Equal(created.Incident, active);
 
@@ -73,15 +65,15 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task Create_ReplayReturnsIdenticalBodyWithoutDuplicatingIncidentOrEvents()
         {
             CreateIncidentRequest request = Request();
-            IncidentCreatedResponse original = Assert.IsType<IncidentCreatedResponse>((await _service.CreateIncident(request, default)).Value);
+            IncidentCreatedResponse original = Assert.IsType<IncidentCreatedResponse>((await this._service.CreateIncident(request, default)).Value);
             // The same point in time with a different offset has the same command payload hash.
             request.AlarmedAtUtc = request.AlarmedAtUtc!.Value.ToUniversalTime();
-            ServiceResult replay = await _service.CreateIncident(request, default);
+            ServiceResult replay = await this._service.CreateIncident(request, default);
             Assert.Equal(201, replay.Code);
             Assert.Equal(JsonSerializer.Serialize(original, JsonOptionsFactory.Default), Assert.IsType<JsonElement>(replay.Value).GetRawText());
-            Assert.Single(await _db.Incidents.ToListAsync());
-            Assert.Single(await _db.EditorLeases.ToListAsync());
-            Assert.Equal(2, await _db.OutboxMessages.CountAsync());
+            Assert.Single(await this._db.Incidents.ToListAsync());
+            Assert.Single(await this._db.EditorLeases.ToListAsync());
+            Assert.Equal(2, await this._db.OutboxMessages.CountAsync());
         }
 
         [Fact]
@@ -91,10 +83,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task Create_CommandPayloadIncludesAlarmTime()
         {
             CreateIncidentRequest request = Request();
-            await _service.CreateIncident(request, default);
+            await this._service.CreateIncident(request, default);
             request.AlarmedAtUtc = request.AlarmedAtUtc!.Value.AddMinutes(-1);
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateIncident(request, default));
-            Assert.Single(await _db.Incidents.ToListAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(() => this._service.CreateIncident(request, default));
+            Assert.Single(await this._db.Incidents.ToListAsync());
         }
 
         [Fact]
@@ -108,8 +100,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             List<ValidationResult> validation = new List<ValidationResult>();
             Assert.False(Validator.TryValidateObject(request, new ValidationContext(request), validation, validateAllProperties: true));
             Assert.Contains(validation, result => result.MemberNames.Contains(nameof(CreateIncidentRequest.AlarmedAtUtc)));
-            Assert.Equal(400, (await _service.CreateIncident(request, default)).Code);
-            Assert.Empty(await _db.Incidents.ToListAsync());
+            Assert.Equal(400, (await this._service.CreateIncident(request, default)).Code);
+            Assert.Empty(await this._db.Incidents.ToListAsync());
         }
 
         [Fact]
@@ -118,23 +110,30 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         /// </summary>
         public async Task Close_PreservesAlarmTimeInArchiveAndRemovesActiveIncident()
         {
-            IncidentCreatedResponse created = Assert.IsType<IncidentCreatedResponse>((await _service.CreateIncident(Request(), default)).Value);
-            ServiceResult closed = await _service.CloseIncident(created.Incident.Id, new CloseIncidentRequest
+            IncidentCreatedResponse created = Assert.IsType<IncidentCreatedResponse>((await this._service.CreateIncident(Request(), default)).Value);
+            ServiceResult closed = await this._service.CloseIncident(created.Incident.Id, new CloseIncidentRequest
             {
                 SessionId = created.Lease.SessionId, LeaseToken = created.Lease.LeaseToken, CommandId = Guid.NewGuid().ToString(),
             }, default);
             IncidentClosedResponse response = Assert.IsType<IncidentClosedResponse>(closed.Value);
             Assert.Equal(created.Incident.AlarmedAtUtc, response.Incident.AlarmedAtUtc);
             Assert.Equal(IncidentStatus.Closed, response.Incident.Status);
-            Assert.Equal(404, (await _service.GetActiveIncident(default)).Code);
-            IEnumerable<IncidentSummaryDto> archive = Assert.IsAssignableFrom<IEnumerable<IncidentSummaryDto>>((await _service.GetArchive(cancellationToken: default)).Value);
+            Assert.Equal(404, (await this._service.GetActiveIncident(default)).Code);
+            IEnumerable<IncidentSummaryDto> archive = Assert.IsAssignableFrom<IEnumerable<IncidentSummaryDto>>((await this._service.GetArchive(cancellationToken: default)).Value);
             Assert.Equal(created.Incident.AlarmedAtUtc, Assert.Single(archive).AlarmedAtUtc);
         }
 
         /// <summary>
         /// Executes dispose.
         /// </summary>
-        public void Dispose() => _db.Dispose();
-    }
+        public void Dispose() => this._db.Dispose();
 
+        private static CreateIncidentRequest Request() => new()
+        {
+            Name = "Wohnungsbrand", Keyword = "B3", IncidentNumber = "123",
+            OriginLatitude = 51.5, OriginLongitude = 10.25,
+            AlarmedAtUtc = DateTimeOffset.Parse("2026-10-26T09:15:00+01:00"),
+            CommandId = Guid.NewGuid().ToString(), SessionId = "session-1",
+        };
+    }
 }

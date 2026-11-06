@@ -13,7 +13,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         public FireDepartmentService(FeuerwehrDbContext db)
         {
-            _db = db;
+            this._db = db;
         }
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// </summary>
         public async Task<ServiceResult> Get()
         {
-            List<FireDepartmentDto> fireDepartments = await _db.FireDepartments
+            List<FireDepartmentDto> fireDepartments = await this._db.FireDepartments
                 .Include(fd => fd.FireDepartmentTrainingCourses)
                 .ThenInclude(fdTc => fdTc.TrainingCourse)
                 .Select(fd => new FireDepartmentDto
@@ -57,8 +57,8 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 ContactPersonEmail = fireDepartmentDto.ContactPersonEmail
             };
 
-            _db.FireDepartments.Add(entity);
-            await _db.SaveChangesAsync();
+            this._db.FireDepartments.Add(entity);
+            await this._db.SaveChangesAsync();
 
             FireDepartmentDto createdDto = new FireDepartmentDto
             {
@@ -69,7 +69,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 TrainingCourses = new List<FireDepartmentTrainingCourseDto>()
             };
 
-            return ServiceResult.CreatedAtAction(nameof(Get), new { id = createdDto.Id }, createdDto);
+            return ServiceResult.CreatedAtAction(nameof(this.Get), new { id = createdDto.Id }, createdDto);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         /// <param name="id">The id.</param>
         public async Task<ServiceResult> Get(int id)
         {
-            FireDepartment? fireDepartment = await _db.FireDepartments
+            FireDepartment? fireDepartment = await this._db.FireDepartments
                 .Include(fd => fd.FireDepartmentTrainingCourses)
                 .ThenInclude(fdTc => fdTc.TrainingCourse)
                 .FirstOrDefaultAsync(fd => fd.Id == id);
@@ -105,8 +105,6 @@ namespace De.Openelp.Feuerwehr.Server.Services
             };
 
             return ServiceResult.Ok(dto);
-
         }
-
     }
 }

@@ -23,13 +23,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         public UsersControllerTests()
         {
-            _mockUserManager = new Mock<UserManager<ApplicationUser>>(
+            this._mockUserManager = new Mock<UserManager<ApplicationUser>>(
                 new Mock<IUserStore<ApplicationUser>>().Object, null, null, null, null, null, null, null, null);
-            _mockRoleManager = new Mock<RoleManager<IdentityRole>>(
+            this._mockRoleManager = new Mock<RoleManager<IdentityRole>>(
                 new Mock<IRoleStore<IdentityRole>>().Object, null, null, null, null);
-            _mockInvitations = new Mock<IUserInvitationService>();
+            this._mockInvitations = new Mock<IUserInvitationService>();
 
-            _controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockInvitations.Object, NullLogger<UsersService>.Instance));
+            this._controller = new UsersController(new UsersService(this._mockUserManager.Object, this._mockRoleManager.Object, this._mockInvitations.Object, NullLogger<UsersService>.Instance));
         }
 
         #region GetAllUsers Tests
@@ -108,11 +108,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 CreatedAt = DateTime.UtcNow
             };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(appUser);
-            _mockUserManager.Setup(um => um.GetRolesAsync(appUser)).ReturnsAsync(new List<string> { "Admin" });
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(appUser);
+            this._mockUserManager.Setup(um => um.GetRolesAsync(appUser)).ReturnsAsync(new List<string> { "Admin" });
 
             // Act
-            IActionResult result = await _controller.GetUser(userId);
+            IActionResult result = await this._controller.GetUser(userId);
 
             // Assert
             OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
@@ -127,12 +127,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             ApplicationUser user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
             UpdateUserRequest request = new UpdateUserRequest { Email = "new@example.com" };
-            _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync((ApplicationUser)null!);
-            _mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+            this._mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync((ApplicationUser)null!);
+            this._mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.GetRolesAsync(user)).ReturnsAsync(new List<string>());
 
-            IActionResult result = await _controller.UpdateUser(user.Id, request);
+            IActionResult result = await this._controller.UpdateUser(user.Id, request);
 
             Assert.IsType<OkObjectResult>(result);
             Assert.Equal(request.Email, user.Email);
@@ -148,18 +148,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             ApplicationUser user = new ApplicationUser { Id = "user-1" };
             List<string> currentRoles = new List<string> { "Admin" };
             UpdateUserRequest request = new UpdateUserRequest { Roles = new List<string>() };
-            _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.SetupSequence(um => um.GetRolesAsync(user))
+            this._mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.SetupSequence(um => um.GetRolesAsync(user))
                 .ReturnsAsync(currentRoles)
                 .ReturnsAsync(new List<string>());
-            _mockUserManager.Setup(um => um.RemoveFromRolesAsync(user, currentRoles)).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.RemoveFromRolesAsync(user, currentRoles)).ReturnsAsync(IdentityResult.Success);
 
-            IActionResult result = await _controller.UpdateUser(user.Id, request);
+            IActionResult result = await this._controller.UpdateUser(user.Id, request);
 
             Assert.IsType<OkObjectResult>(result);
-            _mockUserManager.Verify(um => um.RemoveFromRolesAsync(user, currentRoles), Times.Once);
-            _mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
+            this._mockUserManager.Verify(um => um.RemoveFromRolesAsync(user, currentRoles), Times.Once);
+            this._mockUserManager.Verify(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()), Times.Never);
         }
 
         [Theory]
@@ -175,11 +175,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task UpdateUser_PreservesChangesOrClearsFireDepartmentExplicitly(int? departmentId, bool clear, int? expected)
         {
             ApplicationUser user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
-            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
-            _mockUserManager.Setup(manager => manager.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+            this._mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            this._mockUserManager.Setup(manager => manager.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(manager => manager.GetRolesAsync(user)).ReturnsAsync(new List<string>());
 
-            IActionResult result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = departmentId, ClearFireDepartment = clear });
+            IActionResult result = await this._controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = departmentId, ClearFireDepartment = clear });
 
             Assert.IsType<OkObjectResult>(result);
             Assert.Equal(expected, user.FireDepartmentId);
@@ -192,13 +192,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         public async Task UpdateUser_RejectsConflictingDepartmentChanges()
         {
             ApplicationUser user = new ApplicationUser { Id = "user-1", FireDepartmentId = 1 };
-            _mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            this._mockUserManager.Setup(manager => manager.FindByIdAsync(user.Id)).ReturnsAsync(user);
 
-            IActionResult result = await _controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = 2, ClearFireDepartment = true });
+            IActionResult result = await this._controller.UpdateUser(user.Id, new UpdateUserRequest { FireDepartmentId = 2, ClearFireDepartment = true });
 
             Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal(1, user.FireDepartmentId);
-            _mockUserManager.Verify(manager => manager.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+            this._mockUserManager.Verify(manager => manager.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
 
         [Fact]
@@ -210,13 +210,13 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             ApplicationUser user = new ApplicationUser { Id = "user-1", Email = "old@example.com" };
             ApplicationUser existingUser = new ApplicationUser { Id = "user-2", Email = "taken@example.com" };
             UpdateUserRequest request = new UpdateUserRequest { Email = existingUser.Email };
-            _mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync(existingUser);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(user.Id)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email!)).ReturnsAsync(existingUser);
 
-            IActionResult result = await _controller.UpdateUser(user.Id, request);
+            IActionResult result = await this._controller.UpdateUser(user.Id, request);
 
             Assert.IsType<BadRequestObjectResult>(result);
-            _mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+            this._mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
 
         [Fact]
@@ -227,10 +227,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "non-existent";
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            IActionResult result = await _controller.GetUser(userId);
+            IActionResult result = await this._controller.GetUser(userId);
 
             // Assert
             NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -305,10 +305,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             };
 
             ApplicationUser existingUser = new ApplicationUser { Email = request.Email };
-            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync(existingUser);
+            this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync(existingUser);
 
             // Act
-            IActionResult result = await _controller.CreateUser(request);
+            IActionResult result = await this._controller.CreateUser(request);
 
             // Assert
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -332,11 +332,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "InvalidRole" }
             };
 
-            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
-            _mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
+            this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
+            this._mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
 
             // Act
-            IActionResult result = await _controller.CreateUser(request);
+            IActionResult result = await this._controller.CreateUser(request);
 
             // Assert
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -366,22 +366,22 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Email = request.Email
             };
 
-            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
-            _mockRoleManager.Setup(rm => rm.RoleExistsAsync("User")).ReturnsAsync(true);
-            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
+            this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
+            this._mockRoleManager.Setup(rm => rm.RoleExistsAsync("User")).ReturnsAsync(true);
+            this._mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
                 .Callback<ApplicationUser>(user => user.Id = "new-user-1")
                 .ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), request.Roles))
+            this._mockUserManager.Setup(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), request.Roles))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Role assignment failed" }));
-            _mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>()))
+            this._mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
-            IActionResult result = await _controller.CreateUser(request);
+            IActionResult result = await this._controller.CreateUser(request);
 
             // Assert
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            _mockUserManager.Verify(um => um.DeleteAsync(It.IsAny<ApplicationUser>()), Times.Once);
+            this._mockUserManager.Verify(um => um.DeleteAsync(It.IsAny<ApplicationUser>()), Times.Once);
         }
 
         [Fact]
@@ -401,12 +401,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Roles = new List<string>()
             };
 
-            _mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
-            _mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
+            this._mockUserManager.Setup(um => um.FindByEmailAsync(request.Email)).ReturnsAsync((ApplicationUser)null!);
+            this._mockUserManager.Setup(um => um.CreateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Password not strong enough" }));
 
             // Act
-            IActionResult result = await _controller.CreateUser(request);
+            IActionResult result = await this._controller.CreateUser(request);
 
             // Assert
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -444,17 +444,17 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
                 Roles = new List<string> { "Admin" }
             };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockRoleManager.Setup(rm => rm.RoleExistsAsync("Admin")).ReturnsAsync(true);
-            _mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string> { "User" });
-            _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.RemoveFromRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()))
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
+            this._mockRoleManager.Setup(rm => rm.RoleExistsAsync("Admin")).ReturnsAsync(true);
+            this._mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string> { "User" });
+            this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.RemoveFromRolesAsync(It.IsAny<ApplicationUser>(), It.IsAny<IEnumerable<string>>()))
                 .ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), request.Roles!))
+            this._mockUserManager.Setup(um => um.AddToRolesAsync(It.IsAny<ApplicationUser>(), request.Roles!))
                 .ReturnsAsync(IdentityResult.Success);
 
             // Act
-            IActionResult result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await this._controller.UpdateUser(userId, request);
 
             // Assert
             OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
@@ -471,10 +471,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "non-existent";
             UpdateUserRequest request = new UpdateUserRequest { FirstName = "Jane" };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            IActionResult result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await this._controller.UpdateUser(userId, request);
 
             // Assert
             NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -501,12 +501,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
             UpdateUserRequest request = new UpdateUserRequest { FirstName = "Johnny" };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
+            this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
 
             // Act
-            IActionResult result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await this._controller.UpdateUser(userId, request);
 
             // Assert
             OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
@@ -524,19 +524,19 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             ApplicationUser existingUser = new ApplicationUser { Id = userId };
             UpdateUserRequest request = new UpdateUserRequest { NewPassword = "NewSecurePassword123!" };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockUserManager.Setup(um => um.UpdateAsync(existingUser)).ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.GeneratePasswordResetTokenAsync(existingUser)).ReturnsAsync("reset-token");
-            _mockUserManager.Setup(um => um.ResetPasswordAsync(existingUser, "reset-token", request.NewPassword))
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
+            this._mockUserManager.Setup(um => um.UpdateAsync(existingUser)).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.GeneratePasswordResetTokenAsync(existingUser)).ReturnsAsync("reset-token");
+            this._mockUserManager.Setup(um => um.ResetPasswordAsync(existingUser, "reset-token", request.NewPassword))
                 .ReturnsAsync(IdentityResult.Success);
-            _mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
+            this._mockUserManager.Setup(um => um.GetRolesAsync(existingUser)).ReturnsAsync(new List<string>());
 
             // Act
-            IActionResult result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await this._controller.UpdateUser(userId, request);
 
             // Assert
             OkObjectResult okResult = Assert.IsType<OkObjectResult>(result);
-            _mockUserManager.Verify(um => um.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), request.NewPassword), Times.Once);
+            this._mockUserManager.Verify(um => um.ResetPasswordAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>(), request.NewPassword), Times.Once);
         }
 
         [Fact]
@@ -550,12 +550,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             ApplicationUser existingUser = new ApplicationUser { Id = userId };
             UpdateUserRequest request = new UpdateUserRequest { FirstName = "Jane" };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
+            this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Update failed" }));
 
             // Act
-            IActionResult result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await this._controller.UpdateUser(userId, request);
 
             // Assert
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -572,16 +572,16 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             ApplicationUser existingUser = new ApplicationUser { Id = userId };
             UpdateUserRequest request = new UpdateUserRequest { Roles = new List<string> { "InvalidRole" } };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(existingUser);
+            this._mockRoleManager.Setup(rm => rm.RoleExistsAsync("InvalidRole")).ReturnsAsync(false);
 
             // Act
-            IActionResult result = await _controller.UpdateUser(userId, request);
+            IActionResult result = await this._controller.UpdateUser(userId, request);
 
             // Assert
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
-            _mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
+            this._mockUserManager.Verify(um => um.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Never);
         }
         #endregion
 
@@ -597,10 +597,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "user-1";
             ApplicationUser user = new ApplicationUser { Id = userId, IsActive = true };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
 
-            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = this.SetupControllerWithClaims("different-user");
 
             // Act
             IActionResult result = await controllerWithClaims.DeleteUser(userId);
@@ -619,10 +619,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "non-existent";
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            IActionResult result = await _controller.DeleteUser(userId);
+            IActionResult result = await this._controller.DeleteUser(userId);
 
             // Assert
             NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -639,9 +639,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "user-1";
             ApplicationUser user = new ApplicationUser { Id = userId };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
 
-            UsersController controllerWithClaims = SetupControllerWithClaims(userId);
+            UsersController controllerWithClaims = this.SetupControllerWithClaims(userId);
 
             // Act
             IActionResult result = await controllerWithClaims.DeleteUser(userId);
@@ -661,11 +661,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "user-1";
             ApplicationUser user = new ApplicationUser { Id = userId };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.UpdateAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Update failed" }));
 
-            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = this.SetupControllerWithClaims("different-user");
 
             // Act
             IActionResult result = await controllerWithClaims.DeleteUser(userId);
@@ -689,10 +689,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "user-1";
             ApplicationUser user = new ApplicationUser { Id = userId };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>())).ReturnsAsync(IdentityResult.Success);
 
-            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = this.SetupControllerWithClaims("different-user");
 
             // Act
             IActionResult result = await controllerWithClaims.PermanentlyDeleteUser(userId);
@@ -710,10 +710,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         {
             // Arrange
             string userId = "non-existent";
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser)null!);
 
             // Act
-            IActionResult result = await _controller.PermanentlyDeleteUser(userId);
+            IActionResult result = await this._controller.PermanentlyDeleteUser(userId);
 
             // Assert
             NotFoundObjectResult notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
@@ -730,9 +730,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "user-1";
             ApplicationUser user = new ApplicationUser { Id = userId };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
 
-            UsersController controllerWithClaims = SetupControllerWithClaims(userId);
+            UsersController controllerWithClaims = this.SetupControllerWithClaims(userId);
 
             // Act
             IActionResult result = await controllerWithClaims.PermanentlyDeleteUser(userId);
@@ -752,11 +752,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
             string userId = "user-1";
             ApplicationUser user = new ApplicationUser { Id = userId };
 
-            _mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
-            _mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>()))
+            this._mockUserManager.Setup(um => um.FindByIdAsync(userId)).ReturnsAsync(user);
+            this._mockUserManager.Setup(um => um.DeleteAsync(It.IsAny<ApplicationUser>()))
                 .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Delete failed" }));
 
-            UsersController controllerWithClaims = SetupControllerWithClaims("different-user");
+            UsersController controllerWithClaims = this.SetupControllerWithClaims("different-user");
 
             // Act
             IActionResult result = await controllerWithClaims.PermanentlyDeleteUser(userId);
@@ -772,7 +772,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
 
         private UsersController SetupControllerWithClaims(string userId)
         {
-            UsersController controller = new UsersController(new UsersService(_mockUserManager.Object, _mockRoleManager.Object, _mockInvitations.Object, NullLogger<UsersService>.Instance));
+            UsersController controller = new UsersController(new UsersService(this._mockUserManager.Object, this._mockRoleManager.Object, this._mockInvitations.Object, NullLogger<UsersService>.Instance));
 
             List<Claim> claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
             {
@@ -793,4 +793,3 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Controller
         #endregion
     }
 }
-

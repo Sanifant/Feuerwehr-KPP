@@ -15,22 +15,24 @@ namespace De.Openelp.Feuerwehr.App.Pages
 
         public MapView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
 
-            DataContext = App.Services.GetRequiredService<MapViewModel>();
+            this.DataContext = App.Services.GetRequiredService<MapViewModel>();
         }
 
         protected override async void OnLoaded(RoutedEventArgs e)
         {
             base.OnLoaded(e);
-            locationInitialization?.Cancel();
-            locationInitialization?.Dispose();
-            locationInitialization = new CancellationTokenSource();
-            CancellationToken cancellationToken = locationInitialization.Token;
+            this.locationInitialization?.Cancel();
+            this.locationInitialization?.Dispose();
+            this.locationInitialization = new CancellationTokenSource();
+            CancellationToken cancellationToken = this.locationInitialization.Token;
             try
             {
-                if (DataContext is MapViewModel viewModel)
+                if (this.DataContext is MapViewModel viewModel)
+                {
                     await viewModel.InitializeLocationAsync(cancellationToken);
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -40,10 +42,10 @@ namespace De.Openelp.Feuerwehr.App.Pages
 
         protected override void OnUnloaded(RoutedEventArgs e)
         {
-            locationInitialization?.Cancel();
-            locationInitialization?.Dispose();
-            locationInitialization = null;
-            if (DataContext is MapViewModel viewModel)
+            this.locationInitialization?.Cancel();
+            this.locationInitialization?.Dispose();
+            this.locationInitialization = null;
+            if (this.DataContext is MapViewModel viewModel)
             {
                 viewModel.CenterOnLocationCommand.Cancel();
                 viewModel.SettingsCommand.Cancel();
@@ -51,5 +53,4 @@ namespace De.Openelp.Feuerwehr.App.Pages
             base.OnUnloaded(e);
         }
     }
-
 }

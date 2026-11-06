@@ -30,7 +30,11 @@ namespace De.Openelp.Feuerwehr.App.Services
         public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
         {
             using HttpResponseMessage response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
-            if (response.StatusCode == HttpStatusCode.NotFound) return null;
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IncidentSummaryDto>(JsonOptions, cancellationToken)
                 ?? throw new JsonException("Die Einsatzantwort ist leer.");
@@ -49,5 +53,4 @@ namespace De.Openelp.Feuerwehr.App.Services
                 ?? throw new JsonException("Die Lagekartenantwort ist leer.");
         }
     }
-
 }

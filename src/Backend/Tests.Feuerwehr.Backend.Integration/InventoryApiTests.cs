@@ -40,7 +40,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
             Assert.Empty(await db.Database.GetPendingMigrationsAsync());
-            foreach (string? name in new[] { "Armaturen", "Beleuchtung", "Löschgeräte" }) Assert.True(await db.InventoryCategories.AnyAsync(x => x.Name == name));
+            foreach (string? name in new[] { "Armaturen", "Beleuchtung", "Löschgeräte" })
+            {
+                Assert.True(await db.InventoryCategories.AnyAsync(x => x.Name == name));
+            }
+
             Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.EquipmentOfficer));
             Assert.True(await db.Roles.AnyAsync(x => x.Name == Roles.InventoryViewer));
         }
@@ -160,14 +164,18 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             using HttpClient client = await fixture.Client(Roles.EquipmentOfficer);
             EquipmentTypeDto type = await fixture.CreateType(client);
-            await using NpgsqlConnection connection = new NpgsqlConnection(fixture.Postgres.GetConnectionString()); await connection.OpenAsync();
+            await using NpgsqlConnection connection = new NpgsqlConnection(fixture.Postgres.GetConnectionString());
+            await connection.OpenAsync();
             await using NpgsqlCommand read = new NpgsqlCommand("SELECT last_value, is_called FROM \"InventoryBarcodeSequence\"", connection);
-            await using NpgsqlDataReader reader = await read.ExecuteReaderAsync(); await reader.ReadAsync();
+            await using NpgsqlDataReader reader = await read.ExecuteReaderAsync();
+            await reader.ReadAsync();
             long value = reader.GetInt64(0);
-            bool called = reader.GetBoolean(1); await reader.CloseAsync();
+            bool called = reader.GetBoolean(1);
+            await reader.CloseAsync();
             try
             {
-                await using NpgsqlCommand advance = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', 998, true)", connection); await advance.ExecuteNonQueryAsync();
+                await using NpgsqlCommand advance = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', 998, true)", connection);
+                await advance.ExecuteNonQueryAsync();
                 Assert.Equal("KPP-999", (await fixture.CreateEquipment(client, type.Id)).Barcode);
                 HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type.Id, SerialNumber = "Limit", Manufacturer = "Test" });
                 Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -176,7 +184,9 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             finally
             {
                 await using NpgsqlCommand restore = new NpgsqlCommand("SELECT setval('\"InventoryBarcodeSequence\"', @value, @called)", connection);
-                restore.Parameters.AddWithValue("value", value); restore.Parameters.AddWithValue("called", called); await restore.ExecuteNonQueryAsync();
+                restore.Parameters.AddWithValue("value", value);
+                restore.Parameters.AddWithValue("called", called);
+                await restore.ExecuteNonQueryAsync();
             }
         }
 
@@ -199,7 +209,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             using IServiceScope scope = fixture.Factory.Services.CreateScope();
             FeuerwehrDbContext db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
             foreach (Guid id in new[] { due1.Id, due2.Id, inactive.Id })
+            {
                 (await db.Equipment.FindAsync(id))!.CreatedOn = fixture.Today.AddDays(14).AddMonths(-1);
+            }
+
             (await db.Equipment.FindAsync(inactive.Id))!.IsActive = false;
             await db.SaveChangesAsync();
             IInventoryReminderService reminders = scope.ServiceProvider.GetRequiredService<IInventoryReminderService>();
@@ -213,7 +226,10 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             JsonElement message = Assert.Single(received);
             JsonElement content = await mail.GetFromJsonAsync<JsonElement>($"/api/v1/message/{message.GetProperty("ID").GetString()}");
             string body = content.GetProperty("Text").GetString()!;
-            Assert.Contains(due1.Barcode, body); Assert.Contains(due2.Barcode, body); Assert.DoesNotContain(notDue.Barcode, body); Assert.DoesNotContain(inactive.Barcode, body);
+            Assert.Contains(due1.Barcode, body);
+            Assert.Contains(due2.Barcode, body);
+            Assert.DoesNotContain(notDue.Barcode, body);
+            Assert.DoesNotContain(inactive.Barcode, body);
             Assert.DoesNotContain(messages.GetProperty("messages").EnumerateArray(), x => x.GetProperty("To").EnumerateArray().Any(to => to.GetProperty("Address").GetString() == inactiveEmail));
         }
     }
@@ -227,7 +243,7 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(8025))).Build();
         public WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program> Factory { get; private set; } = null!;
         public DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow);
-        public Uri MailpitUrl => new($"http://{mailpit.Hostname}:{mailpit.GetMappedPublicPort(8025)}");
+        public Uri MailpitUrl => new($"http://{this.mailpit.Hostname}:{this.mailpit.GetMappedPublicPort(8025)}");
         private const string Password = "InventoryTest123456";
 
         /// <summary>
@@ -237,20 +253,24 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         {
             try
             {
-                await Task.WhenAll(Postgres.StartAsync(), redis.StartAsync(), mailpit.StartAsync());
-                Factory = new InventoryFactory(new Dictionary<string, string>
+                await Task.WhenAll(this.Postgres.StartAsync(), this.redis.StartAsync(), this.mailpit.StartAsync());
+                this.Factory = new InventoryFactory(new Dictionary<string, string>
                 {
-                    ["ConnectionStrings:postgresdb"] = Postgres.GetConnectionString(), ["ConnectionStrings:cache"] = redis.GetConnectionString(),
-                    ["MAIL_HOST"] = mailpit.Hostname, ["MAIL_PORT"] = mailpit.GetMappedPublicPort(1025).ToString(), ["MAIL_SECURITY"] = "None",
+                    ["ConnectionStrings:postgresdb"] = this.Postgres.GetConnectionString(), ["ConnectionStrings:cache"] = this.redis.GetConnectionString(),
+                    ["MAIL_HOST"] = this.mailpit.Hostname, ["MAIL_PORT"] = this.mailpit.GetMappedPublicPort(1025).ToString(), ["MAIL_SECURITY"] = "None",
                     ["MAIL_USERNAME"] = "", ["MAIL_PASSWORD"] = "", ["MAIL_FROM"] = "noreply@integration.test",
                     ["Frontend:BaseUrl"] = "https://frontend.integration.test", ["SeedAdmin:Email"] = "admin@integration.test", ["SeedAdmin:Password"] = Password,
                     ["JwtSettings:SecretKey"] = "inventory-integration-tests-only-signing-key-1234567890", ["JwtSettings:Issuer"] = "inventory-tests", ["JwtSettings:Audience"] = "inventory-tests",
                     ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "",
                 });
-                using HttpClient startup = Factory.CreateClient();
-                foreach (string? role in new[] { Roles.EquipmentOfficer, Roles.InventoryViewer, Roles.Firefighter }) await CreateUser(role, $"{role}@integration.test");
+                using HttpClient startup = this.Factory.CreateClient();
+                foreach (string? role in new[] { Roles.EquipmentOfficer, Roles.InventoryViewer, Roles.Firefighter })
+                {
+                    await this.CreateUser(role, $"{role}@integration.test");
+                }
             }
-            catch { await DisposeAsync(); throw; }
+            catch { await this.DisposeAsync();
+                throw; }
         }
         /// <summary>
         /// Creates the user.
@@ -260,10 +280,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// <param name="active">The active.</param>
         public async Task CreateUser(string role, string email, bool active = true)
         {
-            using IServiceScope scope = Factory.Services.CreateScope();
+            using IServiceScope scope = this.Factory.Services.CreateScope();
             UserManager<ApplicationUser> users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             ApplicationUser user = new ApplicationUser { UserName = email, Email = email, FirstName = "Test", LastName = role, IsActive = active };
-            Assert.True((await users.CreateAsync(user, Password)).Succeeded); Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
+            Assert.True((await users.CreateAsync(user, Password)).Succeeded);
+            Assert.True((await users.AddToRoleAsync(user, role)).Succeeded);
         }
         /// <summary>
         /// Executes client.
@@ -271,11 +292,12 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         /// <param name="role">The role.</param>
         public async Task<HttpClient> Client(string role)
         {
-            HttpClient client = Factory.CreateClient();
+            HttpClient client = this.Factory.CreateClient();
             HttpResponseMessage login = await client.PostAsJsonAsync("/api/Auth/login", new LoginRequest { Email = role == Roles.Admin ? "admin@integration.test" : $"{role}@integration.test", Password = Password });
             login.EnsureSuccessStatusCode();
             LoginResponse? tokens = await login.Content.ReadFromJsonAsync<LoginResponse>();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken); return client;
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken);
+            return client;
         }
         /// <summary>
         /// Creates the type.
@@ -287,7 +309,8 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
             InventoryCategoryDto[]? categories = await client.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories");
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory/types", new SaveEquipmentTypeRequest
             { CategoryId = categories![0].Id, Name = $"Typ {Guid.NewGuid()}", InspectionInstructions = "Sicht- und Funktionsprüfung nach Herstellerangaben", InspectionIntervalMonths = interval });
-            response.EnsureSuccessStatusCode(); return (await response.Content.ReadFromJsonAsync<EquipmentTypeDto>())!;
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<EquipmentTypeDto>())!;
         }
         /// <summary>
         /// Creates the equipment.
@@ -297,21 +320,30 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
         public async Task<EquipmentDto> CreateEquipment(HttpClient client, Guid type)
         {
             HttpResponseMessage response = await client.PostAsJsonAsync("/api/inventory", new SaveEquipmentRequest { EquipmentTypeId = type, SerialNumber = Guid.NewGuid().ToString(), Manufacturer = "Testhersteller" });
-            response.EnsureSuccessStatusCode(); return (await response.Content.ReadFromJsonAsync<EquipmentDto>())!;
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<EquipmentDto>())!;
         }
         /// <summary>
         /// Executes dispose.
         /// </summary>
         public async Task DisposeAsync()
         {
-            if (Factory is not null) await Factory.DisposeAsync();
-            await Task.WhenAll(Postgres.DisposeAsync().AsTask(), redis.DisposeAsync().AsTask(), mailpit.DisposeAsync().AsTask());
+            if (this.Factory is not null)
+            {
+                await this.Factory.DisposeAsync();
+            }
+
+            await Task.WhenAll(this.Postgres.DisposeAsync().AsTask(), this.redis.DisposeAsync().AsTask(), this.mailpit.DisposeAsync().AsTask());
         }
         private sealed class InventoryFactory(Dictionary<string, string> settings) : WebApplicationFactory<De.Openelp.Feuerwehr.Server.Program>
         {
             protected override void ConfigureWebHost(IWebHostBuilder builder)
-            { builder.UseEnvironment("Testing"); foreach (KeyValuePair<string, string> pair in settings) builder.UseSetting(pair.Key, pair.Value); }
+            { builder.UseEnvironment("Testing");
+                foreach (KeyValuePair<string, string> pair in settings)
+                {
+                    builder.UseSetting(pair.Key, pair.Value);
+                }
+            }
         }
     }
-
 }

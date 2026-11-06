@@ -27,7 +27,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             current is not null && current.TryGetTarget(out MainActivity? activity)
                 && !activity.IsFinishing && !activity.IsDestroyed ? activity : null;
 
-        internal CancellationToken DestroyedToken => destroyed.Token;
+        internal CancellationToken DestroyedToken => this.destroyed.Token;
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
@@ -38,23 +38,6 @@ namespace De.Openelp.Feuerwehr.App.Android
         internal bool HasLocationPermission =>
             ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) == Permission.Granted
             || ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessCoarseLocation) == Permission.Granted;
-
-        // Called on the UI thread; concurrent callers share the same permission dialog.
-        internal Task<bool> EnsureLocationPermissionAsync()
-        {
-            if (HasLocationPermission)
-                return Task.FromResult(true);
-
-            if (locationPermissionRequest is not null)
-                return locationPermissionRequest.Task;
-
-            TaskCompletionSource<bool> request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            locationPermissionRequest = request;
-            RequestPermissions(
-                new[] { Manifest.Permission.AccessFineLocation, Manifest.Permission.AccessCoarseLocation },
-                LocationPermissionRequestCode);
-            return request.Task;
-        }
 
         /// <summary>
         /// Executes on Request Permissions Result.
@@ -67,23 +50,45 @@ namespace De.Openelp.Feuerwehr.App.Android
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             if (requestCode == LocationPermissionRequestCode)
             {
-                TaskCompletionSource<bool>? request = locationPermissionRequest;
-                locationPermissionRequest = null;
-                request?.TrySetResult(HasLocationPermission);
+                TaskCompletionSource<bool>? request = this.locationPermissionRequest;
+                this.locationPermissionRequest = null;
+                request?.TrySetResult(this.HasLocationPermission);
             }
+        }
+
+        // Called on the UI thread; concurrent callers share the same permission dialog.
+        internal Task<bool> EnsureLocationPermissionAsync()
+        {
+            if (this.HasLocationPermission)
+            {
+                return Task.FromResult(true);
+            }
+
+            if (this.locationPermissionRequest is not null)
+            {
+                return this.locationPermissionRequest.Task;
+            }
+
+            TaskCompletionSource<bool> request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            this.locationPermissionRequest = request;
+            this.RequestPermissions(
+                new[] { Manifest.Permission.AccessFineLocation, Manifest.Permission.AccessCoarseLocation },
+                LocationPermissionRequestCode);
+            return request.Task;
         }
 
         protected override void OnDestroy()
         {
             if (current is not null && current.TryGetTarget(out MainActivity? activity) && ReferenceEquals(activity, this))
+            {
                 current = null;
+            }
 
-            locationPermissionRequest?.TrySetResult(false);
-            locationPermissionRequest = null;
-            destroyed.Cancel();
+            this.locationPermissionRequest?.TrySetResult(false);
+            this.locationPermissionRequest = null;
+            this.destroyed.Cancel();
             base.OnDestroy();
-            destroyed.Dispose();
+            this.destroyed.Dispose();
         }
     }
 }
-

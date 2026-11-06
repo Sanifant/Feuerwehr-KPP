@@ -8,4 +8,3 @@ namespace De.Openelp.Feuerwehr.Common.Models
         WallHydrant = 4                  // Wandhydrant
     }
 }
-

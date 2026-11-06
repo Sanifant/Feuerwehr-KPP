@@ -6,5 +6,4 @@ namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules
 
         public string JsonPayload { get; set; } = "{}";
     }
-
 }
