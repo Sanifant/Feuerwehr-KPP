@@ -48,7 +48,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Migrations\" />
 	  <EmbeddedResource Include="..\..\frontend\public\Logo_Feuerwehr.png" LogicalName="de.openelp.feuerwehr.Server.MailLogo.png" />
 	</ItemGroup>
 </Project>

@@ -1,3 +1,5 @@
+using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -5,6 +7,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace de.openelp.feuerwehr.Server.Migrations
 {
+    [DbContext(typeof(FeuerwehrDbContext))]
+    [Migration("20260629090939_AddTrainingCourseFireDepartmentManyToMany")]
     /// <inheritdoc />
     public partial class AddTrainingCourseFireDepartmentManyToMany : Migration
     {

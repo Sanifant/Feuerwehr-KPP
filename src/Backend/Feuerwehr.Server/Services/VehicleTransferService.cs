@@ -16,12 +16,6 @@ namespace de.openelp.feuerwehr.Server.Services
 {
     public enum VehicleTransferKind { Vehicles, Types }
 
-    public interface IVehicleTransferService
-    {
-        Task<ServiceResult> Export(VehicleTransferKind kind, CancellationToken ct);
-        Task<ServiceResult> Import(VehicleTransferKind kind, Stream stream, CancellationToken ct);
-    }
-
     public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAccessor http, ILookupNormalizer normalizer,
         TimeProvider clock) : IVehicleTransferService
     {

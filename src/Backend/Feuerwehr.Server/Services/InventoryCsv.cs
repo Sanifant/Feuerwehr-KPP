@@ -33,6 +33,7 @@ namespace de.openelp.feuerwehr.Server.Services
             return value.StartsWith('\'') && NeedsPrefix(value[1..]) ? value[1..] : value;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1122:Use string.Empty for empty strings", Justification = "<Pending>")]
         internal static (List<InventoryCsvRow> Rows, List<InventoryImportError> Errors) Read(Stream stream, CancellationToken ct)
         {
             List<InventoryCsvRow> rows = [];
@@ -95,10 +96,10 @@ namespace de.openelp.feuerwehr.Server.Services
                     if (Field("equipmentType").Length > 150 || Field("category").Length > 100)
                     { errors.Add(new(line, "Gerätetyp oder Kategorie ist zu lang.")); continue; }
                     EquipmentStatus? status = Field("status").ToLowerInvariant() switch
-                    { string.Empty or "ready" or "einsatzklar" => EquipmentStatus.Ready, "defective" or "defekt" => EquipmentStatus.Defective, "inrepair" or "in reparatur" => EquipmentStatus.InRepair, _ => null };
+                    { "" or "ready" or "einsatzklar" => EquipmentStatus.Ready, "defective" or "defekt" => EquipmentStatus.Defective, "inrepair" or "in reparatur" => EquipmentStatus.InRepair, _ => null };
                     if (status is null)
                     { errors.Add(new(line, "status muss Einsatzklar, Defekt oder In Reparatur sein.")); continue; }
-                    bool? active = Field("isActive").ToLowerInvariant() switch { string.Empty or "true" or "1" or "ja" => true, "false" or "0" or "nein" => false, _ => null };
+                    bool? active = Field("isActive").ToLowerInvariant() switch { "" or "true" or "1" or "ja" => true, "false" or "0" or "nein" => false, _ => null };
                     if (active is null)
                     { errors.Add(new(line, "isActive muss true oder false sein.")); continue; }
                     bool TryDate(string column, out DateOnly? value)

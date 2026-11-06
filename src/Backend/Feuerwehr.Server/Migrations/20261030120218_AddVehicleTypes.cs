@@ -1,9 +1,13 @@
+using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace de.openelp.feuerwehr.Server.Migrations
 {
+    [DbContext(typeof(FeuerwehrDbContext))]
+    [Migration("20261030120218_AddVehicleTypes")]
     /// <inheritdoc />
     public partial class AddVehicleTypes : Migration
     {

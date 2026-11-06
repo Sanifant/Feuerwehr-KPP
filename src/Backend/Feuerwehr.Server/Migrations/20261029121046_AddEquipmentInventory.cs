@@ -1,3 +1,5 @@
+using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,6 +8,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace de.openelp.feuerwehr.Server.Migrations
 {
+    [DbContext(typeof(FeuerwehrDbContext))]
+    [Migration("20261029121046_AddEquipmentInventory")]
     /// <inheritdoc />
     public partial class AddEquipmentInventory : Migration
     {
@@ -129,6 +133,7 @@ namespace de.openelp.feuerwehr.Server.Migrations
             migrationBuilder.InsertData(
                 table: "InventoryCategories",
                 columns: new[] { "Id", "Name", "NormalizedName" },
+                columnTypes: new[] { "uuid", "character varying(100)", "character varying(100)" },
                 values: new object[,]
                 {
                     { new Guid("f3050002-0000-0000-0000-000000000001"), "Löschgeräte", "LÖSCHGERÄTE" },

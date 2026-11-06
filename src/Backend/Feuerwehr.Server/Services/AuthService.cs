@@ -2,6 +2,7 @@ using de.openelp.feuerwehr.Common.Models.Dto;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace de.openelp.feuerwehr.Server.Services
 {

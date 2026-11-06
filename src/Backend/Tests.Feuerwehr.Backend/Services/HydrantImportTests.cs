@@ -9,7 +9,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
     public class HydrantImportTests
     {
         private const string Header = "street;houseNumber;postalCode;city;latitude;longitude;nominalDiameter;type;waterSource;status;notes";
-        private const string Row = "DorfstraÃŸe;12;02361;Testort;53.929134;10.638436;80;1;1;1;";
+        private const string Row = "Dorfstraße;12;02361;Testort;53.929134;10.638436;80;1;1;1;";
 
         /// <summary>
         /// Creates the database.
@@ -62,7 +62,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
             ServiceResult result = await Import(
                 db,
                 Header.Replace(";notes", string.Empty) + "\n" +
-                "DorfstraÃŸe;12;02361;Testort;123;456;80;1;1;1");
+                "Dorfstraße;12;02361;Testort;123;456;80;1;1;1");
 
             Assert.Equal(200, result.Code);
             Server.Models.Hydrant entity = Assert.Single(db.Hydrants);
@@ -133,10 +133,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         }
 
         [Theory]
-        [InlineData("DorfstraÃŸe;12;02361;Testort;abc;10;80;1;1;1;")]
-        [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;0;1;1;")]
-        [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;\"nicht geschlossen")]
-        [InlineData("DorfstraÃŸe;12;02361;Testort;53;10;80;1;1;1;Notiz;zusätzlich")]
+        [InlineData("Dorfstraße;12;02361;Testort;abc;10;80;1;1;1;")]
+        [InlineData("Dorfstraße;12;02361;Testort;53;10;80;0;1;1;")]
+        [InlineData("Dorfstraße;12;02361;Testort;53;10;80;1;1;1;\"nicht geschlossen")]
+        [InlineData("Dorfstraße;12;02361;Testort;53;10;80;1;1;1;Notiz;zusätzlich")]
         /// <summary>
         /// Executes invalid Csv Or Storage Types Are Rejected.
         /// </summary>
@@ -155,7 +155,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         public async Task BomZeroCoordinatesAndOmittedTrailingNotes_AreAccepted()
         {
             using FeuerwehrDbContext db = CreateDatabase();
-            string csv = "\uFEFF" + Header + "\r\n" + "DorfstraÃŸe;12;02361;Testort;0;0;80;1;1;1";
+            string csv = "\uFEFF" + Header + "\r\n" + "Dorfstraße;12;02361;Testort;0;0;80;1;1;1";
             Assert.Equal(200, (await Import(db, csv)).Code);
             Assert.Equal(0, Assert.Single(db.Hydrants).Latitude);
         }

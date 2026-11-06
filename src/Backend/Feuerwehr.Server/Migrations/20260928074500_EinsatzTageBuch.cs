@@ -1,15 +1,24 @@
+using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace de.openelp.feuerwehr.Server.Migrations
 {
+    [DbContext(typeof(FeuerwehrDbContext))]
+    [Migration("20260928074500_EinsatzTageBuch")]
     /// <inheritdoc />
     public partial class EinsatzTageBuch : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            if (!string.IsNullOrEmpty(migrationBuilder.ActiveProvider))
+            {
+                return;
+            }
+
             migrationBuilder.CreateSequence(
                 name: "DiaryEntryNumberSeq");
 
@@ -287,6 +296,11 @@ namespace de.openelp.feuerwehr.Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            if (!string.IsNullOrEmpty(migrationBuilder.ActiveProvider))
+            {
+                return;
+            }
+
             migrationBuilder.DropTable(
                 name: "DiaryCategories");
 

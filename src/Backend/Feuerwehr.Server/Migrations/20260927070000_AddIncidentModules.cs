@@ -1,9 +1,13 @@
+using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace de.openelp.feuerwehr.Server.Migrations
 {
+    [DbContext(typeof(FeuerwehrDbContext))]
+    [Migration("20260927070000_AddIncidentModules")]
     public partial class AddIncidentModules : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

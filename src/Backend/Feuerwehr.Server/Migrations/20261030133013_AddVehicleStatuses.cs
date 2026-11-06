@@ -1,3 +1,5 @@
+using de.openelp.feuerwehr.Server.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,6 +8,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace de.openelp.feuerwehr.Server.Migrations
 {
+    [DbContext(typeof(FeuerwehrDbContext))]
+    [Migration("20261030133013_AddVehicleStatuses")]
     /// <inheritdoc />
     public partial class AddVehicleStatuses : Migration
     {
@@ -38,6 +42,7 @@ namespace de.openelp.feuerwehr.Server.Migrations
             migrationBuilder.InsertData(
                 table: "VehicleStatuses",
                 columns: new[] { "Id", "AllowsBooking", "IsActive", "Name", "NormalizedName", "Version" },
+                columnTypes: new[] { "uuid", "boolean", "boolean", "character varying(100)", "character varying(200)", "integer" },
                 values: new object[,]
                 {
                     { new Guid("5032f99d-4352-4000-8000-000000000001"), true, true, "Betriebsbereit", "BETRIEBSBEREIT", 1 },

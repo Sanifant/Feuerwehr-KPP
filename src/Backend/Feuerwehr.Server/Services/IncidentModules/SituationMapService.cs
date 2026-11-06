@@ -628,7 +628,7 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                     double lat = coordinates[1].GetDouble();
                     if (lon is < -180 or > 180 || lat is < -90 or > 90)
                     {
-                        error = "Point-Koordinaten sind auÃŸerhalb von WGS84.";
+                        error = "Point-Koordinaten sind außerhalb von WGS84.";
                         return false;
                     }
                 }
@@ -648,7 +648,7 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                             double lat = coordinate[1].GetDouble();
                             if (lon is < -180 or > 180 || lat is < -90 or > 90)
                             {
-                                error = "Polygon-Koordinaten sind auÃŸerhalb von WGS84.";
+                                error = "Polygon-Koordinaten sind außerhalb von WGS84.";
                                 return false;
                             }
                         }
