@@ -1,9 +1,9 @@
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Server.Models;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Server.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     /// <summary>
     /// Executes user Invitation Service.

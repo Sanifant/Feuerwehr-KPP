@@ -1,6 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 
-namespace De.Openelp.Feuerwehr.Common.Models.Dto
+namespace de.openelp.feuerwehr.Common.Models.Dto
 {
     public record IncidentCreatedResponse(IncidentSummaryDto Incident, EditorLeaseDto Lease, DateTime ServerUtc);
 }

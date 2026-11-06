@@ -1,9 +1,8 @@
 using System.Security.Claims;
-using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace De.Openelp.Feuerwehr.Server.Hubs
+namespace de.openelp.feuerwehr.Server.Hubs
 {
     [Authorize]
     public sealed class IncidentHub : Hub<IIncidentClient>
@@ -14,7 +13,7 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         /// <param name="incidentId">The incident Id.</param>
         public async Task SubscribeIncident(string incidentId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"incident:{incidentId}");
+            await this.Groups.AddToGroupAsync(this.Context.ConnectionId, $"incident:{incidentId}");
         }
 
         /// <summary>
@@ -23,12 +22,12 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         /// <param name="incidentId">The incident Id.</param>
         public async Task SubscribeMap(string incidentId)
         {
-            if (!CanViewMap())
+            if (!this.CanViewMap())
             {
                 throw new HubException("Keine Berechtigung für Lagekarte.");
             }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"map:{incidentId}");
+            await this.Groups.AddToGroupAsync(this.Context.ConnectionId, $"map:{incidentId}");
         }
 
         /// <summary>
@@ -37,23 +36,23 @@ namespace De.Openelp.Feuerwehr.Server.Hubs
         /// <param name="incidentId">The incident Id.</param>
         public async Task SubscribeDiary(string incidentId)
         {
-            if (!CanViewDiary())
+            if (!this.CanViewDiary())
             {
                 throw new HubException("Keine Berechtigung für Einsatztagebuch.");
             }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"diary:{incidentId}");
+            await this.Groups.AddToGroupAsync(this.Context.ConnectionId, $"diary:{incidentId}");
         }
 
         private bool CanViewMap()
         {
-            HashSet<string> roles = Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            HashSet<string> roles = this.Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
             return roles.Contains("SituationMapViewer") || roles.Contains("SituationMapEditor");
         }
 
         private bool CanViewDiary()
         {
-            HashSet<string> roles = Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            HashSet<string> roles = this.Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
             return roles.Contains("IncidentDiaryViewer") || roles.Contains("IncidentDiaryEditor");
         }
     }

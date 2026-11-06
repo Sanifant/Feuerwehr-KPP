@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace De.Openelp.Feuerwehr.Common.Models.Vehicles
+namespace de.openelp.feuerwehr.Common.Models.Vehicles
 {
     /// <summary>
     /// Executes vehicle Import Error.

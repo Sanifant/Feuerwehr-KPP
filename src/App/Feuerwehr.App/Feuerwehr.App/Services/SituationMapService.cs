@@ -6,10 +6,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 
-namespace De.Openelp.Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     // This client deliberately exposes only the two read endpoints, with no lease or mutation calls.
     /// <summary>
@@ -23,14 +23,15 @@ namespace De.Openelp.Feuerwehr.App.Services
             Converters = { new JsonStringEnumConverter() }
         };
 
-    public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
-    {
-        using var response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
-        if (response.StatusCode == HttpStatusCode.NotFound) return null;
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<IncidentSummaryDto>(JsonOptions, cancellationToken)
-            ?? throw new JsonException("Die Einsatzantwort ist leer.");
-    }
+        public async Task<IncidentSummaryDto?> GetActiveIncidentAsync(CancellationToken cancellationToken)
+        {
+            using var response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return null;
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IncidentSummaryDto>(JsonOptions, cancellationToken)
+                ?? throw new JsonException("Die Einsatzantwort ist leer.");
+        }
 
         /// <summary>
         /// Gets the state.

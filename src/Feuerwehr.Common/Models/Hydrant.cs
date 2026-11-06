@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace De.Openelp.Feuerwehr.Common.Models
+namespace de.openelp.feuerwehr.Common.Models
 {
 
     public class Hydrant
@@ -27,9 +27,9 @@ namespace De.Openelp.Feuerwehr.Common.Models
         public string? Notes { get; set; }
 
         // Computed Read-Only Properties (Excluded from Database Mapping)
-        public bool IsUnderground => Type == HydrantType.Underground;
-        public bool IsOperational => Status == HydrantStatus.Operational;
+        public bool IsUnderground => this.Type == HydrantType.Underground;
+        public bool IsOperational => this.Status == HydrantStatus.Operational;
 
-        public string DiameterDescription => $"DIN {NominalDiameter}";
+        public string DiameterDescription => $"DIN {this.NominalDiameter}";
     }
 }

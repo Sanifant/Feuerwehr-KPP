@@ -3,9 +3,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using De.Openelp.Feuerwehr.Common.Models.Inventory;
+using de.openelp.feuerwehr.Common.Models.Inventory;
 
-namespace De.Openelp.Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     /// <summary>
     /// Executes inventory Service.

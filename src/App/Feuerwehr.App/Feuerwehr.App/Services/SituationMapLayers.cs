@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Nts;
@@ -11,7 +11,7 @@ using Mapsui.Projections;
 using Mapsui.Styles;
 using NetTopologySuite.Geometries;
 
-namespace De.Openelp.Feuerwehr.App.Services
+namespace de.openelp.feuerwehr.App.Services
 {
     public static class SituationMapLayers
     {

@@ -1,10 +1,10 @@
 using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Services
+namespace de.openelp.feuerwehr.Tests.Backend.Services
 {
     public class HydrantImportTests
     {
@@ -14,8 +14,11 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
         /// <summary>
         /// Creates the database.
         /// </summary>
-        public static FeuerwehrDbContext CreateDatabase() => new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        public static FeuerwehrDbContext CreateDatabase()
+        {
+            return new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        }
 
         /// <summary>
         /// Executes import.

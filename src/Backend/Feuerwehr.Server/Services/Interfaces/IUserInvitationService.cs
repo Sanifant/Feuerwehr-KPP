@@ -1,9 +1,7 @@
-using De.Openelp.Feuerwehr.Common.Models.Auth;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Server.Models;
-using Microsoft.AspNetCore.Identity;
+using de.openelp.feuerwehr.Common.Models.Auth;
+using de.openelp.feuerwehr.Server.Models;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public interface IUserInvitationService
     {

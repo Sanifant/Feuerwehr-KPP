@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
-using De.Openelp.Feuerwehr.App.Models;
-using De.Openelp.Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Models;
+using de.openelp.feuerwehr.App.Services;
 
-namespace De.Openelp.Feuerwehr.App.Desktop.Services
+namespace de.openelp.feuerwehr.App.Desktop.Services
 {
     /// <summary>Desktop stub that returns a fixed location.</summary>
     public sealed class DesktopGpsService : IGpsService

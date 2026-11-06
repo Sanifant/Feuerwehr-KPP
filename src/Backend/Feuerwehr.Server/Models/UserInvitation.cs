@@ -1,4 +1,4 @@
-namespace De.Openelp.Feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models
 {
     // Server-only credential material; never returned by the API.
     /// <summary>

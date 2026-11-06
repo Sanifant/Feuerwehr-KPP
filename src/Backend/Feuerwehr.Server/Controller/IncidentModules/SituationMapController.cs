@@ -1,12 +1,10 @@
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Services.IncidentModules;
-using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
+namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
 {
     [Route("api/incidents/{incidentId:guid}/map")]
     [ApiController]
@@ -25,45 +23,50 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
             return this.ToActionResult(await service.GetState(incidentId, cancellationToken));
         }
 
-    [HttpPost("lease/acquire")]
-    [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-    public async Task<IActionResult> AcquireLease(Guid incidentId, [FromBody] AcquireLeaseRequest request, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        return this.ToActionResult(await service.AcquireLease(incidentId, request, cancellationToken));
-    }
+        [HttpPost("lease/acquire")]
+        [Authorize(Policy = PolicyNames.CanEditSituationMap)]
+        public async Task<IActionResult> AcquireLease(Guid incidentId, [FromBody] AcquireLeaseRequest request, CancellationToken cancellationToken)
+        {
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
+            return this.ToActionResult(await service.AcquireLease(incidentId, request, cancellationToken));
+        }
 
-    [HttpPost("lease/heartbeat")]
-    [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-    public async Task<IActionResult> Heartbeat(Guid incidentId, [FromBody] LeaseHeartbeatRequest request, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        return this.ToActionResult(await service.Heartbeat(incidentId, request, cancellationToken));
-    }
+        [HttpPost("lease/heartbeat")]
+        [Authorize(Policy = PolicyNames.CanEditSituationMap)]
+        public async Task<IActionResult> Heartbeat(Guid incidentId, [FromBody] LeaseHeartbeatRequest request, CancellationToken cancellationToken)
+        {
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
+            return this.ToActionResult(await service.Heartbeat(incidentId, request, cancellationToken));
+        }
 
-    [HttpPost("lease/release")]
-    [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-    public async Task<IActionResult> Release(Guid incidentId, [FromBody] ReleaseLeaseRequest request, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        return this.ToActionResult(await service.Release(incidentId, request, cancellationToken));
-    }
+        [HttpPost("lease/release")]
+        [Authorize(Policy = PolicyNames.CanEditSituationMap)]
+        public async Task<IActionResult> Release(Guid incidentId, [FromBody] ReleaseLeaseRequest request, CancellationToken cancellationToken)
+        {
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
+            return this.ToActionResult(await service.Release(incidentId, request, cancellationToken));
+        }
 
-    [HttpPost("elements")]
-    [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-    public async Task<IActionResult> UpsertElement(Guid incidentId, [FromBody] UpsertMapElementRequest request, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        return this.ToActionResult(await service.UpsertElement(incidentId, request, cancellationToken));
-    }
+        [HttpPost("elements")]
+        [Authorize(Policy = PolicyNames.CanEditSituationMap)]
+        public async Task<IActionResult> UpsertElement(Guid incidentId, [FromBody] UpsertMapElementRequest request, CancellationToken cancellationToken)
+        {
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
+            return this.ToActionResult(await service.UpsertElement(incidentId, request, cancellationToken));
+        }
 
-    [HttpDelete("elements/{elementId:guid}")]
-    [Authorize(Policy = PolicyNames.CanEditSituationMap)]
-    public async Task<IActionResult> DeleteElement(Guid incidentId, Guid elementId, [FromBody] DeleteMapElementRequest request, CancellationToken cancellationToken)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        return this.ToActionResult(await service.DeleteElement(incidentId, elementId, request, cancellationToken));
-    }
+        [HttpDelete("elements/{elementId:guid}")]
+        [Authorize(Policy = PolicyNames.CanEditSituationMap)]
+        public async Task<IActionResult> DeleteElement(Guid incidentId, Guid elementId, [FromBody] DeleteMapElementRequest request, CancellationToken cancellationToken)
+        {
+            if (!this.ModelState.IsValid)
+                return this.ValidationProblem(this.ModelState);
+            return this.ToActionResult(await service.DeleteElement(incidentId, elementId, request, cancellationToken));
+        }
 
         [HttpGet("audit")]
         [Authorize(Policy = PolicyNames.CanViewSituationMap)]

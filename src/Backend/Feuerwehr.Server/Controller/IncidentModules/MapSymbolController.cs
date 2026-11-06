@@ -1,10 +1,10 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
+namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
 {
     [ApiController]
     [Route("api/map-symbols")]
@@ -21,7 +21,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> GetSymbols(CancellationToken cancellationToken)
-            => this.ToActionResult(await service.GetSymbols(cancellationToken));
+        {
+            return this.ToActionResult(await service.GetSymbols(cancellationToken));
+        }
 
         [HttpGet("categories")]
         /// <summary>
@@ -29,7 +31,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// </summary>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> GetCategories(CancellationToken cancellationToken)
-            => this.ToActionResult(await service.GetCategories(cancellationToken));
+        {
+            return this.ToActionResult(await service.GetCategories(cancellationToken));
+        }
 
         [HttpPost("categories")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
@@ -39,7 +43,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> CreateCategory(CreateMapSymbolCategoryRequest request, CancellationToken cancellationToken)
-            => this.ToActionResult(await service.CreateCategory(request, cancellationToken));
+        {
+            return this.ToActionResult(await service.CreateCategory(request, cancellationToken));
+        }
 
         [HttpPost]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
@@ -50,7 +56,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> Create(SaveMapSymbolRequest request, CancellationToken cancellationToken)
-            => this.ToActionResult(await service.Save(null, request, cancellationToken));
+        {
+            return this.ToActionResult(await service.Save(null, request, cancellationToken));
+        }
 
         [HttpPut("{id:guid}")]
         [Authorize(Policy = PolicyNames.RequireAdmin)]
@@ -62,7 +70,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// <param name="request">The request.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> Update(Guid id, SaveMapSymbolRequest request, CancellationToken cancellationToken)
-            => this.ToActionResult(await service.Save(id, request, cancellationToken));
+        {
+            return this.ToActionResult(await service.Save(id, request, cancellationToken));
+        }
     }
 
 }

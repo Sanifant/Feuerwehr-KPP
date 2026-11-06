@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Tests.Backend.Integration.Infrastructure;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Integration
+namespace de.openelp.feuerwehr.Tests.Backend.Integration
 {
     [Collection(IntegrationTestCollection.Name)]
     /// <summary>

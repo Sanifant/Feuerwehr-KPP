@@ -9,13 +9,13 @@ using AndroidX.Core.Content;
 using AndroidX.Core.Location;
 using AndroidX.Core.Util;
 using Avalonia.Threading;
-using De.Openelp.Feuerwehr.App.Models;
-using De.Openelp.Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Models;
+using de.openelp.feuerwehr.App.Services;
 using Java.Util.Concurrent;
 using CancellationSignal = global::Android.OS.CancellationSignal;
 using Manifest = global::Android.Manifest;
 
-namespace De.Openelp.Feuerwehr.App.Android.Services
+namespace de.openelp.feuerwehr.App.Android.Services
 {
     /// <summary>Obtains one foreground location fix without requiring Google Play Services.</summary>
     public sealed class AndroidGpsService : IGpsService

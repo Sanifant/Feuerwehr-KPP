@@ -8,10 +8,10 @@ using AndroidX.Core.Content;
 using Avalonia.Android;
 using Manifest = global::Android.Manifest;
 
-namespace De.Openelp.Feuerwehr.App.Android
+namespace de.openelp.feuerwehr.App.Android
 {
     [Activity(
-        Label = "De.Openelp.Feuerwehr.App.Android",
+        Label = "de.openelp.feuerwehr.App.Android",
         Theme = "@style/MyTheme.NoActionBar",
         Icon = "@drawable/icon",
         MainLauncher = true,
@@ -27,7 +27,7 @@ namespace De.Openelp.Feuerwehr.App.Android
             current is not null && current.TryGetTarget(out MainActivity? activity)
                 && !activity.IsFinishing && !activity.IsDestroyed ? activity : null;
 
-        internal CancellationToken DestroyedToken => destroyed.Token;
+        internal CancellationToken DestroyedToken => this.destroyed.Token;
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
@@ -42,15 +42,15 @@ namespace De.Openelp.Feuerwehr.App.Android
         // Called on the UI thread; concurrent callers share the same permission dialog.
         internal Task<bool> EnsureLocationPermissionAsync()
         {
-            if (HasLocationPermission)
+            if (this.HasLocationPermission)
                 return Task.FromResult(true);
 
-            if (locationPermissionRequest is not null)
-                return locationPermissionRequest.Task;
+            if (this.locationPermissionRequest is not null)
+                return this.locationPermissionRequest.Task;
 
             TaskCompletionSource<bool> request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            locationPermissionRequest = request;
-            RequestPermissions(
+            this.locationPermissionRequest = request;
+            this.RequestPermissions(
                 new[] { Manifest.Permission.AccessFineLocation, Manifest.Permission.AccessCoarseLocation },
                 LocationPermissionRequestCode);
             return request.Task;
@@ -67,9 +67,9 @@ namespace De.Openelp.Feuerwehr.App.Android
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             if (requestCode == LocationPermissionRequestCode)
             {
-                TaskCompletionSource<bool>? request = locationPermissionRequest;
-                locationPermissionRequest = null;
-                request?.TrySetResult(HasLocationPermission);
+                TaskCompletionSource<bool>? request = this.locationPermissionRequest;
+                this.locationPermissionRequest = null;
+                request?.TrySetResult(this.HasLocationPermission);
             }
         }
 
@@ -78,11 +78,11 @@ namespace De.Openelp.Feuerwehr.App.Android
             if (current is not null && current.TryGetTarget(out MainActivity? activity) && ReferenceEquals(activity, this))
                 current = null;
 
-            locationPermissionRequest?.TrySetResult(false);
-            locationPermissionRequest = null;
-            destroyed.Cancel();
+            this.locationPermissionRequest?.TrySetResult(false);
+            this.locationPermissionRequest = null;
+            this.destroyed.Cancel();
             base.OnDestroy();
-            destroyed.Dispose();
+            this.destroyed.Dispose();
         }
     }
 }

@@ -1,4 +1,3 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -6,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace De.Openelp.Feuerwehr.Server.Migrations
+namespace de.openelp.feuerwehr.Server.Migrations
 {
     /// <inheritdoc />
     public partial class BaseLine : Migration

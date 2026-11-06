@@ -1,26 +1,8 @@
 using de.openelp.feuerwehr.Common.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Drawing;
-using System.Net;
-using System.Text;
 
 namespace de.openelp.feuerwehr.Server.Models
 {
-
-    public class Address
-    {
-        public string Street { get; set; } = string.Empty;
-        public string HouseNumber { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string? AdditionalInfo { get; set; }
-
-        public string GetFormattedAddress() =>
-            $"{Street} {HouseNumber}, {PostalCode} {City}".Trim();
-    }
-
     public class Hydrant
     {
         [Key]
@@ -46,9 +28,9 @@ namespace de.openelp.feuerwehr.Server.Models
         public string? Notes { get; set; }
 
         // Computed Read-Only Properties (Excluded from Database Mapping)
-        public bool IsUnderground => Type == HydrantType.Underground;
-        public bool IsOperational => Status == HydrantStatus.Operational;
+        public bool IsUnderground => this.Type == HydrantType.Underground;
+        public bool IsOperational => this.Status == HydrantStatus.Operational;
 
-        public string DiameterDescription => $"DIN {NominalDiameter}";
+        public string DiameterDescription => $"DIN {this.NominalDiameter}";
     }
 }

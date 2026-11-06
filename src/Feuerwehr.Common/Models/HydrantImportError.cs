@@ -1,4 +1,4 @@
-namespace De.Openelp.Feuerwehr.Common.Models
+namespace de.openelp.feuerwehr.Common.Models
 {
     /// <summary>
     /// Executes hydrant Import Error.

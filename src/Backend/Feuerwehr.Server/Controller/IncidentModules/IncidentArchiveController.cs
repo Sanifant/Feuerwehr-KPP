@@ -1,9 +1,9 @@
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services.IncidentModules;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
+namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
 {
     [Route("api/incidents/archive/{incidentId:guid}")]
     [ApiController]
@@ -21,7 +21,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> GetDiary(Guid incidentId, CancellationToken cancellationToken)
-            => this.ToActionResult(await service.GetDiary(incidentId, cancellationToken));
+        {
+            return this.ToActionResult(await service.GetDiary(incidentId, cancellationToken));
+        }
 
         [HttpGet("export.pdf")]
         /// <summary>
@@ -30,7 +32,9 @@ namespace De.Openelp.Feuerwehr.Server.Controller.IncidentModules
         /// <param name="incidentId">The incident Id.</param>
         /// <param name="cancellationToken">The cancellation Token.</param>
         public async Task<IActionResult> ExportPdf(Guid incidentId, CancellationToken cancellationToken)
-            => this.ToActionResult(await service.ExportPdf(incidentId, cancellationToken));
+        {
+            return this.ToActionResult(await service.ExportPdf(incidentId, cancellationToken));
+        }
     }
 
 }

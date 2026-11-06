@@ -1,7 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
-using De.Openelp.Feuerwehr.Server.Models.IncidentModules;
+using de.openelp.feuerwehr.Server.Models.IncidentModules;
 
-namespace De.Openelp.Feuerwehr.Server.Services.IncidentModules
+namespace de.openelp.feuerwehr.Server.Services.IncidentModules
 {
     public interface ICommandIdempotencyService
     {

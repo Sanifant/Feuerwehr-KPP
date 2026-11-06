@@ -2,19 +2,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using de.openelp.feuerwehr.Server.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace de.openelp.feuerwehr.Server.Services
 {
-    public interface ITokenService
-    {
-        Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles);
-        string GenerateRefreshToken();
-        Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken);
-        Task StoreRefreshTokenAsync(string userId, string refreshToken);
-        Task RevokeRefreshTokenAsync(string userId);
-        Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal);
-        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
-    }
 
     public class TokenService : ITokenService
     {
@@ -24,8 +17,8 @@ namespace de.openelp.feuerwehr.Server.Services
 
         public TokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
         {
-            _configuration = configuration;
-            _userManager = userManager;
+            this._configuration = configuration;
+            this._userManager = userManager;
         }
 
         /// <summary>
@@ -35,7 +28,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="roles">The roles.</param>
         public async Task<string> GenerateAccessTokenAsync(ApplicationUser user, IList<string> roles)
         {
-            IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
+            IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
             string secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
             string issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer not configured");
             string audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience not configured");
@@ -48,7 +41,7 @@ namespace de.openelp.feuerwehr.Server.Services
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim("firstName", user.FirstName),
                 new Claim("lastName", user.LastName),
-                new Claim(SecurityStampClaim, await _userManager.GetSecurityStampAsync(user)),
+                new Claim(SecurityStampClaim, await this._userManager.GetSecurityStampAsync(user)),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -98,10 +91,11 @@ namespace de.openelp.feuerwehr.Server.Services
         {
             var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
             var stamp = principal.FindFirstValue(SecurityStampClaim);
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp)) return false;
-            var user = await _userManager.FindByIdAsync(userId);
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp))
+                return false;
+            var user = await this._userManager.FindByIdAsync(userId);
             return user is { IsActive: true, PasswordResetRequired: false } &&
-                string.Equals(stamp, await _userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
+                string.Equals(stamp, await this._userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -111,17 +105,18 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="refreshToken">The refresh Token.</param>
         public async Task<bool> ValidateRefreshTokenAsync(string userId, string refreshToken)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
+            var user = await this._userManager.FindByIdAsync(userId);
+            if (user == null)
+                return false;
 
             // Get stored refresh token from Identity's token store
-            string? storedToken = await _userManager.GetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
+            string? storedToken = await this._userManager.GetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
 
             if (string.IsNullOrEmpty(storedToken))
                 return false;
 
             // Hash the provided token and compare with stored hash
-            string hashedProvidedToken = HashToken(refreshToken);
+            string hashedProvidedToken = this.HashToken(refreshToken);
             return storedToken == hashedProvidedToken;
         }
 
@@ -132,17 +127,18 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="refreshToken">The refresh Token.</param>
         public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) throw new InvalidOperationException("User not found");
+            var user = await this._userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new InvalidOperationException("User not found");
 
             // Hash the refresh token before storing
-            string hashedToken = HashToken(refreshToken);
+            string hashedToken = this.HashToken(refreshToken);
 
             // Remove old token
-            await _userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
+            await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
 
             // Store new hashed token
-            await _userManager.SetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken", hashedToken);
+            await this._userManager.SetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken", hashedToken);
         }
 
         /// <summary>
@@ -151,10 +147,11 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="userId">The user Id.</param>
         public async Task RevokeRefreshTokenAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return;
+            var user = await this._userManager.FindByIdAsync(userId);
+            if (user == null)
+                return;
 
-            await _userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
+            await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
         }
 
         /// <summary>
@@ -163,7 +160,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="token">The token.</param>
         public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
         {
-            IConfigurationSection jwtSettings = _configuration.GetSection("JwtSettings");
+            IConfigurationSection jwtSettings = this._configuration.GetSection("JwtSettings");
             string secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
 
             TokenValidationParameters tokenValidationParameters = new TokenValidationParameters

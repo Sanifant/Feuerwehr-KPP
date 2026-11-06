@@ -3,7 +3,7 @@ using System.Globalization;
 using MailKit.Security;
 using MimeKit;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public sealed class SmtpSettings
     {
@@ -58,41 +58,49 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (!MailboxAddress.TryParse(from, out MailboxAddress? sender))
                 throw new InvalidOperationException("MAIL_FROM muss eine gültige Absenderadresse enthalten.");
 
-        return new SmtpSettings
-        {
-            Host = host, Port = port, Security = security, Username = username, Password = password,
-            From = sender.Address, FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? "",
-            TimeoutMilliseconds = 1000 * ReadPositiveInteger(NonBlank(configuration["MAIL_TIMEOUT_SECONDS"]),
-                "MAIL_TIMEOUT_SECONDS", 30, int.MaxValue / 1000),
-        };
-    }
-
-    private static int ReadPositiveInteger(string? value, string name, int fallback, int maximum)
-    {
-        if (value is null) return fallback;
-        if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0 && number <= maximum)
-            return number;
-        throw new InvalidOperationException($"{name} muss eine ganze Zahl zwischen 1 und {maximum} sein.");
-    }
-
-    private static Uri? ReadEndpoint(string? connection)
-    {
-        if (string.IsNullOrWhiteSpace(connection)) return null;
-        try
-        {
-            if (!Uri.TryCreate(connection, UriKind.Absolute, out var endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))
+            return new SmtpSettings
             {
-                var builder = new DbConnectionStringBuilder { ConnectionString = connection };
-                endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
-            }
-            if (endpoint.Scheme is not ("smtp" or "smtps") || string.IsNullOrWhiteSpace(endpoint.Host))
-                throw new FormatException();
-            return endpoint;
+                Host = host,
+                Port = port,
+                Security = security,
+                Username = username,
+                Password = password,
+                From = sender.Address,
+                FromName = NonBlank(configuration["MAIL_FROM_NAME"]) ?? sender.Name ?? string.Empty,
+                TimeoutMilliseconds = 1000 * ReadPositiveInteger(NonBlank(configuration["MAIL_TIMEOUT_SECONDS"]),
+                    "MAIL_TIMEOUT_SECONDS", 30, int.MaxValue / 1000),
+            };
         }
-        catch (Exception exception) when (exception is ArgumentException or FormatException or KeyNotFoundException)
+
+        private static int ReadPositiveInteger(string? value, string name, int fallback, int maximum)
         {
-            // Do not include connection strings, which could contain credentials, in diagnostics.
-            throw new InvalidOperationException("ConnectionStrings:mail enthält keinen gültigen SMTP-Endpunkt.");
+            if (value is null)
+                return fallback;
+            if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0 && number <= maximum)
+                return number;
+            throw new InvalidOperationException($"{name} muss eine ganze Zahl zwischen 1 und {maximum} sein.");
+        }
+
+        private static Uri? ReadEndpoint(string? connection)
+        {
+            if (string.IsNullOrWhiteSpace(connection))
+                return null;
+            try
+            {
+                if (!Uri.TryCreate(connection, UriKind.Absolute, out var endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))
+                {
+                    DbConnectionStringBuilder builder = new DbConnectionStringBuilder { ConnectionString = connection };
+                    endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
+                }
+                if (endpoint.Scheme is not ("smtp" or "smtps") || string.IsNullOrWhiteSpace(endpoint.Host))
+                    throw new FormatException();
+                return endpoint;
+            }
+            catch (Exception exception) when (exception is ArgumentException or FormatException or KeyNotFoundException)
+            {
+                // Do not include connection strings, which could contain credentials, in diagnostics.
+                throw new InvalidOperationException("ConnectionStrings:mail enthält keinen gültigen SMTP-Endpunkt.");
+            }
         }
     }
 }

@@ -1,12 +1,12 @@
 
 using System;
 using Avalonia;
-using De.Openelp.Feuerwehr.App.Desktop.Services;
-using De.Openelp.Feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.Desktop.Services;
+using de.openelp.feuerwehr.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace De.Openelp.Feuerwehr.App.Desktop
+namespace de.openelp.feuerwehr.App.Desktop
 {
     internal sealed class Program
     {
@@ -17,26 +17,31 @@ namespace De.Openelp.Feuerwehr.App.Desktop
         /// <summary>
         /// Executes main.
         /// </summary>
-        public static void Main(string[] args) => BuildAvaloniaApp()
+        public static void Main(string[] args)
+        {
+            BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
+        }
 
         // Avalonia configuration, don't remove; also used by visual designer.
         /// <summary>
         /// Builds the avalonia App.
         /// </summary>
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
-                .UsePlatformDetect()
+        {
+            return AppBuilder.Configure<App>()
+                        .UsePlatformDetect()
 #if DEBUG
-                .WithDeveloperTools()
+                        .WithDeveloperTools()
 #endif
-                .WithInterFont()
-                .AfterSetup(appBuilder =>
-                {
-                    ((App)appBuilder.Instance!).ConfigurePlatformServices = services =>
-                        services.Replace(ServiceDescriptor.Singleton<IGpsService, DesktopGpsService>());
-                })
-                .LogToTrace();
+                        .WithInterFont()
+                        .AfterSetup(appBuilder =>
+                        {
+                            ((App)appBuilder.Instance!).ConfigurePlatformServices = services =>
+                                services.Replace(ServiceDescriptor.Singleton<IGpsService, DesktopGpsService>());
+                        })
+                        .LogToTrace();
+        }
     }
 }
 

@@ -1,6 +1,6 @@
-﻿using Aspire.Hosting.Docker;
+using Aspire.Hosting.Docker;
 using Aspire.Hosting.JavaScript;
-using De.Openelp.Feuerwehr.Diagnostics;
+using de.openelp.feuerwehr.Diagnostics;
 
 using ProcessDiagnostics diagnostics = ProcessDiagnostics.Start("AppHost");
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
@@ -51,10 +51,10 @@ if (builder.ExecutionContext.IsRunMode)
     server.WithReference(mailpit)
         .WaitFor(mailpit)
         // Override inherited provider settings: local debugging always delivers to Mailpit.
-        .WithEnvironment("MAIL_HOST", "")
-        .WithEnvironment("MAIL_PORT", "")
-        .WithEnvironment("MAIL_USERNAME", "")
-        .WithEnvironment("MAIL_PASSWORD", "")
+        .WithEnvironment("MAIL_HOST", string.Empty)
+        .WithEnvironment("MAIL_PORT", string.Empty)
+        .WithEnvironment("MAIL_USERNAME", string.Empty)
+        .WithEnvironment("MAIL_PASSWORD", string.Empty)
         .WithEnvironment("MAIL_SECURITY", "None")
         .WithEnvironment("MAIL_FROM", "noreply@localhost.de")
         .WithEnvironment("MAIL_FROM_NAME", "Feuerwehr (lokal)")

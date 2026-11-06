@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
-using De.Openelp.Feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Common.Models;
 using Microsoft.VisualBasic.FileIO;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     internal static class HydrantCsvImport
     {
@@ -41,19 +41,21 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 if (headers is null)
                     return (hydrants, [new(null, "Die CSV-Datei ist leer.")]);
 
-            var columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            for (var index = 0; index < headers.Length; index++)
-            {
-                if (!columns.TryAdd(headers[index], index))
-                    errors.Add(new(1, $"Die Spalte '{headers[index]}' ist mehrfach vorhanden."));
-                else if (!RequiredColumns.Contains(headers[index], StringComparer.OrdinalIgnoreCase)
-                    && !headers[index].Equals("notes", StringComparison.OrdinalIgnoreCase))
-                    errors.Add(new(1, $"Unbekannte Spalte '{headers[index]}'."));
-            }
-            foreach (var required in RequiredColumns)
-                if (!columns.ContainsKey(required)) errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
+                Dictionary<string, int> columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                for (var index = 0; index < headers.Length; index++)
+                {
+                    if (!columns.TryAdd(headers[index], index))
+                        errors.Add(new(1, $"Die Spalte '{headers[index]}' ist mehrfach vorhanden."));
+                    else if (!RequiredColumns.Contains(headers[index], StringComparer.OrdinalIgnoreCase)
+                        && !headers[index].Equals("notes", StringComparison.OrdinalIgnoreCase))
+                        errors.Add(new(1, $"Unbekannte Spalte '{headers[index]}'."));
+                }
+                foreach (var required in RequiredColumns)
+                    if (!columns.ContainsKey(required))
+                        errors.Add(new(1, $"Die Pflichtspalte '{required}' fehlt."));
 
-            if (errors.Count > 0) return (hydrants, errors);
+                if (errors.Count > 0)
+                    return (hydrants, errors);
 
                 int rowCount = 0;
                 while (!parser.EndOfData && errors.Count < 100)
@@ -72,7 +74,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         continue;
                     }
 
-                    string Field(string name) => columns.TryGetValue(name, out int index) && index < fields.Length ? fields[index] : "";
+                    string Field(string name) => columns.TryGetValue(name, out int index) && index < fields.Length ? fields[index] : string.Empty;
                     string[] missing = RequiredColumns.Where(name => string.IsNullOrWhiteSpace(Field(name))).ToArray();
                     if (missing.Length > 0)
                     {
@@ -94,24 +96,32 @@ namespace De.Openelp.Feuerwehr.Server.Services
                         continue;
                     }
 
-                hydrants.Add(new Hydrant
-                {
-                    Address = new Address
+                    hydrants.Add(new Hydrant
                     {
-                        Street = Field("street"), HouseNumber = Field("houseNumber"),
-                        PostalCode = Field("postalCode"), City = Field("city"),
-                    },
-                    Latitude = latitude, Longitude = longitude, NominalDiameter = diameter,
-                    Type = (HydrantType)type, WaterSource = (WaterSource)source, Status = (HydrantStatus)status,
-                    Notes = string.IsNullOrWhiteSpace(Field("notes")) ? null : Field("notes"),
-                });
+                        Address = new Address
+                        {
+                            Street = Field("street"),
+                            HouseNumber = Field("houseNumber"),
+                            PostalCode = Field("postalCode"),
+                            City = Field("city"),
+                        },
+                        Latitude = latitude,
+                        Longitude = longitude,
+                        NominalDiameter = diameter,
+                        Type = (HydrantType)type,
+                        WaterSource = (WaterSource)source,
+                        Status = (HydrantStatus)status,
+                        Notes = string.IsNullOrWhiteSpace(Field("notes")) ? null : Field("notes"),
+                    });
+                }
+                if (rowCount == 0)
+                    errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
             }
-            if (rowCount == 0) errors.Add(new(null, "Die CSV-Datei enthält keine Hydranten."));
+            catch (MalformedLineException)
+            {
+                errors.Add(new(parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Trennzeichen und Anführungszeichen prüfen."));
+            }
+            return (hydrants, errors);
         }
-        catch (MalformedLineException)
-        {
-            errors.Add(new(parser.ErrorLineNumber, "Ungültige CSV-Zeile. Bitte Trennzeichen und Anführungszeichen prüfen."));
-        }
-        return (hydrants, errors);
     }
 }

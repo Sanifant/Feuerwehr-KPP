@@ -4,7 +4,7 @@ using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller
+namespace de.openelp.feuerwehr.Server.Controller
 {
     [Route("api/[controller]")]
     [ApiController]

@@ -1,6 +1,6 @@
-﻿using De.Openelp.Feuerwehr.Common.Models;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Services;
@@ -10,29 +10,37 @@ public class HydrantServiceTests
     [Fact]
     public void CreateAndUpdate_MapTransportContractWithoutReplacingEntity()
     {
-        using var db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        var service = new HydrantService(db);
-        var request = new Hydrant
+        HydrantService service = new HydrantService(db);
+        Hydrant request = new Hydrant
         {
             Address = new Address { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
-            Latitude = 53.9, Longitude = 10.7, NominalDiameter = 100,
-            Status = HydrantStatus.Operational, Type = HydrantType.Underground,
+            Latitude = 53.9,
+            Longitude = 10.7,
+            NominalDiameter = 100,
+            Status = HydrantStatus.Operational,
+            Type = HydrantType.Underground,
         };
 
-            ServiceResult created = service.Post(request);
-            Assert.Equal(201, created.Code);
-            Hydrant response = Assert.IsType<Hydrant>(created.Value);
-            Server.Models.Hydrant entity = Assert.Single(db.Hydrants);
-            Assert.Equal(entity.Id, response.Id);
-            Assert.NotSame(request.Address, entity.Address);
-            Assert.NotSame(response.Address, entity.Address);
+        ServiceResult created = service.Post(request);
+        Assert.Equal(201, created.Code);
+        Hydrant response = Assert.IsType<Hydrant>(created.Value);
+        Server.Models.Hydrant entity = Assert.Single(db.Hydrants);
+        Assert.Equal(entity.Id, response.Id);
+        Assert.NotSame(request.Address, entity.Address);
+        Assert.NotSame(response.Address, entity.Address);
 
-        var update = new Hydrant
+        Hydrant update = new Hydrant
         {
-            Id = response.Id, Address = new Address { Street = "Neue Straße", City = "Stockelsdorf" },
-            Latitude = 54, Longitude = 11, NominalDiameter = 150,
-            Status = HydrantStatus.Operational, Type = HydrantType.Underground, Notes = "Geprüft",
+            Id = response.Id,
+            Address = new Address { Street = "Neue Straße", City = "Stockelsdorf" },
+            Latitude = 54,
+            Longitude = 11,
+            NominalDiameter = 150,
+            Status = HydrantStatus.Operational,
+            Type = HydrantType.Underground,
+            Notes = "Geprüft",
         };
         Assert.Equal(204, service.Put(response.Id, update).Code);
         Assert.Same(entity, Assert.Single(db.Hydrants));

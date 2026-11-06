@@ -1,11 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Data;
-using De.Openelp.Feuerwehr.Server.Models;
-using De.Openelp.Feuerwehr.Server.Services;
-using Microsoft.EntityFrameworkCore;
+using de.openelp.feuerwehr.Common.Models.Dto;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public interface IFireDepartmentService
     {

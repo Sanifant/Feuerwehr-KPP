@@ -1,10 +1,6 @@
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using De.Openelp.Feuerwehr.Server.Models;
-using StackExchange.Redis;
+using de.openelp.feuerwehr.Server.Models;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public interface IUserInvitationStore
     {

@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace De.Openelp.Feuerwehr.Common.Models.IncidentModules
+namespace de.openelp.feuerwehr.Common.Models.IncidentModules
 {
     public static class MapSymbolCategories
     {

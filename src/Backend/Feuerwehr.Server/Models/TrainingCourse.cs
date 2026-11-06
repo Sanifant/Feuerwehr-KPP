@@ -1,6 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Common.Models.Dto;
 
-namespace De.Openelp.Feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models
 {
     public class TrainingCourse
     {

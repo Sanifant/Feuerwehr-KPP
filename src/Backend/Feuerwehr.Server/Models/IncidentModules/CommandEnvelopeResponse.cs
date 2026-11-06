@@ -1,4 +1,4 @@
-namespace De.Openelp.Feuerwehr.Server.Models.IncidentModules
+namespace de.openelp.feuerwehr.Server.Models.IncidentModules
 {
     public class CommandEnvelopeResponse
     {

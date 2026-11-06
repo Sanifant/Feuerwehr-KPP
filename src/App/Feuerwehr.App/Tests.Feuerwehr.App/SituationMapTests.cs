@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using De.Openelp.Feuerwehr.App.Services;
-using De.Openelp.Feuerwehr.App.ViewModels;
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.App.ViewModels;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Nts;
@@ -14,7 +14,7 @@ using Mapsui.Styles;
 using Moq;
 using NetTopologySuite.Geometries;
 
-namespace De.Openelp.Feuerwehr.Tests.App
+namespace de.openelp.feuerwehr.Tests.App
 {
     public class SituationMapTests
     {
@@ -156,6 +156,7 @@ namespace De.Openelp.Feuerwehr.Tests.App
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1101:Prefix local calls with this", Justification = "<Pending>")]
         /// <summary>
         /// Executes layers Project Coordinates And Preserve Polygon Holes And Svg Symbols.
         /// </summary>
@@ -211,14 +212,22 @@ namespace De.Openelp.Feuerwehr.Tests.App
             return auth;
         }
 
-        private static IncidentSummaryDto Incident() => new(Guid.NewGuid(), "Einsatz", "123", null, null,
+        private static IncidentSummaryDto Incident()
+        {
+            return new(Guid.NewGuid(), "Einsatz", "123", null, null,
             10.6, 53.9, IncidentStatus.Active, DateTime.UtcNow, DateTime.UtcNow, null, 1);
+        }
 
-        private static MapElementDto Element(string coordinates) => new(Guid.NewGuid(), Guid.NewGuid(), MapElementType.Symbol,
+        private static MapElementDto Element(string coordinates)
+        {
+            return new(Guid.NewGuid(), Guid.NewGuid(), MapElementType.Symbol,
             null, null, "Fahrzeug", null, null, null, "#d62828", "{\"type\":\"Point\",\"coordinates\":" + coordinates + "}", 1, DateTime.UtcNow, "Test");
+        }
 
-        private static MapStateResponse State(Guid incidentId, params MapElementDto[] elements) =>
-            new(incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);
+        private static MapStateResponse State(Guid incidentId, params MapElementDto[] elements)
+        {
+            return new(incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);
+        }
 
         private sealed class ReadOnlyHandler(IncidentSummaryDto incident) : HttpMessageHandler
         {
@@ -227,12 +236,12 @@ namespace De.Openelp.Feuerwehr.Tests.App
 
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                RequestCount++;
+                this.RequestCount++;
                 Assert.Equal(HttpMethod.Get, request.Method);
                 Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
                 JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
                 if (request.RequestUri!.AbsolutePath == "/api/incidents/active")
-                    return Task.FromResult(NoActiveIncident
+                    return Task.FromResult(this.NoActiveIncident
                         ? new HttpResponseMessage(HttpStatusCode.NotFound)
                         : new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(incident, options: options) });
 

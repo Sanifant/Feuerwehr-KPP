@@ -1,10 +1,9 @@
 using de.openelp.feuerwehr.Common.Models.Auth;
 using de.openelp.feuerwehr.Server.Services;
-using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller
+namespace de.openelp.feuerwehr.Server.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -37,15 +36,16 @@ namespace De.Openelp.Feuerwehr.Server.Controller
             return this.ToActionResult(await service.GetUser(id));
         }
 
-    /// <summary>
-    /// Create new user (Admin only)
-    /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        return this.ToActionResult(await service.CreateUser(request));
-    }
+        /// <summary>
+        /// Create new user (Admin only)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
+        {
+            if (!this.ModelState.IsValid)
+                return this.BadRequest(this.ModelState);
+            return this.ToActionResult(await service.CreateUser(request));
+        }
 
         [HttpPost("{id}/resend-invitation")]
         /// <summary>
@@ -57,15 +57,16 @@ namespace De.Openelp.Feuerwehr.Server.Controller
             return this.ToActionResult(await service.ResendInvitation(id));
         }
 
-    /// <summary>
-    /// Update user (Admin only)
-    /// </summary>
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        return this.ToActionResult(await service.UpdateUser(id, request));
-    }
+        /// <summary>
+        /// Update user (Admin only)
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
+        {
+            if (!this.ModelState.IsValid)
+                return this.BadRequest(this.ModelState);
+            return this.ToActionResult(await service.UpdateUser(id, request));
+        }
 
         /// <summary>
         /// Delete user (Admin only) - Soft delete by setting IsActive = false
@@ -77,7 +78,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         public async Task<IActionResult> DeleteUser(string id)
         {
-            return this.ToActionResult(await service.DeleteUser(id, User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.DeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
         /// <summary>
@@ -90,7 +91,7 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <param name="id">The id.</param>
         public async Task<IActionResult> PermanentlyDeleteUser(string id)
         {
-            return this.ToActionResult(await service.PermanentlyDeleteUser(id, User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
+            return this.ToActionResult(await service.PermanentlyDeleteUser(id, this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }
 
     }

@@ -1,5 +1,3 @@
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Server.Models.Inventory;
@@ -7,7 +5,7 @@ using de.openelp.feuerwehr.Server.Models.Vehicles;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Data
+namespace de.openelp.feuerwehr.Server.Data
 {
     public class FeuerwehrDbContext : IdentityDbContext<ApplicationUser>
     {

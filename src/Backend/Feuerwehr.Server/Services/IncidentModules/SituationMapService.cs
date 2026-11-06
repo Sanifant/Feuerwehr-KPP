@@ -1,23 +1,20 @@
 using de.openelp.feuerwehr.Common.Models.Dto;
 using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using System.Text.Json;
-using de.openelp.feuerwehr.Common.Models;
-using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.IncidentModules;
-using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
-using de.openelp.feuerwehr.Server.Services;
-
-namespace de.openelp.feuerwehr.Server.Services.IncidentModules;
-
-public sealed class SituationMapService(FeuerwehrDbContext dbContext,
-    IUserContextAccessor userContext,
-    ICommandIdempotencyService idempotency,
-    IOutboxService outboxService,
-    IMapLeaseService leaseService) : ISituationMapService
+namespace de.openelp.feuerwehr.Server.Services.IncidentModules
 {
+
+    public sealed class SituationMapService(FeuerwehrDbContext dbContext,
+        IUserContextAccessor userContext,
+        ICommandIdempotencyService idempotency,
+        IOutboxService outboxService,
+        IMapLeaseService leaseService) : ISituationMapService
+    {
 
         /// <summary>
         /// Gets the state.
@@ -227,18 +224,19 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
 
         }
 
-    public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
-    {
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-        var attempt = 0;
-        return await strategy.ExecuteAsync(async token =>
+        public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
-            // A rolled-back attempt may have accepted tracked changes already. Reload
-            // entities and recheck CommandId so retries cannot duplicate committed work.
-            if (attempt++ > 0) dbContext.ChangeTracker.Clear();
-            return await UpsertElementAttempt(incidentId, request, token);
-        }, cancellationToken);
-    }
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            var attempt = 0;
+            return await strategy.ExecuteAsync(async token =>
+            {
+                // A rolled-back attempt may have accepted tracked changes already. Reload
+                // entities and recheck CommandId so retries cannot duplicate committed work.
+                if (attempt++ > 0)
+                    dbContext.ChangeTracker.Clear();
+                return await this.UpsertElementAttempt(incidentId, request, token);
+            }, cancellationToken);
+        }
 
         private async Task<ServiceResult> UpsertElementAttempt(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
@@ -303,51 +301,52 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                         return ServiceResult.Problem(statusCode: StatusCodes.Status400BadRequest, title: "Für Symbol-Elemente ist symbolId erforderlich.");
                     }
 
-                element = new MapElement
-                {
-                    Id = Guid.NewGuid(),
-                    IncidentId = incidentId,
-                    ElementType = request.ElementType,
-                    SymbolId = request.SymbolId,
-                    Category = request.Category,
-                    Label = request.Label,
-                    RadioCallName = request.RadioCallName?.Trim(),
-                    Strength = request.Strength,
-                    Note = request.Note,
-                    ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex,
-                    GeometryJson = request.GeometryJson,
-                    Version = 1,
-                    CreatedAtUtc = now,
-                    UpdatedAtUtc = now,
-                    UpdatedByUserId = userContext.UserId,
-                    UpdatedByDisplayName = userContext.DisplayName,
-                };
-                if (request.ElementType == MapElementType.Symbol)
-                {
-                    if (!Guid.TryParse(request.SymbolId, out var symbolId))
-                        return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
-                    var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
-                    if (symbol is null) return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
-                    if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
-                        return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
-                    element.IsVehicle = symbol.IsVehicle;
-                    if (!symbol.IsVehicle)
+                    element = new MapElement
                     {
-                        element.RadioCallName = null;
-                        element.Strength = null;
-                        element.Note = null;
+                        Id = Guid.NewGuid(),
+                        IncidentId = incidentId,
+                        ElementType = request.ElementType,
+                        SymbolId = request.SymbolId,
+                        Category = request.Category,
+                        Label = request.Label,
+                        RadioCallName = request.RadioCallName?.Trim(),
+                        Strength = request.Strength,
+                        Note = request.Note,
+                        ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex,
+                        GeometryJson = request.GeometryJson,
+                        Version = 1,
+                        CreatedAtUtc = now,
+                        UpdatedAtUtc = now,
+                        UpdatedByUserId = userContext.UserId,
+                        UpdatedByDisplayName = userContext.DisplayName,
+                    };
+                    if (request.ElementType == MapElementType.Symbol)
+                    {
+                        if (!Guid.TryParse(request.SymbolId, out var symbolId))
+                            return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
+                        var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
+                        if (symbol is null)
+                            return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                        if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                            return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                        element.IsVehicle = symbol.IsVehicle;
+                        if (!symbol.IsVehicle)
+                        {
+                            element.RadioCallName = null;
+                            element.Strength = null;
+                            element.Note = null;
+                        }
+                        element.SymbolSvg = symbol.SvgContent;
+                        element.Category = symbol.Category;
+                        element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
                     }
-                    element.SymbolSvg = symbol.SvgContent;
-                    element.Category = symbol.Category;
-                    element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
+                    dbContext.MapElements.Add(element);
+                    action = "create";
                 }
-                dbContext.MapElements.Add(element);
-                action = "create";
-            }
-            else
-            {
-                element = await dbContext.MapElements.FirstOrDefaultAsync(x => x.Id == request.ElementId && x.IncidentId == incidentId, cancellationToken)
-                    ?? throw new InvalidOperationException("Element nicht gefunden.");
+                else
+                {
+                    element = await dbContext.MapElements.FirstOrDefaultAsync(x => x.Id == request.ElementId && x.IncidentId == incidentId, cancellationToken)
+                        ?? throw new InvalidOperationException("Element nicht gefunden.");
 
                     beforeSnapshot = Clone(element);
                     if (request.ExpectedVersion.HasValue && request.ExpectedVersion.Value != element.Version)
@@ -580,7 +579,7 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
                 $"Status: {incident.Status}",
                 $"Stand UTC: {DateTime.UtcNow:O}",
                 "Kartenquelle: OpenStreetMap contributors (https://www.openstreetmap.org/copyright)",
-                ""
+                string.Empty
             };
 
             if (elements.Count == 0)
@@ -690,11 +689,15 @@ public sealed class SituationMapService(FeuerwehrDbContext dbContext,
             };
         }
 
-        private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now) =>
-            new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
+        private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now)
+        {
+            return new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
+        }
 
         private static MapElementDto ToMapElementDto(MapElement x)
-            => new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
+        {
+            return new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
+        }
 
         private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =
             x => new MapElementDto(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);

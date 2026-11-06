@@ -1,10 +1,10 @@
-using De.Openelp.Feuerwehr.Common.Models.Dto;
-using De.Openelp.Feuerwehr.Server.Authorization;
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Common.Models.Dto;
+using de.openelp.feuerwehr.Server.Authorization;
+using de.openelp.feuerwehr.Server.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace De.Openelp.Feuerwehr.Server.Controller
+namespace de.openelp.feuerwehr.Server.Controller
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -15,16 +15,20 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// <summary>
         /// Gets the operation.
         /// </summary>
-        public async Task<ActionResult<IEnumerable<FireDepartmentDto>>> Get() =>
-            this.ToActionResult(await service.Get());
+        public async Task<ActionResult<IEnumerable<FireDepartmentDto>>> Get()
+        {
+            return this.ToActionResult(await service.Get());
+        }
 
         [HttpGet("{id}")]
         /// <summary>
         /// Gets the operation.
         /// </summary>
         /// <param name="id">The id.</param>
-        public async Task<ActionResult<FireDepartmentDto>> Get(int id) =>
-            this.ToActionResult(await service.Get(id));
+        public async Task<ActionResult<FireDepartmentDto>> Get(int id)
+        {
+            return this.ToActionResult(await service.Get(id));
+        }
 
         [HttpPost]
         [Authorize(Policy = PolicyNames.RequireCommander)]
@@ -32,8 +36,10 @@ namespace De.Openelp.Feuerwehr.Server.Controller
         /// Adds the operation.
         /// </summary>
         /// <param name="value">The value.</param>
-        public async Task<ActionResult<FireDepartmentDto>> Add([FromBody] FireDepartmentDto value) =>
-            this.ToActionResult(await service.Add(value));
+        public async Task<ActionResult<FireDepartmentDto>> Add([FromBody] FireDepartmentDto value)
+        {
+            return this.ToActionResult(await service.Add(value));
+        }
     }
 
 }

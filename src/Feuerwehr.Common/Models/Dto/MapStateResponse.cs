@@ -1,6 +1,6 @@
-using De.Openelp.Feuerwehr.Common.Models.IncidentModules;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 
-namespace De.Openelp.Feuerwehr.Common.Models.Dto
+namespace de.openelp.feuerwehr.Common.Models.Dto
 {
     public record MapStateResponse(Guid IncidentId, IncidentStatus IncidentStatus, long Revision, DateTime ServerUtc, EditorLeaseDto? Lease, IReadOnlyCollection<MapElementDto> Elements, IReadOnlyCollection<MapHydrantDto> Hydrants);
 }

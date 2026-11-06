@@ -1,6 +1,6 @@
 using System;
 
-namespace De.Openelp.Feuerwehr.App.Models
+namespace de.openelp.feuerwehr.App.Models
 {
     /// <summary>
     /// Represents a page entry with a header, content factory, and optional icon data.
@@ -38,7 +38,7 @@ namespace De.Openelp.Feuerwehr.App.Models
         /// <value>
         ///   <c>true</c> if this <see cref="PageItem"/> is visible; otherwise, <c>false</c>.
         /// </value>
-        public bool IsVisible { get => _isVisible(); }
+        public bool IsVisible { get => this._isVisible(); }
     }
 }
 

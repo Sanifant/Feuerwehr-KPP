@@ -1,11 +1,10 @@
 using de.openelp.feuerwehr.Common.Models.Dto;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Common.Models.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace De.Openelp.Feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services
 {
     public sealed class UsersService : IUsersService
     {
@@ -18,10 +17,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 RoleManager<IdentityRole> roleManager,
                 IUserInvitationService invitations, ILogger<UsersService> logger)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _invitations = invitations;
-            _logger = logger;
+            this._userManager = userManager;
+            this._roleManager = roleManager;
+            this._invitations = invitations;
+            this._logger = logger;
         }
 
         /// <summary>
@@ -30,15 +29,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         public async Task<ServiceResult> GetAllUsers()
         {
-            List<ApplicationUser> users = await _userManager.Users
+            List<ApplicationUser> users = await this._userManager.Users
                 .ToListAsync();
 
             // Get roles for each user
             List<UserDetailsDto> usersWithRoles = new List<UserDetailsDto>();
             foreach (ApplicationUser? user in users)
             {
-                ApplicationUser? appUser = await _userManager.FindByIdAsync(user.Id);
-                IList<string> roles = await _userManager.GetRolesAsync(appUser!);
+                ApplicationUser? appUser = await this._userManager.FindByIdAsync(user.Id);
+                IList<string> roles = await this._userManager.GetRolesAsync(appUser!);
 
                 usersWithRoles.Add(new UserDetailsDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, user.CreatedAt, user.LastLoginAt, roles.ToList(), user.PasswordResetRequired));
             }
@@ -54,13 +53,13 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         public async Task<ServiceResult> GetUser(string id)
         {
-            ApplicationUser? user = await _userManager.FindByIdAsync(id);
+            ApplicationUser? user = await this._userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return ServiceResult.NotFound(new MessageResponse("User not found"));
             }
 
-            IList<string> roles = await _userManager.GetRolesAsync(user);
+            IList<string> roles = await this._userManager.GetRolesAsync(user);
 
             return ServiceResult.Ok(new UserDetailsDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, user.CreatedAt, user.LastLoginAt, roles.ToList(), user.PasswordResetRequired));
 
@@ -76,7 +75,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             // Check if user already exists
             string email = request.Email.Trim();
-            ApplicationUser? existingUser = await _userManager.FindByEmailAsync(email);
+            ApplicationUser? existingUser = await this._userManager.FindByEmailAsync(email);
             if (existingUser != null)
             {
                 return ServiceResult.BadRequest(new MessageResponse("User with this email already exists"));
@@ -85,7 +84,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             // Validate roles exist
             foreach (string role in request.Roles)
             {
-                if (!await _roleManager.RoleExistsAsync(role))
+                if (!await this._roleManager.RoleExistsAsync(role))
                 {
                     return ServiceResult.BadRequest(new MessageResponse($"Role '{role}' does not exist"));
                 }
@@ -102,7 +101,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            IdentityResult result = await _userManager.CreateAsync(user);
+            IdentityResult result = await this._userManager.CreateAsync(user);
 
             if (!result.Succeeded)
             {
@@ -112,48 +111,49 @@ namespace De.Openelp.Feuerwehr.Server.Services
             // Assign roles
             if (request.Roles.Any())
             {
-                IdentityResult roleResult = await _userManager.AddToRolesAsync(user, request.Roles);
+                IdentityResult roleResult = await this._userManager.AddToRolesAsync(user, request.Roles);
                 if (!roleResult.Succeeded)
                 {
                     // Rollback user creation if role assignment fails
-                    await _userManager.DeleteAsync(user);
+                    await this._userManager.DeleteAsync(user);
                     return ServiceResult.BadRequest(new IdentityErrorResponse("Failed to assign roles", roleResult.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
                 }
             }
 
-            IList<string> roles = await _userManager.GetRolesAsync(user);
+            IList<string> roles = await this._userManager.GetRolesAsync(user);
 
             try
             {
-                await _invitations.SendAsync(user);
+                await this._invitations.SendAsync(user);
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurückgenommen.");
-                IdentityResult rollback = await _userManager.DeleteAsync(user);
+                this._logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurückgenommen.");
+                IdentityResult rollback = await this._userManager.DeleteAsync(user);
                 if (!rollback.Succeeded)
-                    _logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurückgenommen werden.");
+                    this._logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurückgenommen werden.");
                 return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
             }
 
-            return ServiceResult.CreatedAtAction(nameof(GetUser), new { id = user.Id }, new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList(), user.PasswordResetRequired));
+            return ServiceResult.CreatedAtAction(nameof(this.GetUser), new { id = user.Id }, new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList(), user.PasswordResetRequired));
 
         }
 
-    public async Task<ServiceResult> ResendInvitation(string id)
-    {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user is null) return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
-        if (!user.IsActive)
-            return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
+        public async Task<ServiceResult> ResendInvitation(string id)
+        {
+            var user = await this._userManager.FindByIdAsync(id);
+            if (user is null)
+                return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
+            if (!user.IsActive)
+                return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
 
             try
             {
-                await _invitations.SendAsync(user);
+                await this._invitations.SendAsync(user);
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Einladung konnte nicht erneut versendet werden.");
+                this._logger.LogError(exception, "Einladung konnte nicht erneut versendet werden.");
                 return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
             }
 
@@ -169,7 +169,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
         public async Task<ServiceResult> UpdateUser(string id, UpdateUserRequest request)
         {
 
-            ApplicationUser? user = await _userManager.FindByIdAsync(id);
+            ApplicationUser? user = await this._userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return ServiceResult.NotFound(new MessageResponse("User not found"));
@@ -184,7 +184,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             if (request.Email != null)
             {
                 string email = request.Email.Trim();
-                ApplicationUser? existingUser = await _userManager.FindByEmailAsync(email);
+                ApplicationUser? existingUser = await this._userManager.FindByEmailAsync(email);
                 if (existingUser != null && existingUser.Id != user.Id)
                 {
                     return ServiceResult.BadRequest(new MessageResponse("User with this email already exists"));
@@ -198,7 +198,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             {
                 foreach (string role in request.Roles)
                 {
-                    if (!await _roleManager.RoleExistsAsync(role))
+                    if (!await this._roleManager.RoleExistsAsync(role))
                     {
                         return ServiceResult.BadRequest(new MessageResponse($"Role '{role}' does not exist"));
                     }
@@ -210,7 +210,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
             user.FireDepartmentId = request.ClearFireDepartment ? null : request.FireDepartmentId ?? user.FireDepartmentId;
             user.IsActive = request.IsActive ?? user.IsActive;
 
-            IdentityResult result = await _userManager.UpdateAsync(user);
+            IdentityResult result = await this._userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
                 return ServiceResult.BadRequest(new IdentityErrorResponse("Failed to update user", result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
@@ -218,10 +218,10 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             if (request.Roles != null)
             {
-                IList<string> currentRoles = await _userManager.GetRolesAsync(user);
+                IList<string> currentRoles = await this._userManager.GetRolesAsync(user);
                 if (currentRoles.Count > 0)
                 {
-                    IdentityResult removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                    IdentityResult removeResult = await this._userManager.RemoveFromRolesAsync(user, currentRoles);
                     if (!removeResult.Succeeded)
                     {
                         return ServiceResult.BadRequest(new IdentityErrorResponse("Failed to update roles", removeResult.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
@@ -230,7 +230,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
                 if (request.Roles.Count > 0)
                 {
-                    IdentityResult addResult = await _userManager.AddToRolesAsync(user, request.Roles);
+                    IdentityResult addResult = await this._userManager.AddToRolesAsync(user, request.Roles);
                     if (!addResult.Succeeded)
                     {
                         return ServiceResult.BadRequest(new IdentityErrorResponse("Failed to update roles", addResult.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
@@ -241,15 +241,15 @@ namespace De.Openelp.Feuerwehr.Server.Services
             // Update password if provided
             if (!string.IsNullOrEmpty(request.NewPassword))
             {
-                string token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                IdentityResult passwordResult = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
+                string token = await this._userManager.GeneratePasswordResetTokenAsync(user);
+                IdentityResult passwordResult = await this._userManager.ResetPasswordAsync(user, token, request.NewPassword);
                 if (!passwordResult.Succeeded)
                 {
                     return ServiceResult.BadRequest(new IdentityErrorResponse("Failed to update password", passwordResult.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
                 }
             }
 
-            IList<string> roles = await _userManager.GetRolesAsync(user);
+            IList<string> roles = await this._userManager.GetRolesAsync(user);
 
             return ServiceResult.Ok(new UserSummaryDto(user.Id, user.Email, user.FirstName, user.LastName, user.FullName, user.FireDepartmentId, user.IsActive, roles.ToList(), user.PasswordResetRequired));
 
@@ -263,7 +263,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         public async Task<ServiceResult> DeleteUser(string id, string? currentUserId)
         {
-            ApplicationUser? user = await _userManager.FindByIdAsync(id);
+            ApplicationUser? user = await this._userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return ServiceResult.NotFound(new MessageResponse("User not found"));
@@ -278,7 +278,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
             // Soft delete
             user.IsActive = false;
-            IdentityResult result = await _userManager.UpdateAsync(user);
+            IdentityResult result = await this._userManager.UpdateAsync(user);
 
             if (!result.Succeeded)
             {
@@ -297,7 +297,7 @@ namespace De.Openelp.Feuerwehr.Server.Services
 
         public async Task<ServiceResult> PermanentlyDeleteUser(string id, string? currentUserId)
         {
-            ApplicationUser? user = await _userManager.FindByIdAsync(id);
+            ApplicationUser? user = await this._userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return ServiceResult.NotFound(new MessageResponse("User not found"));
@@ -310,13 +310,14 @@ namespace De.Openelp.Feuerwehr.Server.Services
                 return ServiceResult.BadRequest(new MessageResponse("Cannot delete your own account"));
             }
 
-        IdentityResult result;
-        try { result = await _userManager.DeleteAsync(user); }
-        catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
+            IdentityResult result;
+            try
+            { result = await this._userManager.DeleteAsync(user); }
+            catch (DbUpdateException exception) when (exception.InnerException is Npgsql.PostgresException
             { SqlState: Npgsql.PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Vehicles_AspNetUsers_EquipmentOfficerId" })
-        {
-            return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als Gerätewart Fahrzeugen zugeordnet. Bitte die Zuständigkeit vor dem endgültigen Löschen übertragen."));
-        }
+            {
+                return ServiceResult.StatusCode(409, new MessageResponse("Der Benutzer ist als Gerätewart Fahrzeugen zugeordnet. Bitte die Zuständigkeit vor dem endgültigen Löschen übertragen."));
+            }
 
             if (!result.Succeeded)
             {

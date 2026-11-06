@@ -1,16 +1,19 @@
-using De.Openelp.Feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 
-namespace De.Openelp.Feuerwehr.Tests.Backend.Services
+namespace de.openelp.feuerwehr.Tests.Backend.Services
 {
     public class SmtpSettingsTests
     {
         /// <summary>
         /// Executes read.
         /// </summary>
-        public static SmtpSettings Read(Dictionary<string, string?> values) => SmtpSettings.FromConfiguration(
+        public static SmtpSettings Read(Dictionary<string, string?> values)
+        {
+            return SmtpSettings.FromConfiguration(
             new ConfigurationBuilder().AddInMemoryCollection(values).Build());
+        }
 
         [Theory]
         [InlineData("smtp://mailpit:32781")]
@@ -29,26 +32,31 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Null(settings.Password);
         }
 
-    [Fact]
-    public void Settings_ReadAllProviderEnvironmentKeysAndOverrideOldAspireConfiguration()
-    {
-        var settings = Read(new()
+        [Fact]
+        public void Settings_ReadAllProviderEnvironmentKeysAndOverrideOldAspireConfiguration()
         {
-            ["ConnectionStrings:mail"] = "invalid obsolete connection",
-            ["MAIL_HOST"] = "smtp.strato.de", ["MAIL_PORT"] = "465", ["MAIL_SECURITY"] = "SslOnConnect",
-            ["MAIL_USERNAME"] = "mail@example.org", ["MAIL_PASSWORD"] = " password with spaces ",
-            ["MAIL_FROM"] = "sender@example.org", ["MAIL_FROM_NAME"] = "Feuerwehr Übung", ["MAIL_TIMEOUT_SECONDS"] = "45",
-            ["Mail:From"] = "old@example.org",
-        });
-        Assert.Equal("smtp.strato.de", settings.Host);
-        Assert.Equal(465, settings.Port);
-        Assert.Equal(SecureSocketOptions.SslOnConnect, settings.Security);
-        Assert.Equal("mail@example.org", settings.Username);
-        Assert.Equal(" password with spaces ", settings.Password);
-        Assert.Equal("sender@example.org", settings.From);
-        Assert.Equal("Feuerwehr Übung", settings.FromName);
-        Assert.Equal(45000, settings.TimeoutMilliseconds);
-    }
+            var settings = Read(new()
+            {
+                ["ConnectionStrings:mail"] = "invalid obsolete connection",
+                ["MAIL_HOST"] = "smtp.strato.de",
+                ["MAIL_PORT"] = "465",
+                ["MAIL_SECURITY"] = "SslOnConnect",
+                ["MAIL_USERNAME"] = "mail@example.org",
+                ["MAIL_PASSWORD"] = " password with spaces ",
+                ["MAIL_FROM"] = "sender@example.org",
+                ["MAIL_FROM_NAME"] = "Feuerwehr Übung",
+                ["MAIL_TIMEOUT_SECONDS"] = "45",
+                ["Mail:From"] = "old@example.org",
+            });
+            Assert.Equal("smtp.strato.de", settings.Host);
+            Assert.Equal(465, settings.Port);
+            Assert.Equal(SecureSocketOptions.SslOnConnect, settings.Security);
+            Assert.Equal("mail@example.org", settings.Username);
+            Assert.Equal(" password with spaces ", settings.Password);
+            Assert.Equal("sender@example.org", settings.From);
+            Assert.Equal("Feuerwehr Übung", settings.FromName);
+            Assert.Equal(45000, settings.TimeoutMilliseconds);
+        }
 
         [Theory]
         [InlineData("465", null, SecureSocketOptions.SslOnConnect, 465)]
@@ -84,19 +92,24 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Equal(30000, settings.TimeoutMilliseconds);
         }
 
-    [Fact]
-    public void EmptyProviderValues_AllowAppHostToForceMailpitWhenProviderCredentialsAreInherited()
-    {
-        var settings = Read(new()
+        [Fact]
+        public void EmptyProviderValues_AllowAppHostToForceMailpitWhenProviderCredentialsAreInherited()
         {
-            ["ConnectionStrings:mail"] = "smtp://mailpit:32781", ["MAIL_HOST"] = "", ["MAIL_PORT"] = "",
-            ["MAIL_USERNAME"] = "", ["MAIL_PASSWORD"] = "", ["MAIL_SECURITY"] = "None", ["MAIL_FROM"] = "noreply@localhost.de",
-        });
-        Assert.Equal("mailpit", settings.Host);
-        Assert.Equal(32781, settings.Port);
-        Assert.Equal(SecureSocketOptions.None, settings.Security);
-        Assert.Null(settings.Username);
-    }
+            var settings = Read(new()
+            {
+                ["ConnectionStrings:mail"] = "smtp://mailpit:32781",
+                ["MAIL_HOST"] = string.Empty,
+                ["MAIL_PORT"] = string.Empty,
+                ["MAIL_USERNAME"] = string.Empty,
+                ["MAIL_PASSWORD"] = string.Empty,
+                ["MAIL_SECURITY"] = "None",
+                ["MAIL_FROM"] = "noreply@localhost.de",
+            });
+            Assert.Equal("mailpit", settings.Host);
+            Assert.Equal(32781, settings.Port);
+            Assert.Equal(SecureSocketOptions.None, settings.Security);
+            Assert.Null(settings.Username);
+        }
 
         [Theory]
         [InlineData("MAIL_PORT", "abc")]
@@ -119,18 +132,20 @@ namespace De.Openelp.Feuerwehr.Tests.Backend.Services
             Assert.Contains(key, exception.Message);
         }
 
-    [Theory]
-    [InlineData("user@example.org", null, "StartTls")]
-    [InlineData(null, "secret-value", "StartTls")]
-    [InlineData("user@example.org", "secret-value", "None")]
-    public void IncompleteOrUnencryptedCredentials_AreRejectedWithoutLeakingPassword(string? username, string? password, string security)
-    {
-        var exception = Assert.Throws<InvalidOperationException>(() => Read(new()
+        [Theory]
+        [InlineData("user@example.org", null, "StartTls")]
+        [InlineData(null, "secret-value", "StartTls")]
+        [InlineData("user@example.org", "secret-value", "None")]
+        public void IncompleteOrUnencryptedCredentials_AreRejectedWithoutLeakingPassword(string? username, string? password, string security)
         {
-            ["MAIL_USERNAME"] = username, ["MAIL_PASSWORD"] = password, ["MAIL_SECURITY"] = security,
-        }));
-        Assert.DoesNotContain("secret-value", exception.ToString());
-    }
+            var exception = Assert.Throws<InvalidOperationException>(() => Read(new()
+            {
+                ["MAIL_USERNAME"] = username,
+                ["MAIL_PASSWORD"] = password,
+                ["MAIL_SECURITY"] = security,
+            }));
+            Assert.DoesNotContain("secret-value", exception.ToString());
+        }
 
         [Fact]
         /// <summary>
