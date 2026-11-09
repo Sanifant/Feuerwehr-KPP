@@ -55,7 +55,7 @@ namespace de.openelp.feuerwehr.App.Services
             this._secureStorage = secureStorage;
 
             // Load tokens on startup
-            _ = this.LoadStoredTokensAsync();
+            this.LoadStoredTokensAsync().Wait();
         }
 
         /// <summary>
@@ -63,7 +63,12 @@ namespace de.openelp.feuerwehr.App.Services
         /// </summary>
         /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
-        public async Task<bool> LoginAsync(string email, string password)
+        public Task<bool> LoginAsync(string email, string password)
+        {
+            return this.LoginAsync(email, password, rememberMe: false);
+        }
+
+        public async Task<bool> LoginAsync(string email, string password, bool rememberMe)
         {
             try
             {
@@ -77,7 +82,13 @@ namespace de.openelp.feuerwehr.App.Services
                 if (authResponse == null)
                     return false;
 
-                await this.StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
+                if(!rememberMe)
+                {
+                    // If not remembering, clear any stored tokens
+                    await this.ClearTokensAsync();
+                    await this.StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
+                }
+
                 return true;
             }
             catch
