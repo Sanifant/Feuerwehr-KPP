@@ -43,7 +43,7 @@ export function SideBar() {
                         {canViewHydrants && (
                             <SidebarLink to="/hydrant" currentPath={currentPath}>
                                 <span className="nav-icon" aria-hidden="true"></span>
-                                Hydrant
+                                Hydranten
                             </SidebarLink>
                         )}
 

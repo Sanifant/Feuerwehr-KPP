@@ -48,13 +48,12 @@ IResourceBuilder<ProjectResource> server = builder.AddProject<Projects.Feuerwehr
 if (builder.ExecutionContext.IsRunMode)
 {
     IResourceBuilder<MailPitContainerResource> mailpit = builder.AddMailPit("mail");
-    server.WithReference(mailpit)
-        .WaitFor(mailpit)
-        // Override inherited provider settings: local debugging always delivers to Mailpit.
-        .WithEnvironment("MAIL_HOST", string.Empty)
-        .WithEnvironment("MAIL_PORT", string.Empty)
-        .WithEnvironment("MAIL_USERNAME", string.Empty)
-        .WithEnvironment("MAIL_PASSWORD", string.Empty)
+    IResourceBuilder<ProjectResource> resourceBuilder = server.WithReference(mailpit)
+            .WaitFor(mailpit)
+            .WithEnvironment("MAIL_HOST", string.Empty)
+            .WithEnvironment("MAIL_PORT", string.Empty)
+            .WithEnvironment("MAIL_USERNAME", string.Empty);
+    _ = resourceBuilder.WithEnvironment("MAIL_PASSWORD", string.Empty)
         .WithEnvironment("MAIL_SECURITY", "None")
         .WithEnvironment("MAIL_FROM", "noreply@localhost.de")
         .WithEnvironment("MAIL_FROM_NAME", "Feuerwehr (lokal)")
@@ -62,7 +61,7 @@ if (builder.ExecutionContext.IsRunMode)
 }
 else
 {
-    server.WithEnvironment("MAIL_HOST", builder.AddParameterFromConfiguration("mail-host", "MAIL_HOST"))
+    _ = server.WithEnvironment("MAIL_HOST", builder.AddParameterFromConfiguration("mail-host", "MAIL_HOST"))
         .WithEnvironment("MAIL_PORT", builder.AddParameterFromConfiguration("mail-port", "MAIL_PORT"))
         .WithEnvironment("MAIL_USERNAME", builder.AddParameterFromConfiguration("mail-username", "MAIL_USERNAME"))
         .WithEnvironment("MAIL_PASSWORD", builder.AddParameterFromConfiguration("mail-password", "MAIL_PASSWORD", secret: true))
