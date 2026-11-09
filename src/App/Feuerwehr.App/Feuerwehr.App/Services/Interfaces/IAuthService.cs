@@ -7,6 +7,9 @@ namespace de.openelp.feuerwehr.App.Services
     public interface IAuthService
     {
         Task<bool> LoginAsync(string email, string password);
+
+        Task<bool> LoginAsync(string email, string password, bool rememberMe);
+
         Task LogoutAsync();
         Task<bool> RefreshTokenAsync();
         Task<string?> GetAccessTokenAsync();

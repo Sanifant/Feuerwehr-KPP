@@ -31,7 +31,6 @@ namespace de.openelp.feuerwehr.App
         /// </summary>
         public override void OnFrameworkInitializationCompleted()
         {
-            //var appConfiguration = AppConfiguration.Current;
             this.ReloadServices();
 
             if (this.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -119,24 +118,24 @@ namespace de.openelp.feuerwehr.App
 
             ServiceCollection collection = new ServiceCollection();
 
-            collection.AddTransient<MainViewModel>();
-            collection.AddTransient<LoginViewModel>();
-            collection.AddTransient<MapViewModel>();
-            collection.AddTransient<SituationMapViewModel>();
-            collection.AddTransient<InventoryViewModel>();
-            collection.AddSingleton<IBarcodeScanner, UnsupportedBarcodeScanner>();
+            _ = collection.AddTransient<MainViewModel>();
+            _ = collection.AddTransient<LoginViewModel>();
+            _ = collection.AddTransient<MapViewModel>();
+            _ = collection.AddTransient<SituationMapViewModel>();
+            _ = collection.AddTransient<InventoryViewModel>();
+            _ = collection.AddSingleton<IBarcodeScanner, UnsupportedBarcodeScanner>();
 
-            collection.AddSingleton<IGpsService, UnsupportedGpsService>();
+            _ = collection.AddSingleton<IGpsService, UnsupportedGpsService>();
 
             // Authentication services
-            collection.AddSingleton<ISecureStorage, InMemorySecureStorage>();
-            collection.AddSingleton<IAuthService, AuthService>();
-            collection.AddScoped<AuthenticatedHttpClient>();
+            _ = collection.AddSingleton<ISecureStorage, InMemorySecureStorage>();
+            _ = collection.AddSingleton<IAuthService, AuthService>();
+            _ = collection.AddScoped<AuthenticatedHttpClient>();
 
             // Für Blazor WebAssembly / Web-Clients
-            collection.AddScoped<IHydrantService, HydrantService>();
-            collection.AddScoped<ISituationMapService, SituationMapService>();
-            collection.AddScoped<IInventoryService, InventoryService>();
+            _ = collection.AddScoped<IHydrantService, HydrantService>();
+            _ = collection.AddScoped<ISituationMapService, SituationMapService>();
+            _ = collection.AddScoped<IInventoryService, InventoryService>();
 
             string? baseUrl = Environment.GetEnvironmentVariable("webapi")
                 ?? Environment.GetEnvironmentVariable("services__server__https__0")
@@ -149,7 +148,7 @@ namespace de.openelp.feuerwehr.App
                 baseUrl = "https://integration.ff-kleinparin-pohnsdorf.de/";
             }
 
-            collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
+            _ = collection.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 
             this.ConfigurePlatformServices?.Invoke(collection);
             Services = collection.BuildServiceProvider();

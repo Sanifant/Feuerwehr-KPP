@@ -46,7 +46,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
 
             try
             {
-                bool success = await this._authService.LoginAsync(this.Email, this.Password);
+                bool success = await this._authService.LoginAsync(this.Email, this.Password, this.RememberMe);
 
                 if (success)
                 {
