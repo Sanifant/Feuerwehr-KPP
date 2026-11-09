@@ -415,6 +415,8 @@ a.chevron-button {
   padding: 30px 14px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: var(--surface);
   color: var(--text-primary);
 }
