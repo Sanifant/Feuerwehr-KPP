@@ -153,3 +153,12 @@ dotnet_diagnostic.SA1600.severity = warning
 dotnet_diagnostic.SA1611.severity = warning
 dotnet_diagnostic.SA1615.severity = warning
 dotnet_diagnostic.SA1633.severity = none
+
+# IDE0003: Remove qualification
+dotnet_diagnostic.IDE0003.severity = none
+
+# IDE0200: Remove unnecessary lambda expression
+dotnet_diagnostic.IDE0200.severity = none
+
+# IDE0090: Use 'new(...)'
+dotnet_diagnostic.IDE0090.severity = none

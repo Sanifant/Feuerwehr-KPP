@@ -11,7 +11,7 @@ using Manifest = global::Android.Manifest;
 namespace de.openelp.feuerwehr.App.Android
 {
     [Activity(
-        Label = "de.openelp.feuerwehr.App.Android",
+        Label = "Feuerwehr",
         Theme = "@style/MyTheme.NoActionBar",
         Icon = "@drawable/icon",
         MainLauncher = true,
