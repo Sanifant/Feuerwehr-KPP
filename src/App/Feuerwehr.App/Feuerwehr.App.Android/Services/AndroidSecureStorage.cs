@@ -1,19 +1,24 @@
 using System.Threading.Tasks;
+using Android.App;
+using Android.Content;
 using de.openelp.feuerwehr.App.Services;
-using Xamarin.Essentials;
 
 namespace de.openelp.feuerwehr.App.Android.Services
 {
     public class AndroidSecureStorage : ISecureStorage
     {
+        private const string StorageName = "feuerwehr_secure_storage";
+
+        private static ISharedPreferences Storage => Application.Context.GetSharedPreferences(StorageName, FileCreationMode.Private)!;
+
         /// <summary>
         /// Gets the Vakue from the Android Secure Storage.
         /// </summary>
         /// <param name="key">Name of the Value to be retrieved</param>
         /// <returns>A <see cref="Task"/> representuing the return value</returns>
-        public async Task<string?> GetAsync(string key)
+        public Task<string?> GetAsync(string key)
         {
-            return await SecureStorage.GetAsync(key);
+            return Task.FromResult(Storage.GetString(key, null));
         }
 
         /// <summary>
@@ -21,10 +26,12 @@ namespace de.openelp.feuerwehr.App.Android.Services
         /// </summary>
         /// <param name="key">Name of the parameter to be deleted</param>
         /// <returns>A <see cref="Task"/> representuing the return value</returns>
-        public async Task RemoveAsync(string key)
+        public Task RemoveAsync(string key)
         {
-            _ = SecureStorage.Remove(key);
-            await Task.CompletedTask;
+            using ISharedPreferencesEditor editor = Storage.Edit();
+            _ = editor.Remove(key);
+            _ = editor.Commit();
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -33,9 +40,12 @@ namespace de.openelp.feuerwehr.App.Android.Services
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns>A <see cref="Task"/> representuing the return value</returns>
-        public async Task SetAsync(string key, string value)
+        public Task SetAsync(string key, string value)
         {
-            await SecureStorage.SetAsync(key, value);
+            using ISharedPreferencesEditor editor = Storage.Edit();
+            _ = editor.PutString(key, value);
+            _ = editor.Commit();
+            return Task.CompletedTask;
         }
     }
 }

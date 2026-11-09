@@ -34,17 +34,20 @@ namespace de.openelp.feuerwehr.App.Services
 
         public string? UserFullName => this._decodedToken?.Claims.FirstOrDefault(c => c.Type == nameClaim)?.Value;
 
-        public IReadOnlyList<string> UserRoles
+        public IReadOnlyList<string> UserRoles => ExtractRoles();
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0046:Convert to conditional expression", Justification = "Increase redability of Linq ")]
+        private List<string> ExtractRoles()
         {
-            get
+            if (this._decodedToken == null)
             {
-                if (this._decodedToken == null)
-                    return Array.Empty<string>();
-                return this._decodedToken.Claims
-                    .Where(c => c.Type == roleClaim)
-                    .Select(c => c.Value)
-                    .ToList();
+                return [];
             }
+
+            return this._decodedToken.Claims
+                                .Where(c => c.Type == roleClaim)
+                                .Select(c => c.Value)
+                                .ToList();
         }
 
         public event EventHandler? AuthStateChanged;
