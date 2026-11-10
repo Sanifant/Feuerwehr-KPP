@@ -74,8 +74,6 @@ export function IncidentDiaryPage() {
             setEntries(entryData);
             setCategories(categoryData);
             setStatusText(`Aktiver Einsatz: ${active.name}`);
-
-            inputRef.current?.focus();
         } catch {
             setIncident(null);
             setEntries([]);
