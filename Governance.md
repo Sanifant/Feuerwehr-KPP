@@ -8,9 +8,9 @@ Im kommunalen Feuerwehrkontext werden fachliche und technische Entscheidungen en
 
 ## Rollen
 
-- Maintainer: Architektur, Releases, Review-Freigaben
+- Maintainer: Architektur, Releases, Review-Freigaben, Priorisierung von Anforderungen
 - Contributors: Code, Dokumentation, Tests, Issues
-- Fachverantwortliche Feuerwehr/Traeger: Fachliche Priorisierung und Abnahme fachkritischer Aenderungen
+- Fachverantwortliche Feuerwehr/Träger: Erstellen neuer Anforderungen.
 
 ## Entscheidungen
 
@@ -20,17 +20,17 @@ Fachlich kritische Aenderungen fuer den Einsatzbetrieb werden mit den zustaendig
 
 ## Beitragsprozess
 
-- Aenderungen ueber Pull Requests
+- Änderungen über Pull Requests
 - Review durch mindestens einen Maintainer
 - Einhaltung von Coding- und Dokumentationsstandards
 - Bei einsatzkritischen Themen: fachliche Freigabe vor Release
 
 ## Versionierung und Releases
 
-Versionierung und Aenderungshistorie werden im Changelog gepflegt.
+Versionierung und Änderungshistorie werden im Changelog gepflegt.
 
 Releases mit Auswirkungen auf den Einsatzbetrieb sollen mit Migrationshinweisen und Rollback-Option dokumentiert werden.
 
 ## Code of Conduct
 
-Ein respektvoller und konstruktiver Umgang ist fuer alle Beteiligten verpflichtend.
+Ein respektvoller und konstruktiver Umgang ist für alle Beteiligten verpflichtend.

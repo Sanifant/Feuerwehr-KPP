@@ -10,14 +10,12 @@ Monorepo fuer die Feuerwehr-Anwendung auf Basis von .NET 10 und Avalonia.
 
 Die Software ist fuer den Einsatz bei Feuerwehren vorgesehen.
 
-
-
 Der Fokus liegt auf einem stabilen und nachvollziehbaren Betrieb in Einsatz.
 
 ## Nicht-funktionale Leitplanken
 
-- Hohe Verfuegbarkeit im Einsatzbetrieb
-- Nachvollziehbarkeit von Aenderungen und Prozessen
+- Hohe Verfügbarkeit im Einsatzbetrieb
+- Nachvollziehbarkeit von Änderungen und Prozessen
 - Datenschutzgerechte Verarbeitung einsatzrelevanter Daten
 - Rollenbasierte Nutzung und klare Berechtigungskonzepte
 
@@ -27,6 +25,7 @@ Die Solution liegt unter `src/Feuerwehr.slnx` und umfasst:
 
 - `src/Feuerwehr.Common`: Geteilte Modelle und DTOs
 - `src/App/Feuerwehr.App`: Avalonia-Client mit Projekten für Android, Desktop und iOS
+- `src/App/Tests.Feuerwehr.App`: Testprojekt für den Avalonia Client
 - `src/Backend/Feuerwehr.Server`: ASP.NET Core Web API mit Datenzugriff, Authentifizierung und Migrationen
 - `src/Backend/Tests.Feuerwehr.Backend`: Backend-Tests
 - `src/frontend`: React-/TypeScript-Frontend auf Basis von Vite
@@ -36,38 +35,28 @@ Die Solution liegt unter `src/Feuerwehr.slnx` und umfasst:
 ## Deployment Flow
 
 ```mermaid
+---
+config:
+  flowchart:
+    stepDuration: 0.5
+---
 flowchart LR
-    F1[feature/*] -->|PR| D[develop]
-    FX[fix/*] -->|PR| D
-    D -->|Deploy| INT[Integration]
-    D -->|Build images| R1[Container Registry]
-    D -->|Promotion PR| M[main]
-    M -->|Release tag| T[Git Tag]
-    M -->|Deploy version| PROD[Production]
+    F1[development/*] e1@-->|PR| M[main]
+    F2[documentation/*] e1@-->|PR| M
+    FX[fix/*] e1@-->|PR| M
+    M  e2@--> |Build images | R1[Container Registry]
+    M  e2@--> |Build App| A1[App Store internal Testing] 
+    R1 e3@-. Deploy .-> INT(Integration)
+    M  e2@--> |Release| R[Release Tag]
+    R  e3@--> |Release tag| T[Git Release]
+    R  e3@--> |Build images| R1[Container Registry]
+    R1  e4@-. Deploy .-> PROD(Production)
+    R  e3@--> |Build App| A2[App Store production]
+    e1@{ step: 1 }
+    e2@{ step: 2 }
+    e3@{ step: 3 }
+    e4@{ step: 4 }
 ```
-
-## Funktionsumfang
-
-### Hydranten Management
-
-- REST PI zur Verwaltung von Hydranten und deren Standort
-- CRUD-Operationen für Hydranten:
-  - `GET: api/Hydrant` - Alle Hydranten abrufen
-  - `GET api/Hydrant/{id]` - Einzelnen Hydrant abrufen
-  - `POST api/Hydrant` - Neuen Hydrant anlegen; Benutzer muss Recht `CanManageHydrant` haben.
-  - `PUT api/Hydrant/{Id}` - Hydrant aktualisieren;  Benutzer muss Recht `CanManageHydrant` haben.
-  - `DELETE api/Hydrant/{id}` - Hydrant entfernen;  Benutzer muss Recht `CanManageHydrant` haben.
-
-### Geraete-Verwaltung (Inventory Management)
-- REST API zur Verwaltung von Feuerwehr-Inventar und Geraeten
-- CRUD-Operationen fuer Inventargegenstände:
-  - `GET /api/InventoryItem` - Alle Geraete abrufen
-  - `GET /api/InventoryItem/{id}` - Einzelnes Geraet abrufen
-  - `POST /api/InventoryItem` - Neues Geraet anlegen
-  - `PUT /api/InventoryItem/{id}` - Geraet aktualisieren
-  - `DELETE /api/InventoryItem/{id}` - Geraet loeschen
-- Repository-Pattern zur Entkopplung von Datenzugriff und Geschaeftslogik
-- Service-Layer fuer Geschaeftslogik und Orchestrierung
 
 ## Voraussetzungen
 
