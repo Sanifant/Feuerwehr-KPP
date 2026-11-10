@@ -1,6 +1,5 @@
 import { isAxiosError } from 'axios';
-import { Fragment } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState, useRef } from 'react';
 import type { HubConnection } from '@microsoft/signalr';
 import { useRole } from '../hooks/useRole';
 import {
@@ -46,6 +45,7 @@ function getErrorTitle(error: unknown, fallback: string) {
 
 export function IncidentDiaryPage() {
     const { canViewIncidentDiary, canEditIncidentDiary } = useRole();
+    const inputRef = useRef<HTMLInputElement>(null);
     const [incident, setIncident] = useState<IncidentSummary | null>(null);
     const [entries, setEntries] = useState<DiaryEntry[]>([]);
     const [categories, setCategories] = useState<DiaryCategory[]>([]);
@@ -74,6 +74,8 @@ export function IncidentDiaryPage() {
             setEntries(entryData);
             setCategories(categoryData);
             setStatusText(`Aktiver Einsatz: ${active.name}`);
+
+            inputRef.current?.focus();
         } catch {
             setIncident(null);
             setEntries([]);
@@ -87,10 +89,18 @@ export function IncidentDiaryPage() {
             return;
         }
 
-        loadData();
+        void loadData();
     }, [canViewIncidentDiary]);
 
     const incidentId = incident?.id;
+
+    useEffect(() => {
+        if (!incidentId || !canEditIncidentDiary) {
+            return;
+        }
+
+        inputRef.current?.focus();
+    }, [incidentId, canEditIncidentDiary]);
 
     useEffect(() => {
         if (!incidentId) {
@@ -155,6 +165,7 @@ export function IncidentDiaryPage() {
             setDraft((prev) => ({ ...prev, text: '', sender: '', recipient: '', transmissionType: '' }));
             setStatusText('Eintrag gespeichert.');
             await loadData();
+            inputRef.current?.focus();
         } catch (error: unknown) {
             setStatusText(getErrorTitle(error, 'Eintrag konnte nicht gespeichert werden.'));
         }
@@ -266,7 +277,7 @@ export function IncidentDiaryPage() {
                         </label>
                         <label>
                             Absender
-                            <input value={draft.sender} onChange={(e) => setDraft(prev => ({ ...prev, sender: e.target.value }))} disabled={!canEditIncidentDiary} />
+                            <input ref={inputRef} value={draft.sender} onChange={(e) => setDraft(prev => ({ ...prev, sender: e.target.value }))} disabled={!canEditIncidentDiary} />
                         </label>
                         <label>
                             Empfänger
