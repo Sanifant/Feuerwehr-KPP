@@ -422,7 +422,8 @@ jobs:
             throw 'Android App Bundle signature verification failed or the bundle is unsigned.'
           }
           Write-Host $verification
-          "path=$($bundles[0].FullName)" >> $env:GITHUB_OUTPUT
+          $bundlePath = [IO.Path]::GetRelativePath($PWD.Path, $bundles[0].FullName).Replace('\', '/')
+          "path=$bundlePath" >> $env:GITHUB_OUTPUT
       - name: Upload Android artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
