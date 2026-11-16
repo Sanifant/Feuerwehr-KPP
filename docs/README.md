@@ -25,21 +25,21 @@ Die akzeptierten ADRs sind Teil der technischen Dokumentation. Sie erläutern, w
 
 ```mermaid
 flowchart LR
-    Web[React-Webclient]
     Avalonia[Avalonia-Clients]
+    Web[React-Webclient]
     API[ASP.NET-Core-API]
     Common[Gemeinsame .NET-Verträge]
     PostgreSQL[(PostgreSQL)]
     Redis[(Redis)]
     SignalR[SignalR]
 
-    Web --> API
-    Avalonia --> API
-    API --> Common
-    API --> PostgreSQL
-    API --> Redis
+    Avalonia <--> API
+    Web <--> API
+    API --o Common
+    API <--> PostgreSQL
+    API <--> Redis
     API --> SignalR
-    Web <-->|Liveupdates| SignalR
+    SignalR --> |Liveupdates| Web
 ```
 
 Diese Übersicht beschreibt den aktuellen Codeaufbau. Plattformunterstützung allein bedeutet nicht, dass jede Funktion auf jedem Client gleich weit umgesetzt oder für den Produktionseinsatz freigegeben ist.
