@@ -15,10 +15,11 @@ import type CircleStyle from 'ol/style/Circle';
 import HydrantManager from './HydrantManager';
 import HydrantLocationMap from './HydrantLocationMap';
 import HydrantOverviewMap from './HydrantOverviewMap';
-import type { Hydrant } from './HydrantManager';
-import apiClient from '../api/apiClient';
-import { useRole } from '../hooks/useRole';
+
+import apiClient from '../../api/apiClient';
+import { useRole } from '../../hooks/useRole';
 import csvExample from '../assets/hydranten-import.csv?raw';
+import type { Hydrant } from './models/HydrantModels';
 
 vi.mock('../api/apiClient', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }));
 vi.mock('../hooks/useRole', () => ({ useRole: vi.fn() }));

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { isAxiosError } from 'axios';
-import { importHydrants } from '../api/hydrantImportApi';
-import type { HydrantImportError, HydrantImportResponse } from '../api/hydrantImportApi';
-import { getApiErrorMessage } from '../api/errors';
-import csvExample from '../assets/hydranten-import.csv?raw';
-import csvExampleUrl from '../assets/hydranten-import.csv?url';
+import { importHydrants } from './api/hydrantImportApi';
+import type { HydrantImportError, HydrantImportResponse } from './api/hydrantImportApi';
+import { getApiErrorMessage } from '../../api/errors';
+import csvExample from './assets/hydranten-import.csv?raw';
+import csvExampleUrl from './assets/hydranten-import.csv?url';
 
 interface HydrantImportModalProps {
     onClose: () => void;

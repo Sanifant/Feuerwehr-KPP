@@ -9,7 +9,8 @@ import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import { fromLonLat } from 'ol/proj';
 import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
-import type { Hydrant } from './HydrantManager';
+import type { Hydrant } from './models/HydrantModels';
+import { HydrantStatus } from './models/HydrantModels';
 import { hasMappableCoordinates } from './hydrantMapCoordinates';
 import 'ol/ol.css';
 
@@ -19,11 +20,37 @@ interface HydrantOverviewMapProps {
     onSelectHydrant: (id: number) => void;
 }
 
-const markerStyle = new Style({ image: new CircleStyle({
+const markerStyle = new Style({
+  image: new CircleStyle({
     radius: 6,
     fill: new Fill({ color: '#2563eb' }),
     stroke: new Stroke({ color: '#fff', width: 2 }),
-}) });
+  })
+});
+const defectStyle = new Style({
+  image: new CircleStyle({
+    radius: 6,
+    fill: new Fill({ color: '#ff0000' }),
+    stroke: new Stroke({ color: '#fff', width: 2 }),
+  })
+});
+const maintenanceStyle = new Style({
+  image: new CircleStyle({
+    radius: 6,
+    fill: new Fill({ color: '#ff9000' }),
+    stroke: new Stroke({ color: '#fff', width: 2 }),
+  })
+});
+
+const HydrantStatusStyles: Record<HydrantStatus, Style> = {
+    [HydrantStatus.Operational]: markerStyle,
+    [HydrantStatus.Defective]: defectStyle,
+    [HydrantStatus.Blocked]: defectStyle,
+    [HydrantStatus.UnderMaintenance]: maintenanceStyle
+
+
+};
+
 const selectedMarkerStyle = new Style({
     image: new CircleStyle({
         radius: 10,
@@ -32,6 +59,11 @@ const selectedMarkerStyle = new Style({
     }),
     zIndex: 1,
 });
+
+
+function getHydrantStyle(status: HydrantStatus) {
+    return HydrantStatusStyles[status];
+}
 
 export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSelectHydrant }: HydrantOverviewMapProps) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -50,7 +82,7 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
         if (!container) return;
 
         const source = new VectorSource<Feature<Point>>({ wrapX: false });
-        const hydrantLayer = new VectorLayer({ source, style: markerStyle });
+        const hydrantLayer = new VectorLayer({ source });
         const map = new Map({
             target: container,
             layers: [new TileLayer({ source: new OSM({
@@ -93,8 +125,13 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
         if (!source || !map) return;
         source.clear();
         source.addFeatures(hydrants.filter(h => hasMappableCoordinates(h.latitude, h.longitude)).map(h => {
-            const feature = new Feature({ geometry: new Point(fromLonLat([h.longitude, h.latitude])), hydrantId: h.id });
+            const feature = new Feature({ geometry: new Point(fromLonLat([h.longitude, h.latitude])), hydrantId: h.id, hydrantStatus: h.status});
             feature.setId(h.id);
+
+            feature.setStyle(HydrantStatusStyles[h.status] || markerStyle);
+            
+            console.log(`Adding feature for hydrant ${h.id} (${feature.get("hydrantStatus")}) at (${h.latitude}, ${h.longitude}) with style: ${JSON.stringify(feature.getStyle(), null, 2)}`);
+
             return feature;
         }));
         const extent = source.getExtent();
@@ -108,7 +145,7 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
         const source = sourceRef.current;
         const map = mapRef.current;
         if (!source || !map) return;
-        source.getFeatures().forEach(feature => feature.setStyle(feature.getId() === selectedHydrantId ? selectedMarkerStyle : undefined));
+        source.getFeatures().forEach(feature => feature.setStyle(feature.getId() === selectedHydrantId ? selectedMarkerStyle : getHydrantStyle(feature.get("hydrantStatus"))));
         const selected = selectedHydrantId === null ? null : source.getFeatureById(selectedHydrantId);
         const geometry = selected?.getGeometry();
         if (geometry) {
@@ -128,4 +165,5 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
                 nicht auf der Karte dargestellt werden. Sie sind weiterhin in der Liste verfügbar.</p>}
         </section>
     );
+
 }
