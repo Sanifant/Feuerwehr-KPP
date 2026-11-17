@@ -38,29 +38,29 @@ public partial class Program
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         // Add service defaults & Aspire client integrations.
-        builder.AddServiceDefaults();
+        _ = builder.AddServiceDefaults();
 
-        builder.AddRedisClientBuilder("cache")
+        _ = builder.AddRedisClientBuilder("cache")
             .WithOutputCache();
 
         builder.AddNpgsqlDbContext<FeuerwehrDbContext>(connectionName: "postgresdb");
 
-        builder.Services.AddScoped(services => SmtpSettings.FromConfiguration(services.GetRequiredService<IConfiguration>()));
-        builder.Services.AddScoped<ISmtpClient, SmtpClient>();
+        _ = builder.Services.AddScoped(services => SmtpSettings.FromConfiguration(services.GetRequiredService<IConfiguration>()));
+        _ = builder.Services.AddScoped<ISmtpClient, SmtpClient>();
 
-        builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddScoped<IMailService, MailService>();
-        builder.Services.AddScoped<IHtmlMailService, MailService>();
-        builder.Services.AddScoped<IVehicleService, VehicleService>();
-        builder.Services.AddScoped<IVehicleTransferService, VehicleTransferService>();
-        builder.Services.AddScoped<IVehicleMailComposer, VehicleMailComposer>();
-        builder.Services.AddScoped<IVehicleMailDispatcher, VehicleMailDispatcher>();
-        builder.Services.AddHostedService<VehicleMailWorker>();
-        builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
-        builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
+        _ = builder.Services.AddSingleton(TimeProvider.System);
+        _ = builder.Services.AddScoped<IMailService, MailService>();
+        _ = builder.Services.AddScoped<IHtmlMailService, MailService>();
+        _ = builder.Services.AddScoped<IVehicleService, VehicleService>();
+        _ = builder.Services.AddScoped<IVehicleTransferService, VehicleTransferService>();
+        _ = builder.Services.AddScoped<IVehicleMailComposer, VehicleMailComposer>();
+        _ = builder.Services.AddScoped<IVehicleMailDispatcher, VehicleMailDispatcher>();
+        _ = builder.Services.AddHostedService<VehicleMailWorker>();
+        _ = builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
+        _ = builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
 
         // Configure ASP.NET Core Identity
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+        _ = builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         {
             // Password settings
             options.Password.RequireDigit = true;
@@ -84,7 +84,7 @@ public partial class Program
         IConfigurationSection jwtSettings = builder.Configuration.GetSection("JwtSettings");
         string secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured in appsettings.json");
 
-        builder.Services.AddAuthentication(options =>
+        _ = builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -126,23 +126,23 @@ public partial class Program
         });
 
         // Configure Authorization Policies
-        builder.Services.AddAuthorization(options =>
+        _ = builder.Services.AddAuthorization(options =>
         {
             options.AddFeuerwehrPolicies();
         });
 
         // Register TokenService
-        builder.Services.AddScoped<ITokenService, TokenService>();
+        _ = builder.Services.AddScoped<ITokenService, TokenService>();
 
         // Configure CORS to allow frontend access
-        builder.Services.AddCors(options =>
+        _ = builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
                 // In development, allow Aspire's dynamic URLs
                 if (builder.Environment.IsDevelopment())
                 {
-                    policy.SetIsOriginAllowed(origin =>
+                    _ = policy.SetIsOriginAllowed(origin =>
                     {
                         // Allow localhost and Aspire dev domains
                         Uri uri = new Uri(origin);
@@ -159,7 +159,7 @@ public partial class Program
                     // In production: nur spezifische Origins erlauben
                     string[] allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
                                          ?? Array.Empty<string>();
-                    policy.WithOrigins(allowedOrigins)
+                    _ = policy.WithOrigins(allowedOrigins)
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials();
@@ -168,41 +168,41 @@ public partial class Program
         });
 
         // Add services to the container.
-        builder.Services.AddProblemDetails();
+        _ = builder.Services.AddProblemDetails();
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        _ = builder.Services.AddOpenApi();
 
-        builder.Services.AddControllers();
-        builder.Services.AddSignalR();
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddScoped<IUserContextAccessor, HttpUserContextAccessor>();
-        builder.Services.AddScoped<ICommandIdempotencyService, CommandIdempotencyService>();
-        builder.Services.AddScoped<IOutboxService, OutboxService>();
-        builder.Services.AddScoped<IMapLeaseService, MapLeaseService>();
-        builder.Services.AddHostedService<OutboxDispatcher>();
+        _ = builder.Services.AddControllers();
+        _ = builder.Services.AddSignalR();
+        _ = builder.Services.AddHttpContextAccessor();
+        _ = builder.Services.AddScoped<IUserContextAccessor, HttpUserContextAccessor>();
+        _ = builder.Services.AddScoped<ICommandIdempotencyService, CommandIdempotencyService>();
+        _ = builder.Services.AddScoped<IOutboxService, OutboxService>();
+        _ = builder.Services.AddScoped<IMapLeaseService, MapLeaseService>();
+        _ = builder.Services.AddHostedService<OutboxDispatcher>();
 
-        builder.Services.AddScoped<IAuthService, AuthService>();
-        builder.Services.AddScoped<IFireDepartmentService, FireDepartmentService>();
-        builder.Services.AddScoped<IHydrantService, HydrantService>();
-        builder.Services.AddScoped<IDiaryCategoryAdminService, DiaryCategoryAdminService>();
-        builder.Services.AddScoped<IIncidentService, IncidentService>();
-        builder.Services.AddScoped<IIncidentDiaryService, IncidentDiaryService>();
-        builder.Services.AddScoped<IIncidentArchiveService, IncidentArchiveService>();
-        builder.Services.AddScoped<ISituationMapService, SituationMapService>();
-        builder.Services.AddScoped<IMapSymbolService, MapSymbolService>();
-        builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
-        builder.Services.AddScoped<IUsersService, UsersService>();
-        builder.Services.AddScoped<IInventoryService, InventoryService>();
-        builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();
-        builder.Services.AddScoped<IInventoryReminderService, InventoryReminderService>();
-        builder.Services.AddHostedService<InventoryReminderWorker>();
+        _ = builder.Services.AddScoped<IAuthService, AuthService>();
+        _ = builder.Services.AddScoped<IFireDepartmentService, FireDepartmentService>();
+        _ = builder.Services.AddScoped<IHydrantService, HydrantService>();
+        _ = builder.Services.AddScoped<IDiaryCategoryAdminService, DiaryCategoryAdminService>();
+        _ = builder.Services.AddScoped<IIncidentService, IncidentService>();
+        _ = builder.Services.AddScoped<IIncidentDiaryService, IncidentDiaryService>();
+        _ = builder.Services.AddScoped<IIncidentArchiveService, IncidentArchiveService>();
+        _ = builder.Services.AddScoped<ISituationMapService, SituationMapService>();
+        _ = builder.Services.AddScoped<IMapSymbolService, MapSymbolService>();
+        _ = builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
+        _ = builder.Services.AddScoped<IUsersService, UsersService>();
+        _ = builder.Services.AddScoped<IInventoryService, InventoryService>();
+        _ = builder.Services.AddScoped<IInventoryTransferService, InventoryTransferService>();
+        _ = builder.Services.AddScoped<IInventoryReminderService, InventoryReminderService>();
+        _ = builder.Services.AddHostedService<InventoryReminderWorker>();
 
         WebApplication app = builder.Build();
 
-        app.Lifetime.ApplicationStarted.Register(() => diagnostics.Record("Server.ApplicationStarted"));
-        app.Lifetime.ApplicationStopping.Register(() => diagnostics.Record("Server.ApplicationStopping"));
-        app.Lifetime.ApplicationStopped.Register(() => diagnostics.Record("Server.ApplicationStopped"));
+        _ = app.Lifetime.ApplicationStarted.Register(() => diagnostics.Record("Server.ApplicationStarted"));
+        _ = app.Lifetime.ApplicationStopping.Register(() => diagnostics.Record("Server.ApplicationStopping"));
+        _ = app.Lifetime.ApplicationStopped.Register(() => diagnostics.Record("Server.ApplicationStopped"));
 
         diagnostics.Record("Server.Migrations.Start");
         await ApplyMigrationsAsync(app.Services);
@@ -211,34 +211,34 @@ public partial class Program
         diagnostics.Record("Server.Seeding.Complete");
 
         // Configure the HTTP request pipeline.
-        app.UseExceptionHandler();
+        _ = app.UseExceptionHandler();
 
         if (app.Environment.IsDevelopment())
         {
-            app.MapOpenApi();
+            _ = app.MapOpenApi();
 
-            app.MapScalarApiReference(options =>
+            _ = app.MapScalarApiReference(options =>
             {
-                options.WithTitle("My Hydrant API")
+                _ = options.WithTitle("My Hydrant API")
                        .WithTheme(ScalarTheme.DeepSpace)
                        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
             });
 
-            app.UseDeveloperExceptionPage();
+            _ = app.UseDeveloperExceptionPage();
         }
 
-        app.UseCors("AllowFrontend");
+        _ = app.UseCors("AllowFrontend");
 
-        app.UseAuthentication();
-        app.UseAuthorization();
+        _ = app.UseAuthentication();
+        _ = app.UseAuthorization();
 
-        app.UseOutputCache();
+        _ = app.UseOutputCache();
 
-        app.MapControllers();
-        app.MapHub<IncidentHub>("/hubs/incidents");
-        app.MapPrometheusScrapingEndpoint("/metrics");
+        _ = app.MapControllers();
+        _ = app.MapHub<IncidentHub>("/hubs/incidents");
+        _ = app.MapPrometheusScrapingEndpoint("/metrics");
 
-        app.MapDefaultEndpoints();
+        _ = app.MapDefaultEndpoints();
 
         diagnostics.Record("Server.Run.Start");
         app.Run();
