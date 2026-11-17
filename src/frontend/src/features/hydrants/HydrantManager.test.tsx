@@ -21,8 +21,8 @@ import { useRole } from '../../hooks/useRole';
 import csvExample from './assets/hydranten-import.csv?raw';
 import type { Hydrant } from './models/HydrantModels';
 
-vi.mock('../api/apiClient', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }));
-vi.mock('../hooks/useRole', () => ({ useRole: vi.fn() }));
+vi.mock('../../api/apiClient', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }));
+vi.mock('../../hooks/useRole', () => ({ useRole: vi.fn() }));
 // Keep real OpenLayers features, projection, layers and view; only skip the canvas renderer in jsdom.
 vi.mock('ol/Map', async () => {
     const { default: Observable } = await import('ol/Observable');
@@ -307,17 +307,18 @@ describe('Hydrant directory and overview selection', () => {
         render(<HydrantManager />);
         const first = await screen.findByRole('button', { name: /Dorfstraße/ });
         const feature = mapSource(0).getFeatureById(hydrant.id)!;
-        expect(feature.getStyle()).toBeNull();
+        const baseStyle = feature.getStyle() as Style;
+        expect((baseStyle.getImage() as CircleStyle).getRadius()).toBe(6);
         await user.click(first);
         const style = feature.getStyle() as Style;
         expect((style.getImage() as CircleStyle).getRadius()).toBeGreaterThan(6);
         const map = vi.mocked(Map).mock.results[0].value as Map;
         expect(map.getView().getCenter()).toEqual(fromLonLat([hydrant.longitude, hydrant.latitude]));
         await user.click(screen.getByRole('button', { name: /Bahnhofstraße/ }));
-        expect(feature.getStyle()).toBeNull();
+        expect((feature.getStyle() as Style).getImage()).toBeDefined();
         expect(mapSource(0).getFeatureById(otherHydrant.id)!.getStyle()).toBeDefined();
         await user.keyboard(' ');
-        expect(mapSource(0).getFeatures().every(marker => marker.getStyle() === null)).toBe(true);
+        expect(mapSource(0).getFeatures().every(marker => marker.getStyle() !== null)).toBe(true);
         expect(apiClient.get).toHaveBeenCalledTimes(1);
         expect(Map).toHaveBeenCalledTimes(1);
     });
@@ -404,8 +405,8 @@ describe('Hydrant overview map', () => {
         const osm = (options.layers[0] as import('ol/layer/Tile').default).getSource() as import('ol/source/OSM').default;
         expect(osm.getUrls()).toEqual(['https://tile.openstreetmap.org/{z}/{x}/{y}.png']);
         expect(osm.getAttributions()).toBeDefined();
-        const marker = (mapLayer(0).getStyle() as Style).getImage() as CircleStyle;
-        expect(marker.getFill()!.getColor()).toBe('#2563eb');
+        const marker = mapSource(0).getFeatureById(hydrant.id)!.getStyle() as Style;
+        expect(((marker.getImage() as CircleStyle).getFill()!).getColor()).toBe('#2563eb');
         expect(mapSource(0).getFeatures()).toHaveLength(2);
         const map = vi.mocked(Map).mock.results[0].value as Map;
         const extent = map.getView().calculateExtent([800, 600]);
