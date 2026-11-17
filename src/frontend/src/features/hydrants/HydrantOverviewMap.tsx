@@ -61,7 +61,7 @@ const selectedMarkerStyle = new Style({
 });
 
 
-function getHydrantStyle(status: HydrantStatus) {
+export function getHydrantStyle(status: HydrantStatus) {
     return HydrantStatusStyles[status];
 }
 
