@@ -6,10 +6,10 @@ namespace de.openelp.feuerwehr.App.Services
 {
     public interface IHydrantService
     {
-        Task<Hydrant> CreateAsync(Hydrant hydrant);
+        Task<HydrantDto> CreateAsync(HydrantDto hydrant);
         Task<bool> DeleteAsync(int id);
-        Task<IEnumerable<Hydrant>> GetAllAsync();
-        Task<Hydrant> GetByIdAsync(int id);
-        Task<bool> UpdateAsync(int id, Hydrant hydrant);
+        Task<IEnumerable<HydrantDto>> GetAllAsync();
+        Task<HydrantDto> GetByIdAsync(int id);
+        Task<bool> UpdateAsync(int id, HydrantDto hydrant);
     }
 }

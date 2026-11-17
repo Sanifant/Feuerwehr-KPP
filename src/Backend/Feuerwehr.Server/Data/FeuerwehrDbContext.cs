@@ -4,6 +4,7 @@ using de.openelp.feuerwehr.Server.Models.Inventory;
 using de.openelp.feuerwehr.Server.Models.Vehicles;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using de.openelp.feuerwehr.Server.Models.Hydrant;
 
 namespace de.openelp.feuerwehr.Server.Data
 {
@@ -42,6 +43,8 @@ namespace de.openelp.feuerwehr.Server.Data
         public DbSet<VehicleBookingDay> VehicleBookingDays { get; set; }
         public DbSet<VehicleEvent> VehicleEvents { get; set; }
         public DbSet<VehicleMailMessage> VehicleMailMessages { get; set; }
+
+        public DbSet<HydrantInspection> HydrantInspections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

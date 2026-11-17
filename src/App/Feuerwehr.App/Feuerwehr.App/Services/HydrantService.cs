@@ -20,17 +20,17 @@ namespace de.openelp.feuerwehr.App.Services
         /// <summary>
         /// Gets the all.
         /// </summary>
-        public async Task<IEnumerable<Hydrant>> GetAllAsync()
+        public async Task<IEnumerable<HydrantDto>> GetAllAsync()
         {
             HttpResponseMessage response = await this._httpClient.GetAsync(BaseUrl);
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<IEnumerable<Hydrant>>()
-                       ?? new List<Hydrant>();
+                return await response.Content.ReadFromJsonAsync<IEnumerable<HydrantDto>>()
+                       ?? new List<HydrantDto>();
             }
 
-            return new List<Hydrant>();
+            return new List<HydrantDto>();
         }
 
         // GET: api/hydrant/5
@@ -38,13 +38,13 @@ namespace de.openelp.feuerwehr.App.Services
         /// Gets the by Id.
         /// </summary>
         /// <param name="id">The id.</param>
-        public async Task<Hydrant> GetByIdAsync(int id)
+        public async Task<HydrantDto> GetByIdAsync(int id)
         {
             HttpResponseMessage response = await this._httpClient.GetAsync($"{BaseUrl}/{id}");
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<Hydrant>();
+                return await response.Content.ReadFromJsonAsync<HydrantDto>();
             }
 
             return null; // Oder wirf hier eine Exception, je nach gewünschtem Fehlerhandling
@@ -55,13 +55,13 @@ namespace de.openelp.feuerwehr.App.Services
         /// Creates the operation.
         /// </summary>
         /// <param name="hydrant">The hydrant.</param>
-        public async Task<Hydrant> CreateAsync(Hydrant hydrant)
+        public async Task<HydrantDto> CreateAsync(HydrantDto hydrant)
         {
             HttpResponseMessage response = await this._httpClient.PostAsync(BaseUrl, JsonContent.Create(hydrant));
 
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<Hydrant>();
+                return await response.Content.ReadFromJsonAsync<HydrantDto>();
             }
 
             return null;
@@ -73,7 +73,7 @@ namespace de.openelp.feuerwehr.App.Services
         /// </summary>
         /// <param name="id">The id.</param>
         /// <param name="hydrant">The hydrant.</param>
-        public async Task<bool> UpdateAsync(int id, Hydrant hydrant)
+        public async Task<bool> UpdateAsync(int id, HydrantDto hydrant)
         {
             HttpResponseMessage response = await this._httpClient.PutAsync($"{BaseUrl}/{id}", JsonContent.Create(hydrant));
             return response.IsSuccessStatusCode;

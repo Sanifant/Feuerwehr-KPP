@@ -1,6 +1,8 @@
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Models.Hydrant;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.HydrantModules;
 using Microsoft.EntityFrameworkCore;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Services;
@@ -13,9 +15,9 @@ public class HydrantServiceTests
         using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         HydrantService service = new HydrantService(db);
-        Hydrant request = new Hydrant
+        HydrantDto request = new HydrantDto
         {
-            Address = new Address { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
+            Address = new AddressDto { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },
             Latitude = 53.9,
             Longitude = 10.7,
             NominalDiameter = 100,
@@ -25,16 +27,16 @@ public class HydrantServiceTests
 
         ServiceResult created = service.Post(request);
         Assert.Equal(201, created.Code);
-        Hydrant response = Assert.IsType<Hydrant>(created.Value);
-        Server.Models.Hydrant entity = Assert.Single(db.Hydrants);
+        HydrantDto response = Assert.IsType<HydrantDto>(created.Value);
+        Hydrant entity = Assert.Single(db.Hydrants);
         Assert.Equal(entity.Id, response.Id);
         Assert.NotSame(request.Address, entity.Address);
         Assert.NotSame(response.Address, entity.Address);
 
-        Hydrant update = new Hydrant
+        HydrantDto update = new HydrantDto
         {
             Id = response.Id,
-            Address = new Address { Street = "Neue Straße", City = "Stockelsdorf" },
+            Address = new AddressDto { Street = "Neue Straße", City = "Stockelsdorf" },
             Latitude = 54,
             Longitude = 11,
             NominalDiameter = 150,
@@ -44,7 +46,7 @@ public class HydrantServiceTests
         };
         Assert.Equal(204, service.Put(response.Id, update).Code);
         Assert.Same(entity, Assert.Single(db.Hydrants));
-        var updated = Assert.IsType<Hydrant>(service.Get(response.Id).Value);
+        HydrantDto updated = Assert.IsType<HydrantDto>(service.Get(response.Id).Value);
         Assert.Equal("Neue Straße", updated.Address.Street);
         Assert.Equal(150, updated.NominalDiameter);
         Assert.Equal("Geprüft", updated.Notes);

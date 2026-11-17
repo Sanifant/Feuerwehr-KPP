@@ -1,14 +1,12 @@
-using de.openelp.feuerwehr.Common.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace de.openelp.feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Common.Models
 {
-    public class Hydrant
+    public class HydrantDto
     {
-        [Key]
         public int Id { get; set; }
 
-        public Address Address { get; set; } = new();
+        public AddressDto Address { get; set; } = new();
 
         [Required]
         public double Latitude { get; set; }
@@ -29,6 +27,7 @@ namespace de.openelp.feuerwehr.Server.Models
 
         // Computed Read-Only Properties (Excluded from Database Mapping)
         public bool IsUnderground => this.Type == HydrantType.Underground;
+
         public bool IsOperational => this.Status == HydrantStatus.Operational;
 
         public string DiameterDescription => $"DIN {this.NominalDiameter}";

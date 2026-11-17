@@ -7,7 +7,7 @@ using de.openelp.feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace de.openelp.feuerwehr.Server.Services.InventoryModules;
 
 public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService mail, TimeProvider clock,
     ILogger<InventoryReminderService> logger) : IInventoryReminderService

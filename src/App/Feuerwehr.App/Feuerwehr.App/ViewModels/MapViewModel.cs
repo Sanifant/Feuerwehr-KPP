@@ -42,7 +42,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         private bool _isAddVisible = false;
 
         [ObservableProperty]
-        private Hydrant _newHydrant = new();
+        private HydrantDto _newHydrant = new();
 
         private double zoomFactor = 6;
         private readonly IHydrantService hydrantService;
@@ -154,7 +154,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 this.IsAddVisible = true;
                 MPoint startPoint = new MPoint(location.Longitude, location.Latitude);
 
-                this.NewHydrant = new Hydrant
+                this.NewHydrant = new HydrantDto
                 {
                     Latitude = startPoint.Y,
                     Longitude = startPoint.X,

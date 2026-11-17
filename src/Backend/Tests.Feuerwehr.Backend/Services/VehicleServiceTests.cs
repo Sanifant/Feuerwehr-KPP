@@ -5,6 +5,7 @@ using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Server.Models.Vehicles;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.VehicleModules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

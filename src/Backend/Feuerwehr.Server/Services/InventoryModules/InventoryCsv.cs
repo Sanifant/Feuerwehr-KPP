@@ -3,7 +3,7 @@ using System.Text;
 using de.openelp.feuerwehr.Common.Models.Inventory;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services.InventoryModules
 {
     internal sealed record InventoryCsvRow(long Line, int BarcodeNumber, Guid? TypeId, string TypeName, string Category,
         string SerialNumber, string Manufacturer, EquipmentStatus Status, bool IsActive, DateOnly? CreatedOn, DateOnly? LastInspectedOn);

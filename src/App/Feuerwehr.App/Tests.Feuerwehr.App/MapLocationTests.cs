@@ -146,7 +146,7 @@ namespace de.openelp.feuerwehr.Tests.App
         {
             Mock<IHydrantService> hydrants = new Mock<IHydrantService>();
             // Hydrant loading is unrelated to these tests and must not mutate map layers concurrently.
-            hydrants.Setup(service => service.GetAllAsync()).Returns(Task.FromCanceled<IEnumerable<Hydrant>>(new CancellationToken(true)));
+            hydrants.Setup(service => service.GetAllAsync()).Returns(Task.FromCanceled<IEnumerable<HydrantDto>>(new CancellationToken(true)));
             return new MapViewModel(hydrants.Object, gps);
         }
     }

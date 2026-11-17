@@ -2,11 +2,12 @@ using System.Globalization;
 using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Models.Hydrant;
 using Microsoft.EntityFrameworkCore;
-using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant;
-using AddressEntity = de.openelp.feuerwehr.Server.Models.Address;
+using AddressEntity = de.openelp.feuerwehr.Server.Models.Hydrant.Address;
+using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant.Hydrant;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services.HydrantModules
 {
     /// <summary>
     /// Executes hydrant Service.
@@ -93,23 +94,31 @@ namespace de.openelp.feuerwehr.Server.Services
         /// Executes post.
         /// </summary>
         /// <param name="value">The value.</param>
-        public ServiceResult Post(Hydrant value)
+        public ServiceResult Post(HydrantDto value)
         {
+            if (value == null)
+            {
+                return ServiceResult.BadRequest(null);
+            }
+
             HydrantEntity entity = new HydrantEntity { Id = value.Id };
             Apply(entity, value);
-            context.Hydrants.Add(entity);
-            context.SaveChanges();
-            Hydrant dto = ToDto(entity);
+            _ = context.Hydrants.Add(entity);
+            _ = context.SaveChanges();
+            HydrantDto dto = ToDto(entity);
             return ServiceResult.CreatedAtAction("Get", new { id = dto.Id }, dto);
         }
 
-        public ServiceResult Put(int id, Hydrant value)
+        public ServiceResult Put(int id, HydrantDto value)
         {
-            var entity = context.Hydrants.Find(id);
+            HydrantEntity? entity = context.Hydrants.Find(id);
             if (entity is null)
+            {
                 return ServiceResult.NotFound();
+            }
+
             Apply(entity, value);
-            context.SaveChanges();
+            _ = context.SaveChanges();
             return ServiceResult.NoContent();
         }
 
@@ -123,7 +132,7 @@ namespace de.openelp.feuerwehr.Server.Services
             return ServiceResult.NoContent();
         }
 
-        private static void Apply(HydrantEntity entity, Hydrant dto)
+        private static void Apply(HydrantEntity entity, HydrantDto dto)
         {
             entity.Address = new AddressEntity
             {
@@ -142,12 +151,12 @@ namespace de.openelp.feuerwehr.Server.Services
             entity.Notes = dto.Notes;
         }
 
-        private static Hydrant ToDto(HydrantEntity entity)
+        private static HydrantDto ToDto(HydrantEntity entity)
         {
             return new()
             {
                 Id = entity.Id,
-                Address = new Address
+                Address = new AddressDto
                 {
                     Street = entity.Address.Street,
                     HouseNumber = entity.Address.HouseNumber,

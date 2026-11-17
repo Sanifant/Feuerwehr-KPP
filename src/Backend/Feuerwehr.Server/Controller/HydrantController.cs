@@ -43,7 +43,7 @@ namespace de.openelp.feuerwehr.Server.Controller
         /// Gets all hydrants.
         /// </summary>
         [HttpGet]
-        public ActionResult<IEnumerable<Hydrant>> Get()
+        public ActionResult<IEnumerable<HydrantDto>> Get()
         {
             return this.ToActionResult(service.Get());
         }
@@ -64,7 +64,7 @@ namespace de.openelp.feuerwehr.Server.Controller
         /// <param name="value">The hydrant to create.</param>
         [HttpPost]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
-        public IActionResult Post([FromBody] Hydrant value)
+        public IActionResult Post([FromBody] HydrantDto value)
         {
             return this.ToActionResult(service.Post(value));
         }
@@ -76,8 +76,13 @@ namespace de.openelp.feuerwehr.Server.Controller
         /// <param name="value">The hydrant values to update.</param>
         [HttpPut("{id}")]
         [Authorize(Policy = PolicyNames.CanManageHydrants)]
-        public IActionResult Put(int id, [FromBody] Hydrant value)
+        public IActionResult Put(int id, [FromBody] HydrantDto value)
         {
+            if (value == null || value.Id != id)
+            {
+                return this.ToActionResult(ServiceResult.BadRequest(value));
+            }
+
             return this.ToActionResult(service.Put(id, value));
         }
 

@@ -3,6 +3,7 @@ using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Server.Models.Inventory;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.InventoryModules;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;

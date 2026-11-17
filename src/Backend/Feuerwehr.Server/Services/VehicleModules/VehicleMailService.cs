@@ -4,7 +4,7 @@ using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.Vehicles;
 using Microsoft.EntityFrameworkCore;
 
-namespace de.openelp.feuerwehr.Server.Services;
+namespace de.openelp.feuerwehr.Server.Services.VehicleModules;
 
 public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvider clock) : IVehicleMailComposer
 {

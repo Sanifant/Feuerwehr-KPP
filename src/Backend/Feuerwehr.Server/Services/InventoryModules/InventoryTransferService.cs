@@ -8,7 +8,7 @@ using de.openelp.feuerwehr.Server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services.InventoryModules
 {
     public enum InventoryTransferKind { Equipment, Types, Categories }
 

@@ -2,6 +2,7 @@ using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.HydrantModules;
 using Microsoft.EntityFrameworkCore;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Services
@@ -45,7 +46,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
             HydrantImportResponse response = Assert.IsType<HydrantImportResponse>(result.Value);
             Assert.Equal(2, response.ImportedCount);
             Assert.Empty(response.Errors);
-            List<Server.Models.Hydrant> entities = db.Hydrants.OrderBy(h => h.Id).ToList();
+            List<Server.Models.Hydrant.Hydrant> entities = db.Hydrants.OrderBy(h => h.Id).ToList();
             Assert.Equal(2, entities.Count);
             Assert.Equal("Dorfstraße", entities[0].Address.Street);
             Assert.Equal("Beim Gerätehaus", entities[0].Notes);
@@ -65,7 +66,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
                 "Dorfstraße;12;02361;Testort;123;456;80;1;1;1");
 
             Assert.Equal(200, result.Code);
-            Server.Models.Hydrant entity = Assert.Single(db.Hydrants);
+            Server.Models.Hydrant.Hydrant entity = Assert.Single(db.Hydrants);
             Assert.Equal(123, entity.Latitude);
             Assert.Equal(456, entity.Longitude);
             Assert.Equal("02361", entity.Address.PostalCode);

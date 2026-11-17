@@ -3,14 +3,14 @@ using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services.HydrantModules
 {
     internal static class HydrantCsvImport
     {
         private static readonly string[] RequiredColumns =
             ["street", "houseNumber", "postalCode", "city", "latitude", "longitude", "nominalDiameter", "type", "waterSource", "status"];
 
-        internal static (List<Hydrant> Hydrants, List<HydrantImportError> Errors) Read(Stream stream, CancellationToken cancellationToken)
+        internal static (List<HydrantDto> Hydrants, List<HydrantImportError> Errors) Read(Stream stream, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             try
@@ -23,9 +23,9 @@ namespace de.openelp.feuerwehr.Server.Services
             }
         }
 
-        private static (List<Hydrant> Hydrants, List<HydrantImportError> Errors) ReadContent(Stream stream, CancellationToken cancellationToken)
+        private static (List<HydrantDto> Hydrants, List<HydrantImportError> Errors) ReadContent(Stream stream, CancellationToken cancellationToken)
         {
-            List<Hydrant> hydrants = [];
+            List<HydrantDto> hydrants = [];
             List<HydrantImportError> errors = [];
             using TextFieldParser parser = new TextFieldParser(stream, new UTF8Encoding(false, true), detectEncoding: true, leaveOpen: true)
             {
@@ -96,9 +96,9 @@ namespace de.openelp.feuerwehr.Server.Services
                         continue;
                     }
 
-                    hydrants.Add(new Hydrant
+                    hydrants.Add(new HydrantDto
                     {
-                        Address = new Address
+                        Address = new AddressDto
                         {
                             Street = Field("street"),
                             HouseNumber = Field("houseNumber"),

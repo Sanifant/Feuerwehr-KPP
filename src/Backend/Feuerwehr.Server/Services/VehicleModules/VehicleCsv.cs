@@ -3,7 +3,7 @@ using System.Text;
 using de.openelp.feuerwehr.Common.Models.Vehicles;
 using Microsoft.VisualBasic.FileIO;
 
-namespace de.openelp.feuerwehr.Server.Services
+namespace de.openelp.feuerwehr.Server.Services.VehicleModules
 {
     internal sealed record VehicleCsvRow(long Line, VehicleImportDto Data);
 

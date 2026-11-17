@@ -1,5 +1,6 @@
 using de.openelp.feuerwehr.Common.Models.Vehicles;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.VehicleModules;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

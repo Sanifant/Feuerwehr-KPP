@@ -1,3 +1,5 @@
+using de.openelp.feuerwehr.Server.Services.InventoryModules;
+
 namespace de.openelp.feuerwehr.Server.Services
 {
     public interface IInventoryTransferService

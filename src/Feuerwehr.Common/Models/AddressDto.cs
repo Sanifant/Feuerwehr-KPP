@@ -1,6 +1,6 @@
 namespace de.openelp.feuerwehr.Common.Models
 {
-    public class Address
+    public class AddressDto
     {
         public string Street { get; set; } = string.Empty;
         public string HouseNumber { get; set; } = string.Empty;

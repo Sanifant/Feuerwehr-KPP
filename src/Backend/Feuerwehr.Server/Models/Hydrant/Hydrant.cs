@@ -1,10 +1,11 @@
+using de.openelp.feuerwehr.Common.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace de.openelp.feuerwehr.Common.Models
+namespace de.openelp.feuerwehr.Server.Models.Hydrant
 {
-
     public class Hydrant
     {
+        [Key]
         public int Id { get; set; }
 
         public Address Address { get; set; } = new();

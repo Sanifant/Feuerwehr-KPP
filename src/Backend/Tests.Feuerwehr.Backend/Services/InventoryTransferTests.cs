@@ -2,6 +2,7 @@ using System.Text;
 using de.openelp.feuerwehr.Common.Models.Inventory;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.InventoryModules;
 using Microsoft.EntityFrameworkCore;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Services

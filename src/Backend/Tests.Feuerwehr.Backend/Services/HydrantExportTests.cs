@@ -2,7 +2,9 @@ using System.Globalization;
 using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
+using de.openelp.feuerwehr.Server.Models.Hydrant;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.HydrantModules;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
 
@@ -21,10 +23,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         {
             using var db = CreateDatabase();
             HydrantService service = new HydrantService(db);
-            service.Post(new Hydrant
+            service.Post(new HydrantDto
             {
                 Id = 2,
-                Address = new Address
+                Address = new AddressDto
                 {
                     Street = "Dorfstraße; Süd",
                     HouseNumber = "12a",
@@ -40,7 +42,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
                 Status = HydrantStatus.Operational,
                 Notes = "Erste Zeile\r\nZweite Zeile; \"frei\"",
             });
-            service.Post(new Hydrant { Id = 1, Notes = "=1+1" });
+            service.Post(new HydrantDto { Id = 1, Notes = "=1+1" });
 
             CultureInfo previousCulture = CultureInfo.CurrentCulture;
             byte[] bytes;
@@ -77,10 +79,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         {
             using var source = CreateDatabase();
             HydrantService service = new HydrantService(source);
-            Hydrant original = new Hydrant
+            HydrantDto original = new HydrantDto
             {
                 Id = 42,
-                Address = new Address
+                Address = new AddressDto
                 {
                     Street = "Dorfstraße; Süd",
                     HouseNumber = "12a",
@@ -106,7 +108,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
             HydrantImportResponse response = Assert.IsType<HydrantImportResponse>(result.Value);
             Assert.Equal(1, response.ImportedCount);
             Assert.Empty(response.Errors);
-            Server.Models.Hydrant imported = Assert.Single(target.Hydrants);
+            Server.Models.Hydrant.Hydrant imported = Assert.Single(target.Hydrants);
             Assert.Equal(original.Address.Street, imported.Address.Street);
             Assert.Equal(original.Address.HouseNumber, imported.Address.HouseNumber);
             Assert.Equal(original.Address.PostalCode, imported.Address.PostalCode);

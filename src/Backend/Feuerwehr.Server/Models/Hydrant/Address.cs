@@ -1,4 +1,4 @@
-namespace de.openelp.feuerwehr.Server.Models
+namespace de.openelp.feuerwehr.Server.Models.Hydrant
 {
     public class Address
     {
