@@ -1,3 +1,5 @@
+using de.openelp.feuerwehr.Common.Models;
+
 namespace de.openelp.feuerwehr.App.Models
 {
     public class HydrantPin
@@ -9,6 +11,7 @@ namespace de.openelp.feuerwehr.App.Models
         public double Latitude { get; set; }
 
         public double Longitude { get; set; }
+        public HydrantStatus Status { get; set; }
     }
 }
 

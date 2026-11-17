@@ -85,7 +85,7 @@ namespace de.openelp.feuerwehr.App.Services
                 if (authResponse == null)
                     return false;
 
-                if(!rememberMe)
+                if (!rememberMe)
                 {
                     // If not remembering, clear any stored tokens
                     await this.ClearTokensAsync();

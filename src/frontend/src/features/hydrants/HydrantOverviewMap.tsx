@@ -31,14 +31,14 @@ const defectStyle = new Style({
   image: new CircleStyle({
     radius: 6,
     fill: new Fill({ color: '#ff0000' }),
-    stroke: new Stroke({ color: '#fff', width: 2 }),
+    stroke: new Stroke({ color: '#000', width: 2 }),
   })
 });
 const maintenanceStyle = new Style({
   image: new CircleStyle({
     radius: 6,
     fill: new Fill({ color: '#ff9000' }),
-    stroke: new Stroke({ color: '#fff', width: 2 }),
+    stroke: new Stroke({ color: '#000', width: 2 }),
   })
 });
 

@@ -1,15 +1,15 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using de.openelp.feuerwehr.App.Services;
-using System;
-using System.Reflection;
-using System.Linq;
-using System.Threading.Tasks;
-using de.openelp.feuerwehr.Common.Models.IncidentModules;
-using System.Collections.ObjectModel;
 using de.openelp.feuerwehr.App.Models;
 using de.openelp.feuerwehr.App.Pages;
-using Avalonia.Controls;
+using de.openelp.feuerwehr.App.Services;
+using de.openelp.feuerwehr.Common.Models.IncidentModules;
 
 namespace de.openelp.feuerwehr.App.ViewModels
 {

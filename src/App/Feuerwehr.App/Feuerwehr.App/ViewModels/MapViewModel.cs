@@ -58,15 +58,31 @@ namespace de.openelp.feuerwehr.App.ViewModels
             this.DrawHydrants();
         }
 
+        private static Color GetStatusColor(HydrantStatus status)
+        {
+            switch (status)
+            {
+                case HydrantStatus.Defective:
+                case HydrantStatus.Blocked:
+                    return new Color { A = 255, R = 255, G = 0, B = 0 };
+                case HydrantStatus.UnderMaintenance:
+                    return new Color { A = 255, R = 255, G = 144, B = 0 };
+                case HydrantStatus.Operational:
+                default:
+                    return new Color { A = 255, R = 37, G = 99, B = 235 };
+            }
+        }
+
         private void DrawHydrants()
         {
-            this.hydrantService.GetAllAsync().ContinueWith(task =>
+            _ = this.hydrantService.GetAllAsync().ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully)
                 {
                     List<HydrantPin> hydrants = task.Result.Select(h => new HydrantPin
                     {
                         Diameter = h.DiameterDescription,
+                        Status = h.Status,
                         Latitude = h.Latitude,
                         Longitude = h.Longitude
                     }).ToList();
@@ -231,21 +247,18 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 (double x, double y) spericalMercatorCoordinate = SphericalMercator.FromLonLat(startPoint.X, startPoint.Y);
                 map.Navigator.CenterOn(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
-                // --- 2. Einen Pin (Marker) hinzufügen
                 PointFeature pinFeature = new PointFeature(spericalMercatorCoordinate.x, spericalMercatorCoordinate.y);
 
-                // Stylen des Pins (z.B. ein roter Punkt)
                 pinFeature.Styles.Add(new SymbolStyle
                 {
                     SymbolScale = 1,
-                    Fill = new Brush { Color = new Color { A = 255, R = 255, G = 0, B = 0 } } // Rot
+                    Fill = new Brush { Color = new Color { A = 255, R = 255, G = 0, B = 0 } },
                 });
 
-                // Layer für den Pin erstellen und der Karte hinzufügen
                 MemoryLayer memoryLayer = new MemoryLayer
                 {
                     Name = "Pins",
-                    Features = new List<IFeature> { pinFeature }
+                    Features = new List<IFeature> { pinFeature },
                 };
                 ILayer? previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
                 if (previousPins != null)
@@ -269,7 +282,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 {
                     SymbolScale = 1,
                     SymbolType = SymbolType.Triangle,
-                    Fill = new Brush { Color = new Color { A = 255, R = 0, G = 0, B = 255 } } // Blau
+                    Fill = new Brush { Color = GetStatusColor(hydrant.Status) },
                 });
 
                 hydrantFeatures.Add(hydrantFeature);
@@ -278,11 +291,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
             MemoryLayer hydrantLayer = new MemoryLayer
             {
                 Name = "Hydrants",
-                Features = hydrantFeatures
+                Features = hydrantFeatures,
             };
 
             return new List<ILayer> { hydrantLayer };
         }
     }
 }
-
