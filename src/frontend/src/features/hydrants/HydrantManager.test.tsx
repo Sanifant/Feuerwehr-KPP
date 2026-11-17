@@ -18,7 +18,7 @@ import HydrantOverviewMap from './HydrantOverviewMap';
 
 import apiClient from '../../api/apiClient';
 import { useRole } from '../../hooks/useRole';
-import csvExample from '../assets/hydranten-import.csv?raw';
+import csvExample from './assets/hydranten-import.csv?raw';
 import type { Hydrant } from './models/HydrantModels';
 
 vi.mock('../api/apiClient', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }));
