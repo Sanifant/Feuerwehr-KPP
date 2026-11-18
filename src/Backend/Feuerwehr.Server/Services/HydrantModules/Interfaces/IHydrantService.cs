@@ -15,7 +15,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces
 
         public ServiceResult Delete(int id);
 
-        public ServiceResult Inspect(HydrantInspectionDto value);
+        public ServiceResult Inspect(int hydrantId, CreateHydrantInspectionRequest request);
 
         public ServiceResult GetInspections(int hydrantId);
 

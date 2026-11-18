@@ -1,3 +1,34 @@
+.hydrant-map-panel {
+    display: grid;
+    align-content: start;
+    gap: 20px;
+    min-width: 0;
+}
+
+.hydrant-inspections {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--panel-radius);
+    background: var(--surface-muted);
+}
+
+.hydrant-inspections header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.hydrant-inspections h2 { margin: 0; }
+.hydrant-inspection-table { overflow-x: auto; }
+.hydrant-inspection-table th, .hydrant-inspection-table td { text-align: left; }
+.hydrant-modal.hydrant-inspection-modal { width: min(600px, calc(100vw - 32px)); }
+.hydrant-inspection-body { padding: 20px; }
+.hydrant-inspection-body fieldset { display: grid; gap: 10px; }
+
 .hydrant-manager {
     width: 100%;
     max-width: var(--content-width);
@@ -256,7 +287,7 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .hydrant-overview {
+    .hydrant-map-panel {
         grid-row: 1;
     }
 

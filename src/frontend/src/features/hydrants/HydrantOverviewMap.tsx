@@ -8,61 +8,15 @@ import VectorLayer from 'ol/layer/Vector';
 import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
 import { fromLonLat } from 'ol/proj';
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
 import type { Hydrant } from './models/HydrantModels';
-import { HydrantStatus } from './models/HydrantModels';
 import { hasMappableCoordinates } from './hydrantMapCoordinates';
+import { getHydrantStyle, getSelectedHydrantStyle } from './hydrantMapStyles';
 import 'ol/ol.css';
 
 interface HydrantOverviewMapProps {
     hydrants: Hydrant[];
     selectedHydrantId: number | null;
     onSelectHydrant: (id: number) => void;
-}
-
-const markerStyle = new Style({
-  image: new CircleStyle({
-    radius: 6,
-    fill: new Fill({ color: '#2563eb' }),
-    stroke: new Stroke({ color: '#fff', width: 2 }),
-  })
-});
-const defectStyle = new Style({
-  image: new CircleStyle({
-    radius: 6,
-    fill: new Fill({ color: '#ff0000' }),
-    stroke: new Stroke({ color: '#000', width: 2 }),
-  })
-});
-const maintenanceStyle = new Style({
-  image: new CircleStyle({
-    radius: 6,
-    fill: new Fill({ color: '#ff9000' }),
-    stroke: new Stroke({ color: '#000', width: 2 }),
-  })
-});
-
-const HydrantStatusStyles: Record<HydrantStatus, Style> = {
-    [HydrantStatus.Operational]: markerStyle,
-    [HydrantStatus.Defective]: defectStyle,
-    [HydrantStatus.Blocked]: defectStyle,
-    [HydrantStatus.UnderMaintenance]: maintenanceStyle
-
-
-};
-
-const selectedMarkerStyle = new Style({
-    image: new CircleStyle({
-        radius: 10,
-        fill: new Fill({ color: '#1d4ed8' }),
-        stroke: new Stroke({ color: '#facc15', width: 3 }),
-    }),
-    zIndex: 1,
-});
-
-
-export function getHydrantStyle(status: HydrantStatus) {
-    return HydrantStatusStyles[status];
 }
 
 export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSelectHydrant }: HydrantOverviewMapProps) {
@@ -128,8 +82,8 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
             const feature = new Feature({ geometry: new Point(fromLonLat([h.longitude, h.latitude])), hydrantId: h.id, hydrantStatus: h.status});
             feature.setId(h.id);
 
-            feature.setStyle(HydrantStatusStyles[h.status] || markerStyle);
-            
+            feature.setStyle(getHydrantStyle(h.status));
+
             console.log(`Adding feature for hydrant ${h.id} (${feature.get("hydrantStatus")}) at (${h.latitude}, ${h.longitude}) with style: ${JSON.stringify(feature.getStyle(), null, 2)}`);
 
             return feature;
@@ -145,7 +99,8 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
         const source = sourceRef.current;
         const map = mapRef.current;
         if (!source || !map) return;
-        source.getFeatures().forEach(feature => feature.setStyle(feature.getId() === selectedHydrantId ? selectedMarkerStyle : getHydrantStyle(feature.get("hydrantStatus"))));
+        source.getFeatures().forEach(feature => feature.setStyle(feature.getId() === selectedHydrantId
+            ? getSelectedHydrantStyle(feature.get("hydrantStatus")) : getHydrantStyle(feature.get("hydrantStatus"))));
         const selected = selectedHydrantId === null ? null : source.getFeatureById(selectedHydrantId);
         const geometry = selected?.getGeometry();
         if (geometry) {
@@ -157,7 +112,7 @@ export default function HydrantOverviewMap({ hydrants, selectedHydrantId, onSele
     return (
         <section className="hydrant-overview" aria-labelledby="hydrant-overview-title">
             <h2 id="hydrant-overview-title">Hydrantenkarte</h2>
-            <p id="hydrant-overview-hint">Blaue Punkte markieren die Hydranten. Ein Klick öffnet den Eintrag in der Liste.
+            <p id="hydrant-overview-hint">Blau: betriebsbereit. Rot: defekt oder gesperrt. Orange: in Wartung. Ein Klick öffnet den Eintrag in der Liste.
                 Bei überlagerten Punkten erneut klicken, um den nächsten Hydranten auszuwählen.</p>
             <div ref={containerRef} className="hydrant-overview-map" role="region" aria-label="Karte der Hydranten"
                 aria-describedby="hydrant-overview-hint" tabIndex={0} />

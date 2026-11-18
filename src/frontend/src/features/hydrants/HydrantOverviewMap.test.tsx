@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type CircleStyle from 'ol/style/Circle';
 import { HydrantStatus } from './models/HydrantModels';
 import type { HydrantStatus as HydrantStatusType } from './models/HydrantModels';
-import { getHydrantStyle } from './HydrantOverviewMap';
+import { getHydrantStyle, getSelectedHydrantStyle } from './hydrantMapStyles';
 
 function readStyleColors(status: HydrantStatusType) {
     const style = getHydrantStyle(status);
@@ -14,6 +14,14 @@ function readStyleColors(status: HydrantStatusType) {
 }
 
 describe('HydrantOverviewMap status styles', () => {
+    it.each(Object.values(HydrantStatus))('preserves the status color for selected hydrants without changing other markers: %s', status => {
+        const base = getHydrantStyle(status).getImage() as CircleStyle;
+        const selected = getSelectedHydrantStyle(status).getImage() as CircleStyle;
+        expect(selected.getFill()?.getColor()).toEqual(base.getFill()?.getColor());
+        expect(selected.getStroke()?.getColor()).toBe('#facc15');
+        expect(selected.getRadius()).toBe(10);
+        expect(base.getRadius()).toBe(6);
+    });
     it('maps operational hydrants to the default blue marker style', () => {
         const colors = readStyleColors(HydrantStatus.Operational);
 

@@ -5,6 +5,9 @@ import HydrantLocationMap from './HydrantLocationMap';
 import HydrantOverviewMap from './HydrantOverviewMap';
 import { hasMappableCoordinates } from './hydrantMapCoordinates';
 import HydrantImportModal from './HydrantImportModal';
+import HydrantInspectionModal from './HydrantInspectionModal';
+import HydrantInspectionHistory from './HydrantInspectionHistory';
+import { hydrantStatusLabels as HydrantStatusLabels } from './models/hydrantStatusLabels';
 import { useRole } from '../../hooks/useRole';
 import './HydrantManager.css';
 import type { Hydrant, Address } from './models/HydrantModels';
@@ -24,13 +27,6 @@ const WaterSourceLabels: Record<WaterSource, string> = {
     [WaterSource.FirePond]: 'Löschwasserteich',
     [WaterSource.FireWell]: 'Löschwasserbrunnen',
     [WaterSource.Cistern]: 'Zisterne'
-};
-
-const HydrantStatusLabels: Record<HydrantStatus, string> = {
-    [HydrantStatus.Operational]: 'Betriebsbereit',
-    [HydrantStatus.Defective]: 'Defekt',
-    [HydrantStatus.Blocked]: 'Gesperrt',
-    [HydrantStatus.UnderMaintenance]: 'In Wartung'
 };
 
 type HydrantForm = Omit<Hydrant, 'latitude' | 'longitude'> & {
@@ -65,6 +61,8 @@ export default function HydrantManager() {
     const [importNotice, setImportNotice] = useState<string | null>(null);
     const [isExporting, setIsExporting] = useState(false);
     const [exportError, setExportError] = useState<string | null>(null);
+    const [inspectionTarget, setInspectionTarget] = useState<Hydrant | null>(null);
+    const [inspectionRevision, setInspectionRevision] = useState(0);
 
     useEffect(() => {
         selectedRowRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -233,6 +231,13 @@ export default function HydrantManager() {
             </div>
             {exportError && <p role="alert">{exportError}</p>}
             {importNotice && <p role="status" className="hydrant-import-notice">{importNotice}</p>}
+            {canManageHydrants && inspectionTarget && <HydrantInspectionModal key={inspectionTarget.id} hydrant={inspectionTarget}
+                onClose={() => setInspectionTarget(null)} onCreated={inspection => {
+                    setHydrants(current => current.map(hydrant => hydrant.id === inspection.hydrantId
+                        ? { ...hydrant, status: inspection.newStatus } : hydrant));
+                    setInspectionRevision(value => value + 1);
+                    setInspectionTarget(null);
+                }} />}
             {isAdmin && isImportOpen && <HydrantImportModal
                 onClose={() => setIsImportOpen(false)}
                 onImported={count => {
@@ -380,13 +385,19 @@ export default function HydrantManager() {
                                         {canManageHydrants && <div className="hydrant-detail-actions">
                                             <button type="button" className="btn-edit hydrant-edit-button" onClick={() => handleEditClick(hydrant)}>Bearbeiten</button>
                                             <button type="button" className="btn-danger hydrant-delete-button" onClick={() => void handleDelete(hydrant.id)}>Löschen</button>
+                                            <button type="button" className="btn-secondary hydrant-inspect-button" aria-haspopup="dialog"
+                                                onClick={() => setInspectionTarget(hydrant)}>Inspektion</button>
                                         </div>}
                                     </div>}
                                 </li>;
                             })}
                         </ul>
                     </section>
-                    <HydrantOverviewMap hydrants={hydrants} selectedHydrantId={selectedHydrantId} onSelectHydrant={setSelectedHydrantId} />
+                    <div className="hydrant-map-panel">
+                        <HydrantOverviewMap hydrants={hydrants} selectedHydrantId={selectedHydrantId} onSelectHydrant={setSelectedHydrantId} />
+                        {canManageHydrants && selectedHydrantId !== null && <HydrantInspectionHistory
+                            key={selectedHydrantId} hydrantId={selectedHydrantId} revision={inspectionRevision} />}
+                    </div>
                 </div>
 
         </div>

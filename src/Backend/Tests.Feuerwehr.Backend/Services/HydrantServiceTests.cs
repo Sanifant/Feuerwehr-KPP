@@ -4,6 +4,8 @@ using de.openelp.feuerwehr.Server.Models.Hydrant;
 using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Services.HydrantModules;
 using Microsoft.EntityFrameworkCore;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
+using Moq;
 
 namespace de.openelp.feuerwehr.Tests.Backend.Services;
 
@@ -14,7 +16,7 @@ public class HydrantServiceTests
     {
         using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        HydrantService service = new HydrantService(db);
+        HydrantService service = new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);
         HydrantDto request = new HydrantDto
         {
             Address = new AddressDto { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },

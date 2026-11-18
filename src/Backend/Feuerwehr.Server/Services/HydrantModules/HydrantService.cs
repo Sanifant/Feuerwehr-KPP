@@ -5,6 +5,7 @@ using de.openelp.feuerwehr.Common.Models.HydrantInspections;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.Hydrant;
 using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
+using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using Microsoft.EntityFrameworkCore;
 using AddressEntity = de.openelp.feuerwehr.Server.Models.Hydrant.Address;
 using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant.Hydrant;
@@ -15,7 +16,9 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
     /// Executes hydrant Service.
     /// </summary>
     /// <param name="context">The context.</param>
-    public sealed class HydrantService(FeuerwehrDbContext context) : IHydrantService
+    /// <param name="user">The authenticated user context.</param>
+    /// <param name="timeProvider">The server clock.</param>
+    public sealed class HydrantService(FeuerwehrDbContext context, IUserContextAccessor user, TimeProvider timeProvider) : IHydrantService
     {
         /// <summary>
         /// Executes export.
@@ -143,39 +146,46 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             return ServiceResult.NoContent();
         }
 
-        public ServiceResult Inspect(HydrantInspectionDto value)
+        public ServiceResult Inspect(int hydrantId, CreateHydrantInspectionRequest request)
         {
-            if (value is null)
+            if (request is null || !Enum.IsDefined(request.NewStatus)
+                || request.Comment?.Length > HydrantInspection.MaximumCommentLength)
             {
-                return ServiceResult.BadRequest(null);
+                return ServiceResult.Problem(400, "Bitte einen gültigen Status und einen Kommentar mit maximal 500 Zeichen angeben.");
             }
 
-            HydrantEntity? entity = context.Hydrants.Find(value.HydrantId);
+            Models.ApplicationUser? inspector = context.Users.Find(user.UserId);
+            if (inspector is null)
+            {
+                return ServiceResult.Unauthorized();
+            }
+
+            HydrantEntity? entity = context.Hydrants.Find(hydrantId);
             if (entity is null)
             {
                 return ServiceResult.NotFound();
             }
 
+            DateTime inspectedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
             HydrantInspection inspection = new HydrantInspection
             {
-                Id = value.Id,
-                HydrantId = value.HydrantId,
-                InspectedOn = value.InspectedOn,
-                InspectedAtUtc = value.InspectedAtUtc,
-                InspectorId = value.InspectorId,
-                InspectorName = value.InspectorName,
-                Comment = value.Comment,
+                Id = Guid.NewGuid(),
+                HydrantId = entity.Id,
+                InspectedOn = DateOnly.FromDateTime(inspectedAtUtc),
+                InspectedAtUtc = inspectedAtUtc,
+                InspectorId = inspector.Id,
+                InspectorName = inspector.FullName,
+                Comment = request.Comment,
                 PreviousStatus = entity.Status,
-                NewStatus = value.NewStatus,
-                PhotoStorageKey = value.PhotoStorageKey,
-                PhotoContentType = value.PhotoContentType,
+                NewStatus = request.NewStatus,
             };
 
-            entity.Status = value.NewStatus;
+            entity.Status = request.NewStatus;
             _ = context.HydrantInspections.Add(inspection);
+            // A single SaveChanges transaction persists the inspection and hydrant status together.
             _ = context.SaveChanges();
 
-            return ServiceResult.Ok(ToHydrantInspectionDto(inspection));
+            return ServiceResult.StatusCode(201, ToHydrantInspectionDto(inspection));
         }
 
         public ServiceResult GetInspections(int hydrantId)
@@ -185,7 +195,9 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
                 return ServiceResult.NotFound();
             }
 
-            IList<HydrantInspection> inspections = context.HydrantInspections.Where(i => i.HydrantId == hydrantId).ToList();
+            IList<HydrantInspection> inspections = context.HydrantInspections.AsNoTracking()
+                .Where(i => i.HydrantId == hydrantId)
+                .OrderByDescending(i => i.InspectedAtUtc).ThenByDescending(i => i.Id).ToList();
             return ServiceResult.Ok(inspections.Select(ToHydrantInspectionDto).ToList());
         }
 

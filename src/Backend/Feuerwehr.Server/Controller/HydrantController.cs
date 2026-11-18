@@ -1,4 +1,5 @@
 using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Common.Models.HydrantInspections;
 using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
@@ -108,6 +109,13 @@ namespace de.openelp.feuerwehr.Server.Controller
         public IActionResult GetInspections(int id)
         {
             return this.ToActionResult(service.GetInspections(id));
+        }
+
+        [HttpPost("{id}/inspections")]
+        [Authorize(Policy = PolicyNames.CanManageHydrants)]
+        public IActionResult Inspect(int id, [FromBody] CreateHydrantInspectionRequest request)
+        {
+            return this.ToActionResult(service.Inspect(id, request));
         }
     }
 }

@@ -20,9 +20,12 @@ import apiClient from '../../api/apiClient';
 import { useRole } from '../../hooks/useRole';
 import csvExample from './assets/hydranten-import.csv?raw';
 import type { Hydrant } from './models/HydrantModels';
+import * as inspectionApi from './api/hydrantInspectionApi';
+import type { HydrantInspection } from './api/hydrantInspectionApi';
 
 vi.mock('../../api/apiClient', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }));
 vi.mock('../../hooks/useRole', () => ({ useRole: vi.fn() }));
+vi.mock('./api/hydrantInspectionApi', () => ({ getHydrantInspections: vi.fn(), createHydrantInspection: vi.fn() }));
 // Keep real OpenLayers features, projection, layers and view; only skip the canvas renderer in jsdom.
 vi.mock('ol/Map', async () => {
     const { default: Observable } = await import('ol/Observable');
@@ -80,12 +83,169 @@ afterAll(() => {
 });
 
 beforeEach(() => {
+    vi.mocked(inspectionApi.getHydrantInspections).mockReset().mockResolvedValue([]);
+    vi.mocked(inspectionApi.createHydrantInspection).mockReset();
     vi.mocked(useRole).mockReturnValue({ isAdmin: false, canManageHydrants: true } as ReturnType<typeof useRole>);
     vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
     vi.mocked(apiClient.post).mockReset().mockResolvedValue({ data: {} });
     vi.mocked(apiClient.put).mockResolvedValue({ data: {} });
     vi.mocked(apiClient.delete).mockResolvedValue({ data: {} });
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() });
+});
+
+describe('Hydrant inspections', () => {
+    const inspection: HydrantInspection = {
+        id: 'inspection-new', hydrantId: 42, inspectedOn: '2026-11-18', inspectedAtUtc: '2026-11-18T12:30:00Z',
+        inspectorId: 'inspector', inspectorName: 'Ada Muster', comment: null, previousStatus: 1, newStatus: 2,
+        photoStorageKey: null, photoContentType: null,
+    };
+
+    beforeEach(() => {
+        vi.mocked(apiClient.get).mockResolvedValue({ data: [hydrant, otherHydrant] });
+        vi.mocked(inspectionApi.createHydrantInspection).mockResolvedValue(inspection);
+    });
+
+    async function openInspection() {
+        const user = userEvent.setup();
+        render(<HydrantManager />);
+        await user.click(await screen.findByRole('button', { name: /Dorfstraße/ }));
+        const trigger = screen.getByRole('button', { name: 'Inspektion' });
+        await user.click(trigger);
+        return { user, trigger, dialog: screen.getByRole('dialog', { name: 'Inspektion erfassen' }) };
+    }
+
+    it('loads history only after selection and shows exactly the requested columns below the map, newest first', async () => {
+        vi.mocked(inspectionApi.getHydrantInspections).mockResolvedValue([
+            { ...inspection, id: 'older', inspectedOn: '2026-11-17', inspectedAtUtc: '2026-11-17T12:00:00Z', inspectorName: 'Max Beispiel', newStatus: 1 },
+            inspection,
+        ]);
+        const user = userEvent.setup();
+        render(<HydrantManager />);
+        await screen.findByRole('button', { name: /Dorfstraße/ });
+        expect(inspectionApi.getHydrantInspections).not.toHaveBeenCalled();
+        await user.click(screen.getByRole('button', { name: /Dorfstraße/ }));
+        const table = await screen.findByRole('table', { name: 'Inspektionen für Hydrant 42' });
+        expect(inspectionApi.getHydrantInspections).toHaveBeenCalledWith(42);
+        expect(within(table).getAllByRole('columnheader').map(header => header.textContent)).toEqual(['Prüfdatum', 'Prüfer', 'Neuer Status']);
+        const rows = within(table).getAllByRole('row');
+        expect(rows[1]).toHaveTextContent('18.11.2026');
+        expect(rows[1]).toHaveTextContent('Ada Muster');
+        expect(rows[1]).toHaveTextContent('Defekt');
+        expect(rows[2]).toHaveTextContent('Max Beispiel');
+        const map = table.closest('.hydrant-map-panel')!.querySelector('.hydrant-overview')!;
+        expect(map.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it.each([
+        { role: 'Admin', allowed: true }, { role: 'Commander', allowed: true },
+        { role: 'Firefighter', allowed: false }, { role: 'Viewer', allowed: false },
+    ])('limits inspection actions and history to the permitted roles: $role', async ({ role, allowed }) => {
+        vi.mocked(useRole).mockReturnValue({ isAdmin: role === 'Admin', canManageHydrants: allowed } as ReturnType<typeof useRole>);
+        const user = userEvent.setup();
+        render(<HydrantManager />);
+        await user.click(await screen.findByRole('button', { name: /Dorfstraße/ }));
+        expect(screen.queryByRole('button', { name: 'Inspektion' }) !== null).toBe(allowed);
+        expect(inspectionApi.getHydrantInspections).toHaveBeenCalledTimes(allowed ? 1 : 0);
+        if (!allowed) expect(screen.queryByRole('region', { name: /Inspektionen/ })).not.toBeInTheDocument();
+    });
+
+    it('offers all four statuses and permits an unchanged status without a comment', async () => {
+        const { user, dialog } = await openInspection();
+        expect(within(dialog).getAllByRole('option').map(option => option.textContent)).toEqual(['Betriebsbereit', 'Defekt', 'Gesperrt', 'In Wartung']);
+        expect(within(dialog).getByLabelText('Neuer Status')).toHaveValue('1');
+        expect(within(dialog).getByLabelText('Kommentar (optional)')).not.toBeRequired();
+        expect(within(dialog).getByLabelText('Kommentar (optional)')).toHaveAttribute('maxlength', '500');
+        vi.mocked(inspectionApi.createHydrantInspection).mockResolvedValue({ ...inspection, newStatus: 1 });
+        await user.click(within(dialog).getByRole('button', { name: 'Inspektion speichern' }));
+        await waitFor(() => expect(inspectionApi.createHydrantInspection).toHaveBeenCalledWith(42, { comment: null, newStatus: 1 }));
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('saves comment and status, updates the selected hydrant and marker, and refreshes history', async () => {
+        const { user, dialog } = await openInspection();
+        vi.mocked(inspectionApi.getHydrantInspections).mockResolvedValue([inspection]);
+        await user.type(within(dialog).getByLabelText('Kommentar (optional)'), 'Dichtung defekt');
+        await user.selectOptions(within(dialog).getByLabelText('Neuer Status'), '2');
+        await user.click(within(dialog).getByRole('button', { name: 'Inspektion speichern' }));
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+        expect(inspectionApi.createHydrantInspection).toHaveBeenCalledWith(42, { comment: 'Dichtung defekt', newStatus: 2 });
+        const table = await screen.findByRole('table', { name: 'Inspektionen für Hydrant 42' });
+        expect(within(table).getByText('Ada Muster')).toBeVisible();
+        expect(inspectionApi.getHydrantInspections).toHaveBeenCalledTimes(2);
+        const details = screen.getByRole('region', { name: /^Details zu Dorfstraße/ });
+        expect(within(details).getByText('Defekt')).toBeVisible();
+        const marker = mapSource(0).getFeatureById(42)!;
+        expect(((marker.getStyle() as Style).getImage() as CircleStyle).getFill()!.getColor()).toBe('#ff0000');
+        expect(Map).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves the dialog fields and the current map state on save failure and allows retry', async () => {
+        const { user, dialog } = await openInspection();
+        vi.mocked(inspectionApi.createHydrantInspection).mockRejectedValueOnce({ isAxiosError: true, response: { data: { title: 'Speichern fehlgeschlagen' } } });
+        await user.type(within(dialog).getByLabelText('Kommentar (optional)'), 'Abdeckung prüfen');
+        await user.selectOptions(within(dialog).getByLabelText('Neuer Status'), '3');
+        await user.click(within(dialog).getByRole('button', { name: 'Inspektion speichern' }));
+        expect(await within(dialog).findByRole('alert')).toHaveTextContent('Speichern fehlgeschlagen');
+        expect(within(dialog).getByLabelText('Neuer Status')).toHaveValue('3');
+        expect(within(dialog).getByLabelText('Kommentar (optional)')).toHaveValue('Abdeckung prüfen');
+        expect(within(screen.getByRole('region', { name: /^Details zu Dorfstraße/ })).getByText('Betriebsbereit')).toBeVisible();
+        vi.mocked(inspectionApi.createHydrantInspection).mockResolvedValue({ ...inspection, newStatus: 3 });
+        await user.click(within(dialog).getByRole('button', { name: 'Inspektion speichern' }));
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+        expect(inspectionApi.createHydrantInspection).toHaveBeenCalledTimes(2);
+    });
+
+    it('prevents duplicate submissions and closing while the save is pending', async () => {
+        const { user, dialog } = await openInspection();
+        let finish!: (value: HydrantInspection) => void;
+        vi.mocked(inspectionApi.createHydrantInspection).mockReturnValue(new Promise(resolve => { finish = resolve; }));
+        await user.click(within(dialog).getByRole('button', { name: 'Inspektion speichern' }));
+        expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeDisabled();
+        expect(within(dialog).getByLabelText('Neuer Status')).toBeDisabled();
+        fireEvent.submit(dialog.querySelector('form')!);
+        fireEvent(dialog, new Event('cancel', { cancelable: true }));
+        expect(inspectionApi.createHydrantInspection).toHaveBeenCalledTimes(1);
+        expect(dialog).toBeInTheDocument();
+        await act(async () => { finish(inspection); });
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('cancels without saving, restores focus and opens a fresh dialog next time', async () => {
+        const { user, trigger, dialog } = await openInspection();
+        await user.type(within(dialog).getByLabelText('Kommentar (optional)'), 'Nicht speichern');
+        fireEvent(dialog, new Event('cancel', { cancelable: true }));
+        await waitFor(() => expect(dialog).not.toBeInTheDocument());
+        expect(trigger).toHaveFocus();
+        expect(inspectionApi.createHydrantInspection).not.toHaveBeenCalled();
+        await user.click(trigger);
+        expect(screen.getByLabelText('Kommentar (optional)')).toHaveValue('');
+    });
+
+    it('shows a history error with retry without resubmitting an inspection', async () => {
+        vi.mocked(inspectionApi.getHydrantInspections).mockRejectedValueOnce(new Error('offline'));
+        const user = userEvent.setup();
+        render(<HydrantManager />);
+        await user.click(await screen.findByRole('button', { name: /Dorfstraße/ }));
+        expect(await screen.findByRole('alert')).toHaveTextContent('Inspektionen konnten nicht geladen werden');
+        vi.mocked(inspectionApi.getHydrantInspections).mockResolvedValue([inspection]);
+        await user.click(screen.getByRole('button', { name: 'Prüfungen aktualisieren' }));
+        expect(await screen.findByRole('table', { name: 'Inspektionen für Hydrant 42' })).toBeVisible();
+        expect(inspectionApi.createHydrantInspection).not.toHaveBeenCalled();
+    });
+
+    it('ignores late history responses after selecting a different hydrant', async () => {
+        let finishFirst!: (value: HydrantInspection[]) => void;
+        vi.mocked(inspectionApi.getHydrantInspections).mockReturnValueOnce(new Promise(resolve => { finishFirst = resolve; }))
+            .mockResolvedValueOnce([{ ...inspection, id: 'other', hydrantId: 77, inspectorName: 'Prüfer für 77' }]);
+        const user = userEvent.setup();
+        render(<HydrantManager />);
+        await user.click(await screen.findByRole('button', { name: /Dorfstraße/ }));
+        await user.click(screen.getByRole('button', { name: /Bahnhofstraße/ }));
+        expect(await screen.findByRole('table', { name: 'Inspektionen für Hydrant 77' })).toHaveTextContent('Prüfer für 77');
+        await act(async () => { finishFirst([inspection]); });
+        expect(screen.queryByText('Ada Muster')).not.toBeInTheDocument();
+        expect(screen.queryByRole('table', { name: 'Inspektionen für Hydrant 42' })).not.toBeInTheDocument();
+    });
 });
 
 afterEach(() => {
