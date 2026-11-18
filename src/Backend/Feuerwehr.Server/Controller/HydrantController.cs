@@ -3,6 +3,7 @@ using de.openelp.feuerwehr.Server.Services;
 using de.openelp.feuerwehr.Server.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
 
 namespace de.openelp.feuerwehr.Server.Controller
 {
@@ -102,5 +103,11 @@ namespace de.openelp.feuerwehr.Server.Controller
             return this.ToActionResult(service.Delete(id));
         }
 
+        [HttpGet("{id}/inspections")]
+        [Authorize(Policy = PolicyNames.CanManageHydrants)]
+        public IActionResult GetInspections(int id)
+        {
+            return this.ToActionResult(service.GetInspections(id));
+        }
     }
 }

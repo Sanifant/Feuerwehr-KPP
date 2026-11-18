@@ -47,6 +47,8 @@ services:
     #image: ghcr.io/sanifant/feuerwehr-kpp-api:int-latest
     image: ghcr.io/sanifant/feuerwehr-kpp/feuerwehr-api:integration
     container_name: ff-kpp-int-inventory-api
+    volumes:
+      - hydrant_inspection_photos:/app/data/hydrant-inspection-photos
     restart: unless-stopped
     networks:
       - inventory-int-tier
@@ -68,6 +70,7 @@ services:
       MAIL_TIMEOUT_SECONDS: "${MAIL_TIMEOUT_SECONDS:-30}"
       Mail__From: "${Mail__From:-}"
       Frontend__BaseUrl: "${Frontend__BaseUrl}"
+      HydrantInspectionPhotos__RootPath: /app/data/hydrant-inspection-photos
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     labels:
       - "prometheus.scrape=true"
@@ -132,6 +135,7 @@ services:
       - redis_int_data:/data
 
 volumes:
+  hydrant_inspection_photos:
   postgres_int_data:
   redis_int_data:
 

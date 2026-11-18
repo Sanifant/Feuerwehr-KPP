@@ -53,6 +53,7 @@ namespace de.openelp.feuerwehr.Server.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.ConfigureInventory();
             modelBuilder.ConfigureVehicles();
+            modelBuilder.ApplyConfiguration(new HydrantInspectionConfiguration());
 
             modelBuilder.Entity<Models.Settings.Setting>(entity =>
             {

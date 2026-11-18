@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Text;
 using de.openelp.feuerwehr.Common.Models;
+using de.openelp.feuerwehr.Common.Models.HydrantInspections;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.Hydrant;
+using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using AddressEntity = de.openelp.feuerwehr.Server.Models.Hydrant.Address;
 using HydrantEntity = de.openelp.feuerwehr.Server.Models.Hydrant.Hydrant;
@@ -26,7 +28,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             foreach (HydrantEntity? hydrant in hydrants)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                csv.AppendJoin(';', new[]
+                _ = csv.AppendJoin(';', new[]
                 {
                     CsvText(hydrant.Address.Street), CsvText(hydrant.Address.HouseNumber),
                     CsvText(hydrant.Address.PostalCode), CsvText(hydrant.Address.City),
@@ -48,8 +50,9 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             value ??= string.Empty;
             // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
             string trimmed = value.TrimStart();
-            if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
-                || value.Length > 0 && "\t\r\n".Contains(value[0]))
+            if ((trimmed.Length > 0 && "=+-@".Contains(trimmed[0]))
+                ||
+                (value.Length > 0 && "\t\r\n".Contains(value[0])))
             {
                 value = "'" + value;
             }
@@ -68,12 +71,12 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             List<HydrantEntity> entities = hydrants.Select(dto =>
             {
                 HydrantEntity entity = new HydrantEntity();
-                Apply(entity, dto);
+                ToHydrantEntity(entity, dto);
                 return entity;
             }).ToList();
             context.Hydrants.AddRange(entities);
             // One SaveChanges transaction persists the complete file, never individual rows.
-            await context.SaveChangesAsync(cancellationToken);
+            _ = await context.SaveChangesAsync(cancellationToken);
             return ServiceResult.Ok(new HydrantImportResponse(entities.Count,[]));
         }
 
@@ -82,7 +85,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
         /// </summary>
         public ServiceResult Get()
         {
-            return ServiceResult.Ok(context.Hydrants.ToList().Select(ToDto).ToList());
+            return ServiceResult.Ok(context.Hydrants.ToList().Select(ToHydrantDto).ToList());
         }
 
         /// <summary>
@@ -92,7 +95,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
         public ServiceResult Get(int id)
         {
             HydrantEntity? entity = context.Hydrants.Find(id);
-            return entity is null ? ServiceResult.NotFound() : ServiceResult.Ok(ToDto(entity));
+            return entity is null ? ServiceResult.NotFound() : ServiceResult.Ok(ToHydrantDto(entity));
         }
 
         /// <summary>
@@ -107,10 +110,10 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             }
 
             HydrantEntity entity = new HydrantEntity { Id = value.Id };
-            Apply(entity, value);
+            ToHydrantEntity(entity, value);
             _ = context.Hydrants.Add(entity);
             _ = context.SaveChanges();
-            HydrantDto dto = ToDto(entity);
+            HydrantDto dto = ToHydrantDto(entity);
             return ServiceResult.CreatedAtAction("Get", new { id = dto.Id }, dto);
         }
 
@@ -122,25 +125,89 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
                 return ServiceResult.NotFound();
             }
 
-            Apply(entity, value);
+            ToHydrantEntity(entity, value);
             _ = context.SaveChanges();
             return ServiceResult.NoContent();
         }
 
         public ServiceResult Delete(int id)
         {
-            var entity = context.Hydrants.Find(id);
+            HydrantEntity? entity = context.Hydrants.Find(id);
             if (entity is null)
             {
                 return ServiceResult.NotFound();
             }
 
-            context.Hydrants.Remove(entity);
-            context.SaveChanges();
+            _ = context.Hydrants.Remove(entity);
+            _ = context.SaveChanges();
             return ServiceResult.NoContent();
         }
 
-        private static void Apply(HydrantEntity entity, HydrantDto dto)
+        public ServiceResult Inspect(HydrantInspectionDto value)
+        {
+            if (value is null)
+            {
+                return ServiceResult.BadRequest(null);
+            }
+
+            HydrantEntity? entity = context.Hydrants.Find(value.HydrantId);
+            if (entity is null)
+            {
+                return ServiceResult.NotFound();
+            }
+
+            HydrantInspection inspection = new HydrantInspection
+            {
+                Id = value.Id,
+                HydrantId = value.HydrantId,
+                InspectedOn = value.InspectedOn,
+                InspectedAtUtc = value.InspectedAtUtc,
+                InspectorId = value.InspectorId,
+                InspectorName = value.InspectorName,
+                Comment = value.Comment,
+                PreviousStatus = entity.Status,
+                NewStatus = value.NewStatus,
+                PhotoStorageKey = value.PhotoStorageKey,
+                PhotoContentType = value.PhotoContentType,
+            };
+
+            entity.Status = value.NewStatus;
+            _ = context.HydrantInspections.Add(inspection);
+            _ = context.SaveChanges();
+
+            return ServiceResult.Ok(ToHydrantInspectionDto(inspection));
+        }
+
+        public ServiceResult GetInspections(int hydrantId)
+        {
+            if (!context.Hydrants.Any(h => h.Id == hydrantId))
+            {
+                return ServiceResult.NotFound();
+            }
+
+            IList<HydrantInspection> inspections = context.HydrantInspections.Where(i => i.HydrantId == hydrantId).ToList();
+            return ServiceResult.Ok(inspections.Select(ToHydrantInspectionDto).ToList());
+        }
+
+        private static HydrantInspectionDto ToHydrantInspectionDto(HydrantInspection inspection)
+        {
+            HydrantInspectionDto returnValue = new HydrantInspectionDto(
+                inspection.Id,
+                inspection.HydrantId,
+                inspection.InspectedOn,
+                inspection.InspectedAtUtc,
+                inspection.InspectorId,
+                inspection.InspectorName,
+                inspection.Comment,
+                inspection.PreviousStatus,
+                inspection.NewStatus,
+                inspection.PhotoStorageKey,
+                inspection.PhotoContentType);
+
+            return returnValue;
+        }
+
+        private static void ToHydrantEntity(HydrantEntity entity, HydrantDto dto)
         {
             entity.Address = new AddressEntity
             {
@@ -159,7 +226,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             entity.Notes = dto.Notes;
         }
 
-        private static HydrantDto ToDto(HydrantEntity entity)
+        private static HydrantDto ToHydrantDto(HydrantEntity entity)
         {
             return new ()
             {

@@ -4,6 +4,7 @@ using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Authorization;
 using de.openelp.feuerwehr.Server.Controller;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

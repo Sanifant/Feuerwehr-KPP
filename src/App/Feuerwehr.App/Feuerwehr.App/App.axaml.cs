@@ -134,6 +134,7 @@ namespace de.openelp.feuerwehr.App
 
             // Für Blazor WebAssembly / Web-Clients
             _ = collection.AddScoped<IHydrantService, HydrantService>();
+            _ = collection.AddSingleton<IHydrantInspectionPhotoProcessor, HydrantInspectionPhotoProcessor>();
             _ = collection.AddScoped<ISituationMapService, SituationMapService>();
             _ = collection.AddScoped<IInventoryService, InventoryService>();
 

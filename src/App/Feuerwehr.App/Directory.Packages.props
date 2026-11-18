@@ -9,6 +9,7 @@
     <!-- Avalonia packages -->
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
@@ -20,6 +21,8 @@
     <PackageVersion Include="ZXing.Net" Version="0.16.11" />
     <PackageVersion Include="Mapsui.Avalonia" Version="5.1.0" />
     <PackageVersion Include="Mapsui.Avalonia12" Version="5.1.0" />
+    <!-- Match the stable SkiaSharp version required by Avalonia.Skia 12.1.4. -->
+    <PackageVersion Include="SkiaSharp" Version="3.119.4" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
     <PackageVersion Include="Xamarin.AndroidX.Core" Version="1.19.1" />
     <PackageVersion Include="Xamarin.AndroidX.Core.Core.Ktx" Version="1.19.0.1" />

@@ -21,6 +21,9 @@ EXPOSE 8081
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_HTTP_PORTS=
 ENV ASPNETCORE_HTTPS_PORTS=
+ENV HydrantInspectionPhotos__RootPath=/app/data/hydrant-inspection-photos
+RUN mkdir -p /app/data/hydrant-inspection-photos \
+    && chown "$APP_UID:$APP_UID" /app/data/hydrant-inspection-photos
 
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Feuerwehr.Server.dll"]

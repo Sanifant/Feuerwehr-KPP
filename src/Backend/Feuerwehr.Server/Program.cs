@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
 
 namespace de.openelp.feuerwehr.Server;
 
@@ -188,6 +189,10 @@ public partial class Program
         _ = builder.Services.AddScoped<IAuthService, AuthService>();
         _ = builder.Services.AddScoped<IFireDepartmentService, FireDepartmentService>();
         _ = builder.Services.AddScoped<IHydrantService, HydrantService>();
+        _ = builder.Services.AddOptions<HydrantInspectionPhotoStorageOptions>()
+            .BindConfiguration(HydrantInspectionPhotoStorageOptions.SectionName)
+            .Validate(options => !string.IsNullOrWhiteSpace(options.RootPath), "The inspection photo directory must not be empty.")
+            .ValidateOnStart();
         _ = builder.Services.AddScoped<IDiaryCategoryAdminService, DiaryCategoryAdminService>();
         _ = builder.Services.AddScoped<IIncidentService, IncidentService>();
         _ = builder.Services.AddScoped<IIncidentDiaryService, IncidentDiaryService>();
