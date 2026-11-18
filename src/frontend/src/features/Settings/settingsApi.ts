@@ -5,6 +5,7 @@ export const settingTypeLabels: Record<SettingType, string> = { 0: 'Text', 1: 'Z
 
 export interface Setting {
   id: string;
+  key: string;
   name: string;
   value: string;
   type: SettingType;
@@ -14,12 +15,30 @@ export interface Setting {
 }
 
 export interface CreateSetting {
-  name: string;
+  key: string;
   value: string;
+}
+
+export interface SettingDefinition {
+  key: string;
+  name: string;
+  moduleId: string;
+  moduleName: string;
   type: SettingType;
+  mandatory: boolean;
+}
+
+export interface SettingsModuleStatus {
+  id: string;
+  name: string;
+  pagePaths: string[];
+  isAvailable: boolean;
+  missingParameters: string[];
 }
 
 export const getSettings = async () => (await apiClient.get<Setting[]>('/api/Settings')).data;
+export const getSettingDefinitions = async () => (await apiClient.get<SettingDefinition[]>('/api/Settings/definitions')).data;
+export const getSettingsModuleStatuses = async () => (await apiClient.get<SettingsModuleStatus[]>('/api/Settings/modules')).data;
 export const createSetting = async (request: CreateSetting) =>
   (await apiClient.post<Setting>('/api/Settings', request)).data;
 export const updateSetting = async (id: string, value: string) =>

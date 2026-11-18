@@ -195,6 +195,16 @@ public partial class Program
         _ = builder.Services.AddScoped<ISituationMapService, SituationMapService>();
         _ = builder.Services.AddScoped<IMapSymbolService, MapSymbolService>();
         _ = builder.Services.AddScoped<ISettingsService, SettingsService>();
+        SettingsCatalog settingsCatalog = new SettingsCatalog(typeof(Program).Assembly.GetTypes());
+        _ = builder.Services.AddSingleton(settingsCatalog);
+        foreach (Type validatorType in settingsCatalog.Definitions.Select(x => x.ValidatorType).Distinct())
+        {
+            _ = builder.Services.AddScoped(validatorType);
+        }
+
+        _ = builder.Services.AddSingleton<ISettingsEnvironment, SettingsEnvironment>();
+        _ = builder.Services.AddScoped<SettingsEnvironmentInitializer>();
+        _ = builder.Services.AddScoped<ISettingsRuntime, SettingsRuntime>();
         _ = builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
         _ = builder.Services.AddScoped<IUsersService, UsersService>();
         _ = builder.Services.AddScoped<IInventoryService, InventoryService>();
@@ -213,6 +223,10 @@ public partial class Program
         diagnostics.Record("Server.Migrations.Complete");
         await SeedDatabaseAsync(app.Services);
         diagnostics.Record("Server.Seeding.Complete");
+        using (IServiceScope settingsScope = app.Services.CreateScope())
+        {
+            await settingsScope.ServiceProvider.GetRequiredService<SettingsEnvironmentInitializer>().InitializeAsync();
+        }
 
         // Configure the HTTP request pipeline.
         _ = app.UseExceptionHandler();
@@ -235,6 +249,7 @@ public partial class Program
 
         _ = app.UseAuthentication();
         _ = app.UseAuthorization();
+        _ = app.UseMiddleware<SettingsModuleMiddleware>();
 
         _ = app.UseOutputCache();
 

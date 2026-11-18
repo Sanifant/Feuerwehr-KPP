@@ -5,6 +5,8 @@ namespace de.openelp.feuerwehr.Server.Services.Settings
     /// <summary>Admin-only management of global settings.</summary>
     public interface ISettingsService
     {
+        Task<ServiceResult> GetDefinitionsAsync(CancellationToken cancellationToken);
+
         Task<ServiceResult> GetAsync(CancellationToken cancellationToken);
 
         Task<ServiceResult> CreateAsync(CreateSettingRequest request, CancellationToken cancellationToken);

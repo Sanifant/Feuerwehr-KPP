@@ -3,12 +3,13 @@ import type { FormEvent } from 'react';
 import { useRole } from '../../hooks/useRole';
 import { getApiErrorMessage } from '../../api/errors';
 import VehicleModal from '../../Components/VehicleModal';
-import { createSetting, deleteSetting, getSettings, settingTypeLabels, updateSetting } from './settingsApi';
-import type { Setting, SettingType } from './settingsApi';
+import { createSetting, deleteSetting, getSettingDefinitions, getSettings, settingTypeLabels, updateSetting } from './settingsApi';
+import type { Setting, SettingDefinition, SettingType } from './settingsApi';
 import './SettingsPage.css';
 
 interface Editor {
   id: string | null;
+  key: string;
   name: string;
   value: string;
   type: SettingType;
@@ -17,6 +18,7 @@ interface Editor {
 export default function SettingsPage() {
   const { isAdmin } = useRole();
   const [settings, setSettings] = useState<Setting[]>([]);
+  const [definitions, setDefinitions] = useState<SettingDefinition[]>([]);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [deleting, setDeleting] = useState<Setting | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,10 @@ export default function SettingsPage() {
   const load = useCallback(async () => {
     if (!isAdmin) return;
     setLoading(true);
-    try { setSettings(await getSettings()); setError(''); }
+    try {
+      const [values, catalog] = await Promise.all([getSettings(), getSettingDefinitions()]);
+      setSettings(values); setDefinitions(catalog); setError('');
+    }
     catch (err) { setError(getApiErrorMessage(err, 'Settings konnten nicht geladen werden.')); }
     finally { setLoading(false); }
   }, [isAdmin]);
@@ -40,12 +45,8 @@ export default function SettingsPage() {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!editor || running.current) return;
-    if (!editor.name.trim() || !editor.value.trim()) {
-      setModalError('Bitte Name und Wert angeben.');
-      return;
-    }
-    if (editor.type === 1 && (!/^[0-9]+$/.test(editor.value) || !/[1-9]/.test(editor.value))) {
-      setModalError('Bitte eine positive natürliche Zahl größer als Null ohne Vorzeichen oder Dezimalstellen angeben.');
+    if (!editor.key) {
+      setModalError('Bitte einen Parameter auswählen.');
       return;
     }
     running.current = true;
@@ -53,7 +54,7 @@ export default function SettingsPage() {
     setModalError('');
     try {
       if (editor.id) await updateSetting(editor.id, editor.value);
-      else await createSetting({ name: editor.name.trim(), value: editor.value, type: editor.type });
+      else await createSetting({ key: editor.key, value: editor.value });
       setEditor(null);
       await load();
     } catch (err) { setModalError(getApiErrorMessage(err, 'Parameter konnte nicht gespeichert werden.')); }
@@ -70,17 +71,18 @@ export default function SettingsPage() {
     finally { running.current = false; setBusy(false); }
   };
 
-  const hydrantEmail = editor?.name.trim().toLocaleLowerCase() === 'hydrant benachrichtigung';
+  const available = definitions.filter(definition => !settings.some(setting => setting.key === definition.key));
   return <div className="settings-page">
     <header className="page-header"><div><h1>Settings</h1><p>Globale Parameter für alle Feuerwehren verwalten.</p></div>
-      <button disabled={busy || loading} onClick={() => {
-        setModalError(''); setEditor({ id: null, name: '', value: '', type: 0 });
+      <button disabled={busy || loading || available.length === 0} onClick={() => {
+        setModalError(''); setEditor({ id: null, key: '', name: '', value: '', type: 0 });
       }}>Parameter anlegen</button></header>
     {error && <p role="alert" className="alert alert-error">{error}</p>}
     <section className="card">
       <button className="btn-secondary" disabled={busy || loading} onClick={() => void load()}>Aktualisieren</button>
       {loading && <p role="status">Settings werden geladen …</p>}
       {!loading && !error && settings.length === 0 && <p>Noch keine Parameter vorhanden.</p>}
+      {!loading && !error && definitions.length === 0 && <p>Es sind noch keine Parameter durch Module definiert.</p>}
       <div className="settings-table"><table><thead><tr>
         <th>Parametername</th><th>Wert</th><th>Geändert am</th><th>Geändert von</th><th>Aktionen</th>
       </tr></thead><tbody>{settings.map(setting => <tr key={setting.id}>
@@ -99,22 +101,22 @@ export default function SettingsPage() {
       onClose={() => setEditor(null)}>
       <form onSubmit={event => void submit(event)}>
         {modalError && <p role="alert" className="alert alert-error">{modalError}</p>}
-        <label>Parametername<input required maxLength={200} readOnly={!!editor.id} disabled={busy} value={editor.name}
-          onChange={event => {
-            const name = event.target.value;
-            setEditor({ ...editor, name, type: name.trim().toLocaleLowerCase() === 'hydrant benachrichtigung' ? 2 : editor.type });
-          }} /></label>
-        <label>Typ<select disabled={busy || !!editor.id || hydrantEmail} value={editor.type}
-          onChange={event => setEditor({ ...editor, type: Number(event.target.value) as SettingType })}>
-          <option value={0}>{settingTypeLabels[0]}</option><option value={1}>{settingTypeLabels[1]}</option>
-          <option value={2}>{settingTypeLabels[2]}</option>
-        </select></label>
-        <label>Wert<input required disabled={busy} type={editor.type === 2 ? 'email' : 'text'}
-          inputMode={editor.type === 1 ? 'numeric' : undefined}
-          pattern={editor.type === 1 ? '[0-9]*[1-9][0-9]*' : undefined}
+        {editor.id ? <label>Parametername<input readOnly value={editor.name} /></label>
+          : <label>Parametername<select required disabled={busy} value={editor.key} onChange={event => {
+            const definition = available.find(item => item.key === event.target.value);
+            setEditor({ ...editor, key: definition?.key ?? '', name: definition?.name ?? '', type: definition?.type ?? 0 });
+          }}>
+            <option value="">Parameter auswählen</option>
+            {available.map(definition => <option key={definition.key} value={definition.key}>
+              {definition.moduleName}: {definition.name}{definition.mandatory ? ' (Pflichtparameter)' : ''}
+            </option>)}
+          </select></label>}
+        <label>Typ<input readOnly value={settingTypeLabels[editor.type]} /></label>
+        <label>Wert<input disabled={busy || !editor.key} type="text"
+          inputMode={editor.type === 1 ? 'numeric' : editor.type === 2 ? 'email' : undefined}
           value={editor.value} onChange={event => setEditor({ ...editor, value: event.target.value })} /></label>
         <footer><button type="button" className="btn-secondary" disabled={busy} onClick={() => setEditor(null)}>Abbrechen</button>
-          <button disabled={busy}>Speichern</button></footer>
+          <button disabled={busy || !editor.key}>Speichern</button></footer>
       </form>
     </VehicleModal>}
     {deleting && <VehicleModal title="Parameter löschen" busy={busy} onClose={() => setDeleting(null)}>

@@ -28,6 +28,7 @@ import VehiclesPage from './Components/VehiclesPage.tsx';
 import VehicleTypesPage from './Components/VehicleTypesPage.tsx';
 import VehicleStatusesPage from './Components/VehicleStatusesPage.tsx';
 import SettingsPage from './features/Settings/SettingsPage.tsx';
+import SettingsModuleGuard from './features/Settings/SettingsModuleGuard.tsx';
 
 
 const App: React.FC = () => {
@@ -48,6 +49,7 @@ const App: React.FC = () => {
 
                                 {/* Protected Routes */}
                                 <Route element={<ProtectedRoute />}>
+                                  <Route element={<SettingsModuleGuard />}>
                                     <Route path="/password" element={<ChangePassword />} />
                                     <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/firedepartments" element={<FireDepartmentController />} />
@@ -70,6 +72,7 @@ const App: React.FC = () => {
                                     <Route path="/vehicle-types" element={<VehicleTypesPage />} />
                                     <Route path="/vehicle-statuses" element={<VehicleStatusesPage />} />
                                     <Route path="/settings" element={<SettingsPage />} />
+                                  </Route>
                                 </Route>
                             </Routes>
                         </main>

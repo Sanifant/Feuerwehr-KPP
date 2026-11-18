@@ -12,6 +12,12 @@ namespace de.openelp.feuerwehr.Server.Controller.Settings
     [Authorize(Policy = PolicyNames.RequireAdmin)]
     public sealed class SettingsController(ISettingsService service) : ControllerBase
     {
+        [HttpGet("definitions")]
+        public async Task<IActionResult> GetDefinitionsAsync(CancellationToken cancellationToken)
+        {
+            return this.ToActionResult(await service.GetDefinitionsAsync(cancellationToken));
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
         {
