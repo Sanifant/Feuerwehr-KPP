@@ -28,6 +28,7 @@
 - Controller enthalten Routing, HTTP-Validierung, Berechtigungsattribute und die Abbildung von Service-Ergebnissen auf HTTP-Antworten. Kein direkter EF-, Identity-, Redis- oder SMTP-Zugriff in Controllern.
 - Fachliche Ablaeufe und Datenzugriffe in scoped Services mit Interfaces unter `Services/` implementieren und in `Program.cs` registrieren. `ServiceResult` bleibt ein internes Anwendungsergebnis; die MVC-Abbildung liegt in `Controller/ServiceResultExtensions.cs`.
 - Persistenzmodelle liegen im Server unter `Models/`; UI-spezifische Modelle im jeweiligen Client. DTOs nicht von Entities ableiten und keine Entities als API-Antworten serialisieren.
+- Alle Entitaeten muessen die Felder `modified_by` und `modified_on` besitzen. Beide Felder sind bereits beim Erstellen zu setzen: `modified_by` als Referenz auf den erstellenden Benutzer und `modified_on` auf den Erstellungszeitpunkt in UTC.
 - Hydranten besitzen getrennte DTO-/Entity-Typen; Abbildung in `Services/HydrantService.cs`. Bestehende HTTP-Routen und JSON-Feldnamen bei Refactorings beibehalten.
 - API-Einstieg und Dependency Injection: `src/Backend/Feuerwehr.Server/Program.cs`.
 - Datenbankmigrationen und Seed-Daten werden beim API-Start in `Program.cs` ausgeführt.
