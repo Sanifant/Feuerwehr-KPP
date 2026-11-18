@@ -5,6 +5,7 @@ using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Hubs;
 using de.openelp.feuerwehr.Server.Models;
 using de.openelp.feuerwehr.Server.Services;
+using de.openelp.feuerwehr.Server.Services.Settings;
 using de.openelp.feuerwehr.Server.Services.HydrantModules;
 using de.openelp.feuerwehr.Server.Services.IncidentModules;
 using de.openelp.feuerwehr.Server.Services.InventoryModules;
@@ -191,6 +192,7 @@ public partial class Program
         _ = builder.Services.AddScoped<IIncidentArchiveService, IncidentArchiveService>();
         _ = builder.Services.AddScoped<ISituationMapService, SituationMapService>();
         _ = builder.Services.AddScoped<IMapSymbolService, MapSymbolService>();
+        _ = builder.Services.AddScoped<ISettingsService, SettingsService>();
         _ = builder.Services.AddScoped<ITrainingRecordService, TrainingRecordService>();
         _ = builder.Services.AddScoped<IUsersService, UsersService>();
         _ = builder.Services.AddScoped<IInventoryService, InventoryService>();

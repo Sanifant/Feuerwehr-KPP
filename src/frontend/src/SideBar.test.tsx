@@ -14,6 +14,18 @@ beforeEach(() => {
 });
 function show(path = '/dashboard') { render(<MemoryRouter initialEntries={[path]}><SideBar /></MemoryRouter>); return userEvent.setup(); }
 
+it('shows settings under administration and opens that group on direct visits for admins', () => {
+    vi.mocked(useRole).mockReturnValue({ isAdmin: true } as ReturnType<typeof useRole>);
+    show('/settings');
+    expect(screen.getByRole('button', { name: 'Verwaltung' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
+});
+
+it('hides settings from non-admins', () => {
+    show('/settings');
+    expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument();
+});
+
 it('opens and closes the inventory tree and navigates to the dedicated type page', async () => {
     const user = show(); const trigger = screen.getByRole('button', { name: 'Inventar' });
     expect(trigger).toHaveAttribute('aria-expanded', 'false'); expect(screen.queryByRole('link', { name: 'Inventarübersicht' })).not.toBeInTheDocument();

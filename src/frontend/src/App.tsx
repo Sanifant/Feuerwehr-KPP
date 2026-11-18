@@ -27,6 +27,7 @@ import InventoryCategoryAdmin from './Components/InventoryCategoryAdmin.tsx';
 import VehiclesPage from './Components/VehiclesPage.tsx';
 import VehicleTypesPage from './Components/VehicleTypesPage.tsx';
 import VehicleStatusesPage from './Components/VehicleStatusesPage.tsx';
+import SettingsPage from './features/Settings/SettingsPage.tsx';
 
 
 const App: React.FC = () => {
@@ -68,6 +69,7 @@ const App: React.FC = () => {
                                     <Route path="/vehicles/manage" element={<VehiclesPage management />} />
                                     <Route path="/vehicle-types" element={<VehicleTypesPage />} />
                                     <Route path="/vehicle-statuses" element={<VehicleStatusesPage />} />
+                                    <Route path="/settings" element={<SettingsPage />} />
                                 </Route>
                             </Routes>
                         </main>

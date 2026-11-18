@@ -334,6 +334,45 @@ namespace de.openelp.feuerwehr.Server.Migrations
                     b.ToTable("Hydrants", (string)null);
                 });
 
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Hydrant.HydrantInspection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("HydrantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("HydrantId1")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("InspectedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("InspectedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("InspectorId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("InspectorName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HydrantId1");
+
+                    b.ToTable("HydrantInspections");
+                });
+
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.IncidentModules.DiaryCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1099,6 +1138,42 @@ namespace de.openelp.feuerwehr.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Settings.Setting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ModifiedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModifiedBy");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Settings", (string)null);
+                });
+
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.TrainingCourse", b =>
                 {
                     b.Property<int>("Id")
@@ -1600,6 +1675,17 @@ namespace de.openelp.feuerwehr.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Hydrant.HydrantInspection", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.Hydrant.Hydrant", "Hydrant")
+                        .WithMany()
+                        .HasForeignKey("HydrantId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hydrant");
+                });
+
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.IncidentModules.DiaryEntry", b =>
                 {
                     b.HasOne("de.openelp.feuerwehr.Server.Models.IncidentModules.Incident", "Incident")
@@ -1686,6 +1772,16 @@ namespace de.openelp.feuerwehr.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Settings.Setting", b =>
+                {
+                    b.HasOne("de.openelp.feuerwehr.Server.Models.ApplicationUser", "ModifiedByUser")
+                        .WithMany()
+                        .HasForeignKey("ModifiedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ModifiedByUser");
                 });
 
             modelBuilder.Entity("de.openelp.feuerwehr.Server.Models.Vehicles.Vehicle", b =>

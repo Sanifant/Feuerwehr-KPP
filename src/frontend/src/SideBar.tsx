@@ -159,6 +159,7 @@ export function SideBar() {
 
                         {activeGroup === 'verwaltung' && (
                             <div className="sidebar-subnav">
+                                {isAdmin && <SidebarLink to="/settings" currentPath={currentPath}>Settings</SidebarLink>}
                                 {isAdmin && <SidebarLink to="/vehicle-types" currentPath={currentPath}>
                                     <span className="nav-icon" aria-hidden="true">▦</span>Fahrzeugtypen
                                 </SidebarLink>}
@@ -224,6 +225,7 @@ function getActiveGroup(currentPath: string): SidebarGroup | null {
         currentPath === '/vehicles/manage' ||
         currentPath === '/vehicle-types' ||
         currentPath === '/vehicle-statuses' ||
+        currentPath === '/settings' ||
         currentPath === '/firedepartments' ||
         currentPath.startsWith('/trainingdashboard?view=') ||
         currentPath.startsWith('/dashboard?view=')

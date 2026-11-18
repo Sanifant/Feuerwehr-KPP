@@ -1,0 +1,6 @@
+.settings-page { display: grid; gap: 1.25rem; min-width: 0; }
+.settings-page .card { min-width: 0; }
+.settings-table { overflow-x: auto; }
+.settings-table th, .settings-table td { text-align: left; vertical-align: middle; }
+.settings-value { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 8rem; }
+.settings-actions { display: flex; flex-wrap: wrap; gap: .5rem; }

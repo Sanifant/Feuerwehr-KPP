@@ -46,11 +46,25 @@ namespace de.openelp.feuerwehr.Server.Data
 
         public DbSet<HydrantInspection> HydrantInspections { get; set; }
 
+        public DbSet<Models.Settings.Setting> Settings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ConfigureInventory();
             modelBuilder.ConfigureVehicles();
+
+            modelBuilder.Entity<Models.Settings.Setting>(entity =>
+            {
+                entity.ToTable("Settings");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                entity.HasIndex(x => x.Name).IsUnique();
+                entity.Property(x => x.Value).IsRequired();
+                entity.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
+                entity.HasOne(x => x.ModifiedByUser).WithMany().HasForeignKey(x => x.ModifiedBy)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
 
             modelBuilder.HasSequence<int>("Hydrants_Id_seq")
                 .StartsAt(1)
