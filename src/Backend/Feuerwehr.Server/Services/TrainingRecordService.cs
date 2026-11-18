@@ -15,6 +15,7 @@ public sealed class TrainingRecordService : ITrainingRecordService
         this._db = dbContext;
         this._logger = logger;
     }
+
     /// <summary>
     /// Gets the operation.
     /// </summary>

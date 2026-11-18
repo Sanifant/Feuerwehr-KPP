@@ -22,4 +22,3 @@ namespace de.openelp.feuerwehr.App.Views
         }
     }
 }
-

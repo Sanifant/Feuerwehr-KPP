@@ -26,7 +26,10 @@ namespace de.openelp.feuerwehr.App.Pages
         protected override void OnUnloaded(RoutedEventArgs e)
         {
             if (this.DataContext is SituationMapViewModel viewModel)
+            {
                 viewModel.Deactivate();
+            }
+
             base.OnUnloaded(e);
         }
     }

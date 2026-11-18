@@ -33,7 +33,10 @@ namespace de.openelp.feuerwehr.Tests.App
             Mock<IAuthService> auth = CreateAuth(role);
             Mock<ISituationMapService> service = new Mock<ISituationMapService>(MockBehavior.Strict);
             if (allowed)
+            {
                 service.Setup(s => s.GetActiveIncidentAsync(It.IsAny<CancellationToken>())).ReturnsAsync((IncidentSummaryDto?)null);
+            }
+
             SituationMapViewModel viewModel = new SituationMapViewModel(service.Object, auth.Object);
 
             Assert.Equal(allowed, new MainViewModel(auth.Object).CanViewSituationMap);
@@ -156,7 +159,7 @@ namespace de.openelp.feuerwehr.Tests.App
         }
 
         [Fact]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1101:Prefix local calls with this", Justification = "<Pending>")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1101:Prefix local calls with this", Justification = "Keep CI in Namespaces")]
         /// <summary>
         /// Executes layers Project Coordinates And Preserve Polygon Holes And Svg Symbols.
         /// </summary>
@@ -214,19 +217,19 @@ namespace de.openelp.feuerwehr.Tests.App
 
         private static IncidentSummaryDto Incident()
         {
-            return new(Guid.NewGuid(), "Einsatz", "123", null, null,
+            return new (Guid.NewGuid(), "Einsatz", "123", null, null,
             10.6, 53.9, IncidentStatus.Active, DateTime.UtcNow, DateTime.UtcNow, null, 1);
         }
 
         private static MapElementDto Element(string coordinates)
         {
-            return new(Guid.NewGuid(), Guid.NewGuid(), MapElementType.Symbol,
+            return new (Guid.NewGuid(), Guid.NewGuid(), MapElementType.Symbol,
             null, null, "Fahrzeug", null, null, null, "#d62828", "{\"type\":\"Point\",\"coordinates\":" + coordinates + "}", 1, DateTime.UtcNow, "Test");
         }
 
         private static MapStateResponse State(Guid incidentId, params MapElementDto[] elements)
         {
-            return new(incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements, []);
+            return new (incidentId, IncidentStatus.Active, 1, DateTime.UtcNow, null, elements,[]);
         }
 
         private sealed class ReadOnlyHandler(IncidentSummaryDto incident) : HttpMessageHandler
@@ -241,9 +244,11 @@ namespace de.openelp.feuerwehr.Tests.App
                 Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
                 JsonSerializerOptions options = new JsonSerializerOptions(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
                 if (request.RequestUri!.AbsolutePath == "/api/incidents/active")
+                {
                     return Task.FromResult(this.NoActiveIncident
                         ? new HttpResponseMessage(HttpStatusCode.NotFound)
                         : new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(incident, options: options) });
+                }
 
                 Assert.Equal($"/api/incidents/{incident.Id}/map/state", request.RequestUri.AbsolutePath);
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)

@@ -44,4 +44,3 @@ namespace de.openelp.feuerwehr.App.Desktop
         }
     }
 }
-

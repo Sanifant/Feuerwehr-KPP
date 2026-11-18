@@ -41,6 +41,7 @@ namespace de.openelp.feuerwehr.App.Services
                 // Status bleibt für die Benutzerführung auswertbar; Antwortinhalte werden nicht protokolliert.
                 throw new System.Net.Http.HttpRequestException("Die Prüfung konnte nicht gespeichert werden.", null, response.StatusCode);
             }
+
             return await response.Content.ReadFromJsonAsync<EquipmentDetailDto>(cancellationToken: ct)
                 ?? throw new InvalidOperationException("Die Prüfantwort ist leer.");
         }

@@ -20,7 +20,7 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
 
     public static class JsonOptionsFactory
     {
-        public static readonly JsonSerializerOptions Default = new()
+        public static readonly JsonSerializerOptions Default = new ()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -303,7 +303,7 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
         public static byte[] BuildSimplePdf(string title, IEnumerable<string> lines)
         {
             var pages = Paginate(lines.SelectMany(WrapLine));
-            var fontId = 3 + pages.Count * 2;
+            int fontId = 3 + pages.Count * 2;
             using MemoryStream ms = new MemoryStream();
             using StreamWriter writer = new StreamWriter(ms, Encoding.ASCII, leaveOpen: true);
             writer.Write("%PDF-1.4\n");
@@ -317,25 +317,27 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
             }
 
             WriteObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
-            var pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
+            string pageReferences = string.Join(" ", Enumerable.Range(0, pages.Count).Select(index => $"{3 + index * 2} 0 R"));
             WriteObject(2, $"<< /Type /Pages /Kids [{pageReferences}] /Count {pages.Count} >>");
-            for (var index = 0; index < pages.Count; index++)
+            for (int index = 0; index < pages.Count; index++)
             {
-                var pageId = 3 + index * 2;
-                var contentId = pageId + 1;
+                int pageId = 3 + index * 2;
+                int contentId = pageId + 1;
                 StringBuilder content = new StringBuilder();
                 content.Append($"BT /F1 16 Tf 50 790 Td ({Escape(title)}) Tj ET\n");
-                var y = 760;
-                foreach (var line in pages[index])
+                int y = 760;
+                foreach (string line in pages[index])
                 {
                     content.Append($"BT /F1 9.5 Tf 50 {y} Td ({Escape(line)}) Tj ET\n");
                     y -= 12;
                 }
+
                 content.Append($"BT /F1 9 Tf 50 32 Td (Seite {index + 1} / {pages.Count}) Tj ET\n");
-                var contentText = content.ToString();
+                string contentText = content.ToString();
                 WriteObject(pageId, $"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents {contentId} 0 R /Resources << /Font << /F1 {fontId} 0 R >> >> >>");
                 WriteObject(contentId, $"<< /Length {Encoding.ASCII.GetByteCount(contentText)} >>\nstream\n{contentText}endstream");
             }
+
             WriteObject(fontId, "<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>");
 
             writer.Flush();
@@ -366,47 +368,68 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                     pages.Add(page.ToArray());
                     page.Clear();
                 }
-                foreach (var line in block)
+
+                foreach (string line in block)
                 {
                     if (page.Count == 56)
                     {
                         pages.Add(page.ToArray());
                         page.Clear();
                     }
+
                     page.Add(line);
                 }
+
                 block.Clear();
                 if (separator && page.Count is > 0 and < 56 && page[^1] != string.Empty)
+                {
                     page.Add(string.Empty);
+                }
             }
-            foreach (var line in lines)
+
+            foreach (string line in lines)
             {
                 if (line.Length == 0)
+                {
                     FlushBlock(true);
+                }
                 else
+                {
                     block.Add(line);
+                }
             }
+
             FlushBlock(false);
             if (page.Count > 0)
+            {
                 pages.Add(page.ToArray());
+            }
+
             if (pages.Count == 0)
+            {
                 pages.Add([]);
+            }
+
             return pages;
         }
 
         private static IEnumerable<string> WrapLine(string input)
         {
-            foreach (var paragraph in (input ?? string.Empty).Replace("\r\n", "\n").Replace('\r', '\n').Replace("\t", "    ").Split('\n'))
+            foreach (string paragraph in (input ?? string.Empty).Replace("\r\n", "\n").Replace('\r', '\n').Replace("\t", "    ").Split('\n'))
             {
-                var remaining = paragraph;
+                string remaining = paragraph;
                 while (remaining.Length > 86)
                 {
-                    var split = remaining.LastIndexOf(' ', 86, 87);
+                    int split = remaining.LastIndexOf(' ', 86, 87);
                     if (split <= 0)
+                    {
                         split = 86;
+                    }
+
                     yield return remaining[..split];
                     remaining = remaining[split..].TrimStart();
                 }
+
                 yield return remaining;
             }
         }
@@ -414,17 +437,24 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
         private static string Escape(string input)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var bytes = Encoding.GetEncoding(1252).GetBytes(input);
+            byte[] bytes = Encoding.GetEncoding(1252).GetBytes(input);
             StringBuilder result = new StringBuilder();
-            foreach (var value in bytes)
+            foreach (byte value in bytes)
             {
                 if (value is (byte)'\\' or (byte)'(' or (byte)')')
+                {
                     result.Append('\\').Append((char)value);
+                }
                 else if (value is < 32 or > 126)
+                {
                     result.Append('\\').Append(Convert.ToString(value, 8).PadLeft(3, '0'));
+                }
                 else
+                {
                     result.Append((char)value);
+                }
             }
+
             return result.ToString();
         }
     }

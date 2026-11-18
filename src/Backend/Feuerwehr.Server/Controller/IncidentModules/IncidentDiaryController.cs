@@ -39,7 +39,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> CreateEntry(Guid incidentId, [FromBody] CreateDiaryEntryRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.CreateEntry(incidentId, request, cancellationToken));
         }
 
@@ -48,7 +51,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> UpdateEntry(Guid incidentId, Guid entryId, [FromBody] UpdateDiaryEntryRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.UpdateEntry(incidentId, entryId, request, cancellationToken));
         }
 
@@ -57,7 +63,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> CancelEntry(Guid incidentId, Guid entryId, [FromBody] CancelDiaryEntryRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.CancelEntry(incidentId, entryId, request, cancellationToken));
         }
 

@@ -41,4 +41,3 @@ namespace de.openelp.feuerwehr.App.Models
         public bool IsVisible { get => this._isVisible(); }
     }
 }
-

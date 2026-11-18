@@ -76,4 +76,3 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
     }
 }
-

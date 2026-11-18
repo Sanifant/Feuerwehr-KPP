@@ -21,7 +21,9 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
         List<EquipmentDto> due = items.Select(InventoryService.ToDto).Where(x => x.NextInspectionOn <= today.AddDays(14))
             .OrderBy(x => x.NextInspectionOn).ThenBy(x => x.Barcode).ToList();
         if (due.Count == 0)
+        {
             return;
+        }
 
         var recipients = await (from user in db.Users
                                 join membership in db.UserRoles on user.Id equals membership.UserId
@@ -34,15 +36,19 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
             var sent = await db.EquipmentReminderDeliveries.AsNoTracking().Where(x => x.RecipientId == recipient.Id).ToListAsync(ct);
             List<EquipmentDto> pending = due.Where(x => !sent.Any(s => s.EquipmentId == x.Id && s.DueOn == x.NextInspectionOn)).ToList();
             if (pending.Count == 0)
+            {
                 continue;
+            }
+
             StringBuilder body = new StringBuilder("Folgende Geräte sind innerhalb der nächsten zwei Wochen zur Prüfung fällig oder bereits überfällig:\n\n");
             foreach (var item in pending)
             {
-                var status = item.Status switch { EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", _ => "In Reparatur" };
+                string status = item.Status switch { EquipmentStatus.Ready => "Einsatzklar", EquipmentStatus.Defective => "Defekt", _ => "In Reparatur" };
                 body.AppendLine($"{item.Barcode} | {item.EquipmentTypeName} | {item.Manufacturer} | Seriennummer {item.SerialNumber}");
                 body.AppendLine($"Prüftermin: {item.NextInspectionOn.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} | Status: {status}");
                 body.AppendLine();
             }
+
             try
             {
                 await mail.SendAsync(recipient.Email!, $"Geräteprüfung: {pending.Count} Gerät(e) fällig", body.ToString());
@@ -52,6 +58,7 @@ public sealed class InventoryReminderService(FeuerwehrDbContext db, IMailService
                 logger.LogWarning(ex, "Inventarerinnerung konnte nicht zugestellt werden. Erneuter Versuch im nächsten Lauf.");
                 continue;
             }
+
             db.EquipmentReminderDeliveries.AddRange(pending.Select(x => new EquipmentReminderDelivery
             {
                 Id = Guid.NewGuid(),

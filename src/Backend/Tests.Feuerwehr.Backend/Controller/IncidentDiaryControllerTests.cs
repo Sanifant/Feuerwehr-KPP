@@ -94,7 +94,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         /// <param name="revision">The revision.</param>
         public static Incident CreateIncident(Guid incidentId, string name = "Warehouse Fire", IncidentStatus status = IncidentStatus.Active, long revision = 1)
         {
-            return new()
+            return new ()
             {
                 Id = incidentId,
                 Name = name,
@@ -112,7 +112,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         /// <param name="isActive">The is Active.</param>
         public static DiaryCategory CreateCategory(string code, string name, bool isActive = true)
         {
-            return new()
+            return new ()
             {
                 Id = Guid.NewGuid(),
                 Code = code,
@@ -133,7 +133,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         /// <param name="cancellationReason">The cancellation Reason.</param>
         public static DiaryEntry CreateEntry(Guid incidentId, long entryNumber = 1, int currentRevision = 1, bool isCanceled = false, string? cancellationReason = null)
         {
-            return new()
+            return new ()
             {
                 Id = Guid.NewGuid(),
                 IncidentId = incidentId,
@@ -165,7 +165,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             string text = "Initial entry",
             string? cancellationReason = null)
         {
-            return new()
+            return new ()
             {
                 Id = Guid.NewGuid(),
                 DiaryEntryId = entry.Id,

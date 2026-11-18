@@ -34,33 +34,51 @@ namespace de.openelp.feuerwehr.App.Android
         private SessionState? sessionState;
         private bool closing;
         private bool permissionPending;
-        private readonly BarcodeReaderGeneric decoder = new() { AutoRotate = true, Options = new() { TryHarder = true, PossibleFormats = [BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.QR_CODE] } };
+        private readonly BarcodeReaderGeneric decoder = new () { AutoRotate = true, Options = new () { TryHarder = true, PossibleFormats =[BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.QR_CODE] } };
 
         internal static void Begin(Activity owner, TaskCompletionSource<string?> completion)
         {
             if (pending is not null)
+            {
                 throw new InvalidOperationException("Ein Kamerascan läuft bereits.");
+            }
+
             pending = completion;
             try
             { owner.StartActivity(new Intent(owner, typeof(BarcodeScannerActivity))); }
-            catch { pending = null; throw; }
+            catch
+            {
+                pending = null;
+                throw;
+            }
         }
+
         internal static void Cancel(TaskCompletionSource<string?> completion)
         {
             if (!ReferenceEquals(pending, completion))
+            {
                 return;
+            }
+
             if (current is not null && current.TryGetTarget(out var activity))
                 activity.Finish();
             else
-            { pending = null; completion.TrySetResult(null); }
+            {
+                pending = null;
+                completion.TrySetResult(null);
+            }
         }
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             if (pending is null)
-            { this.Finish(); return; }
-            current = new(this);
+            {
+                this.Finish();
+                return;
+            }
+
+            current = new (this);
             LinearLayout layout = new LinearLayout(this) { Orientation = global::Android.Widget.Orientation.Vertical };
             TextView hint = new TextView(this) { Text = "Barcode KPP-001 bis KPP-999 in die Kamera halten.", TextSize = 18 };
             layout.AddView(hint);
@@ -81,10 +99,18 @@ namespace de.openelp.feuerwehr.App.Android
         {
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
             if (requestCode != 3050)
+            {
                 return;
+            }
+
             this.permissionPending = false;
             if (grantResults.FirstOrDefault() == Permission.Granted && grantResults.Length > 0)
-            { if (this.preview.IsAvailable) this.OpenCamera(); }
+            {
+                if (this.preview.IsAvailable)
+                {
+                    this.OpenCamera();
+                }
+            }
             else
                 this.Fail("Kamerazugriff wurde verweigert.");
         }
@@ -92,11 +118,14 @@ namespace de.openelp.feuerwehr.App.Android
         private void OpenCamera()
         {
             if (this.camera is not null || this.thread is not null || this.closing || ContextCompat.CheckSelfPermission(this, global::Android.Manifest.Permission.Camera) != Permission.Granted)
+            {
                 return;
+            }
+
             try
             {
                 CameraManager manager = (CameraManager)this.GetSystemService(CameraService)!;
-                var id = manager.GetCameraIdList().FirstOrDefault(id =>
+                string id = manager.GetCameraIdList().FirstOrDefault(id =>
                     (manager.GetCameraCharacteristics(id).Get(CameraCharacteristics.LensFacing) as Java.Lang.Integer)?.IntValue() == (int)LensFacing.Back)
                     ?? manager.GetCameraIdList().FirstOrDefault() ?? throw new InvalidOperationException("Keine Kamera verfügbar.");
                 this.thread = new HandlerThread("InventoryBarcode");
@@ -113,7 +142,11 @@ namespace de.openelp.feuerwehr.App.Android
         private void StartPreview(CameraDevice device)
         {
             if (this.closing)
-            { device.Close(); return; }
+            {
+                device.Close();
+                return;
+            }
+
             this.camera = device;
             this.preview.SurfaceTexture!.SetDefaultBufferSize(640, 480);
             this.previewSurface = new Surface(this.preview.SurfaceTexture);
@@ -134,41 +167,70 @@ namespace de.openelp.feuerwehr.App.Android
         public void OnImageAvailable(ImageReader? imageReader)
         {
             if (this.closing)
+            {
                 return;
+            }
+
             try
             {
                 using var image = imageReader?.AcquireLatestImage();
                 if (image is null || this.closing)
+                {
                     return;
+                }
+
                 var plane = image.GetPlanes()![0];
                 var buffer = plane.Buffer!;
-                var raw = new byte[buffer.Remaining()];
+                byte[] raw = new byte[buffer.Remaining()];
                 buffer.Get(raw);
-                var luminance = new byte[image.Width * image.Height];
-                for (var y = 0; y < image.Height; y++)
-                    for (var x = 0; x < image.Width; x++)
+                byte[] luminance = new byte[image.Width * image.Height];
+                for (int y = 0; y < image.Height; y++)
+                {
+                    for (int x = 0; x < image.Width; x++)
+                    {
                         luminance[y * image.Width + x] = raw[y * plane.RowStride + x * plane.PixelStride];
+                    }
+                }
+
                 PlanarYUVLuminanceSource source = new PlanarYUVLuminanceSource(luminance, image.Width, image.Height, 0, 0, image.Width, image.Height, false);
                 var result = this.decoder.Decode(source);
                 if (result is null)
+                {
                     return;
-                var code = result.Text.Trim().ToUpperInvariant();
-                if (code.Length != 7 || !code.StartsWith("KPP-", StringComparison.Ordinal) || !int.TryParse(code.AsSpan(4), out var number) || number is < 1 or > 999)
+                }
+
+                string code = result.Text.Trim().ToUpperInvariant();
+                if (code.Length != 7 || !code.StartsWith("KPP-", StringComparison.Ordinal) || !int.TryParse(code.AsSpan(4), out int number) || number is < 1 or > 999)
+                {
                     return;
-                this.RunOnUiThread(() => { pending?.TrySetResult(code); this.Finish(); });
+                }
+
+                this.RunOnUiThread(() =>
+                {
+                    pending?.TrySetResult(code);
+                    this.Finish();
+                });
             }
             catch (Exception) { /* Einzelne unlesbare Frames überspringen. */ }
         }
 
         private void Fail(string message)
         {
-            this.RunOnUiThread(() => { pending?.TrySetException(new InvalidOperationException(message)); this.Finish(); });
+            this.RunOnUiThread(() =>
+            {
+                pending?.TrySetException(new InvalidOperationException(message));
+                this.Finish();
+            });
         }
 
         protected override void OnPause()
         {
             if (this.permissionPending)
-            { base.OnPause(); return; }
+            {
+                base.OnPause();
+                return;
+            }
+
             this.closing = true;
             this.session?.Close();
             this.camera?.Close();
@@ -186,15 +248,21 @@ namespace de.openelp.feuerwehr.App.Android
             base.OnPause();
             // Auch bei App-Wechsel wird die Kamera freigegeben und der Scan beendet.
             if (!this.IsFinishing)
+            {
                 this.Finish();
+            }
         }
+
         protected override void OnResume()
         {
             base.OnResume();
             this.closing = false;
             if (this.preview is not null && this.preview.IsAvailable && !this.permissionPending)
+            {
                 this.OpenCamera();
+            }
         }
+
         protected override void OnDestroy()
         {
             pending?.TrySetResult(null);
@@ -202,6 +270,7 @@ namespace de.openelp.feuerwehr.App.Android
             current = null;
             base.OnDestroy();
         }
+
         public void OnSurfaceTextureAvailable(SurfaceTexture surface, int width, int height)
         {
             this.OpenCamera();
@@ -222,15 +291,29 @@ namespace de.openelp.feuerwehr.App.Android
                 owner.RunOnUiThread(() => owner.StartPreview(camera));
             }
 
-            public override void OnDisconnected(CameraDevice camera) { camera.Close(); owner.Fail("Kamera getrennt."); }
-            public override void OnError(CameraDevice camera, CameraError error) { camera.Close(); owner.Fail("Kamerafehler."); }
+            public override void OnDisconnected(CameraDevice camera)
+            {
+                camera.Close();
+                owner.Fail("Kamera getrennt.");
+            }
+
+            public override void OnError(CameraDevice camera, CameraError error)
+            {
+                camera.Close();
+                owner.Fail("Kamerafehler.");
+            }
         }
+
         private sealed class SessionState(BarcodeScannerActivity owner) : CameraCaptureSession.StateCallback
         {
             public override void OnConfigured(CameraCaptureSession session)
             {
                 if (owner.closing)
-                { session.Close(); return; }
+                {
+                    session.Close();
+                    return;
+                }
+
                 try
                 {
                     owner.session = session;
@@ -242,6 +325,7 @@ namespace de.openelp.feuerwehr.App.Android
                 }
                 catch (Exception) { owner.Fail("Kameravorschau konnte nicht gestartet werden."); }
             }
+
             public override void OnConfigureFailed(CameraCaptureSession session)
             {
                 owner.Fail("Kameravorschau nicht verfügbar.");

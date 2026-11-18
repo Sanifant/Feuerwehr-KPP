@@ -47,10 +47,13 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
         {
             value ??= string.Empty;
             // Quoting alone does not prevent spreadsheet applications from evaluating formulas.
-            var trimmed = value.TrimStart();
+            string trimmed = value.TrimStart();
             if (trimmed.Length > 0 && "=+-@".Contains(trimmed[0])
                 || value.Length > 0 && "\t\r\n".Contains(value[0]))
+            {
                 value = "'" + value;
+            }
+
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
@@ -58,7 +61,9 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
         {
             var (hydrants, errors) = HydrantCsvImport.Read(csv, cancellationToken);
             if (errors.Count > 0)
+            {
                 return ServiceResult.BadRequest(new HydrantImportResponse(0, errors));
+            }
 
             List<HydrantEntity> entities = hydrants.Select(dto =>
             {
@@ -69,7 +74,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
             context.Hydrants.AddRange(entities);
             // One SaveChanges transaction persists the complete file, never individual rows.
             await context.SaveChangesAsync(cancellationToken);
-            return ServiceResult.Ok(new HydrantImportResponse(entities.Count, []));
+            return ServiceResult.Ok(new HydrantImportResponse(entities.Count,[]));
         }
 
         /// <summary>
@@ -126,7 +131,10 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
         {
             var entity = context.Hydrants.Find(id);
             if (entity is null)
+            {
                 return ServiceResult.NotFound();
+            }
+
             context.Hydrants.Remove(entity);
             context.SaveChanges();
             return ServiceResult.NoContent();
@@ -153,7 +161,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
 
         private static HydrantDto ToDto(HydrantEntity entity)
         {
-            return new()
+            return new ()
             {
                 Id = entity.Id,
                 Address = new AddressDto

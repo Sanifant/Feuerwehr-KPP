@@ -20,7 +20,7 @@ public sealed class AuthServiceTests
         RecordingAuthHandler handler = new RecordingAuthHandler();
         handler.EnqueueJsonResponse("/api/Auth/login", HttpStatusCode.OK, new LoginResponse
         {
-            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User", ["Admin"]),
+            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User",["Admin"]),
             RefreshToken = "refresh-token",
         });
 
@@ -43,7 +43,7 @@ public sealed class AuthServiceTests
         RecordingAuthHandler handler = new RecordingAuthHandler();
         handler.EnqueueJsonResponse("/api/Auth/login", HttpStatusCode.OK, new LoginResponse
         {
-            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User", ["Admin"]),
+            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User",["Admin"]),
             RefreshToken = "refresh-token",
         });
 
@@ -79,7 +79,7 @@ public sealed class AuthServiceTests
         RecordingAuthHandler handler = new RecordingAuthHandler();
         handler.EnqueueJsonResponse("/api/Auth/login", HttpStatusCode.OK, new LoginResponse
         {
-            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User", ["Admin"]),
+            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User",["Admin"]),
             RefreshToken = "refresh-token",
         });
         handler.EnqueueJsonResponse("/api/Auth/logout", HttpStatusCode.OK, new { });
@@ -115,7 +115,7 @@ public sealed class AuthServiceTests
             ["refresh_token"] = "old-refresh",
         });
         RecordingAuthHandler handler = new RecordingAuthHandler();
-        string newAccessToken = CreateToken(DateTime.UtcNow.AddMinutes(40), "new@example.com", "New User", ["InventoryViewer"]);
+        string newAccessToken = CreateToken(DateTime.UtcNow.AddMinutes(40), "new@example.com", "New User",["InventoryViewer"]);
         handler.EnqueueJsonResponse("/api/Auth/refresh", HttpStatusCode.OK, new LoginResponse
         {
             AccessToken = newAccessToken,
@@ -136,8 +136,8 @@ public sealed class AuthServiceTests
     [Fact]
     public async Task GetAccessTokenAsync_RefreshesExpiredToken()
     {
-        string expiredToken = CreateToken(DateTime.UtcNow.AddMinutes(-5), "old@example.com", "Old User", ["Admin"]);
-        string refreshedToken = CreateToken(DateTime.UtcNow.AddMinutes(50), "fresh@example.com", "Fresh User", ["Admin", "EquipmentOfficer"]);
+        string expiredToken = CreateToken(DateTime.UtcNow.AddMinutes(-5), "old@example.com", "Old User",["Admin"]);
+        string refreshedToken = CreateToken(DateTime.UtcNow.AddMinutes(50), "fresh@example.com", "Fresh User",["Admin", "EquipmentOfficer"]);
         InMemorySecureStorage storage = new InMemorySecureStorage(new Dictionary<string, string?>
         {
             ["access_token"] = expiredToken,
@@ -162,7 +162,7 @@ public sealed class AuthServiceTests
     [Fact]
     public async Task Constructor_LoadsStoredTokensAndExposesClaims()
     {
-        string validToken = CreateToken(DateTime.UtcNow.AddMinutes(25), "stored@example.com", "Stored User", ["Admin", "InventoryViewer"]);
+        string validToken = CreateToken(DateTime.UtcNow.AddMinutes(25), "stored@example.com", "Stored User",["Admin", "InventoryViewer"]);
         InMemorySecureStorage storage = new InMemorySecureStorage(new Dictionary<string, string?>
         {
             ["access_token"] = validToken,
@@ -185,7 +185,7 @@ public sealed class AuthServiceTests
         RecordingAuthHandler handler = new RecordingAuthHandler();
         handler.EnqueueJsonResponse("/api/Auth/login", HttpStatusCode.OK, new LoginResponse
         {
-            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User", ["Admin"]),
+            AccessToken = CreateToken(DateTime.UtcNow.AddMinutes(30), "tester@example.com", "Test User",["Admin"]),
             RefreshToken = "refresh-token",
         });
         handler.EnqueueJsonResponse("/api/Auth/logout", HttpStatusCode.OK, new { });
@@ -222,15 +222,15 @@ public sealed class AuthServiceTests
 
     private sealed class RecordingAuthHandler : HttpMessageHandler
     {
-        private readonly Dictionary<string, Queue<HttpResponseMessage>> _responses = [];
+        private readonly Dictionary<string, Queue<HttpResponseMessage>> _responses =[];
 
-        public List<HttpRequestMessage> Requests { get; } = [];
+        public List<HttpRequestMessage> Requests { get; } =[];
 
         public void EnqueueJsonResponse<T>(string path, HttpStatusCode statusCode, T payload)
         {
             if (!this._responses.TryGetValue(path, out Queue<HttpResponseMessage>? queue))
             {
-                queue = [];
+                queue =[];
                 this._responses[path] = queue;
             }
 

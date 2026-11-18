@@ -26,10 +26,13 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         booking.EnsureSuccessStatusCode();
         var initialStatusChange = (await admin.GetFromJsonAsync<VehicleDto[]>("/api/vehicles"))!.Single(x => x.Id == vehicle.Id).StatusChangedAtUtc;
         Assert.NotNull(initialStatusChange);
-        var types = await admin.GetByteArrayAsync("/api/vehicles/types/export");
+        byte[] types = await admin.GetByteArrayAsync("/api/vehicles/types/export");
         using (var form = Upload(types, "fahrzeugtypen.json"))
+        {
             (await admin.PostAsync("/api/vehicles/types/import", form)).EnsureSuccessStatusCode();
-        var csv = await admin.GetStringAsync("/api/vehicles/export");
+        }
+
+        string csv = await admin.GetStringAsync("/api/vehicles/export");
         Assert.Contains("equipmentOfficerEmail", csv);
         Assert.Contains($"{Roles.EquipmentOfficer}@integration.test", csv);
         Assert.DoesNotContain(vehicle.EquipmentOfficerId, csv);
@@ -39,6 +42,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
             Assert.True(imported.IsSuccessStatusCode, await imported.Content.ReadAsStringAsync());
             Assert.True((await imported.Content.ReadFromJsonAsync<VehicleImportResponse>())!.UpdatedCount > 0);
         }
+
         var stored = (await admin.GetFromJsonAsync<VehicleDto[]>("/api/vehicles?includeInactive=true"))!.Single(x => x.Id == vehicle.Id);
         Assert.Equal(vehicle.EquipmentOfficerId, stored.EquipmentOfficerId);
         Assert.Equal(initialStatusChange, stored.StatusChangedAtUtc);
@@ -73,7 +77,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         using var admin = await fixture.Client(Roles.Admin);
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var vehicle = await this.CreateVehicle(officer);
-        var statusName = $"Außer Dienst {Guid.NewGuid():N}";
+        string statusName = $"Außer Dienst {Guid.NewGuid():N}";
         Assert.Equal(HttpStatusCode.Forbidden, (await officer.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName })).StatusCode);
         var response = await admin.PostAsJsonAsync("/api/vehicles/statuses", new SaveVehicleStatusRequest { Name = statusName, AllowsBooking = false });
         response.EnsureSuccessStatusCode();
@@ -86,6 +90,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
             created.EnsureSuccessStatusCode();
             mtw = (await created.Content.ReadFromJsonAsync<VehicleTypeDto>())!;
         }
+
         var changed = await officer.PutAsJsonAsync($"/api/vehicles/{vehicle.Id}", new SaveVehicleRequest
         {
             RadioCallSign = vehicle.RadioCallSign,
@@ -120,7 +125,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
     {
         using var admin = await fixture.Client(Roles.Admin);
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
-        var name = $"MTW {Guid.NewGuid():N}";
+        string name = $"MTW {Guid.NewGuid():N}";
         Assert.Equal(HttpStatusCode.Forbidden, (await officer.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = name })).StatusCode);
         var response = await admin.PostAsJsonAsync("/api/vehicles/types", new SaveVehicleTypeRequest { Name = name });
         response.EnsureSuccessStatusCode();
@@ -276,7 +281,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         Assert.Single(results, x => x.StatusCode == HttpStatusCode.Conflict);
         using var scope = fixture.Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<FeuerwehrDbContext>();
-        var active = (await db.Vehicles.FindAsync(vehicle.Id))!.IsActive;
+        bool active = (await db.Vehicles.FindAsync(vehicle.Id))!.IsActive;
         Assert.Equal(active ? 3 : 0, await db.VehicleBookingDays.CountAsync(x => x.VehicleId == vehicle.Id));
     }
 
@@ -293,6 +298,7 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
             officer.FireDepartmentId = department.Id;
             await db.SaveChangesAsync();
         }
+
         var response = await client.PostAsJsonAsync("/api/vehicles", new SaveVehicleRequest
         { FireDepartmentId = officer.FireDepartmentId.Value, EquipmentOfficerId = officer.Id, RadioCallSign = $"Florian {Guid.NewGuid():N}" });
         Assert.True(response.IsSuccessStatusCode, $"{response.StatusCode}: {await response.Content.ReadAsStringAsync()}");

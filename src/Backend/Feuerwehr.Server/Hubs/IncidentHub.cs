@@ -46,13 +46,13 @@ namespace de.openelp.feuerwehr.Server.Hubs
 
         private bool CanViewMap()
         {
-            HashSet<string> roles = this.Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            HashSet<string> roles = this.Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ??[];
             return roles.Contains("SituationMapViewer") || roles.Contains("SituationMapEditor");
         }
 
         private bool CanViewDiary()
         {
-            HashSet<string> roles = this.Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
+            HashSet<string> roles = this.Context.User?.FindAll(ClaimTypes.Role).Select(x => x.Value).ToHashSet(StringComparer.OrdinalIgnoreCase) ??[];
             return roles.Contains("IncidentDiaryViewer") || roles.Contains("IncidentDiaryEditor");
         }
     }

@@ -42,7 +42,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Integration.Infrastructure
                 SeedAdminEmail,
                 SeedAdminPassword);
 
-            this.Client = this._factory.CreateClient(new()
+            this.Client = this._factory.CreateClient(new ()
             {
                 AllowAutoRedirect = false,
             });

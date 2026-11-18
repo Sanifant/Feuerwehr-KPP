@@ -59,6 +59,7 @@ namespace de.openelp.feuerwehr.App.Services
                 string? label = element.ElementType == MapElementType.Symbol
                     ? element.RadioCallName ?? element.Label : element.Label;
                 if (!string.IsNullOrWhiteSpace(label))
+                {
                     feature.Styles.Add(new LabelStyle
                     {
                         Text = label,
@@ -66,8 +67,11 @@ namespace de.openelp.feuerwehr.App.Services
                         Halo = new Pen(Color.White, 2),
                         Offset = new Offset(0, -32)
                     });
+                }
+
                 features.Add(feature);
             }
+
             return new MemoryLayer { Name = "Lage", Style = null, Features = features };
         }
 

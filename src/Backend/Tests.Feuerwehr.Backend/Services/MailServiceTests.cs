@@ -11,7 +11,7 @@ public class MailServiceTests
 {
     private static SmtpSettings Settings(bool authenticate = true)
     {
-        return new()
+        return new ()
         {
             Host = authenticate ? "smtp.strato.de" : "mailpit",
             Port = authenticate ? 465 : 1025,
@@ -41,8 +41,11 @@ public class MailServiceTests
         client.InSequence(sequence).Setup(c => c.ConnectAsync(settings.Host, settings.Port, settings.Security, default))
             .Returns(Task.CompletedTask);
         if (authenticate)
+        {
             client.InSequence(sequence).Setup(c => c.AuthenticateAsync(settings.Username!, settings.Password!, default))
                 .Returns(Task.CompletedTask);
+        }
+
         MimeMessage? sent = null;
         client.InSequence(sequence).Setup(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null))
             .Callback<MimeMessage, CancellationToken, MailKit.ITransferProgress?>((message, _, _) => sent = message)
@@ -62,7 +65,9 @@ public class MailServiceTests
         Assert.Null(sent.HtmlBody);
         client.VerifyAll();
         if (!authenticate)
+        {
             client.Verify(c => c.AuthenticateAsync(It.IsAny<string>(), It.IsAny<string>(), default), Times.Never);
+        }
     }
 
     [Theory]
@@ -93,7 +98,9 @@ public class MailServiceTests
         Assert.Same(failure, exception);
         client.Verify(c => c.DisconnectAsync(true, default), failingStep == "connect" ? Times.Never() : Times.Once());
         if (failingStep != "send")
+        {
             client.Verify(c => c.SendAsync(It.IsAny<MimeMessage>(), default, null), Times.Never);
+        }
     }
 
     [Fact]

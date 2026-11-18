@@ -12,4 +12,3 @@ namespace de.openelp.feuerwehr.Common.Models.Auth
         public string Password { get; set; } = string.Empty;
     }
 }
-

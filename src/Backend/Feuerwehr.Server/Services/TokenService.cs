@@ -89,10 +89,13 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="principal">The principal.</param>
         public async Task<bool> IsAccessTokenValidAsync(ClaimsPrincipal principal)
         {
-            var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-            var stamp = principal.FindFirstValue(SecurityStampClaim);
+            string? userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? stamp = principal.FindFirstValue(SecurityStampClaim);
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(stamp))
+            {
                 return false;
+            }
+
             var user = await this._userManager.FindByIdAsync(userId);
             return user is { IsActive: true, PasswordResetRequired: false } &&
                 string.Equals(stamp, await this._userManager.GetSecurityStampAsync(user), StringComparison.Ordinal);
@@ -107,13 +110,17 @@ namespace de.openelp.feuerwehr.Server.Services
         {
             var user = await this._userManager.FindByIdAsync(userId);
             if (user == null)
+            {
                 return false;
+            }
 
             // Get stored refresh token from Identity's token store
             string? storedToken = await this._userManager.GetAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
 
             if (string.IsNullOrEmpty(storedToken))
+            {
                 return false;
+            }
 
             // Hash the provided token and compare with stored hash
             string hashedProvidedToken = this.HashToken(refreshToken);
@@ -129,7 +136,9 @@ namespace de.openelp.feuerwehr.Server.Services
         {
             var user = await this._userManager.FindByIdAsync(userId);
             if (user == null)
+            {
                 throw new InvalidOperationException("User not found");
+            }
 
             // Hash the refresh token before storing
             string hashedToken = this.HashToken(refreshToken);
@@ -149,7 +158,9 @@ namespace de.openelp.feuerwehr.Server.Services
         {
             var user = await this._userManager.FindByIdAsync(userId);
             if (user == null)
+            {
                 return;
+            }
 
             await this._userManager.RemoveAuthenticationTokenAsync(user, "FeuerwehrApp", "RefreshToken");
         }

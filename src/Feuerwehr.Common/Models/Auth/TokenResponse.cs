@@ -7,4 +7,3 @@ namespace de.openelp.feuerwehr.Common.Models.Auth
         public DateTime ExpiresAt { get; set; }
     }
 }
-

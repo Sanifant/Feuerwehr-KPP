@@ -29,7 +29,9 @@ namespace de.openelp.feuerwehr.App.Pages
             try
             {
                 if (this.DataContext is MapViewModel viewModel)
+                {
                     await viewModel.InitializeLocationAsync(cancellationToken);
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -47,6 +49,7 @@ namespace de.openelp.feuerwehr.App.Pages
                 viewModel.CenterOnLocationCommand.Cancel();
                 viewModel.SettingsCommand.Cancel();
             }
+
             base.OnUnloaded(e);
         }
     }

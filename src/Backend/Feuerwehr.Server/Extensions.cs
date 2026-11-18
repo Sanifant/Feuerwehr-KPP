@@ -98,7 +98,7 @@ namespace de.openelp.feuerwehr.Server
         {
             builder.Services.AddHealthChecks()
                 // Add a default liveness check to ensure app is responsive
-                .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+                .AddCheck("self", () => HealthCheckResult.Healthy(),["live"]);
 
             return builder;
         }

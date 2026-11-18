@@ -36,7 +36,9 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
     public async Task<ServiceResult> GetArchive(int page = 1, int pageSize = 25, CancellationToken cancellationToken = default)
     {
         if (!userContext.IsAdmin)
+        {
             return ServiceResult.Forbid();
+        }
 
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
@@ -219,7 +221,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     private static IncidentSummaryDto ToSummary(Incident incident)
     {
-        return new(
+        return new (
         incident.Id,
         incident.Name,
         incident.IncidentNumber,
@@ -236,7 +238,7 @@ public sealed class IncidentService(FeuerwehrDbContext dbContext,
 
     private static EditorLeaseDto ToLeaseDto(EditorLease lease)
     {
-        return new(
+        return new (
         lease.IncidentId,
         lease.UserId,
         lease.UserDisplayName,

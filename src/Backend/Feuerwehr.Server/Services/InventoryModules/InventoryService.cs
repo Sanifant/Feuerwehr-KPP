@@ -43,13 +43,13 @@ namespace de.openelp.feuerwehr.Server.Services.InventoryModules
 
         public async Task<ServiceResult> CreateCategory(CreateInventoryCategoryRequest request, CancellationToken ct)
         {
-            var name = request.Name.Trim();
+            string name = request.Name.Trim();
             if (name.Length is 0 or > 100)
             {
                 return Invalid("Ein Kategoriename ist erforderlich (maximal 100 Zeichen).");
             }
 
-            var normalized = name.ToUpperInvariant();
+            string normalized = name.ToUpperInvariant();
             if (await db.InventoryCategories.AnyAsync(x => x.NormalizedName == normalized, ct))
             {
                 return Conflict("Diese Kategorie existiert bereits.");
@@ -173,7 +173,7 @@ namespace de.openelp.feuerwehr.Server.Services.InventoryModules
                 return ServiceResult.NotFound();
             }
 
-            var barcode = $"KPP-{item.BarcodeNumber:D3}";
+            string barcode = $"KPP-{item.BarcodeNumber:D3}";
             BarcodeWriterSvg writer = new ZXing.BarcodeWriterSvg
             {
                 Format = ZXing.BarcodeFormat.CODE_128,
@@ -211,6 +211,7 @@ namespace de.openelp.feuerwehr.Server.Services.InventoryModules
             {
                 return Conflict("Deaktivierte Geräte können nicht bearbeitet werden.");
             }
+
             // Statusänderungen bestehender Geräte werden ausschließlich als Prüfung protokolliert.
             if (id.HasValue && request.Status != item.Status)
             {
@@ -267,7 +268,7 @@ namespace de.openelp.feuerwehr.Server.Services.InventoryModules
                 return Invalid("Prüfauftrag und Status sind erforderlich; der Kommentar darf maximal 4000 Zeichen enthalten.");
             }
 
-            var comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
+            string? comment = string.IsNullOrWhiteSpace(request.Comment) ? null : request.Comment.Trim();
             var previous = await db.EquipmentInspections.AsNoTracking().FirstOrDefaultAsync(x => x.CommandId == request.CommandId, ct);
             if (previous is not null)
             {
@@ -279,6 +280,7 @@ namespace de.openelp.feuerwehr.Server.Services.InventoryModules
 
                 return await this.Get(id, ct);
             }
+
             var item = await this.EquipmentQuery.FirstOrDefaultAsync(x => x.Id == id, ct);
             if (item is null)
             {
@@ -328,7 +330,7 @@ namespace de.openelp.feuerwehr.Server.Services.InventoryModules
 
         internal static EquipmentDto ToDto(Equipment item)
         {
-            return new(item.Id, $"KPP-{item.BarcodeNumber:D3}", item.EquipmentTypeId,
+            return new (item.Id, $"KPP-{item.BarcodeNumber:D3}", item.EquipmentTypeId,
             item.EquipmentType.Name, item.EquipmentType.Category.Name, item.SerialNumber, item.Manufacturer, item.Status, item.IsActive,
             item.CreatedOn, item.LastInspectedOn, (item.LastInspectedOn ?? item.CreatedOn).AddMonths(item.EquipmentType.InspectionIntervalMonths),
             item.EquipmentType.InspectionIntervalMonths, item.EquipmentType.InspectionInstructions, item.Version);

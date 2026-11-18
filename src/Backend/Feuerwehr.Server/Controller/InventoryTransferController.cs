@@ -74,9 +74,15 @@ public sealed class InventoryTransferController(IInventoryTransferService servic
     private async Task<IActionResult> Import(InventoryTransferKind kind, IFormFile? file, CancellationToken ct)
     {
         if (file is null || file.Length == 0)
-            return this.BadRequest(new InventoryImportResponse(0, 0, [new(null, "Bitte eine nicht leere Importdatei auswählen.")]));
+        {
+            return this.BadRequest(new InventoryImportResponse(0, 0,[new (null, "Bitte eine nicht leere Importdatei auswählen.")]));
+        }
+
         if (file.Length > MaximumImportBytes)
-            return this.BadRequest(new InventoryImportResponse(0, 0, [new(null, "Die Importdatei darf höchstens 5 MB groß sein.")]));
+        {
+            return this.BadRequest(new InventoryImportResponse(0, 0,[new (null, "Die Importdatei darf höchstens 5 MB groß sein.")]));
+        }
+
         await using var stream = file.OpenReadStream();
         return this.ToActionResult(await service.Import(kind, stream, ct));
     }

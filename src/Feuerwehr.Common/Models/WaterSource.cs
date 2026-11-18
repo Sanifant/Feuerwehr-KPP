@@ -8,4 +8,3 @@ namespace de.openelp.feuerwehr.Common.Models
         Cistern = 4                      // Zisterne
     }
 }
-

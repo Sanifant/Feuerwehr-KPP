@@ -1,7 +1,7 @@
+using de.openelp.feuerwehr.Common.Models.Settings;
+
 namespace de.openelp.feuerwehr.Server.Models.Settings
 {
-    using de.openelp.feuerwehr.Common.Models.Settings;
-
     /// <summary>A global configuration parameter with last-modification metadata.</summary>
     public sealed class Setting
     {

@@ -97,7 +97,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 var incident = await service.GetActiveIncidentAsync(cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!this.CanView)
+                {
                     return;
+                }
+
                 if (incident == null)
                 {
                     this.Clear();
@@ -108,7 +111,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 var state = await service.GetStateAsync(incident.Id, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!this.CanView)
+                {
                     return;
+                }
+
                 var elements = SituationMapLayers.CreateElements(state.Elements);
                 var hydrants = SituationMapLayers.CreateHydrants(state.Hydrants);
                 var currentMap = this.Map;
@@ -128,6 +134,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                     currentMap.Layers.Remove(layer);
                     layer.Dispose();
                 }
+
                 currentMap.Layers.Add(hydrants);
                 currentMap.Layers.Add(elements);
                 currentMap.Refresh();
@@ -159,6 +166,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 this.CanZoomIn = false;
                 return;
             }
+
             this.zoomFactor--;
             this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }

@@ -14,7 +14,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
     {
         private static FeuerwehrDbContext CreateDatabase()
         {
-            return new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+            return new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         }
 
@@ -66,8 +66,11 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
             Assert.Equal(11, first.Length);
             Assert.Equal(string.Empty, first[0]);
             Assert.Equal("'=1+1", first[10]);
-            Assert.Equal(new[] { "Dorfstraße; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
-                "80", "1", "1", "1", "Erste Zeile\r\nZweite Zeile; \"frei\"" }, parser.ReadFields());
+            Assert.Equal(new[]
+            {
+                "Dorfstraße; Süd", "12a", "02361", "Lübeck", "53.929134", "-10.638436",
+                "80", "1", "1", "1", "Erste Zeile\r\nZweite Zeile; \"frei\""
+            }, parser.ReadFields());
             Assert.True(parser.EndOfData);
             Assert.Equal(2, await db.Hydrants.CountAsync());
         }

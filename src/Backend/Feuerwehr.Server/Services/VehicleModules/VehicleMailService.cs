@@ -10,20 +10,26 @@ public sealed class VehicleMailComposer(IConfiguration configuration, TimeProvid
 {
     public VehicleMailMessage Compose(VehicleReservation reservation, string recipient, bool request)
     {
-        var title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestätigt";
-        var dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschließlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
-        var lines = $"Fahrzeug: {reservation.RadioCallSign}\nFeuerwehr: {reservation.FireDepartmentName}\n" +
+        string title = request ? "Neue MTW-Reservierungsanfrage" : "MTW-Buchung bestätigt";
+        string dates = $"{reservation.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)} bis einschließlich {reservation.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)}";
+        string lines = $"Fahrzeug: {reservation.RadioCallSign}\nFeuerwehr: {reservation.FireDepartmentName}\n" +
             $"Anfragende Person: {reservation.RequesterName}\nZeitraum: {dates}\nBuchungsnummer: {reservation.Id}\n";
         if (reservation.Comment is not null)
+        {
             lines += $"\nKommentar / Buchungsgrund:\n{reservation.Comment}\n";
-        var instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Übersicht prüfen und bestätigen oder ablehnen." :
+        }
+
+        string instruction = request ? "Die Anfrage ist unverbindlich. Bitte in der MTW-Übersicht prüfen und bestätigen oder ablehnen." :
             "Die Buchung ist verbindlich bestätigt.";
-        var link = string.Empty;
+        string link = string.Empty;
         if (Uri.TryCreate(configuration["Frontend:BaseUrl"], UriKind.Absolute, out var baseUri) &&
             (baseUri.Scheme == Uri.UriSchemeHttps || baseUri.Scheme == Uri.UriSchemeHttp) && string.IsNullOrEmpty(baseUri.Query) && string.IsNullOrEmpty(baseUri.Fragment))
+        {
             link = new Uri(new Uri(baseUri.AbsoluteUri.TrimEnd('/') + "/"), "vehicles").AbsoluteUri;
+        }
+
         static string Encode(string text) => WebUtility.HtmlEncode(text);
-        var html = "<!doctype html><html lang=\"de\"><body style=\"margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#1f2937\">" +
+        string html = "<!doctype html><html lang=\"de\"><body style=\"margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#1f2937\">" +
             "<table role=\"presentation\" style=\"width:100%;max-width:640px;margin:24px auto;background:#fff;border:1px solid #cbd5e1\"><tr><td style=\"padding:24px;border-top:6px solid #b91c1c\">" +
             "<img src=\"cid:feuerwehr-logo\" width=\"80\" alt=\"Feuerwehr\"><h1 style=\"font-size:24px;color:#b91c1c\">" + Encode(title) + "</h1>" +
             "<p>" + Encode(instruction) + "</p><p style=\"line-height:1.7\">" + Encode(lines).Replace("\n", "<br>") + "</p>" +
@@ -60,11 +66,13 @@ public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailServic
             var leaseUntil = clock.GetUtcNow().UtcDateTime.AddMinutes(5);
             if (db.Database.IsRelational())
             {
-                var claimed = await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.SentAtUtc == null && x.NextAttemptAtUtc <= now &&
+                int claimed = await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.SentAtUtc == null && x.NextAttemptAtUtc <= now &&
                     (x.LeaseUntilUtc == null || x.LeaseUntilUtc < now)).ExecuteUpdateAsync(update => update
                         .SetProperty(x => x.LeaseUntilUtc, leaseUntil).SetProperty(x => x.Attempts, x => x.Attempts + 1), ct);
                 if (claimed == 0)
+                {
                     continue;
+                }
             }
             else
             {
@@ -73,6 +81,7 @@ public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailServic
                 db.VehicleMailMessages.Update(message);
                 await db.SaveChangesAsync(ct);
             }
+
             DateTime? sent = null;
             string? error = null;
             try
@@ -86,11 +95,14 @@ public sealed class VehicleMailDispatcher(FeuerwehrDbContext db, IHtmlMailServic
                 error = exception.GetType().Name;
                 logger.LogWarning("MTW-E-Mail {MessageId} konnte nicht versandt werden ({Error}); erneuter Versuch folgt.", message.Id, error);
             }
+
             var next = clock.GetUtcNow().UtcDateTime.AddMinutes(Math.Min(60, Math.Pow(2, Math.Min(message.Attempts + 1, 6))));
             if (db.Database.IsRelational())
+            {
                 await db.VehicleMailMessages.Where(x => x.Id == message.Id && x.LeaseUntilUtc == leaseUntil).ExecuteUpdateAsync(update => update
                     .SetProperty(x => x.SentAtUtc, sent).SetProperty(x => x.LastError, error)
                     .SetProperty(x => x.NextAttemptAtUtc, next).SetProperty(x => x.LeaseUntilUtc, (DateTime?)null), ct);
+            }
             else
             {
                 message.SentAtUtc = sent;

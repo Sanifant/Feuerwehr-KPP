@@ -18,7 +18,10 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.Login(request));
         }
 
@@ -30,7 +33,10 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<ActionResult<TokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.RefreshToken(request, this.Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty)));
         }
 
@@ -39,7 +45,10 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<IActionResult> ResetPassword([FromBody] ResetRequest request)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.ResetPassword(request));
         }
 
@@ -48,7 +57,10 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.ChangePassword(request,
                 this.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value));
         }

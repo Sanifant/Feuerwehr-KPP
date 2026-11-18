@@ -14,7 +14,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
 {
     public sealed class IncidentControllerTests : IDisposable
     {
-        private readonly FeuerwehrDbContext _db = new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        private readonly FeuerwehrDbContext _db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         private readonly IncidentController _controller;
         private readonly IncidentService _service;
@@ -31,7 +31,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
 
         private static CreateIncidentRequest Request()
         {
-            return new()
+            return new ()
             {
                 Name = "Wohnungsbrand",
                 Keyword = "B3",

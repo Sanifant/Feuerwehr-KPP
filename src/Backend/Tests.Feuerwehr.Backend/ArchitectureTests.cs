@@ -52,7 +52,7 @@ namespace de.openelp.feuerwehr.Tests.Backend
             JsonElement response = JsonSerializer.SerializeToElement(new DiaryEntryUpdatedResponse(Guid.NewGuid(), 2, 8, DateTime.UtcNow), options);
             Assert.Equal(2, response.GetProperty("currentRevision").GetInt32());
             Assert.Equal(8, response.GetProperty("incidentRevision").GetInt64());
-            JsonElement error = JsonSerializer.SerializeToElement(new IdentityErrorResponse("Failed", [new IdentityErrorDto("code", "description")]), options);
+            JsonElement error = JsonSerializer.SerializeToElement(new IdentityErrorResponse("Failed",[new IdentityErrorDto("code", "description")]), options);
             Assert.Equal("Failed", error.GetProperty("message").GetString());
             Assert.Equal("code", error.GetProperty("errors")[0].GetProperty("code").GetString());
         }

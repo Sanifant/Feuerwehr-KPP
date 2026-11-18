@@ -19,7 +19,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
     public sealed class VehicleTransferService(FeuerwehrDbContext db, IHttpContextAccessor http, ILookupNormalizer normalizer,
         TimeProvider clock) : IVehicleTransferService
     {
-        private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+        private static readonly JsonSerializerOptions Json = new (JsonSerializerDefaults.Web) { WriteIndented = true };
         private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
         private string UserId => this.Principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         private bool IsAdmin => this.Principal.IsInRole(Roles.Admin);
@@ -46,57 +46,85 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
         public async Task<ServiceResult> Export(VehicleTransferKind kind, CancellationToken ct)
         {
             if (!this.Allowed(kind))
+            {
                 return ServiceResult.Forbid();
+            }
+
             if (kind == VehicleTransferKind.Types)
             {
                 var types = await db.Set<VehicleType>().AsNoTracking().OrderBy(x => x.Name)
                     .Select(x => new VehicleTypeImportDto { Id = x.Id, Name = x.Name, IsActive = x.IsActive }).ToListAsync(ct);
                 return ServiceResult.File(JsonSerializer.SerializeToUtf8Bytes(types, Json), "application/json", "fahrzeugtypen.json");
             }
+
             var query = db.Vehicles.AsNoTracking().Include(x => x.FireDepartment).Include(x => x.EquipmentOfficer)
                 .Include(x => x.VehicleType).Include(x => x.VehicleStatus).AsQueryable();
             if (!this.IsAdmin)
+            {
                 query = query.Where(x => x.EquipmentOfficerId == this.UserId);
+            }
+
             var vehicles = await query.OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct);
             StringBuilder csv = new StringBuilder("\uFEFF" + string.Join(';', VehicleCsv.Columns) + "\r\n");
             foreach (var vehicle in vehicles)
             {
-                csv.AppendJoin(';', new[] { vehicle.Id.ToString(), vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate,
+                csv.AppendJoin(';', new[]
+                {
+                    vehicle.Id.ToString(), vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate,
                 vehicle.FireDepartment.Name, vehicle.FireDepartmentId.ToString(CultureInfo.InvariantCulture), vehicle.VehicleType?.Name,
-                vehicle.VehicleStatus.Name, vehicle.EquipmentOfficer.Email, vehicle.IsActive ? "true" : "false" }.Select(VehicleCsv.Quote)).Append("\r\n");
+                vehicle.VehicleStatus.Name, vehicle.EquipmentOfficer.Email, vehicle.IsActive ? "true" : "false"
+                }
+                .Select(VehicleCsv.Quote)).Append("\r\n");
             }
+
             return ServiceResult.File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "fahrzeuge.csv");
         }
 
         public async Task<ServiceResult> Import(VehicleTransferKind kind, Stream stream, CancellationToken ct)
         {
             if (!this.Allowed(kind))
+            {
                 return ServiceResult.Forbid();
+            }
+
             if (kind == VehicleTransferKind.Vehicles)
             {
                 var (rows, errors) = VehicleCsv.Read(stream, ct);
                 foreach (var row in rows)
+                {
                     errors.AddRange(Validate(row.Data, row.Line));
+                }
+
                 if (errors.Count > 0)
+                {
                     return Invalid(errors);
+                }
+
                 return await this.InTransaction(kind, () => this.ImportVehicles(rows, ct), ct);
             }
+
             try
             {
                 var rows = await JsonSerializer.DeserializeAsync<List<VehicleTypeImportDto>>(stream, Json, ct);
                 if (rows is null || rows.Count is 0 or > 10_000)
-                    return Invalid([new(null, "Die JSON-Datei muss 1 bis 10.000 Fahrzeugtypen enthalten.")]);
+                {
+                    return Invalid([new (null, "Die JSON-Datei muss 1 bis 10.000 Fahrzeugtypen enthalten.")]);
+                }
+
                 List<VehicleImportError> errors = rows.SelectMany((row, index) => Validate(row, index + 1)).Take(100).ToList();
                 return errors.Count > 0 ? Invalid(errors) : await this.InTransaction(kind, () => this.ImportTypes(rows, ct), ct);
             }
-            catch (JsonException) { return Invalid([new(null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gültigen Feldwerten.")]); }
+            catch (JsonException) { return Invalid([new (null, "Ungültige JSON-Datei. Erwartet wird eine Liste von Fahrzeugtypen mit gültigen Feldwerten.")]); }
         }
 
         private static IEnumerable<VehicleImportError> Validate(object? row, long line)
         {
             if (row is null)
-                return [new(line, "Der Eintrag darf nicht null sein.")];
-            List<ValidationResult> errors = [];
+            {
+                return [new (line, "Der Eintrag darf nicht null sein.")];
+            }
+
+            List<ValidationResult> errors =[];
             Validator.TryValidateObject(row, new ValidationContext(row), errors, true);
             return errors.Select(error => new VehicleImportError(line, error.ErrorMessage ?? "Ungültiger Eintrag."));
         }
@@ -110,20 +138,30 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                     db.ChangeTracker.Clear();
                     await using var transaction = db.Database.IsRelational() ? await db.Database.BeginTransactionAsync(ct) : null;
                     if (db.Database.IsNpgsql())
+                    {
                         await db.Database.ExecuteSqlRawAsync(kind == VehicleTransferKind.Vehicles
                             ? "LOCK TABLE \"Vehicles\" IN EXCLUSIVE MODE" : "LOCK TABLE \"VehicleTypes\" IN EXCLUSIVE MODE", ct);
+                    }
+
                     var result = await apply();
                     if (result.Code >= 400)
-                    { db.ChangeTracker.Clear(); return result; }
+                    {
+                        db.ChangeTracker.Clear();
+                        return result;
+                    }
+
                     await db.SaveChangesAsync(ct);
                     if (transaction is not null)
+                    {
                         await transaction.CommitAsync(ct);
+                    }
+
                     return result;
                 });
             }
-            catch (DbUpdateConcurrencyException) { return Invalid([new(null, "Die Daten wurden gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
+            catch (DbUpdateConcurrencyException) { return Invalid([new (null, "Die Daten wurden gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
             catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: "23505" or "23503" })
-            { return Invalid([new(null, "Eine Zuordnung oder ein Name wurde gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
+            { return Invalid([new (null, "Eine Zuordnung oder ein Name wurde gleichzeitig geändert. Es wurde kein Eintrag importiert.")], 409); }
         }
 
         private async Task<ServiceResult> ImportTypes(List<VehicleTypeImportDto> rows, CancellationToken ct)
@@ -134,39 +172,63 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
             HashSet<Guid> ids = new HashSet<Guid>();
             HashSet<string> names = new HashSet<string>();
             HashSet<Guid> targets = new HashSet<Guid>();
-            List<VehicleImportError> errors = [];
-            var created = 0;
-            var updated = 0;
-            for (var index = 0; index < rows.Count && errors.Count < 100; index++)
+            List<VehicleImportError> errors =[];
+            int created = 0;
+            int updated = 0;
+            for (int index = 0; index < rows.Count && errors.Count < 100; index++)
             {
                 var row = rows[index];
-                var name = row.Name.Trim();
-                var normalized = Normalize(name);
+                string name = row.Name.Trim();
+                string normalized = Normalize(name);
                 if (name.Length == 0 || !names.Add(normalized) || row.Id is { } rowId && (rowId == Guid.Empty || !ids.Add(rowId)))
-                { errors.Add(new(index + 1, "Typname/ID ist leer, ungültig oder in der Datei mehrfach vorhanden.")); continue; }
+                {
+                    errors.Add(new (index + 1, "Typname/ID ist leer, ungültig oder in der Datei mehrfach vorhanden."));
+                    continue;
+                }
+
                 var idMatch = row.Id is { } id ? byId.GetValueOrDefault(id) : null;
                 var nameMatch = byName.GetValueOrDefault(normalized);
                 if (idMatch is not null && nameMatch is not null && idMatch.Id != nameMatch.Id)
-                { errors.Add(new(index + 1, "ID und Name verweisen auf unterschiedliche bestehende Fahrzeugtypen.")); continue; }
+                {
+                    errors.Add(new (index + 1, "ID und Name verweisen auf unterschiedliche bestehende Fahrzeugtypen."));
+                    continue;
+                }
+
                 var type = idMatch ?? nameMatch;
                 if (type is null)
-                { type = new VehicleType { Id = row.Id ?? Guid.NewGuid() }; db.Set<VehicleType>().Add(type); created++; }
+                {
+                    type = new VehicleType { Id = row.Id ?? Guid.NewGuid() };
+                    db.Set<VehicleType>().Add(type);
+                    created++;
+                }
                 else
-                { type.Version++; updated++; }
+                {
+                    type.Version++;
+                    updated++;
+                }
+
                 if (!targets.Add(type.Id))
-                { errors.Add(new(index + 1, "Derselbe Fahrzeugtyp würde mehrfach ersetzt werden.")); continue; }
+                {
+                    errors.Add(new (index + 1, "Derselbe Fahrzeugtyp würde mehrfach ersetzt werden."));
+                    continue;
+                }
+
                 type.Name = name;
                 type.NormalizedName = normalized;
                 type.IsActive = row.IsActive;
             }
-            return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated, []));
+
+            return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated,[]));
         }
 
         private async Task<ServiceResult> ImportVehicles(List<VehicleCsvRow> rows, CancellationToken ct)
         {
             var actor = await db.Users.SingleOrDefaultAsync(x => x.Id == this.UserId && x.IsActive, ct);
             if (actor is null)
+            {
                 return ServiceResult.Forbid();
+            }
+
             var departments = (await db.FireDepartments.ToListAsync(ct)).ToLookup(x => Normalize(x.Name));
             var officers = await (from user in db.Users
                                   join membership in db.UserRoles on user.Id equals membership.UserId
@@ -182,63 +244,117 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
             HashSet<Guid> ids = new HashSet<Guid>();
             HashSet<(int, string)> keys = new HashSet<(int, string)>();
             HashSet<Guid> targets = new HashSet<Guid>();
-            List<VehicleImportError> errors = [];
-            var created = 0;
-            var updated = 0;
+            List<VehicleImportError> errors =[];
+            int created = 0;
+            int updated = 0;
             foreach (var entry in rows)
             {
                 ct.ThrowIfCancellationRequested();
                 if (errors.Count >= 100)
+                {
                     break;
+                }
+
                 var row = entry.Data;
                 List<FireDepartment> candidates = departments[Normalize(row.FireDepartment)].ToList();
                 var department = candidates.Count == 1 ? candidates[0] : candidates.SingleOrDefault(x => x.Id == row.FireDepartmentId);
                 if (department is null)
-                { errors.Add(new(entry.Line, "Feuerwehr nicht gefunden oder nicht eindeutig. Bei gleichen Namen bitte fireDepartmentId angeben.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Feuerwehr nicht gefunden oder nicht eindeutig. Bei gleichen Namen bitte fireDepartmentId angeben."));
+                    continue;
+                }
+
                 List<ApplicationUser> matches = byEmail[normalizer.NormalizeEmail(row.EquipmentOfficerEmail.Trim()) ?? string.Empty].ToList();
                 if (matches.Count != 1 || matches[0].FireDepartmentId != department.Id)
-                { errors.Add(new(entry.Line, "Die Gerätewart-E-Mail muss genau einem aktiven Gerätewart dieser Feuerwehr zugeordnet sein.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Die Gerätewart-E-Mail muss genau einem aktiven Gerätewart dieser Feuerwehr zugeordnet sein."));
+                    continue;
+                }
+
                 var officer = matches[0];
                 var key = (department.Id, Normalize(row.RadioCallSign));
                 if (!keys.Add(key) || row.Id is { } rowId && !ids.Add(rowId))
-                { errors.Add(new(entry.Line, "Funkrufname/Feuerwehr oder ID ist in der Datei mehrfach vorhanden.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Funkrufname/Feuerwehr oder ID ist in der Datei mehrfach vorhanden."));
+                    continue;
+                }
+
                 var vehicle = row.Id is { } id ? byId.GetValueOrDefault(id) : null;
                 List<Vehicle> natural = byKey[key].ToList();
                 if (vehicle is null && natural.Count > 1)
-                { errors.Add(new(entry.Line, "Das Fahrzeug ist nicht eindeutig. Bitte seine bestehende ID angeben.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Das Fahrzeug ist nicht eindeutig. Bitte seine bestehende ID angeben."));
+                    continue;
+                }
+
                 if (vehicle is not null && natural.Any(x => x.Id != vehicle.Id))
-                { errors.Add(new(entry.Line, "ID und Funkrufname/Feuerwehr verweisen auf unterschiedliche Fahrzeuge.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "ID und Funkrufname/Feuerwehr verweisen auf unterschiedliche Fahrzeuge."));
+                    continue;
+                }
+
                 vehicle ??= natural.SingleOrDefault();
                 if (!this.IsAdmin && (department.Id != actor.FireDepartmentId || vehicle is not null && vehicle.EquipmentOfficerId != this.UserId))
-                    return Invalid([new(entry.Line, "Keine Berechtigung für dieses Fahrzeug oder diese Feuerwehr.")], 403);
-                var isNew = vehicle is null;
+                {
+                    return Invalid([new (entry.Line, "Keine Berechtigung für dieses Fahrzeug oder diese Feuerwehr.")], 403);
+                }
+
+                bool isNew = vehicle is null;
                 vehicle ??= new Vehicle { Id = row.Id ?? Guid.NewGuid() };
                 if (!targets.Add(vehicle.Id))
-                { errors.Add(new(entry.Line, "Dasselbe Fahrzeug würde mehrfach ersetzt werden.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Dasselbe Fahrzeug würde mehrfach ersetzt werden."));
+                    continue;
+                }
+
                 var type = row.VehicleType is null ? vehicle.VehicleTypeId is { } currentType ? types.Values.SingleOrDefault(x => x.Id == currentType) : null
                     : Clean(row.VehicleType) is { } typeName ? types.GetValueOrDefault(Normalize(typeName)) : null;
                 if (!string.IsNullOrWhiteSpace(row.VehicleType) && type is null || type is not null && !type.IsActive && (isNew || vehicle.VehicleTypeId != type.Id))
-                { errors.Add(new(entry.Line, "Fahrzeugtyp nicht gefunden oder für neue Zuordnungen deaktiviert. Bitte zuerst die Fahrzeugtypen importieren.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Fahrzeugtyp nicht gefunden oder für neue Zuordnungen deaktiviert. Bitte zuerst die Fahrzeugtypen importieren."));
+                    continue;
+                }
+
                 var status = !string.IsNullOrWhiteSpace(row.Status) ? statuses.GetValueOrDefault(Normalize(row.Status))
                     : statuses.Values.SingleOrDefault(x => x.Id == vehicle.VehicleStatusId);
                 if (status is null || !status.IsActive && (isNew || vehicle.VehicleStatusId != status.Id))
-                { errors.Add(new(entry.Line, "Status nicht gefunden oder für neue Zuordnungen deaktiviert. Bitte zuerst den Status anlegen.")); continue; }
+                {
+                    errors.Add(new (entry.Line, "Status nicht gefunden oder für neue Zuordnungen deaktiviert. Bitte zuerst den Status anlegen."));
+                    continue;
+                }
+
                 vehicle.FireDepartmentId = department.Id;
                 vehicle.EquipmentOfficerId = officer.Id;
                 vehicle.RadioCallSign = row.RadioCallSign.Trim();
                 if (row.Name is not null)
+                {
                     vehicle.Name = Clean(row.Name);
+                }
+
                 if (row.LicensePlate is not null)
+                {
                     vehicle.LicensePlate = Clean(row.LicensePlate);
+                }
+
                 vehicle.VehicleTypeId = type?.Id;
                 if (isNew || vehicle.VehicleStatusId != status.Id)
+                {
                     vehicle.StatusChangedAtUtc = clock.GetUtcNow().UtcDateTime;
+                }
+
                 vehicle.VehicleStatusId = status.Id;
                 vehicle.IsActive = row.IsActive ?? vehicle.IsActive;
                 if (isNew)
-                { db.Vehicles.Add(vehicle); created++; }
+                {
+                    db.Vehicles.Add(vehicle);
+                    created++;
+                }
                 else
-                { vehicle.Version++; updated++; }
+                {
+                    vehicle.Version++;
+                    updated++;
+                }
+
                 db.VehicleEvents.Add(new VehicleEvent
                 {
                     Id = Guid.NewGuid(),
@@ -249,7 +365,8 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                     OccurredAtUtc = clock.GetUtcNow().UtcDateTime
                 });
             }
-            return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated, []));
+
+            return errors.Count > 0 ? Invalid(errors) : ServiceResult.Ok(new VehicleImportResponse(created, updated,[]));
         }
     }
 }

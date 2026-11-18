@@ -59,7 +59,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         {
             Mock<IHydrantService> service = new Mock<IHydrantService>();
             using CancellationTokenSource cancellation = new CancellationTokenSource();
-            byte[] content = [0xef, 0xbb, 0xbf];
+            byte[] content =[0xef, 0xbb, 0xbf];
             service.Setup(s => s.ExportAsync(cancellation.Token)).ReturnsAsync(content);
 
             FileContentResult result = Assert.IsType<FileContentResult>(await new HydrantController(service.Object).Export(cancellation.Token));
@@ -97,7 +97,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             using MemoryStream stream = new MemoryStream([1, 2, 3]);
             using CancellationTokenSource cancellation = new CancellationTokenSource();
             service.Setup(s => s.ImportAsync(It.IsAny<Stream>(), cancellation.Token))
-                .ReturnsAsync(ServiceResult.Ok(new HydrantImportResponse(2, [])));
+                .ReturnsAsync(ServiceResult.Ok(new HydrantImportResponse(2,[])));
 
             OkObjectResult result = Assert.IsType<OkObjectResult>(await new HydrantController(service.Object)
                 .Import(new FormFile(stream, 0, stream.Length, "file", "data.csv"), cancellation.Token));

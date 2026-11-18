@@ -8,7 +8,7 @@ namespace de.openelp.feuerwehr.Server.Models.Hydrant
         [Key]
         public int Id { get; set; }
 
-        public Address Address { get; set; } = new();
+        public Address Address { get; set; } = new ();
 
         [Required]
         public double Latitude { get; set; }

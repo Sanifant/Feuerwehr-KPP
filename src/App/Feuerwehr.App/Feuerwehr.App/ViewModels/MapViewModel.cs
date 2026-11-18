@@ -27,7 +27,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         private Map? _map;
 
         [ObservableProperty]
-        private HydrantPin _selectedHydrant = new();
+        private HydrantPin _selectedHydrant = new ();
 
         [ObservableProperty]
         private bool _isFlyoutOpen;
@@ -42,7 +42,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
         private bool _isAddVisible = false;
 
         [ObservableProperty]
-        private HydrantDto _newHydrant = new();
+        private HydrantDto _newHydrant = new ();
 
         private double zoomFactor = 6;
         private readonly IHydrantService hydrantService;
@@ -105,6 +105,7 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 this.CanZoomIn = false;
                 return;
             }
+
             this.zoomFactor--;
             this.Map?.Navigator.ZoomTo(this.zoomFactor);
         }
@@ -262,7 +263,10 @@ namespace de.openelp.feuerwehr.App.ViewModels
                 };
                 ILayer? previousPins = map.Layers.FirstOrDefault(layer => layer.Name == "Pins");
                 if (previousPins != null)
+                {
                     map.Layers.Remove(previousPins);
+                }
+
                 map.Layers.Add(memoryLayer);
             }
         }

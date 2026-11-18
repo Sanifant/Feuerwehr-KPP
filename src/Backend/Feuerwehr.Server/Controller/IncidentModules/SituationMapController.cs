@@ -28,7 +28,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> AcquireLease(Guid incidentId, [FromBody] AcquireLeaseRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.AcquireLease(incidentId, request, cancellationToken));
         }
 
@@ -37,7 +40,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> Heartbeat(Guid incidentId, [FromBody] LeaseHeartbeatRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.Heartbeat(incidentId, request, cancellationToken));
         }
 
@@ -46,7 +52,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> Release(Guid incidentId, [FromBody] ReleaseLeaseRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.Release(incidentId, request, cancellationToken));
         }
 
@@ -55,7 +64,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> UpsertElement(Guid incidentId, [FromBody] UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.UpsertElement(incidentId, request, cancellationToken));
         }
 
@@ -64,7 +76,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> DeleteElement(Guid incidentId, Guid elementId, [FromBody] DeleteMapElementRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.DeleteElement(incidentId, elementId, request, cancellationToken));
         }
 

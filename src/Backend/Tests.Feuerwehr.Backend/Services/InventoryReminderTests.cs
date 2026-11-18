@@ -29,9 +29,10 @@ public sealed class InventoryReminderTests
             db.Users.Add(new ApplicationUser { Id = id, UserName = id, Email = $"{id}@example.test", IsActive = active });
             db.UserRoles.Add(new IdentityUserRole<string> { RoleId = role.Id, UserId = id });
         }
+
         await db.SaveChangesAsync();
         Mock<IMailService> mail = new Mock<IMailService>();
-        var attempts = 0;
+        int attempts = 0;
         mail.Setup(x => x.SendAsync("retry@example.test", It.IsAny<string>(), It.IsAny<string>()))
             .Returns(() => ++attempts == 1 ? Task.FromException(new IOException("SMTP down")) : Task.CompletedTask);
         FixedClock clock = new FixedClock(today);
@@ -64,7 +65,7 @@ public sealed class InventoryReminderTests
         /// </summary>
         public override DateTimeOffset GetUtcNow()
         {
-            return new(this.Date.ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc));
+            return new (this.Date.ToDateTime(new TimeOnly(12, 0), DateTimeKind.Utc));
         }
     }
 }

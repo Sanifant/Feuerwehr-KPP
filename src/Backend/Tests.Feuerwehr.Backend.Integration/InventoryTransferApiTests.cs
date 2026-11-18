@@ -24,7 +24,7 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         var inspected = (await inspection.Content.ReadFromJsonAsync<EquipmentDetailDto>())!;
         using var deactivate = await officer.PutAsJsonAsync($"/api/inventory/{item.Id}/active", new SetEquipmentActiveRequest { IsActive = false, ExpectedVersion = inspected.Equipment.Version });
         deactivate.EnsureSuccessStatusCode();
-        var csv = $"barcode;equipmentTypeId;serialNumber;manufacturer;status;isActive;createdOn;lastInspectedOn\r\n{item.Barcode};{replacementType.Id};NEU-123;Neuer Hersteller;Einsatzklar;true;2000-01-01;2000-01-02\r\nKPP-700;{type.Id};IMPORT-700;Importhersteller;In Reparatur;false;{fixture.Today:yyyy-MM-dd};\r\n";
+        string csv = $"barcode;equipmentTypeId;serialNumber;manufacturer;status;isActive;createdOn;lastInspectedOn\r\n{item.Barcode};{replacementType.Id};NEU-123;Neuer Hersteller;Einsatzklar;true;2000-01-01;2000-01-02\r\nKPP-700;{type.Id};IMPORT-700;Importhersteller;In Reparatur;false;{fixture.Today:yyyy-MM-dd};\r\n";
         using var response = await Upload(officer, "/api/inventory/import", csv, "inventar.csv");
         response.EnsureSuccessStatusCode();
         var result = (await response.Content.ReadFromJsonAsync<InventoryImportResponse>())!;
@@ -60,9 +60,9 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         using var export = await officer.GetAsync("/api/inventory/export");
         export.EnsureSuccessStatusCode();
         Assert.Equal("text/csv", export.Content.Headers.ContentType!.MediaType);
-        var bytes = await export.Content.ReadAsByteArrayAsync();
+        byte[] bytes = await export.Content.ReadAsByteArrayAsync();
         Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes.Take(3));
-        var csv = Encoding.UTF8.GetString(bytes);
+        string csv = Encoding.UTF8.GetString(bytes);
         Assert.Contains("'=SUM", csv);
         Assert.Contains("Größe", csv);
         using var import = await Upload(officer, "/api/inventory/import", csv, "inventar.csv");
@@ -79,7 +79,7 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var type = await fixture.CreateType(officer);
         var item = await fixture.CreateEquipment(officer, type.Id);
-        var csv = $"barcode;equipmentTypeId;serialNumber;manufacturer\n{item.Barcode};{type.Id};Changed;Changed\nKPP-900;{Guid.NewGuid()};Missing;Type\n";
+        string csv = $"barcode;equipmentTypeId;serialNumber;manufacturer\n{item.Barcode};{type.Id};Changed;Changed\nKPP-900;{Guid.NewGuid()};Missing;Type\n";
         using var response = await Upload(officer, "/api/inventory/import", csv, "bad.csv");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var error = Assert.Single((await response.Content.ReadFromJsonAsync<InventoryImportResponse>())!.Errors);
@@ -112,7 +112,7 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     {
         using var admin = await fixture.Client(Roles.Admin);
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
-        var name = $"Kategorie {Guid.NewGuid()}";
+        string name = $"Kategorie {Guid.NewGuid()}";
         using var first = await Upload(admin, "/api/inventory/categories/import", JsonSerializer.Serialize(new[] { new { name } }), "categories.json");
         first.EnsureSuccessStatusCode();
         Assert.Equal(1, (await first.Content.ReadFromJsonAsync<InventoryImportResponse>())!.CreatedCount);
@@ -121,7 +121,8 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         Assert.Equal(1, (await second.Content.ReadFromJsonAsync<InventoryImportResponse>())!.UpdatedCount);
         var category = Assert.Single((await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!, x => x.Name == name);
         var type = await fixture.CreateType(officer, 12);
-        var json = JsonSerializer.Serialize(new[] {
+        string json = JsonSerializer.Serialize(new[]
+        {
             new { id = type.Id, name = "Aktualisierter Typ", categoryId = category.Id, inspectionIntervalMonths = 6, inspectionInstructions = "Neue Anweisung" },
             new { id = Guid.NewGuid(), name = "Importierter Typ", categoryId = category.Id, inspectionIntervalMonths = 24, inspectionInstructions = "Weitere Anweisung" },
         });
@@ -133,12 +134,12 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         var updated = Assert.Single((await officer.GetFromJsonAsync<EquipmentTypeDto[]>("/api/inventory/types"))!, x => x.Id == type.Id);
         Assert.Equal(6, updated.InspectionIntervalMonths);
         Assert.Equal(category.Id, updated.CategoryId);
-        foreach (var path in new[] { "categories", "types" })
+        foreach (string? path in new[] { "categories", "types" })
         {
             using var export = await officer.GetAsync($"/api/inventory/{path}/export");
             export.EnsureSuccessStatusCode();
             Assert.Equal("application/json", export.Content.Headers.ContentType!.MediaType);
-            var text = await export.Content.ReadAsStringAsync();
+            string text = await export.Content.ReadAsStringAsync();
             Assert.Equal(JsonValueKind.Array, JsonDocument.Parse(text).RootElement.ValueKind);
             using var roundTrip = await Upload(admin, $"/api/inventory/{path}/import", text, "roundtrip.json");
             roundTrip.EnsureSuccessStatusCode();
@@ -172,8 +173,12 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
         var categories = (await officer.GetFromJsonAsync<InventoryCategoryDto[]>("/api/inventory/categories"))!;
         SaveEquipmentTypeRequest request = new SaveEquipmentTypeRequest { CategoryId = categories[0].Id, Name = $"Doppelname {Guid.NewGuid()}", InspectionIntervalMonths = 12, InspectionInstructions = "Prüfen" };
-        for (var i = 0; i < 2; i++)
-        { using var create = await officer.PostAsJsonAsync("/api/inventory/types", request); create.EnsureSuccessStatusCode(); }
+        for (int i = 0; i < 2; i++)
+        {
+            using var create = await officer.PostAsJsonAsync("/api/inventory/types", request);
+            create.EnsureSuccessStatusCode();
+        }
+
         using var export = await officer.GetAsync("/api/inventory/types/export");
         export.EnsureSuccessStatusCode();
         using var import = await Upload(officer, "/api/inventory/types/import", await export.Content.ReadAsStringAsync(), "types.json");
@@ -186,13 +191,14 @@ public sealed class InventoryTransferApiTests(InventoryApiFixture fixture) : ICl
     {
         using var viewer = await fixture.Client(Roles.InventoryViewer);
         using var officer = await fixture.Client(Roles.EquipmentOfficer);
-        foreach (var suffix in new[] { string.Empty, "/types", "/categories" })
+        foreach (string? suffix in new[] { string.Empty, "/types", "/categories" })
         {
             using var export = await viewer.GetAsync($"/api/inventory{suffix}/export");
             Assert.Equal(HttpStatusCode.OK, export.StatusCode);
             using var import = await Upload(viewer, $"/api/inventory{suffix}/import", "[]", "file.json");
             Assert.Equal(HttpStatusCode.Forbidden, import.StatusCode);
         }
+
         using var forbidden = await Upload(officer, "/api/inventory/categories/import", "[]", "file.json");
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
         using var missing = await officer.PostAsync("/api/inventory/import", new MultipartFormDataContent());

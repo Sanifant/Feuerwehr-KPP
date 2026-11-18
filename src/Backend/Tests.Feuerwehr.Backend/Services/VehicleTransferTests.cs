@@ -22,21 +22,33 @@ public sealed class VehicleTransferTests
         await using Fixture fixture = new Fixture();
         const string csv = "radioCallSign;fireDepartment;equipmentOfficerEmail;status\nFlorian 19-01;Feuerwehr A;owner@example.test;Betriebsbereit";
         using (var stream = Csv(csv))
+        {
             Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        }
+
         var initial = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(initial, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
         using (var stream = Csv(csv))
+        {
             Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        }
+
         Assert.Equal(initial, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
         using (var stream = Csv(csv.Replace("Betriebsbereit", "Wartung")))
+        {
             Assert.Equal(200, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        }
+
         var changedAt = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(changedAt, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
         using (var stream = Csv(csv.Replace("Betriebsbereit", "Abgemeldet") + "\nFlorian 19-02;Feuerwehr A;missing@example.test;Wartung"))
+        {
             Assert.Equal(400, (await fixture.Service.Import(VehicleTransferKind.Vehicles, stream, default)).Code);
+        }
+
         Assert.Equal(changedAt, (await fixture.Db.Vehicles.AsNoTracking().SingleAsync()).StatusChangedAtUtc);
     }
 
@@ -59,7 +71,7 @@ public sealed class VehicleTransferTests
         fixture.Db.VehicleBookingDays.Add(new VehicleBookingDay { VehicleId = vehicle.Id, ReservationId = booking.Id, Date = booking.From });
         await fixture.Db.SaveChangesAsync();
         var exported = await fixture.Service.Export(VehicleTransferKind.Vehicles, default);
-        var csv = Encoding.UTF8.GetString(exported.Content!);
+        string csv = Encoding.UTF8.GetString(exported.Content!);
         Assert.Contains("equipmentOfficerEmail", csv);
         Assert.Contains("owner@example.test", csv);
         Assert.DoesNotContain("equipmentOfficerId", csv);
@@ -124,7 +136,7 @@ public sealed class VehicleTransferTests
         await fixture.Db.SaveChangesAsync();
         fixture.As("owner", Roles.EquipmentOfficer);
         var export = await fixture.Service.Export(VehicleTransferKind.Vehicles, default);
-        var csv = Encoding.UTF8.GetString(export.Content!);
+        string csv = Encoding.UTF8.GetString(export.Content!);
         Assert.Contains(owned.RadioCallSign, csv);
         Assert.DoesNotContain(other.RadioCallSign, csv);
         using var stream = Csv($"id;radioCallSign;fireDepartment;equipmentOfficerEmail\n{other.Id};{other.RadioCallSign};Feuerwehr A;owner@example.test");
@@ -177,15 +189,15 @@ public sealed class VehicleTransferTests
 
     private static MemoryStream Csv(string text)
     {
-        return new(Encoding.UTF8.GetBytes(text));
+        return new (Encoding.UTF8.GetBytes(text));
     }
 
     private sealed class Fixture : IAsyncDisposable
     {
-        public FeuerwehrDbContext Db { get; } = new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        public FeuerwehrDbContext Db { get; } = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         public VehicleTransferService Service { get; }
-        public TestClock Clock { get; } = new();
-        private readonly HttpContextAccessor http = new() { HttpContext = new DefaultHttpContext() };
+        public TestClock Clock { get; } = new ();
+        private readonly HttpContextAccessor http = new () { HttpContext = new DefaultHttpContext() };
         private readonly Guid typeId = Guid.NewGuid();
         public Fixture()
         {
@@ -193,16 +205,20 @@ public sealed class VehicleTransferTests
             this.Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
             this.Db.Set<VehicleType>().Add(new VehicleType { Id = this.typeId, Name = "MTW", NormalizedName = "MTW" });
             this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
-            foreach (var id in new[] { "admin", "owner", "other", "viewer", "inactive", "foreign" })
+            foreach (string? id in new[] { "admin", "owner", "other", "viewer", "inactive", "foreign" })
             {
                 this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, IsActive = id != "inactive", FireDepartmentId = id == "foreign" ? 2 : 1 });
                 if (id is "owner" or "other" or "inactive" or "foreign")
+                {
                     this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+                }
             }
+
             this.Db.SaveChanges();
             this.Service = new VehicleTransferService(this.Db, this.http, new UpperInvariantLookupNormalizer(), this.Clock);
             this.As("admin", Roles.Admin);
         }
+
         public void As(string id, string role)
         {
             this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity([
@@ -215,14 +231,16 @@ public sealed class VehicleTransferTests
             this.Db.Vehicles.Add(vehicle);
             return vehicle;
         }
+
         public ValueTask DisposeAsync()
         {
             return this.Db.DisposeAsync();
         }
     }
+
     private sealed class TestClock : TimeProvider
     {
-        public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        public DateTimeOffset UtcNow { get; set; } = new (2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
         public override DateTimeOffset GetUtcNow()
         {
             return this.UtcNow;

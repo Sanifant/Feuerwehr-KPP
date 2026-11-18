@@ -20,7 +20,7 @@ namespace de.openelp.feuerwehr.App.Android
     {
         private const int LocationPermissionRequestCode = 4101;
         private static WeakReference<MainActivity>? current;
-        private readonly CancellationTokenSource destroyed = new();
+        private readonly CancellationTokenSource destroyed = new ();
         private TaskCompletionSource<bool>? locationPermissionRequest;
 
         internal static MainActivity? CurrentActivity =>
@@ -43,10 +43,14 @@ namespace de.openelp.feuerwehr.App.Android
         internal Task<bool> EnsureLocationPermissionAsync()
         {
             if (this.HasLocationPermission)
+            {
                 return Task.FromResult(true);
+            }
 
             if (this.locationPermissionRequest is not null)
+            {
                 return this.locationPermissionRequest.Task;
+            }
 
             TaskCompletionSource<bool> request = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             this.locationPermissionRequest = request;
@@ -76,7 +80,9 @@ namespace de.openelp.feuerwehr.App.Android
         protected override void OnDestroy()
         {
             if (current is not null && current.TryGetTarget(out MainActivity? activity) && ReferenceEquals(activity, this))
+            {
                 current = null;
+            }
 
             this.locationPermissionRequest?.TrySetResult(false);
             this.locationPermissionRequest = null;
@@ -86,4 +92,3 @@ namespace de.openelp.feuerwehr.App.Android
         }
     }
 }
-

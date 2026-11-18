@@ -40,7 +40,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> CreateIncident([FromBody] CreateIncidentRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.CreateIncident(request, cancellationToken));
         }
 
@@ -49,7 +52,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> CloseIncident(Guid incidentId, [FromBody] CloseIncidentRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.CloseIncident(incidentId, request, cancellationToken));
         }
     }

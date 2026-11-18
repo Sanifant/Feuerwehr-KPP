@@ -17,7 +17,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         /// </summary>
         public static FeuerwehrDbContext CreateDatabase()
         {
-            return new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+            return new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         }
 

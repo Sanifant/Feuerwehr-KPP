@@ -49,7 +49,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
 
         private static FeuerwehrDbContext Database()
         {
-            return new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+            return new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         }
     }
 

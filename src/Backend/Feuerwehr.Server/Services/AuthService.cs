@@ -43,7 +43,9 @@ namespace de.openelp.feuerwehr.Server.Services
             }
 
             if (user.PasswordResetRequired)
+            {
                 return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist bis zur Passwortvergabe über den Einladungslink gesperrt."));
+            }
 
             SignInResult result = await this._signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
@@ -160,24 +162,37 @@ namespace de.openelp.feuerwehr.Server.Services
         public async Task<ServiceResult> ChangePassword(ChangePasswordRequest request, string? currentUserId)
         {
             if (string.IsNullOrWhiteSpace(currentUserId))
+            {
                 return ServiceResult.Unauthorized();
+            }
+
             var user = await this._userManager.FindByIdAsync(currentUserId);
             if (user is null || !user.IsActive || user.PasswordResetRequired)
+            {
                 return ServiceResult.Unauthorized();
+            }
 
             // Share the login attempt counter and honor existing account lockouts, including
             // requests with a still-valid bearer token. ChangePasswordAsync alone does neither.
             SignInResult passwordCheck = await this._signInManager.CheckPasswordSignInAsync(user, request.CurrentPassword, lockoutOnFailure: true);
             if (passwordCheck.IsLockedOut)
+            {
                 return ServiceResult.StatusCode(423, new MessageResponse("Das Konto ist nach mehreren Fehlversuchen vorübergehend gesperrt."));
+            }
+
             if (!passwordCheck.Succeeded)
+            {
                 return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort konnte nicht bestätigt werden."));
+            }
 
             IdentityResult result = await this._userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
             if (!result.Succeeded)
             {
                 if (result.Errors.Any(error => error.Code == "PasswordMismatch"))
+                {
                     return ServiceResult.BadRequest(new MessageResponse("Das aktuelle Passwort ist falsch."));
+                }
+
                 return ServiceResult.BadRequest(new IdentityErrorResponse("Das Passwort konnte nicht geändert werden.",
                     result.Errors.Select(error => new IdentityErrorDto(error.Code, error.Description)).ToList()));
             }

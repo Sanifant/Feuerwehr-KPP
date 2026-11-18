@@ -52,7 +52,10 @@ namespace de.openelp.feuerwehr.Server.Services
             {
                 await client.ConnectAsync(settings.Host, settings.Port, settings.Security);
                 if (settings.Username is not null)
+                {
                     await client.AuthenticateAsync(settings.Username, settings.Password!);
+                }
+
                 await client.SendAsync(message);
             }
             finally

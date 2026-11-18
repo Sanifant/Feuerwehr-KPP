@@ -32,4 +32,3 @@ namespace de.openelp.feuerwehr.App.Android
         }
     }
 }
-

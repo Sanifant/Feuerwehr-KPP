@@ -18,9 +18,9 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
 {
     public sealed class IncidentArchiveTests : IDisposable
     {
-        private readonly FeuerwehrDbContext _db = new(new DbContextOptionsBuilder<FeuerwehrDbContext>()
+        private readonly FeuerwehrDbContext _db = new (new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        private readonly Mock<IUserContextAccessor> _user = new();
+        private readonly Mock<IUserContextAccessor> _user = new ();
         private readonly IncidentDiaryService _diary;
         private readonly IncidentService _incidents;
         private readonly IncidentArchiveService _archive;
@@ -90,6 +90,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
             };
             this._db.DiaryEntryRevisions.Add(revision);
             if (canceled)
+            {
                 this._db.DiaryEntryRevisions.Add(new DiaryEntryRevision
                 {
                     Id = Guid.NewGuid(),
@@ -105,6 +106,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
                     CreatedByUserId = "admin-1",
                     CreatedByDisplayName = "Ada Muster",
                 });
+            }
         }
 
         [Fact]
@@ -215,23 +217,28 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         public async Task PdfIncludesAllEntriesWithPageBreaksUmlautsAndRevisionHistory()
         {
             var incident = this.AddIncident();
-            for (var number = 1; number <= 70; number++)
+            for (int number = 1; number <= 70; number++)
+            {
                 this.AddEntry(incident, number, canceled: number == 1);
+            }
+
             await this._db.SaveChangesAsync();
             var result = await this._archive.ExportPdf(incident.Id, default);
             Assert.Equal("application/pdf", result.ContentType);
             Assert.Equal($"einsatztagebuch-{incident.Id:N}.pdf", result.DownloadName);
-            var bytes = Assert.IsType<byte[]>(result.Content);
-            var pdf = Encoding.ASCII.GetString(bytes);
+            byte[] bytes = Assert.IsType<byte[]>(result.Content);
+            string pdf = Encoding.ASCII.GetString(bytes);
             Assert.StartsWith("%PDF-1.4", pdf);
             Assert.Contains("LetzteMeldung", pdf);
             Assert.Contains("Versionshistorie", pdf);
             Assert.Contains("Doppelte Meldung", pdf);
             Assert.Contains("L\\366schzug Stra\\337e", pdf);
             Assert.True(int.Parse(Regex.Match(pdf, @"/Count (\d+)").Groups[1].Value) > 1);
-            var preview = Environment.GetEnvironmentVariable("FEUERWEHR_PDF_PREVIEW");
+            string? preview = Environment.GetEnvironmentVariable("FEUERWEHR_PDF_PREVIEW");
             if (!string.IsNullOrWhiteSpace(preview))
+            {
                 await File.WriteAllBytesAsync(preview, bytes);
+            }
         }
 
         public void Dispose()

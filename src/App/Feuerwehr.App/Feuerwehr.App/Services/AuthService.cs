@@ -22,7 +22,7 @@ namespace de.openelp.feuerwehr.App.Services
 
         private readonly HttpClient _httpClient;
         private readonly ISecureStorage _secureStorage;
-        private readonly JwtSecurityTokenHandler _jwtHandler = new();
+        private readonly JwtSecurityTokenHandler _jwtHandler = new ();
 
         private string? _accessToken;
         private string? _refreshToken;
@@ -79,11 +79,15 @@ namespace de.openelp.feuerwehr.App.Services
                 HttpResponseMessage response = await this._httpClient.PostAsJsonAsync("/api/Auth/login", request);
 
                 if (!response.IsSuccessStatusCode)
+                {
                     return false;
+                }
 
                 LoginResponse? authResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (authResponse == null)
+                {
                     return false;
+                }
 
                 if (!rememberMe)
                 {
@@ -131,7 +135,9 @@ namespace de.openelp.feuerwehr.App.Services
         public async Task<bool> RefreshTokenAsync()
         {
             if (string.IsNullOrEmpty(this._refreshToken))
+            {
                 return false;
+            }
 
             try
             {
@@ -146,7 +152,9 @@ namespace de.openelp.feuerwehr.App.Services
 
                 LoginResponse? authResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (authResponse == null)
+                {
                     return false;
+                }
 
                 await this.StoreTokensAsync(authResponse.AccessToken, authResponse.RefreshToken);
                 return true;

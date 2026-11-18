@@ -12,7 +12,7 @@ namespace de.openelp.feuerwehr.App.Services
     /// </summary>
     public class InMemorySecureStorage : ISecureStorage
     {
-        private readonly ConcurrentDictionary<string, string> _storage = new();
+        private readonly ConcurrentDictionary<string, string> _storage = new ();
 
         /// <summary>
         /// Sets the operation.

@@ -8,4 +8,3 @@ namespace de.openelp.feuerwehr.Common.Models.Auth
         public string RefreshToken { get; set; } = string.Empty;
     }
 }
-

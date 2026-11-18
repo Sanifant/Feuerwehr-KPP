@@ -25,7 +25,7 @@ public sealed class VehicleServiceTests
         var initial = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(initial, vehicle.StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-        var renamed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
+        var renamed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new ()
         {
             FireDepartmentId = 1,
             EquipmentOfficerId = "officer",
@@ -35,7 +35,7 @@ public sealed class VehicleServiceTests
         }, default)).Value);
         Assert.Equal(initial, renamed.StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-        var changed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
+        var changed = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new ()
         {
             FireDepartmentId = 1,
             EquipmentOfficerId = "officer",
@@ -46,7 +46,7 @@ public sealed class VehicleServiceTests
         var changedAt = fixture.Clock.GetUtcNow().UtcDateTime;
         Assert.Equal(changedAt, changed.StatusChangedAtUtc);
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
-        var deactivated = Assert.IsType<VehicleDto>((await fixture.Service.SetActive(vehicle.Id, new() { IsActive = false, ExpectedVersion = changed.Version }, default)).Value);
+        var deactivated = Assert.IsType<VehicleDto>((await fixture.Service.SetActive(vehicle.Id, new () { IsActive = false, ExpectedVersion = changed.Version }, default)).Value);
         Assert.Equal(changedAt, deactivated.StatusChangedAtUtc);
         var stored = await fixture.Db.Vehicles.AsNoTracking().SingleAsync(x => x.Id == vehicle.Id);
         Assert.Equal(changedAt, stored.StatusChangedAtUtc);
@@ -59,7 +59,7 @@ public sealed class VehicleServiceTests
         var vehicle = await fixture.Vehicle();
         (await fixture.Db.Vehicles.FindAsync(vehicle.Id))!.StatusChangedAtUtc = null;
         await fixture.Db.SaveChangesAsync();
-        var updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
+        var updated = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new ()
         {
             FireDepartmentId = 1,
             EquipmentOfficerId = "officer",
@@ -77,17 +77,17 @@ public sealed class VehicleServiceTests
         var statuses = Assert.IsType<List<VehicleStatusDto>>((await fixture.Service.Statuses(false, default)).Value);
         Assert.Equal(3, statuses.Count);
         Assert.Equal(new[] { "Abgemeldet", "Betriebsbereit", "Wartung" }, statuses.Select(x => x.Name).OrderBy(x => x).ToArray());
-        Assert.Equal(403, (await fixture.Service.SaveStatus(null, new() { Name = "Außer Dienst" }, default)).Code);
+        Assert.Equal(403, (await fixture.Service.SaveStatus(null, new () { Name = "Außer Dienst" }, default)).Code);
         fixture.As("admin", Roles.Admin);
-        var custom = Assert.IsType<VehicleStatusDto>((await fixture.Service.SaveStatus(null, new() { Name = "Außer Dienst", AllowsBooking = false }, default)).Value);
-        Assert.Equal(409, (await fixture.Service.SaveStatus(null, new() { Name = "außer dienst" }, default)).Code);
+        var custom = Assert.IsType<VehicleStatusDto>((await fixture.Service.SaveStatus(null, new () { Name = "Außer Dienst", AllowsBooking = false }, default)).Value);
+        Assert.Equal(409, (await fixture.Service.SaveStatus(null, new () { Name = "außer dienst" }, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
         var vehicle = await fixture.Vehicle();
         fixture.As("member", Roles.Firefighter);
         var pending = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
         fixture.As("officer", Roles.EquipmentOfficer);
         var current = Assert.Single(Assert.IsType<List<VehicleDto>>((await fixture.Service.List(false, default)).Value));
-        var changed = await fixture.Service.Save(vehicle.Id, new()
+        var changed = await fixture.Service.Save(vehicle.Id, new ()
         {
             FireDepartmentId = 1,
             RadioCallSign = current.RadioCallSign,
@@ -97,7 +97,7 @@ public sealed class VehicleServiceTests
         }, default);
         Assert.Equal("Wartung", Assert.IsType<VehicleDto>(changed.Value).VehicleStatusName);
         Assert.Equal(409, (await fixture.Service.Reserve(vehicle.Id, fixture.Request(), true, default)).Code);
-        Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new() { ExpectedVersion = pending.Version }, VehicleReservationStatus.Confirmed, default)).Code);
+        Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new () { ExpectedVersion = pending.Version }, VehicleReservationStatus.Confirmed, default)).Code);
         var calendar = Assert.IsType<List<VehicleAvailabilityDto>>((await fixture.Service.Availability(fixture.Request().From, fixture.Request().To, default)).Value);
         Assert.All(Assert.Single(calendar).Days, day => Assert.Equal(VehicleDayStatus.Unavailable, day.Status));
         Assert.Empty(fixture.Db.VehicleBookingDays);
@@ -126,25 +126,25 @@ public sealed class VehicleServiceTests
     public async Task VehicleTypesRequireAdmin_RejectDuplicatesAndPreserveExistingAssignmentsWhenDeactivated()
     {
         await using Fixture fixture = new Fixture();
-        Assert.Equal(403, (await fixture.Service.SaveType(null, new() { Name = "MTW" }, default)).Code);
+        Assert.Equal(403, (await fixture.Service.SaveType(null, new () { Name = "MTW" }, default)).Code);
         fixture.As("admin", Roles.Admin);
-        var type = Assert.IsType<VehicleTypeDto>((await fixture.Service.SaveType(null, new() { Name = " MTW " }, default)).Value);
+        var type = Assert.IsType<VehicleTypeDto>((await fixture.Service.SaveType(null, new () { Name = " MTW " }, default)).Value);
         Assert.Equal("MTW", type.Name);
-        Assert.Equal(409, (await fixture.Service.SaveType(null, new() { Name = "mtw" }, default)).Code);
+        Assert.Equal(409, (await fixture.Service.SaveType(null, new () { Name = "mtw" }, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
-        var vehicle = Assert.IsType<VehicleDto>((await fixture.Service.Save(null, new()
+        var vehicle = Assert.IsType<VehicleDto>((await fixture.Service.Save(null, new ()
         { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Value);
         Assert.Equal(type.Id, vehicle.VehicleTypeId);
         Assert.Equal(type.Name, vehicle.VehicleTypeName);
         fixture.As("admin", Roles.Admin);
-        Assert.Equal(409, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = 99, IsActive = false }, default)).Code);
-        var renamed = Assert.IsType<VehicleTypeDto>((await fixture.Service.SaveType(type.Id, new() { Name = "Mannschaftstransportwagen", ExpectedVersion = type.Version }, default)).Value);
-        Assert.Equal(200, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = renamed.Version, IsActive = false }, default)).Code);
+        Assert.Equal(409, (await fixture.Service.SetTypeActive(type.Id, new () { ExpectedVersion = 99, IsActive = false }, default)).Code);
+        var renamed = Assert.IsType<VehicleTypeDto>((await fixture.Service.SaveType(type.Id, new () { Name = "Mannschaftstransportwagen", ExpectedVersion = type.Version }, default)).Value);
+        Assert.Equal(200, (await fixture.Service.SetTypeActive(type.Id, new () { ExpectedVersion = renamed.Version, IsActive = false }, default)).Code);
         Assert.Empty(Assert.IsType<List<VehicleTypeDto>>((await fixture.Service.Types(false, default)).Value));
         Assert.Single(Assert.IsType<List<VehicleTypeDto>>((await fixture.Service.Types(true, default)).Value));
         fixture.As("officer", Roles.EquipmentOfficer);
-        Assert.Equal(403, (await fixture.Service.SetTypeActive(type.Id, new() { ExpectedVersion = 3, IsActive = true }, default)).Code);
-        var retained = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new()
+        Assert.Equal(403, (await fixture.Service.SetTypeActive(type.Id, new () { ExpectedVersion = 3, IsActive = true }, default)).Code);
+        var retained = Assert.IsType<VehicleDto>((await fixture.Service.Save(vehicle.Id, new ()
         {
             FireDepartmentId = 1,
             RadioCallSign = vehicle.RadioCallSign,
@@ -153,9 +153,9 @@ public sealed class VehicleServiceTests
             ExpectedVersion = vehicle.Version
         }, default)).Value);
         Assert.Equal("Mannschaftstransportwagen", retained.VehicleTypeName);
-        Assert.Equal(400, (await fixture.Service.Save(null, new()
+        Assert.Equal(400, (await fixture.Service.Save(null, new ()
         { FireDepartmentId = 1, RadioCallSign = "Florian 19-02", EquipmentOfficerId = "officer", VehicleTypeId = type.Id }, default)).Code);
-        Assert.Equal(400, (await fixture.Service.Save(null, new()
+        Assert.Equal(400, (await fixture.Service.Save(null, new ()
         { FireDepartmentId = 1, RadioCallSign = "Florian 19-03", EquipmentOfficerId = "officer", VehicleTypeId = Guid.NewGuid() }, default)).Code);
     }
 
@@ -202,9 +202,9 @@ public sealed class VehicleServiceTests
         Assert.Equal(3, calendar[0].Days.Count);
 
         fixture.As("officer", Roles.EquipmentOfficer);
-        Assert.Equal(200, (await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
+        Assert.Equal(200, (await fixture.Service.Decide(first.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
         Assert.Equal(3, await fixture.Db.VehicleBookingDays.CountAsync());
-        Assert.Equal(409, (await fixture.Service.Decide(second.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
+        Assert.Equal(409, (await fixture.Service.Decide(second.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
         calendar = Assert.IsType<List<VehicleAvailabilityDto>>((await fixture.Service.Availability(request.From, request.To, default)).Value);
         Assert.All(calendar[0].Days, day => Assert.Equal(VehicleDayStatus.Booked, day.Status));
         VehicleMailMessage confirmation = await fixture.Db.VehicleMailMessages.SingleAsync(x => x.Kind == "Confirmed");
@@ -233,8 +233,8 @@ public sealed class VehicleServiceTests
         request.Comment = "Andere Nutzlast";
         Assert.Equal(409, (await fixture.Service.Reserve(vehicle.Id, request, false, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
-        await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
-        await fixture.Service.Decide(first.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
+        await fixture.Service.Decide(first.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
+        await fixture.Service.Decide(first.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
         Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
         Assert.Equal(2, fixture.Db.VehicleMailMessages.Count());
     }
@@ -250,13 +250,13 @@ public sealed class VehicleServiceTests
         fixture.As("member", Roles.Firefighter);
         VehicleReservationDto pending = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
         fixture.As("other", Roles.EquipmentOfficer);
-        Assert.Equal(403, (await fixture.Service.Decide(pending.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
+        Assert.Equal(403, (await fixture.Service.Decide(pending.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
         Assert.Equal(403, (await fixture.Service.Reserve(vehicle.Id, fixture.Request(), true, default)).Code);
-        Assert.Equal(403, (await fixture.Service.SetActive(vehicle.Id, new() { IsActive = false, ExpectedVersion = 2 }, default)).Code);
+        Assert.Equal(403, (await fixture.Service.SetActive(vehicle.Id, new () { IsActive = false, ExpectedVersion = 2 }, default)).Code);
         fixture.As("admin", Roles.Admin);
-        Assert.Equal(200, (await fixture.Service.SetActive(vehicle.Id, new() { IsActive = false, ExpectedVersion = 2 }, default)).Code);
+        Assert.Equal(200, (await fixture.Service.SetActive(vehicle.Id, new () { IsActive = false, ExpectedVersion = 2 }, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
-        Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new() { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
+        Assert.Equal(409, (await fixture.Service.Decide(pending.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
         Assert.Single(fixture.Db.VehicleReservations);
         Assert.Empty(fixture.Db.VehicleBookingDays);
     }
@@ -273,7 +273,7 @@ public sealed class VehicleServiceTests
         Assert.Equal(VehicleReservationStatus.Confirmed, reservation.Status);
         Assert.True(reservation.IsDirectBooking);
         Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
-        Assert.Equal(200, (await fixture.Service.Decide(reservation.Id, new() { ExpectedVersion = reservation.Version }, VehicleReservationStatus.Cancelled, default)).Code);
+        Assert.Equal(200, (await fixture.Service.Decide(reservation.Id, new () { ExpectedVersion = reservation.Version }, VehicleReservationStatus.Cancelled, default)).Code);
         Assert.Empty(fixture.Db.VehicleBookingDays);
         Assert.Single(fixture.Db.VehicleReservations);
         Assert.Equal(VehicleReservationStatus.Cancelled, fixture.Db.VehicleReservations.Single().Status);
@@ -284,8 +284,8 @@ public sealed class VehicleServiceTests
     public async Task VehicleDataAndBookingDatesAreValidated_OfficerCannotCreateForAnotherDepartment()
     {
         await using Fixture fixture = new Fixture();
-        Assert.Equal(400, (await fixture.Service.Save(null, new() { FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "   " }, default)).Code);
-        Assert.Equal(403, (await fixture.Service.Save(null, new() { FireDepartmentId = 2, EquipmentOfficerId = "other", RadioCallSign = "Fremd" }, default)).Code);
+        Assert.Equal(400, (await fixture.Service.Save(null, new () { FireDepartmentId = 1, EquipmentOfficerId = "officer", RadioCallSign = "   " }, default)).Code);
+        Assert.Equal(403, (await fixture.Service.Save(null, new () { FireDepartmentId = 2, EquipmentOfficerId = "other", RadioCallSign = "Fremd" }, default)).Code);
         var vehicle = await fixture.Vehicle();
         var backwards = fixture.Request();
         backwards.To = backwards.From.AddDays(-1);
@@ -323,24 +323,31 @@ public sealed class VehicleServiceTests
 
     private sealed class Fixture : IAsyncDisposable
     {
-        public FeuerwehrDbContext Db { get; } = new(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        private readonly HttpContextAccessor http = new() { HttpContext = new DefaultHttpContext() };
-        public TestClock Clock { get; } = new();
+        public FeuerwehrDbContext Db { get; } = new (new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
+        private readonly HttpContextAccessor http = new () { HttpContext = new DefaultHttpContext() };
+        public TestClock Clock { get; } = new ();
         public VehicleService Service { get; }
         public Fixture()
         {
             this.Db.Database.EnsureCreated();
             this.Db.FireDepartments.AddRange(new FireDepartment { Id = 1, Name = "Feuerwehr A" }, new FireDepartment { Id = 2, Name = "Feuerwehr B" });
             this.Db.Roles.Add(new IdentityRole { Id = "equipment-role", Name = Roles.EquipmentOfficer });
-            foreach (var id in new[] { "officer", "other", "member", "admin" })
+            foreach (string? id in new[] { "officer", "other", "member", "admin" })
+            {
                 this.Db.Users.Add(new ApplicationUser { Id = id, Email = id + "@example.test", UserName = id, FirstName = id, IsActive = true, FireDepartmentId = id == "other" ? 2 : 1 });
-            foreach (var id in new[] { "officer", "other" })
+            }
+
+            foreach (string? id in new[] { "officer", "other" })
+            {
                 this.Db.UserRoles.Add(new IdentityUserRole<string> { UserId = id, RoleId = "equipment-role" });
+            }
+
             this.Db.SaveChanges();
             this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailComposer(new ConfigurationBuilder().AddInMemoryCollection(
                 new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), this.Clock));
             this.As("officer", Roles.EquipmentOfficer);
         }
+
         public void As(string id, string role)
         {
             this.http.HttpContext!.User = new ClaimsPrincipal(new ClaimsIdentity(
@@ -349,13 +356,13 @@ public sealed class VehicleServiceTests
 
         public async Task<VehicleDto> Vehicle()
         {
-            return Assert.IsType<VehicleDto>((await this.Service.Save(null, new()
+            return Assert.IsType<VehicleDto>((await this.Service.Save(null, new ()
             { FireDepartmentId = 1, RadioCallSign = "Florian 19-01", EquipmentOfficerId = "officer" }, default)).Value);
         }
 
         public CreateVehicleReservationRequest Request(string? comment = null)
         {
-            return new()
+            return new ()
             { CommandId = Guid.NewGuid(), From = new DateOnly(2026, 10, 31), To = new DateOnly(2026, 11, 2), Comment = comment };
         }
 
@@ -364,9 +371,10 @@ public sealed class VehicleServiceTests
             return this.Db.DisposeAsync();
         }
     }
+
     private sealed class TestClock : TimeProvider
     {
-        public DateTimeOffset UtcNow { get; set; } = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+        public DateTimeOffset UtcNow { get; set; } = new (2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
         public override DateTimeOffset GetUtcNow()
         {
             return this.UtcNow;

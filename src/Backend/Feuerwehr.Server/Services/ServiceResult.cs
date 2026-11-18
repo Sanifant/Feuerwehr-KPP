@@ -18,7 +18,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// </summary>
         public static ServiceResult Ok(object? value)
         {
-            return new(200, value);
+            return new (200, value);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="value">The value.</param>
         public static ServiceResult NotFound(object? value = null)
         {
-            return new(404, value);
+            return new (404, value);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// </summary>
         public static ServiceResult BadRequest(object? value)
         {
-            return new(400, value);
+            return new (400, value);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="value">The value.</param>
         public static ServiceResult Unauthorized(object? value = null)
         {
-            return new(401, value);
+            return new (401, value);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// </summary>
         public static ServiceResult NoContent()
         {
-            return new(204);
+            return new (204);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// </summary>
         public static ServiceResult Forbid()
         {
-            return new(403);
+            return new (403);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="value">The value.</param>
         public static ServiceResult StatusCode(int statusCode, object? value = null)
         {
-            return new(statusCode, value);
+            return new (statusCode, value);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="detail">The detail.</param>
         public static ServiceResult Problem(int statusCode, string? title, string? detail = null)
         {
-            return new(statusCode) { ProblemTitle = title, ProblemDetail = detail };
+            return new (statusCode) { ProblemTitle = title, ProblemDetail = detail };
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="value">The value.</param>
         public static ServiceResult CreatedAtAction(string actionName, object routeValues, object value)
         {
-            return new(201, value) { ActionName = actionName, RouteValues = routeValues };
+            return new (201, value) { ActionName = actionName, RouteValues = routeValues };
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace de.openelp.feuerwehr.Server.Services
         /// <param name="downloadName">The download Name.</param>
         public static ServiceResult File(byte[] content, string contentType, string downloadName)
         {
-            return new(200) { Content = content, ContentType = contentType, DownloadName = downloadName };
+            return new (200) { Content = content, ContentType = contentType, DownloadName = downloadName };
         }
     }
 

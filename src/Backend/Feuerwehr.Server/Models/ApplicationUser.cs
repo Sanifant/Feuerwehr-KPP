@@ -18,4 +18,3 @@ namespace de.openelp.feuerwehr.Server.Models
         public string FullName => $"{this.FirstName} {this.LastName}".Trim();
     }
 }
-

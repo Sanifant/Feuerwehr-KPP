@@ -23,7 +23,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Data
         private readonly IConfigurationRoot _configuration;
         private readonly ServiceProvider _provider;
         private readonly UserManager<ApplicationUser> _users;
-        private readonly CapturingLogger _logger = new();
+        private readonly CapturingLogger _logger = new ();
 
         public DbInitializerTests()
         {
@@ -192,6 +192,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Data
             {
                 Assert.Equal(id, (await roles.FindByNameAsync(name))!.Id);
             }
+
             Assert.Equal(new[] { Roles.Viewer }, await this._users.GetRolesAsync(user));
 
             UsersController controller = new UsersController(new UsersService(
@@ -201,7 +202,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Data
                 NullLogger<UsersService>.Instance));
             IActionResult response = await controller.UpdateUser(user.Id, new UpdateUserRequest
             {
-                Roles = [Roles.Viewer, moduleRole]
+                Roles =[Roles.Viewer, moduleRole]
             });
 
             Assert.IsType<OkObjectResult>(response);
@@ -236,7 +237,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Data
 
         private sealed class CapturingLogger : ILogger<Program>
         {
-            public List<string> Messages { get; } = [];
+            public List<string> Messages { get; } =[];
 
             public IDisposable? BeginScope<TState>(TState state)
                 where TState : notnull

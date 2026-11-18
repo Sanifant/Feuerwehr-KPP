@@ -50,13 +50,20 @@ namespace de.openelp.feuerwehr.Server.Services
             string? username = NonBlank(configuration["MAIL_USERNAME"]);
             string? password = configuration["MAIL_PASSWORD"];
             if ((username is null) != string.IsNullOrEmpty(password))
+            {
                 throw new InvalidOperationException("MAIL_USERNAME und MAIL_PASSWORD müssen gemeinsam gesetzt werden.");
+            }
+
             if (username is not null && security == SecureSocketOptions.None)
+            {
                 throw new InvalidOperationException("SMTP-Anmeldung erfordert MAIL_SECURITY=StartTls oder SslOnConnect.");
+            }
 
             string from = NonBlank(configuration["MAIL_FROM"]) ?? NonBlank(configuration["Mail:From"]) ?? username ?? "noreply@localhost.de";
             if (!MailboxAddress.TryParse(from, out MailboxAddress? sender))
+            {
                 throw new InvalidOperationException("MAIL_FROM muss eine gültige Absenderadresse enthalten.");
+            }
 
             return new SmtpSettings
             {
@@ -75,16 +82,25 @@ namespace de.openelp.feuerwehr.Server.Services
         private static int ReadPositiveInteger(string? value, string name, int fallback, int maximum)
         {
             if (value is null)
+            {
                 return fallback;
-            if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var number) && number > 0 && number <= maximum)
+            }
+
+            if (int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out int number) && number > 0 && number <= maximum)
+            {
                 return number;
+            }
+
             throw new InvalidOperationException($"{name} muss eine ganze Zahl zwischen 1 und {maximum} sein.");
         }
 
         private static Uri? ReadEndpoint(string? connection)
         {
             if (string.IsNullOrWhiteSpace(connection))
+            {
                 return null;
+            }
+
             try
             {
                 if (!Uri.TryCreate(connection, UriKind.Absolute, out var endpoint) || endpoint.Scheme is not ("smtp" or "smtps"))
@@ -92,8 +108,12 @@ namespace de.openelp.feuerwehr.Server.Services
                     DbConnectionStringBuilder builder = new DbConnectionStringBuilder { ConnectionString = connection };
                     endpoint = new Uri((string)builder["endpoint"], UriKind.Absolute);
                 }
+
                 if (endpoint.Scheme is not ("smtp" or "smtps") || string.IsNullOrWhiteSpace(endpoint.Host))
+                {
                     throw new FormatException();
+                }
+
                 return endpoint;
             }
             catch (Exception exception) when (exception is ArgumentException or FormatException or KeyNotFoundException)

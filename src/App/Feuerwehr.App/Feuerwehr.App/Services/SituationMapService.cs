@@ -18,7 +18,7 @@ namespace de.openelp.feuerwehr.App.Services
     /// <param name="httpClient">The http Client.</param>
     public sealed class SituationMapService(AuthenticatedHttpClient httpClient) : ISituationMapService
     {
-        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+        private static readonly JsonSerializerOptions JsonOptions = new (JsonSerializerDefaults.Web)
         {
             Converters = { new JsonStringEnumConverter() }
         };
@@ -27,7 +27,10 @@ namespace de.openelp.feuerwehr.App.Services
         {
             using var response = await httpClient.GetAsync("/api/incidents/active", cancellationToken);
             if (response.StatusCode == HttpStatusCode.NotFound)
+            {
                 return null;
+            }
+
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IncidentSummaryDto>(JsonOptions, cancellationToken)
                 ?? throw new JsonException("Die Einsatzantwort ist leer.");

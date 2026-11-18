@@ -557,6 +557,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             BadRequestObjectResult badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
             Assert.NotNull(badRequestResult.Value);
         }
+
         [Fact]
         /// <summary>
         /// Updates the user Returns Bad Request When Invalid Role Provided.
@@ -789,4 +790,3 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         #endregion
     }
 }
-

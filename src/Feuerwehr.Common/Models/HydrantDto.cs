@@ -6,7 +6,7 @@ namespace de.openelp.feuerwehr.Common.Models
     {
         public int Id { get; set; }
 
-        public AddressDto Address { get; set; } = new();
+        public AddressDto Address { get; set; } = new ();
 
         [Required]
         public double Latitude { get; set; }

@@ -121,7 +121,9 @@ public partial class Program
                 {
                     ITokenService tokens = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
                     if (context.Principal is null || !await tokens.IsAccessTokenValidAsync(context.Principal))
+                    {
                         context.Fail("Das Konto oder die Sitzung ist nicht mehr gültig.");
+                    }
                 }
             };
         });

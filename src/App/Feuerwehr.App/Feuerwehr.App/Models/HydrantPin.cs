@@ -14,4 +14,3 @@ namespace de.openelp.feuerwehr.App.Models
         public HydrantStatus Status { get; set; }
     }
 }
-

@@ -227,13 +227,16 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
         public async Task<ServiceResult> UpsertElement(Guid incidentId, UpsertMapElementRequest request, CancellationToken cancellationToken)
         {
             var strategy = dbContext.Database.CreateExecutionStrategy();
-            var attempt = 0;
+            int attempt = 0;
             return await strategy.ExecuteAsync(async token =>
             {
                 // A rolled-back attempt may have accepted tracked changes already. Reload
                 // entities and recheck CommandId so retries cannot duplicate committed work.
                 if (attempt++ > 0)
+                {
                     dbContext.ChangeTracker.Clear();
+                }
+
                 return await this.UpsertElementAttempt(incidentId, request, token);
             }, cancellationToken);
         }
@@ -323,12 +326,21 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                     if (request.ElementType == MapElementType.Symbol)
                     {
                         if (!Guid.TryParse(request.SymbolId, out var symbolId))
+                        {
                             return ServiceResult.Problem(400, "Bitte ein Symbol aus dem Symbolkatalog wählen.");
+                        }
+
                         var symbol = await dbContext.MapSymbols.AsNoTracking().FirstOrDefaultAsync(x => x.Id == symbolId && x.IsActive, cancellationToken);
                         if (symbol is null)
+                        {
                             return ServiceResult.Problem(400, "Das Symbol ist nicht mehr verfügbar.");
+                        }
+
                         if (symbol.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                        {
                             return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                        }
+
                         element.IsVehicle = symbol.IsVehicle;
                         if (!symbol.IsVehicle)
                         {
@@ -336,10 +348,12 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                             element.Strength = null;
                             element.Note = null;
                         }
+
                         element.SymbolSvg = symbol.SvgContent;
                         element.Category = symbol.Category;
                         element.Label = string.IsNullOrWhiteSpace(request.Label) ? symbol.Name : request.Label;
                     }
+
                     dbContext.MapElements.Add(element);
                     action = "create";
                 }
@@ -355,11 +369,20 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                     }
 
                     if (element.ElementType != request.ElementType)
+                    {
                         return ServiceResult.Problem(400, "Der Elementtyp kann nicht geändert werden.");
+                    }
+
                     if (!string.Equals(element.SymbolId, request.SymbolId, StringComparison.Ordinal))
+                    {
                         return ServiceResult.Problem(400, "Das Symbol eines platzierten Elements kann nicht ausgetauscht werden.");
+                    }
+
                     if (element.IsVehicle && string.IsNullOrWhiteSpace(request.RadioCallName))
+                    {
                         return ServiceResult.Problem(400, "Bitte einen Funkrufnamen für das Fahrzeug angeben.");
+                    }
+
                     element.Label = request.Label;
                     bool allowsDetails = element.ElementType != MapElementType.Symbol || element.IsVehicle;
                     if (allowsDetails)
@@ -368,6 +391,7 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
                         element.Strength = request.Strength;
                         element.Note = request.Note;
                     }
+
                     element.ColorHex = string.IsNullOrWhiteSpace(request.ColorHex) ? "#d62828" : request.ColorHex;
                     element.GeometryJson = request.GeometryJson;
 
@@ -691,12 +715,12 @@ namespace de.openelp.feuerwehr.Server.Services.IncidentModules
 
         private static EditorLeaseDto ToLeaseDto(EditorLease lease, DateTime now)
         {
-            return new(lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
+            return new (lease.IncidentId, lease.UserId, lease.UserDisplayName, lease.SessionId, lease.LeaseToken, lease.ExpiresAtUtc, lease.LastHeartbeatAtUtc, true, lease.ExpiresAtUtc <= now);
         }
 
         private static MapElementDto ToMapElementDto(MapElement x)
         {
-            return new(x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
+            return new (x.Id, x.IncidentId, x.ElementType, x.SymbolId, x.Category, x.Label, x.RadioCallName, x.Strength, x.Note, x.ColorHex, x.GeometryJson, x.Version, x.UpdatedAtUtc, x.UpdatedByDisplayName, x.SymbolSvg, x.IsVehicle);
         }
 
         private static readonly System.Linq.Expressions.Expression<Func<MapElement, MapElementDto>> ToMapElementDtoExpression =

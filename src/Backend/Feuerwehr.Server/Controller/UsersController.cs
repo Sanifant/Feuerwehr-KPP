@@ -43,7 +43,10 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<IActionResult> CreateUser([FromBody] RegisterUserRequest request)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.CreateUser(request));
         }
 
@@ -64,7 +67,10 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.BadRequest(this.ModelState);
+            }
+
             return this.ToActionResult(await service.UpdateUser(id, request));
         }
 

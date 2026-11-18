@@ -131,7 +131,10 @@ namespace de.openelp.feuerwehr.Server.Services
                 this._logger.LogError(exception, "Einladung konnte nicht versendet werden; Benutzeranlage wird zurückgenommen.");
                 IdentityResult rollback = await this._userManager.DeleteAsync(user);
                 if (!rollback.Succeeded)
+                {
                     this._logger.LogError("Benutzeranlage konnte nach fehlgeschlagener Einladung nicht zurückgenommen werden.");
+                }
+
                 return ServiceResult.StatusCode(503, new MessageResponse("Die Einladung konnte nicht versendet werden. Bitte versuchen Sie es erneut."));
             }
 
@@ -143,9 +146,14 @@ namespace de.openelp.feuerwehr.Server.Services
         {
             var user = await this._userManager.FindByIdAsync(id);
             if (user is null)
+            {
                 return ServiceResult.NotFound(new MessageResponse("Benutzer nicht gefunden."));
+            }
+
             if (!user.IsActive)
+            {
                 return ServiceResult.BadRequest(new MessageResponse("Inaktive Benutzer können nicht eingeladen werden."));
+            }
 
             try
             {
@@ -176,10 +184,14 @@ namespace de.openelp.feuerwehr.Server.Services
             }
 
             if (user.PasswordResetRequired && !string.IsNullOrEmpty(request.NewPassword))
+            {
                 return ServiceResult.BadRequest(new MessageResponse("Das Passwort muss über den Einladungslink festgelegt werden."));
+            }
 
             if (request.ClearFireDepartment && request.FireDepartmentId.HasValue)
+            {
                 return ServiceResult.BadRequest(new MessageResponse("Bitte entweder eine Feuerwehr auswählen oder die Zuordnung entfernen."));
+            }
 
             if (request.Email != null)
             {

@@ -106,7 +106,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 return Invalid("Der Standardstatus kann nicht deaktiviert werden.");
             }
 
-            var normalized = request.Name.Trim().ToUpperInvariant();
+            string normalized = request.Name.Trim().ToUpperInvariant();
             if (await db.Set<VehicleStatus>().AnyAsync(x => x.NormalizedName == normalized && x.Id != status.Id, ct))
             {
                 return Conflict("Ein Status mit diesem Namen existiert bereits.");
@@ -157,8 +157,8 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 return Invalid("Bitte einen Fahrzeugtyp mit höchstens 100 Zeichen angeben.");
             }
 
-            var name = request.Name.Trim();
-            var normalized = name.ToUpperInvariant();
+            string name = request.Name.Trim();
+            string normalized = name.ToUpperInvariant();
             var type = id.HasValue ? await db.Set<VehicleType>().SingleOrDefaultAsync(x => x.Id == id.Value, ct) : new VehicleType { Id = Guid.NewGuid() };
             if (type is null)
             {
@@ -253,6 +253,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 string normalizedType = vehicleType.Trim().ToUpperInvariant();
                 query = query.Where(x => x.VehicleType != null && x.VehicleType.NormalizedName == normalizedType);
             }
+
             List<Vehicle> vehicles = await query
                 .OrderBy(x => x.FireDepartment.Name).ThenBy(x => x.RadioCallSign).ToListAsync(ct);
             List<VehicleBookingDay> bookings = await db.VehicleBookingDays.AsNoTracking().Where(x => x.Date >= from && x.Date <= to).ToListAsync(ct);
@@ -289,7 +290,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
             }
 
             var departmentList = await departments.OrderBy(x => x.Name).Select(x => new VehicleDepartmentDto(x.Id, x.Name)).ToListAsync(ct);
-            var ids = departmentList.Select(x => x.Id).ToArray();
+            int[] ids = departmentList.Select(x => x.Id).ToArray();
             var officers = await (from user in db.Users
                                   join membership in db.UserRoles on user.Id equals membership.UserId
                                   join role in db.Roles on membership.RoleId equals role.Id
@@ -370,6 +371,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                     return Invalid("Bitte einen aktiven Fahrzeugtyp wählen.");
                 }
             }
+
             if (id.HasValue && vehicle.Version != request.ExpectedVersion)
             {
                 return Conflict("Das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
@@ -520,7 +522,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 return ServiceResult.Forbid();
             }
 
-            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+            string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
             { VehicleId = id, request.From, request.To, Comment = Clean(request.Comment), Direct = direct }))));
             await using var transaction = await this.Begin(ct);
             var vehicle = await this.LockVehicle(id, ct);
@@ -616,6 +618,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 existing = await db.VehicleReservations.Include(x => x.Vehicle).SingleOrDefaultAsync(x => x.CommandId == request.CommandId, ct);
                 return existing is not null ? this.Replay(existing, hash) : Conflict("Der Zeitraum oder das Fahrzeug wurde inzwischen geändert. Bitte neu laden.");
             }
+
             return ServiceResult.Ok(this.ToDto(reservation));
         }
 
@@ -646,7 +649,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
             await using var transaction = await this.Begin(ct);
             var vehicle = (await this.LockVehicle(vehicleId.Value, ct))!;
             var reservation = (await db.VehicleReservations.SingleAsync(x => x.Id == id, ct));
-            var owns = this.Owns(vehicle);
+            bool owns = this.Owns(vehicle);
             if (status == VehicleReservationStatus.Cancelled)
             {
                 if (!owns && !(reservation.RequesterId == this.UserId && reservation.Status is VehicleReservationStatus.Pending or VehicleReservationStatus.Cancelled))
@@ -693,6 +696,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 this.AddDays(reservation);
                 _ = db.VehicleMailMessages.Add(mail.Compose(reservation, reservation.RequesterEmail, false));
             }
+
             if (status == VehicleReservationStatus.Cancelled)
             {
                 db.VehicleBookingDays.RemoveRange(await db.VehicleBookingDays.Where(x => x.ReservationId == id).ToListAsync(ct));
@@ -790,7 +794,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
 
         private VehicleDto ToDto(Vehicle vehicle)
         {
-            return new(vehicle.Id, vehicle.FireDepartmentId, vehicle.FireDepartment.Name,
+            return new (vehicle.Id, vehicle.FireDepartmentId, vehicle.FireDepartment.Name,
                     vehicle.RadioCallSign, vehicle.Name, vehicle.LicensePlate, vehicle.EquipmentOfficerId, vehicle.EquipmentOfficer.FullName,
                     vehicle.IsActive, vehicle.Version, this.IsAdmin || this.Owns(vehicle), this.Owns(vehicle), vehicle.VehicleTypeId, vehicle.VehicleType?.Name,
                     vehicle.VehicleStatusId, vehicle.VehicleStatus.Name, vehicle.VehicleStatus.AllowsBooking, vehicle.StatusChangedAtUtc);
@@ -798,7 +802,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
 
         private VehicleReservationDto ToDto(VehicleReservation reservation)
         {
-            return new(reservation.Id, reservation.VehicleId, reservation.RadioCallSign,
+            return new (reservation.Id, reservation.VehicleId, reservation.RadioCallSign,
                     reservation.FireDepartmentName, reservation.From, reservation.To, reservation.Comment, reservation.Status, reservation.RequesterName,
                     reservation.CreatedAtUtc, reservation.DecidedAtUtc, reservation.IsDirectBooking, reservation.Version,
                     this.Owns(reservation.Vehicle) && reservation.Status == VehicleReservationStatus.Pending,

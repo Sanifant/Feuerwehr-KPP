@@ -25,7 +25,10 @@ namespace de.openelp.feuerwehr.Server.Controller.IncidentModules
         public async Task<IActionResult> Upsert([FromBody] UpsertDiaryCategoryRequest request, CancellationToken cancellationToken)
         {
             if (!this.ModelState.IsValid)
+            {
                 return this.ValidationProblem(this.ModelState);
+            }
+
             return this.ToActionResult(await service.Upsert(request, cancellationToken));
         }
 

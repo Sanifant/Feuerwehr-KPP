@@ -265,4 +265,3 @@ namespace de.openelp.feuerwehr.Server.Data
         }
     }
 }
-

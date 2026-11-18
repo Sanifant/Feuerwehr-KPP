@@ -24,10 +24,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         private readonly ServiceProvider _provider;
         private readonly UserManager<ApplicationUser> _users;
         private readonly RoleManager<IdentityRole> _roles;
-        private readonly MemoryInvitations _store = new();
-        private readonly CapturingMail _mail = new();
-        private readonly MutableClock _clock = new();
-        private readonly Mock<ITokenService> _tokens = new();
+        private readonly MemoryInvitations _store = new ();
+        private readonly CapturingMail _mail = new ();
+        private readonly MutableClock _clock = new ();
+        private readonly Mock<ITokenService> _tokens = new ();
         private readonly UsersController _usersApi;
         private readonly AuthController _authApi;
         private readonly TokenService _realTokens;
@@ -73,13 +73,16 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         private async Task<(ApplicationUser User, Guid Id)> CreateInvitedUser()
         {
             if (!await this._roles.RoleExistsAsync("Viewer"))
+            {
                 Assert.True((await this._roles.CreateAsync(new IdentityRole("Viewer"))).Succeeded);
+            }
+
             var response = await this._usersApi.CreateUser(new RegisterUserRequest
             {
                 Email = "new.user@example.com",
                 FirstName = "Ada",
                 LastName = "Muster",
-                Roles = ["Viewer"],
+                Roles =["Viewer"],
             });
             Assert.IsType<CreatedAtActionResult>(response);
             var user = await this._users.FindByEmailAsync("new.user@example.com");
@@ -89,7 +92,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
 
         private static ResetRequest Request(Guid id, string email = "new.user@example.com", string password = "MyNewPassword123")
         {
-            return new() { Token = id.ToString("D"), Email = email, NewPassword = password };
+            return new () { Token = id.ToString("D"), Email = email, NewPassword = password };
         }
 
         [Fact]
@@ -132,7 +135,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 Email = "officer@example.com",
                 FirstName = "Ada",
                 LastName = "Muster",
-                Roles = ["EquipmentOfficer"],
+                Roles =["EquipmentOfficer"],
                 FireDepartmentId = first.Id
             }));
             var created = Assert.IsType<UserSummaryDto>(response.Value);
@@ -275,7 +278,11 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             else if (change == "changed-email")
                 await this._users.SetEmailAsync(user, "changed@example.com");
             else
-            { user.IsActive = false; await this._users.UpdateAsync(user); }
+            {
+                user.IsActive = false;
+                await this._users.UpdateAsync(user);
+            }
+
             Assert.IsType<BadRequestObjectResult>(await this._authApi.ResetPassword(Request(id)));
         }
 
@@ -288,7 +295,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 Email = "new.user@example.com",
                 FirstName = "Ada",
                 LastName = "Muster",
-                Roles = [],
+                Roles =[],
             }));
             Assert.Equal(503, result.StatusCode);
             Assert.Null(await this._users.FindByEmailAsync("new.user@example.com"));
@@ -406,7 +413,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             var (user, id) = await this.CreateInvitedUser();
             await this._authApi.ResetPassword(Request(id));
             this.SignInAs(user.Id);
-            for (var attempt = 1; attempt <= 3; attempt++)
+            for (int attempt = 1; attempt <= 3; attempt++)
             {
                 Assert.IsType<UnauthorizedObjectResult>((await this._authApi.Login(new LoginRequest
                 {
@@ -414,6 +421,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                     Password = "WrongPassword123",
                 })).Result);
             }
+
             Assert.Equal(3, await this._users.GetAccessFailedCountAsync(user));
             ChangePasswordRequest request = new ChangePasswordRequest { CurrentPassword = "WrongPassword123", NewPassword = "ChangedPassword123" };
             Assert.IsType<BadRequestObjectResult>(await this._authApi.ChangePassword(request));
@@ -548,7 +556,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         {
             (ApplicationUser? user, Guid id) = await this.CreateInvitedUser();
             await this._authApi.ResetPassword(Request(id));
-            string jwt = await this._realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
+            string jwt = await this._realTokens.GenerateAccessTokenAsync(user,["Viewer"]);
             ClaimsPrincipal principal = Assert.IsType<ClaimsPrincipal>(this._realTokens.GetPrincipalFromExpiredToken(jwt));
             Assert.True(await this._realTokens.IsAccessTokenValidAsync(principal));
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(new ClaimsPrincipal(new ClaimsIdentity(
@@ -557,14 +565,14 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             await this._usersApi.ResendInvitation(user.Id);
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(principal));
             // Even a token with the current stamp cannot bypass the persisted invitation lock.
-            string pendingJwt = await this._realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
+            string pendingJwt = await this._realTokens.GenerateAccessTokenAsync(user,["Viewer"]);
             ClaimsPrincipal pendingPrincipal = this._realTokens.GetPrincipalFromExpiredToken(pendingJwt)!;
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(pendingPrincipal));
             Guid newId = Assert.Single(this._store.Entries).Key;
             await this._authApi.ResetPassword(Request(newId));
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(principal));
             Assert.False(await this._realTokens.IsAccessTokenValidAsync(pendingPrincipal));
-            string newJwt = await this._realTokens.GenerateAccessTokenAsync(user, ["Viewer"]);
+            string newJwt = await this._realTokens.GenerateAccessTokenAsync(user,["Viewer"]);
             Assert.True(await this._realTokens.IsAccessTokenValidAsync(this._realTokens.GetPrincipalFromExpiredToken(newJwt)!));
         }
 
@@ -575,8 +583,11 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         {
             var (user, id) = await this.CreateInvitedUser();
             if (!alreadyInvited)
+            {
                 await this._authApi.ResetPassword(Request(id));
-            var stamp = user.SecurityStamp;
+            }
+
+            string? stamp = user.SecurityStamp;
             this._mail.Fail = true;
             Assert.Equal(503, Assert.IsType<ObjectResult>(await this._usersApi.ResendInvitation(user.Id)).StatusCode);
             this._provider.GetRequiredService<FeuerwehrDbContext>().ChangeTracker.Clear();
@@ -604,8 +615,11 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
         {
             var (user, id) = await this.CreateInvitedUser();
             await this._authApi.ResetPassword(Request(id));
-            for (var attempt = 0; attempt < 5; attempt++)
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
                 await this._authApi.Login(new LoginRequest { Email = user.Email!, Password = "WrongPassword123" });
+            }
+
             Assert.True(await this._users.IsLockedOutAsync(user));
             await this._usersApi.ResendInvitation(user.Id);
             var newId = Assert.Single(this._store.Entries).Key;
@@ -653,7 +667,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
 
         private sealed class MemoryInvitations : IUserInvitationStore
         {
-            public Dictionary<Guid, UserInvitation> Entries { get; } = [];
+            public Dictionary<Guid, UserInvitation> Entries { get; } =[];
             public TimeSpan StoredLifetime { get; private set; }
             public bool FailRemoval { get; set; }
             public Action? BeforeRemove { get; set; }
@@ -663,6 +677,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
                 this.StoredLifetime = lifetime;
                 return Task.CompletedTask;
             }
+
             public Task<UserInvitation?> FindAsync(Guid id)
             {
                 return Task.FromResult(this.Entries.GetValueOrDefault(id));
@@ -672,7 +687,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
             {
                 this.BeforeRemove?.Invoke();
                 if (this.FailRemoval)
+                {
                     throw new TimeoutException("Redis unavailable");
+                }
+
                 this.Entries.Remove(id);
                 return Task.CompletedTask;
             }
@@ -680,12 +698,15 @@ namespace de.openelp.feuerwehr.Tests.Backend.Controller
 
         private sealed class CapturingMail : IMailService
         {
-            public List<(string Recipient, string Subject, string Body)> Messages { get; } = [];
+            public List<(string Recipient, string Subject, string Body)> Messages { get; } =[];
             public bool Fail { get; set; }
             public Task SendAsync(string recipient, string subject, string body)
             {
                 if (this.Fail)
+                {
                     throw new System.Net.Mail.SmtpException("SMTP unavailable");
+                }
+
                 this.Messages.Add((recipient, subject, body));
                 return Task.CompletedTask;
             }

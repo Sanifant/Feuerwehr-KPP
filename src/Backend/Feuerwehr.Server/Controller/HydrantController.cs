@@ -31,9 +31,14 @@ namespace de.openelp.feuerwehr.Server.Controller
         public async Task<IActionResult> Import([FromForm] IFormFile? file, CancellationToken cancellationToken)
         {
             if (file is null || file.Length == 0)
-                return this.BadRequest(new HydrantImportResponse(0, [new(null, "Bitte eine CSV-Datei auswählen.")]));
+            {
+                return this.BadRequest(new HydrantImportResponse(0,[new (null, "Bitte eine CSV-Datei auswählen.")]));
+            }
+
             if (file.Length > MaximumImportBytes)
-                return this.BadRequest(new HydrantImportResponse(0, [new(null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
+            {
+                return this.BadRequest(new HydrantImportResponse(0,[new (null, "Die CSV-Datei darf höchstens 5 MB groß sein.")]));
+            }
 
             await using Stream stream = file.OpenReadStream();
             return this.ToActionResult(await service.ImportAsync(stream, cancellationToken));

@@ -20,9 +20,11 @@ namespace de.openelp.feuerwehr.Server.Services
 
         public async Task StoreAsync(Guid id, UserInvitation invitation, TimeSpan lifetime)
         {
-            var stored = await redis.GetDatabase().StringSetAsync(Key(id), JsonSerializer.Serialize(invitation), lifetime);
+            bool stored = await redis.GetDatabase().StringSetAsync(Key(id), JsonSerializer.Serialize(invitation), lifetime);
             if (!stored)
+            {
                 throw new InvalidOperationException("Einladung konnte nicht gespeichert werden.");
+            }
         }
 
         /// <summary>

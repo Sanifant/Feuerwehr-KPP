@@ -95,16 +95,20 @@ namespace de.openelp.feuerwehr.App.ViewModels
         private Task NavigateTo(int selectedIndex)
         {
             if (selectedIndex < 0 || selectedIndex >= this.Pages.Count || this.Navigation is null)
+            {
                 throw new ArgumentOutOfRangeException(nameof(selectedIndex));
+            }
 
             PageItem item = this.Pages[selectedIndex];
 
             if (item != null)
             {
 
-                var view = item.Factory();
+                object view = item.Factory();
                 if (view is Page page)
+                {
                     return this.Navigation.ReplaceAsync(page);
+                }
             }
 
             return Task.CompletedTask;
@@ -117,4 +121,3 @@ namespace de.openelp.feuerwehr.App.ViewModels
         }
     }
 }
-
