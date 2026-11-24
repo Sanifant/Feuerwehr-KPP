@@ -22,27 +22,48 @@ namespace de.openelp.feuerwehr.Server.Data
         public DbSet<TrainingCourse> TrainingCourses { get; set; }
 
         public DbSet<FireDepartmentTrainingCourse> FireDepartmentTrainingCourses { get; set; }
+
         public DbSet<Incident> Incidents { get; set; }
+
         public DbSet<MapElement> MapElements { get; set; }
+
         public DbSet<MapSymbol> MapSymbols { get; set; }
+
         public DbSet<MapSymbolCategory> MapSymbolCategories { get; set; }
+
         public DbSet<MapAuditEvent> MapAuditEvents { get; set; }
+
         public DbSet<EditorLease> EditorLeases { get; set; }
+
         public DbSet<DiaryCategory> DiaryCategories { get; set; }
+
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
+
         public DbSet<DiaryEntryRevision> DiaryEntryRevisions { get; set; }
+
         public DbSet<ProcessedCommand> ProcessedCommands { get; set; }
+
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
+
         public DbSet<InventoryCategory> InventoryCategories { get; set; }
+
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
+
         public DbSet<Equipment> Equipment { get; set; }
+
         public DbSet<EquipmentInspection> EquipmentInspections { get; set; }
+
         public DbSet<EquipmentReminderDelivery> EquipmentReminderDeliveries { get; set; }
+
         public DbSet<Vehicle> Vehicles { get; set; }
+
         public DbSet<VehicleReservation> VehicleReservations { get; set; }
+
         public DbSet<VehicleBookingDay> VehicleBookingDays { get; set; }
+
         public DbSet<VehicleEvent> VehicleEvents { get; set; }
-        public DbSet<VehicleMailMessage> VehicleMailMessages { get; set; }
+
+        public DbSet<MailMessage> MailMessages { get; set; }
 
         public DbSet<HydrantInspection> HydrantInspections { get; set; }
 
@@ -54,6 +75,19 @@ namespace de.openelp.feuerwehr.Server.Data
             modelBuilder.ConfigureInventory();
             modelBuilder.ConfigureVehicles();
             modelBuilder.ApplyConfiguration(new HydrantInspectionConfiguration());
+
+            modelBuilder.Entity<MailMessage>(entity =>
+            {
+                entity.ToTable("MailMessages");
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Source).HasMaxLength(100).IsRequired();
+                entity.Property(x => x.DeduplicationKey).HasMaxLength(200);
+                entity.HasIndex(x => new { x.Source, x.DeduplicationKey }).IsUnique();
+                entity.HasIndex(x => new { x.SentAtUtc, x.NextAttemptAtUtc });
+                entity.Property(x => x.ModifiedBy).HasColumnName("modified_by");
+                entity.Property(x => x.ModifiedOn).HasColumnName("modified_on");
+                entity.HasOne(x => x.ModifiedByUser).WithMany().HasForeignKey(x => x.ModifiedBy).OnDelete(DeleteBehavior.SetNull);
+            });
 
             modelBuilder.Entity<Models.Settings.Setting>(entity =>
             {

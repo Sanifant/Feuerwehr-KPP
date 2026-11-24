@@ -8,9 +8,18 @@ namespace de.openelp.feuerwehr.Server.Services.Settings
     {
         public async Task<string?> GetValueAsync(string key, CancellationToken cancellationToken = default)
         {
-            SettingDefinition definition = catalog.Find(key) ?? throw new ArgumentException("Unknown setting key.", nameof(key));
-            string? value = await db.Settings.AsNoTracking().Where(x => x.Name == key).Select(x => x.Value).SingleOrDefaultAsync(cancellationToken);
-            return value is not null && this.Validator(definition).Validate(value) is null ? value : null;
+            if (string.IsNullOrEmpty(key) || !catalog.Definitions.Any(x => x.Key == key))
+            {
+                throw new ArgumentException($"No setting definition found for key '{key}'.", nameof(key));
+            }
+
+            string? value = await db.Settings
+                .AsNoTracking()
+                .Where(x => x.Name == key)
+                .Select(x => x.Value)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return value is not null ? value : null;
         }
 
         public async Task<IReadOnlyList<SettingsModuleStatusDto>> GetModuleStatusesAsync(CancellationToken cancellationToken = default)

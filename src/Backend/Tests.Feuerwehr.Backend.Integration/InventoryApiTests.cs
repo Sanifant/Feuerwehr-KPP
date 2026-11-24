@@ -212,6 +212,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Integration
             await reminders.SendDueReminders(Ct);
             var user = await db.Users.SingleAsync(x => x.Email == email);
             Assert.Equal(2, await db.EquipmentReminderDeliveries.CountAsync(x => x.RecipientId == user.Id));
+            await scope.ServiceProvider.GetRequiredService<IMailDispatcher>().DispatchAsync(Ct);
             using HttpClient mail = new HttpClient { BaseAddress = fixture.MailpitUrl };
             var messages = await mail.GetFromJsonAsync<JsonElement>("/api/v1/messages");
             var received = messages.GetProperty("messages").EnumerateArray().Where(x => x.GetProperty("To").EnumerateArray().Any(to => to.GetProperty("Address").GetString() == email)).ToArray();

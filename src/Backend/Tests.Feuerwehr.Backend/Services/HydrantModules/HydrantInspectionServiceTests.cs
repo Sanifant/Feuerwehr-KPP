@@ -9,8 +9,10 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services.HydrantModules
     using de.openelp.feuerwehr.Server.Services;
     using de.openelp.feuerwehr.Server.Services.HydrantModules;
     using de.openelp.feuerwehr.Server.Services.IncidentModules;
+    using de.openelp.feuerwehr.Server.Services.Settings;
     using Microsoft.Data.Sqlite;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging.Abstractions;
     using Moq;
 
     public sealed class HydrantInspectionServiceTests : IAsyncLifetime
@@ -33,7 +35,11 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services.HydrantModules
             this._user.SetupGet(x => x.UserId).Returns("inspector");
             this._user.SetupGet(x => x.DisplayName).Returns("Untrusted claim display name");
             this._clock.Setup(x => x.GetUtcNow()).Returns(this._now);
-            this._service = new HydrantService(this._db, this._user.Object, this._clock.Object);
+            Mock<ISettingsRuntime> settings = new Mock<ISettingsRuntime>();
+            settings.Setup(x => x.GetValueAsync("HYDRANT_MAIL_SERVICE_ENABLED", default)).ReturnsAsync("hydrant@example.test");
+            HydrantMailService mail = new HydrantMailService(new MailQueue(this._db, this._clock.Object),
+                NullLogger<HydrantMailService>.Instance, settings.Object);
+            this._service = new HydrantService(this._db, this._user.Object, this._clock.Object, mail);
         }
 
         [Theory]
@@ -58,6 +64,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services.HydrantModules
             this._db.ChangeTracker.Clear();
             Assert.Equal(status, (await this._db.Hydrants.FindAsync(42))!.Status);
             Assert.Equal(inspection.Id, (await this._db.HydrantInspections.SingleAsync()).Id);
+            Assert.Equal(status == HydrantStatus.Operational ? 0 : 1, await this._db.MailMessages.CountAsync());
         }
 
         [Fact]
@@ -121,6 +128,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services.HydrantModules
             this._db.ChangeTracker.Clear();
             Assert.Equal(HydrantStatus.Operational, (await this._db.Hydrants.FindAsync(42))!.Status);
             Assert.Empty(await this._db.HydrantInspections.ToListAsync());
+            Assert.Empty(await this._db.MailMessages.ToListAsync());
         }
 
         public async Task DisposeAsync()

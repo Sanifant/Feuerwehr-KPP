@@ -14,7 +14,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services;
 public sealed class InventoryReminderTests
 {
     [Fact]
-    public async Task FailedDeliveryIsRetried_WhileSuccessfulDeliveryIsDeduplicatedPerRecipientAndDueDate()
+    public async Task RemindersAreQueuedOncePerRecipientAndDueDate_AndRetriedByTheCentralDispatcher()
     {
         await using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         DateOnly today = new DateOnly(2026, 10, 29);
@@ -36,16 +36,23 @@ public sealed class InventoryReminderTests
         mail.Setup(x => x.SendAsync("retry@example.test", It.IsAny<string>(), It.IsAny<string>()))
             .Returns(() => ++attempts == 1 ? Task.FromException(new IOException("SMTP down")) : Task.CompletedTask);
         FixedClock clock = new FixedClock(today);
-        InventoryReminderService service = new InventoryReminderService(db, mail.Object, clock, NullLogger<InventoryReminderService>.Instance);
+        InventoryReminderService service = new InventoryReminderService(db, new MailQueue(db, clock), clock);
+        MailDispatcher dispatcher = new MailDispatcher(db, mail.Object, Mock.Of<IHtmlMailService>(), clock, NullLogger<MailDispatcher>.Instance);
         await service.SendDueReminders(CancellationToken.None);
         mail.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
         item.CreatedOn = today.AddDays(14).AddYears(-1);
         await db.SaveChangesAsync();
         await service.SendDueReminders(CancellationToken.None);
-        Assert.Single(db.EquipmentReminderDeliveries);
-        Assert.Equal("good", db.EquipmentReminderDeliveries.Single().RecipientId);
-        await service.SendDueReminders(CancellationToken.None);
         Assert.Equal(2, db.EquipmentReminderDeliveries.Count());
+        Assert.Equal(2, db.MailMessages.Count());
+        Assert.All(db.MailMessages, message => Assert.Null(message.SentAtUtc));
+        mail.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+        await dispatcher.DispatchAsync(CancellationToken.None);
+        await service.SendDueReminders(CancellationToken.None);
+        Assert.Equal(2, db.MailMessages.Count());
+        clock.Date = today.AddDays(1);
+        await dispatcher.DispatchAsync(CancellationToken.None);
+        Assert.All(db.MailMessages, message => Assert.NotNull(message.SentAtUtc));
         mail.Verify(x => x.SendAsync("good@example.test", It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         mail.Verify(x => x.SendAsync("retry@example.test", It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(2));
         mail.Verify(x => x.SendAsync("inactive@example.test", It.IsAny<string>(), It.IsAny<string>()), Times.Never());

@@ -7,6 +7,6 @@ namespace de.openelp.feuerwehr.Server.Models.Inventory
         public Equipment Equipment { get; set; } = null!;
         public string RecipientId { get; set; } = string.Empty;
         public DateOnly DueOn { get; set; }
-        public DateTime SentAtUtc { get; set; }
+        public DateTime QueuedAtUtc { get; set; }
     }
 }

@@ -75,14 +75,6 @@ namespace de.openelp.feuerwehr.Server.Data
                 entity.Property(x => x.Action).HasMaxLength(50);
                 entity.HasIndex(x => new { x.VehicleId, x.OccurredAtUtc });
             });
-            model.Entity<VehicleMailMessage>(entity =>
-            {
-                entity.ToTable("VehicleMailMessages");
-                entity.HasKey(x => x.Id);
-                entity.Property(x => x.Kind).HasMaxLength(30);
-                entity.HasIndex(x => new { x.ReservationId, x.Kind }).IsUnique();
-                entity.HasIndex(x => new { x.SentAtUtc, x.NextAttemptAtUtc });
-            });
         }
     }
 

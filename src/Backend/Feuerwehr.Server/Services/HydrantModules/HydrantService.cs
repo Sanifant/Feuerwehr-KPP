@@ -18,7 +18,7 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
     /// <param name="context">The context.</param>
     /// <param name="user">The authenticated user context.</param>
     /// <param name="timeProvider">The server clock.</param>
-    public sealed class HydrantService(FeuerwehrDbContext context, IUserContextAccessor user, TimeProvider timeProvider) : IHydrantService
+    public sealed class HydrantService(FeuerwehrDbContext context, IUserContextAccessor user, TimeProvider timeProvider, IHydrantMailService mailService) : IHydrantService
     {
         /// <summary>
         /// Executes export.
@@ -122,11 +122,18 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
 
         public ServiceResult Put(int id, HydrantDto value)
         {
+            if (value == null)
+            {
+                return ServiceResult.BadRequest(value);
+            }
+
             HydrantEntity? entity = context.Hydrants.Find(id);
             if (entity is null)
             {
                 return ServiceResult.NotFound();
             }
+
+            _ = UpdateStatus(entity, value.Status);
 
             ToHydrantEntity(entity, value);
             _ = context.SaveChanges();
@@ -180,12 +187,32 @@ namespace de.openelp.feuerwehr.Server.Services.HydrantModules
                 NewStatus = request.NewStatus,
             };
 
-            entity.Status = request.NewStatus;
+            HydrantStatus newStatus = request.NewStatus;
+
+            if (UpdateStatus(entity, newStatus))
+            {
+                mailService.QueueMailAsync(inspection, CancellationToken.None).Wait();
+            }
+
             _ = context.HydrantInspections.Add(inspection);
-            // A single SaveChanges transaction persists the inspection and hydrant status together.
             _ = context.SaveChanges();
 
             return ServiceResult.StatusCode(201, ToHydrantInspectionDto(inspection));
+        }
+
+        private static bool UpdateStatus(HydrantEntity entity, HydrantStatus newStatus)
+        {
+            if (entity.Status != newStatus)
+            {
+                entity.Status = newStatus;
+
+                if (newStatus != HydrantStatus.Operational)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public ServiceResult GetInspections(int hydrantId)

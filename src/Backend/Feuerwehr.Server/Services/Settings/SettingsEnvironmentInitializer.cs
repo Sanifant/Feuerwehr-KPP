@@ -38,8 +38,13 @@ namespace de.openelp.feuerwehr.Server.Services.Settings
                 ApplicationUser installer = await this.GetInstallerAsync(cancellationToken);
                 Setting setting = new Setting
                 {
-                    Id = Guid.NewGuid(), Name = definition.Key, Value = value, Type = validator.Type,
-                    ModifiedBy = installer.Id, ModifiedByUser = installer, ModifiedOn = DateTime.UtcNow,
+                    Id = Guid.NewGuid(),
+                    Name = definition.Key,
+                    Value = value,
+                    Type = validator.Type,
+                    ModifiedBy = installer.Id,
+                    ModifiedByUser = installer,
+                    ModifiedOn = DateTime.UtcNow,
                 };
                 db.Settings.Add(setting);
                 try
@@ -47,7 +52,7 @@ namespace de.openelp.feuerwehr.Server.Services.Settings
                     await db.SaveChangesAsync(cancellationToken);
                 }
                 catch (DbUpdateException exception) when (exception.InnerException is PostgresException
-                    { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Settings_Name" })
+                { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_Settings_Name" })
                 {
                     // Another application instance imported or an administrator created this value first.
                     db.Entry(setting).State = EntityState.Detached;
@@ -65,9 +70,15 @@ namespace de.openelp.feuerwehr.Server.Services.Settings
 
             installer = new ApplicationUser
             {
-                Id = InstallerId, UserName = InstallerId, NormalizedUserName = InstallerId.ToUpperInvariant(),
-                FirstName = "Installer", IsActive = false, LockoutEnabled = true, LockoutEnd = DateTimeOffset.MaxValue,
-                SecurityStamp = Guid.NewGuid().ToString(), PasswordHash = null,
+                Id = InstallerId,
+                UserName = InstallerId,
+                NormalizedUserName = InstallerId.ToUpperInvariant(),
+                FirstName = "Installer",
+                IsActive = false,
+                LockoutEnabled = true,
+                LockoutEnd = DateTimeOffset.MaxValue,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                PasswordHash = null,
             };
             db.Users.Add(installer);
             try

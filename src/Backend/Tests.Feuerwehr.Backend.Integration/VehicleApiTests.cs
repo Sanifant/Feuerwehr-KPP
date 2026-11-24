@@ -183,11 +183,11 @@ public sealed class VehicleApiTests(InventoryApiFixture fixture) : IClassFixture
         Guid winner = Assert.Single(days.Select(x => x.ReservationId).Distinct());
         VehicleReservation stored = await db.VehicleReservations.SingleAsync(x => x.Id == winner);
         Assert.Equal(VehicleReservationStatus.Confirmed, stored.Status);
-        Assert.Equal(1, await db.VehicleMailMessages.CountAsync(x => x.ReservationId == winner && x.Kind == "Confirmed"));
+        Assert.Equal(1, await db.MailMessages.CountAsync(x => x.Source == "vehicle" && x.DeduplicationKey == winner + ":Confirmed"));
         VehicleAvailabilityDto[]? booked = await member.GetFromJsonAsync<VehicleAvailabilityDto[]>($"/api/vehicles/availability?from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}");
         Assert.All(booked!.Single(x => x.Vehicle.Id == vehicle.Id).Days, x => Assert.Equal(VehicleDayStatus.Booked, x.Status));
 
-        await scope.ServiceProvider.GetRequiredService<IVehicleMailDispatcher>().Dispatch(default);
+        await scope.ServiceProvider.GetRequiredService<IMailDispatcher>().DispatchAsync(default);
         using HttpClient mail = new HttpClient { BaseAddress = fixture.MailpitUrl };
         JsonElement messages = await mail.GetFromJsonAsync<JsonElement>("/api/v1/messages");
         JsonElement[] matching = messages.GetProperty("messages").EnumerateArray().Where(x =>

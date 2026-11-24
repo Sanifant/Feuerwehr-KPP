@@ -55,9 +55,10 @@ public partial class Program
         _ = builder.Services.AddScoped<IHtmlMailService, MailService>();
         _ = builder.Services.AddScoped<IVehicleService, VehicleService>();
         _ = builder.Services.AddScoped<IVehicleTransferService, VehicleTransferService>();
-        _ = builder.Services.AddScoped<IVehicleMailComposer, VehicleMailComposer>();
-        _ = builder.Services.AddScoped<IVehicleMailDispatcher, VehicleMailDispatcher>();
-        _ = builder.Services.AddHostedService<VehicleMailWorker>();
+        _ = builder.Services.AddScoped<IVehicleMailService, VehicleMailService>();
+        _ = builder.Services.AddScoped<IMailQueue, MailQueue>();
+        _ = builder.Services.AddScoped<IMailDispatcher, MailDispatcher>();
+        _ = builder.Services.AddHostedService<MailWorker>();
         _ = builder.Services.AddScoped<IUserInvitationStore, UserInvitationStore>();
         _ = builder.Services.AddScoped<IUserInvitationService, UserInvitationService>();
 
@@ -188,7 +189,10 @@ public partial class Program
 
         _ = builder.Services.AddScoped<IAuthService, AuthService>();
         _ = builder.Services.AddScoped<IFireDepartmentService, FireDepartmentService>();
+
         _ = builder.Services.AddScoped<IHydrantService, HydrantService>();
+        _ = builder.Services.AddScoped<IHydrantMailService, HydrantMailService>();
+
         _ = builder.Services.AddOptions<HydrantInspectionPhotoStorageOptions>()
             .BindConfiguration(HydrantInspectionPhotoStorageOptions.SectionName)
             .Validate(options => !string.IsNullOrWhiteSpace(options.RootPath), "The inspection photo directory must not be empty.")

@@ -23,7 +23,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
     /// <param name="clock">The clock.</param>
     /// <param name="mail">The mail.</param>
     public sealed class VehicleService(FeuerwehrDbContext db, IHttpContextAccessor http, TimeProvider clock,
-        IVehicleMailComposer mail) : IVehicleService
+        IVehicleMailService mail) : IVehicleService
     {
         private ClaimsPrincipal Principal => http.HttpContext?.User ?? new ClaimsPrincipal();
 
@@ -598,7 +598,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
 
             vehicle.Version++;
             this.Audit(vehicle, reservation, direct ? "DirectBooking" : "ReservationRequested", reservation.Comment ?? string.Empty);
-            _ = db.VehicleMailMessages.Add(mail.Compose(reservation, direct ? actor.Email! : vehicle.EquipmentOfficer.Email!, !direct));
+            mail.QueueMail(reservation, direct ? actor.Email! : vehicle.EquipmentOfficer.Email!, !direct, actor.Id);
             try
             {
                 _ = await db.SaveChangesAsync(ct);
@@ -694,7 +694,7 @@ namespace de.openelp.feuerwehr.Server.Services.VehicleModules
                 }
 
                 this.AddDays(reservation);
-                _ = db.VehicleMailMessages.Add(mail.Compose(reservation, reservation.RequesterEmail, false));
+                mail.QueueMail(reservation, reservation.RequesterEmail, false, this.UserId);
             }
 
             if (status == VehicleReservationStatus.Cancelled)

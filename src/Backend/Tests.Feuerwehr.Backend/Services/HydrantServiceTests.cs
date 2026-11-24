@@ -1,3 +1,4 @@
+using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
 using de.openelp.feuerwehr.Server.Models.Hydrant;
@@ -16,7 +17,7 @@ public class HydrantServiceTests
     {
         using FeuerwehrDbContext db = new FeuerwehrDbContext(new DbContextOptionsBuilder<FeuerwehrDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
-        HydrantService service = new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System);
+        HydrantService service = new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System, Mock.Of<IHydrantMailService>());
         HydrantDto request = new HydrantDto
         {
             Address = new AddressDto { Street = "Dorfstraße", HouseNumber = "5", PostalCode = "23617", City = "Stockelsdorf" },

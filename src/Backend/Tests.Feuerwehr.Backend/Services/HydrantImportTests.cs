@@ -1,3 +1,4 @@
+using de.openelp.feuerwehr.Server.Services.HydrantModules.Interfaces;
 using System.Text;
 using de.openelp.feuerwehr.Common.Models;
 using de.openelp.feuerwehr.Server.Data;
@@ -31,7 +32,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         public static async Task<ServiceResult> Import(FeuerwehrDbContext db, string csv)
         {
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
-            return await new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System).ImportAsync(stream);
+            return await new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System, Mock.Of<IHydrantMailService>()).ImportAsync(stream);
         }
 
         [Fact]
@@ -172,7 +173,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
             using FeuerwehrDbContext db = CreateDatabase();
             using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(Header + "\n" + Row));
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-                new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System).ImportAsync(stream, new CancellationToken(true)));
+                new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System, Mock.Of<IHydrantMailService>()).ImportAsync(stream, new CancellationToken(true)));
             Assert.Empty(db.Hydrants);
         }
 
@@ -184,7 +185,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services
         {
             using FeuerwehrDbContext db = CreateDatabase();
             using MemoryStream stream = new MemoryStream([0xff, 0xff, 0xff]);
-            ServiceResult result = await new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System).ImportAsync(stream);
+            ServiceResult result = await new HydrantService(db, Mock.Of<IUserContextAccessor>(), TimeProvider.System, Mock.Of<IHydrantMailService>()).ImportAsync(stream);
             Assert.Equal(400, result.Code);
             Assert.Contains(Assert.IsType<HydrantImportResponse>(result.Value).Errors, error => error.Description.Contains("UTF-8"));
             Assert.Empty(db.Hydrants);

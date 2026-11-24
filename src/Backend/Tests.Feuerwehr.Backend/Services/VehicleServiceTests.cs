@@ -193,7 +193,7 @@ public sealed class VehicleServiceTests
         VehicleReservationDto first = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, request, false, default)).Value);
         VehicleReservationDto second = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, fixture.Request(), false, default)).Value);
         Assert.Equal(VehicleReservationStatus.Pending, first.Status);
-        VehicleMailMessage notification = await fixture.Db.VehicleMailMessages.SingleAsync(x => x.ReservationId == first.Id && x.Kind == "Requested");
+        MailMessage notification = await fixture.Db.MailMessages.SingleAsync(x => x.Source == "vehicle" && x.DeduplicationKey == first.Id + ":Requested");
         Assert.Contains("https://example.test/vehicles", notification.TextBody);
         Assert.DoesNotContain("vehicles/manage", notification.HtmlBody);
         Assert.Empty(fixture.Db.VehicleBookingDays);
@@ -207,7 +207,7 @@ public sealed class VehicleServiceTests
         Assert.Equal(409, (await fixture.Service.Decide(second.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default)).Code);
         calendar = Assert.IsType<List<VehicleAvailabilityDto>>((await fixture.Service.Availability(request.From, request.To, default)).Value);
         Assert.All(calendar[0].Days, day => Assert.Equal(VehicleDayStatus.Booked, day.Status));
-        VehicleMailMessage confirmation = await fixture.Db.VehicleMailMessages.SingleAsync(x => x.Kind == "Confirmed");
+        MailMessage confirmation = await fixture.Db.MailMessages.SingleAsync(x => x.Source == "vehicle" && x.DeduplicationKey!.EndsWith(":Confirmed"));
         Assert.Equal("member@example.test", confirmation.Recipient);
         Assert.Contains("Fahrt zur Jugendfeuerwehr <Ãœbung>", confirmation.TextBody);
         Assert.Contains("&lt;", confirmation.HtmlBody);
@@ -229,14 +229,14 @@ public sealed class VehicleServiceTests
         VehicleReservationDto retry = Assert.IsType<VehicleReservationDto>((await fixture.Service.Reserve(vehicle.Id, request, false, default)).Value);
         Assert.Equal(first.Id, retry.Id);
         Assert.Single(fixture.Db.VehicleReservations);
-        Assert.Single(fixture.Db.VehicleMailMessages);
+        Assert.Single(fixture.Db.MailMessages);
         request.Comment = "Andere Nutzlast";
         Assert.Equal(409, (await fixture.Service.Reserve(vehicle.Id, request, false, default)).Code);
         fixture.As("officer", Roles.EquipmentOfficer);
         await fixture.Service.Decide(first.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
         await fixture.Service.Decide(first.Id, new () { ExpectedVersion = 1 }, VehicleReservationStatus.Confirmed, default);
         Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
-        Assert.Equal(2, fixture.Db.VehicleMailMessages.Count());
+        Assert.Equal(2, fixture.Db.MailMessages.Count());
     }
 
     [Fact]
@@ -309,15 +309,15 @@ public sealed class VehicleServiceTests
         await fixture.Service.Reserve(vehicle.Id, fixture.Request("Fahrt"), true, default);
         Mock<IHtmlMailService> mail = new Mock<IHtmlMailService>();
         mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new IOException("offline"));
-        VehicleMailDispatcher worker = new VehicleMailDispatcher(fixture.Db, mail.Object, fixture.Clock, NullLogger<VehicleMailDispatcher>.Instance);
-        await worker.Dispatch(default);
-        Assert.Null(fixture.Db.VehicleMailMessages.Single().SentAtUtc);
+        MailDispatcher worker = new MailDispatcher(fixture.Db, Mock.Of<IMailService>(), mail.Object, fixture.Clock, NullLogger<MailDispatcher>.Instance);
+        await worker.DispatchAsync(default);
+        Assert.Null(fixture.Db.MailMessages.Single().SentAtUtc);
         Assert.Equal(3, fixture.Db.VehicleBookingDays.Count());
         fixture.Clock.UtcNow = fixture.Clock.UtcNow.AddHours(1);
         mail.Setup(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-        await worker.Dispatch(default);
-        await worker.Dispatch(default);
-        Assert.NotNull(fixture.Db.VehicleMailMessages.Single().SentAtUtc);
+        await worker.DispatchAsync(default);
+        await worker.DispatchAsync(default);
+        Assert.NotNull(fixture.Db.MailMessages.Single().SentAtUtc);
         mail.Verify(x => x.SendHtmlAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Exactly(2));
     }
 
@@ -343,8 +343,8 @@ public sealed class VehicleServiceTests
             }
 
             this.Db.SaveChanges();
-            this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailComposer(new ConfigurationBuilder().AddInMemoryCollection(
-                new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), this.Clock));
+            this.Service = new VehicleService(this.Db, this.http, this.Clock, new VehicleMailService(new ConfigurationBuilder().AddInMemoryCollection(
+                new Dictionary<string, string?> { ["Frontend:BaseUrl"] = "https://example.test" }).Build(), new MailQueue(this.Db, this.Clock)));
             this.As("officer", Roles.EquipmentOfficer);
         }
 
