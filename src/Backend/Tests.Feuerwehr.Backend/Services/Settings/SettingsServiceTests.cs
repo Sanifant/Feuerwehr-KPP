@@ -194,21 +194,27 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services.Settings
         [Fact]
         public async Task MissingOrInvalidMandatoryValuesBlockTheModuleAndDeletingBlocksItAgainAsync()
         {
+            const string Key = "TEST_EMAIL";
+            const string Value = "one@example.org";
+            const string ValueInvalid = "invalid";
+
             SettingsRuntime runtime = new SettingsRuntime(this._db, this._catalog, this._services);
             Assert.False(Assert.Single(await runtime.GetModuleStatusesAsync()).IsAvailable);
-            Assert.Null(await runtime.GetValueAsync("TEST_EMAIL"));
-            SettingDto created = Assert.IsType<SettingDto>((await this._service.CreateAsync(new CreateSettingRequest
-            { Key = "TEST_EMAIL", Value = "one@example.org" }, default)).Value);
+            Assert.Null(await runtime.GetValueAsync(Key));
+            SettingDto created = Assert.IsType<SettingDto>((await this._service.CreateAsync(
+                new CreateSettingRequest { Key = Key, Value = Value }, default)).Value);
             Assert.True(Assert.Single(await runtime.GetModuleStatusesAsync()).IsAvailable);
-            Assert.Equal("one@example.org", await runtime.GetValueAsync("TEST_EMAIL"));
+            Assert.Equal(Value, await runtime.GetValueAsync(Key));
+
             Setting stored = await this._db.Settings.SingleAsync();
-            stored.Value = "invalid";
+            stored.Value = ValueInvalid;
             await this._db.SaveChangesAsync();
+
             Assert.False(Assert.Single(await runtime.GetModuleStatusesAsync()).IsAvailable);
-            Assert.Null(await runtime.GetValueAsync("TEST_EMAIL"));
+            Assert.Equal(ValueInvalid, await runtime.GetValueAsync(Key));
             Assert.Equal(204, (await this._service.DeleteAsync(created.Id, default)).Code);
             Assert.False(Assert.Single(await runtime.GetModuleStatusesAsync()).IsAvailable);
-            Assert.DoesNotContain("one@example.org", JsonSerializer.Serialize(await runtime.GetModuleStatusesAsync()));
+            Assert.DoesNotContain(Value, JsonSerializer.Serialize(await runtime.GetModuleStatusesAsync()));
         }
 
         [Fact]

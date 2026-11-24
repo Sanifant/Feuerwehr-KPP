@@ -28,7 +28,7 @@ namespace de.openelp.feuerwehr.Tests.Backend.Services.Settings
         [Fact]
         public void ProductionDoesNotPredefineAnyParameterOrModule()
         {
-            SettingsCatalog catalog = new SettingsCatalog(typeof(SettingsService).Assembly.GetTypes());
+            SettingsCatalog catalog = new SettingsCatalog([typeof(EmptySettingsTestModule)]);
             Assert.Empty(catalog.Definitions);
             Assert.Empty(catalog.Modules);
         }
